@@ -3,16 +3,28 @@
 
 #include "qffmpegvideoencoderutils_p.h"
 
+#include <QtFFmpegMediaPluginImpl/private/qffmpeg_p.h>
+
 #include <QtMultimedia/private/qmultimediautils_p.h>
+#include <QtCore/qglobalstatic.h>
+#include <QtCore/qloggingcategory.h>
 #include <QtCore/qoperatingsystemversion.h>
+#include <QtCore/qreadwritelock.h>
 #include <QtCore/private/qminimalflatset_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegrecordingengineutils_p.h>
 
+#include <map>
+#include <mutex>
+#include <shared_mutex>
+
 extern "C" {
+#include <libavutil/hwcontext.h>
 #include <libavutil/pixdesc.h>
 }
 
 QT_BEGIN_NAMESPACE
+
+Q_STATIC_LOGGING_CATEGORY(qLcVideoEncoderUtils, "qt.multimedia.ffmpeg.videoencoderutils");
 
 namespace QFFmpeg {
 
@@ -139,13 +151,131 @@ bool isHwFormatAcceptedByCodec(AVPixelFormat pixFormat)
     }
 }
 
+// The sw formats commonly accepted by mpeg2, mpeg4, h264, h265, vp8, vp9 and av1 encoders.
+// Probing is only a fallback for codecs that tell us nothing, so the list is deliberately short;
+// scoreTargetSwFormat() takes care of ranking whatever we find.
+static constexpr AVPixelFormat probeCandidates[] = {
+    AV_PIX_FMT_YUV420P,     AV_PIX_FMT_NV12,        AV_PIX_FMT_NV21,        AV_PIX_FMT_YUVJ420P,
+    AV_PIX_FMT_YUV422P,     AV_PIX_FMT_YUV444P,     AV_PIX_FMT_YUVA420P,    AV_PIX_FMT_P010LE,
+    AV_PIX_FMT_YUV420P10LE, AV_PIX_FMT_YUV422P10LE, AV_PIX_FMT_YUV444P10LE, AV_PIX_FMT_GRAY8,
+};
+
+class ProbedPixelFormatCache
+{
+public:
+    std::vector<AVPixelFormat> pixelFormats(const Codec &codec, QSize resolution,
+                                            const HWAccel *accel);
+
+private:
+    std::optional<std::vector<AVPixelFormat>> lookup(const AVCodec *codec, QSize resolution,
+                                                     AVPixelFormat hwFormat);
+
+    struct ProbeRecord
+    {
+        QSize resolution;
+        AVPixelFormat hwFormat = AV_PIX_FMT_NONE;
+        AVPixelFormat format = AV_PIX_FMT_NONE;
+        bool supported = false;
+    };
+
+    QReadWriteLock m_lock;
+    std::multimap<const AVCodec *, ProbeRecord> m_cache;
+};
+
+std::vector<AVPixelFormat>
+ProbedPixelFormatCache::pixelFormats(const Codec &codec, QSize resolution, const HWAccel *accel)
+{
+    const AVPixelFormat hwFormat = accel ? accel->hwFormat() : AV_PIX_FMT_NONE;
+
+    {
+        std::shared_lock locker(m_lock);
+        if (std::optional cached = lookup(codec.get(), resolution, hwFormat))
+            return *cached;
+    }
+
+    std::unique_lock locker(m_lock);
+    if (std::optional cached = lookup(codec.get(), resolution, hwFormat))
+        return *cached;
+
+    const std::vector<AVPixelFormat> supported = probePixelFormats(codec, resolution, accel);
+    qCDebug(qLcVideoEncoderUtils) << "Probed pixel formats for" << codec.name() << "at"
+                                  << resolution << "hwFormat" << hwFormat << ":" << supported;
+
+    using namespace QtMultimediaPrivate;
+    for (AVPixelFormat format : probeCandidates)
+        m_cache.emplace(codec.get(),
+                        ProbeRecord{
+                                resolution,
+                                hwFormat,
+                                format,
+                                ranges::contains(supported, format),
+                        });
+
+    return supported;
+}
+
+std::optional<std::vector<AVPixelFormat>>
+ProbedPixelFormatCache::lookup(const AVCodec *codec, QSize resolution, AVPixelFormat hwFormat)
+{
+    using namespace QtMultimediaPrivate;
+    namespace ranges = QtMultimediaPrivate::ranges;
+
+    auto range_pair = m_cache.equal_range(codec);
+    ranges::subrange<std::multimap<const AVCodec *, ProbeRecord>::iterator> range{
+        range_pair.first,
+        range_pair.second,
+    };
+
+    auto matches = [&](const auto &entry) {
+        return entry.second.resolution == resolution && entry.second.hwFormat == hwFormat;
+    };
+
+    if (!ranges::any_of(range, matches))
+        return std::nullopt;
+
+    return views::filter(range, [&](const auto &entry) {
+        return matches(entry) && entry.second.supported;
+    }) | views::transform([](const auto &entry) {
+        return entry.second.format;
+    }) | ranges::to<std::vector>();
+}
+
+Q_GLOBAL_STATIC(ProbedPixelFormatCache, probedPixelFormatCache)
+
+bool isProbingDisabled()
+{
+    static const bool disabled =
+            qEnvironmentVariableIntValue("QT_FFMPEG_DISABLE_ENCODER_PROBE") != 0;
+    return disabled;
+}
+
+AVBufferUPtr createProbeFramesContext(const HWAccel &accel, AVPixelFormat swFormat,
+                                      QSize resolution)
+{
+    AVBufferUPtr framesContext{ av_hwframe_ctx_alloc(accel.hwDeviceContextAsBuffer()) };
+    if (!framesContext)
+        return nullptr;
+
+    auto *context = reinterpret_cast<AVHWFramesContext *>(framesContext->data);
+    context->format = accel.hwFormat();
+    context->sw_format = swFormat;
+    context->width = resolution.width();
+    context->height = resolution.height();
+
+    if (av_hwframe_ctx_init(framesContext.get()) < 0)
+        return nullptr;
+
+    return framesContext;
+}
+
 // Some hw encoders (e.g. nvenc, qsv) advertise the sw formats they can consume directly in
 // codec.pixelFormats(), on top of their own hw pixel format. Others (e.g. vaapi) only ever
 // declare their own hw pixel format there and rely entirely on the hw accel's frame
 // constraints (valid_sw_formats) to describe the sw formats they accept.
-bool codecDeclaresSwFormats(const Codec &codec)
+bool codecDeclaresSwFormats(const Codec &codec, QSize resolution, const HWAccel *accel)
 {
-    return QtMultimediaPrivate::ranges::any_of(codec.pixelFormats(), [](AVPixelFormat fmt) {
+    const std::vector<AVPixelFormat> formats = encoderPixelFormats(codec, resolution, accel);
+    return QtMultimediaPrivate::ranges::any_of(formats, [](AVPixelFormat fmt) {
         return !isHwPixelFormat(fmt);
     });
 }
@@ -157,6 +287,61 @@ inline constexpr auto filterSuitablePixelFormats =
 
 } // namespace
 
+std::vector<AVPixelFormat> probePixelFormats(const Codec &codec, QSize resolution,
+                                             const HWAccel *accel)
+{
+    std::vector<AVPixelFormat> result;
+
+    for (AVPixelFormat format : probeCandidates) {
+        AVCodecContextUPtr context{ avcodec_alloc_context3(codec.get()) };
+        if (!context) {
+            qCWarning(qLcVideoEncoderUtils)
+                    << "Could not allocate codec context to probe" << codec.name();
+            break;
+        }
+
+        QSpan<const AVRational> supportedFrameRates = codec.frameRates();
+        const AVRational frameRate =
+                supportedFrameRates.empty() ? AVRational{ 25, 1 } : supportedFrameRates.front();
+
+        context->width = resolution.width();
+        context->height = resolution.height();
+        context->time_base = { frameRate.den, frameRate.num };
+        context->framerate = frameRate;
+
+        AVBufferUPtr framesContext;
+        if (accel) {
+            framesContext = createProbeFramesContext(*accel, format, resolution);
+            if (!framesContext)
+                continue;
+            context->hw_frames_ctx = av_buffer_ref(framesContext.get());
+            context->pix_fmt = accel->hwFormat();
+        } else {
+            context->pix_fmt = format;
+        }
+
+        AVDictionaryHolder opts;
+        applyExperimentalCodecOptions(codec, opts);
+
+        if (avcodec_open2(context.get(), codec.get(), opts) >= 0)
+            result.push_back(format);
+    }
+
+    return result;
+}
+
+std::vector<AVPixelFormat> encoderPixelFormats(const Codec &codec, QSize resolution,
+                                               const HWAccel *accel)
+{
+    // An empty result from FFmpeg means 'unknown', not 'nothing is supported', so fall back to
+    // asking the encoder itself rather than guessing.
+    const QSpan<const AVPixelFormat> declared = codec.pixelFormats();
+    if (!declared.empty() || isProbingDisabled())
+        return std::vector<AVPixelFormat>(declared.begin(), declared.end());
+
+    return probedPixelFormatCache->pixelFormats(codec, resolution, accel);
+}
+
 AVScore scoreTargetSwFormat(AVPixelFormat source, AVPixelFormat target)
 {
     const auto *desc = av_pix_fmt_desc_get(source);
@@ -164,7 +349,7 @@ AVScore scoreTargetSwFormat(AVPixelFormat source, AVPixelFormat target)
 }
 
 std::optional<AVPixelFormat> findTargetSWFormat(AVPixelFormat sourceSWFormat, const Codec &codec,
-                                                const HWAccel &accel)
+                                                const HWAccel &accel, QSize resolution)
 {
     using namespace QtMultimediaPrivate;
 
@@ -177,10 +362,11 @@ std::optional<AVPixelFormat> findTargetSWFormat(AVPixelFormat sourceSWFormat, co
                 makeSpan(constraints->valid_sw_formats) | ranges::to<QMinimalFlatSet>();
 
         auto bestPixelFormat = [&]() -> std::optional<AVPixelFormat> {
-            if (codecDeclaresSwFormats(codec)) {
+            if (codecDeclaresSwFormats(codec, resolution, &accel)) {
                 // If the codec declares sw formats, we can find the best one among the intersection
                 // of the codec's sw formats and the valid sw formats for the hw accel.
-                const auto codecPixelFormats = codec.pixelFormats();
+                const std::vector<AVPixelFormat> codecPixelFormats =
+                        encoderPixelFormats(codec, resolution, &accel);
                 auto formats = views::filter(codecPixelFormats, [&](AVPixelFormat fmt) {
                     return validSWFormatsForHWAccel.contains(fmt);
                 });
@@ -196,12 +382,16 @@ std::optional<AVPixelFormat> findTargetSWFormat(AVPixelFormat sourceSWFormat, co
     }
 
     // Some codecs, e.g. mediacodec, don't expose constraints, let's find the format in
-    // codec->pix_fmts (avcodec_get_supported_config with AV_CODEC_CONFIG_PIX_FORMAT since n7.1)
-    return findBestAVValue(codec.pixelFormats(), scoreTargetSwFormat);
+    // codec->pix_fmts (avcodec_get_supported_config with AV_CODEC_CONFIG_PIX_FORMAT since n7.1),
+    // or, if the codec declares nothing at all, in the probed formats.
+    const std::vector<AVPixelFormat> codecPixelFormats =
+            encoderPixelFormats(codec, resolution, &accel);
+    return findBestAVValue(codecPixelFormats, scoreTargetSwFormat);
 }
 
 std::vector<ScoredPixelFormat> findAndScoreTargetSWFormats(AVPixelFormat sourceSWFormat,
-                                                           const Codec &codec, const HWAccel &accel)
+                                                           const Codec &codec, const HWAccel &accel,
+                                                           QSize resolution)
 {
     if constexpr (false) {
         qDebug() << "findAndScoreTargetSWFormats" << codec.name() << codec.id();
@@ -221,10 +411,11 @@ std::vector<ScoredPixelFormat> findAndScoreTargetSWFormats(AVPixelFormat sourceS
             const auto validSWFormatsForHWAccel =
                     makeSpan(constraints->valid_sw_formats) | ranges::to<QMinimalFlatSet>();
 
-            if (codecDeclaresSwFormats(codec)) {
+            if (codecDeclaresSwFormats(codec, resolution, &accel)) {
                 // If the codec declares sw formats, we can find the best one among the intersection
                 // of the codec's sw formats and the valid sw formats for the hw accel.
-                const auto codecPixelFormats = codec.pixelFormats();
+                const std::vector<AVPixelFormat> codecPixelFormats =
+                        encoderPixelFormats(codec, resolution, &accel);
                 auto validCodecPixelFormats =
                         views::filter(codecPixelFormats, [&](AVPixelFormat fmt) {
                     return validSWFormatsForHWAccel.contains(fmt);
@@ -239,9 +430,12 @@ std::vector<ScoredPixelFormat> findAndScoreTargetSWFormats(AVPixelFormat sourceS
             }
         } else {
             // Some codecs, e.g. mediacodec, don't expose constraints, let's find the format in
-            // codec->pix_fmts (avcodec_get_supported_config with AV_CODEC_CONFIG_PIX_FORMAT since n7.1)
+            // codec->pix_fmts (avcodec_get_supported_config with AV_CODEC_CONFIG_PIX_FORMAT since
+            // n7.1), or, if the codec declares nothing at all, in the probed formats.
 
-            return codec.pixelFormats() | score | filterSuitablePixelFormats
+            const std::vector<AVPixelFormat> codecPixelFormats =
+                    encoderPixelFormats(codec, resolution, &accel);
+            return codecPixelFormats | score | filterSuitablePixelFormats
                     | ranges::to<std::vector>();
         }
     }();
@@ -254,7 +448,7 @@ std::vector<ScoredPixelFormat> findAndScoreTargetSWFormats(AVPixelFormat sourceS
 }
 
 std::optional<AVPixelFormat> findTargetFormat(AVPixelFormat sourceSWFormat, const Codec &codec,
-                                              const HWAccel *accel)
+                                              const HWAccel *accel, QSize resolution)
 {
     using namespace QtMultimediaPrivate;
 
@@ -263,7 +457,7 @@ std::optional<AVPixelFormat> findTargetFormat(AVPixelFormat sourceSWFormat, cons
 
         // TODO: handle codec->capabilities & AV_CODEC_CAP_HARDWARE here
         if (!isHwFormatAcceptedByCodec(hwFormat))
-            return findTargetSWFormat(sourceSWFormat, codec, *accel);
+            return findTargetSWFormat(sourceSWFormat, codec, *accel, resolution);
 
         const auto constraints = accel->constraints();
         if (constraints && ranges::contains(makeSpan(constraints->valid_hw_formats), hwFormat))
@@ -276,9 +470,11 @@ std::optional<AVPixelFormat> findTargetFormat(AVPixelFormat sourceSWFormat, cons
             return hwFormat;
     }
 
-    const auto pixelFormats = codec.pixelFormats();
+    const auto pixelFormats = encoderPixelFormats(codec, resolution, nullptr);
     if (pixelFormats.empty()) {
-        qWarning() << "Codec pix formats are undefined, it's likely to behave incorrectly";
+        qCWarning(qLcVideoEncoderUtils)
+                << "Codec pix formats are undefined and probing" << codec.name()
+                << "found none either, it's likely to behave incorrectly";
 
         return sourceSWFormat;
     }
@@ -287,11 +483,12 @@ std::optional<AVPixelFormat> findTargetFormat(AVPixelFormat sourceSWFormat, cons
     return findBestAVValue(pixelFormats, swScoreCalculator);
 }
 
-AVScore findSWFormatScores(const Codec &codec, AVPixelFormat sourceSWFormat)
+AVScore findSWFormatScores(const Codec &codec, AVPixelFormat sourceSWFormat, QSize resolution)
 {
-    const auto pixelFormats = codec.pixelFormats();
+    const auto pixelFormats = encoderPixelFormats(codec, resolution, nullptr);
     if (pixelFormats.empty())
-        // codecs without pixel formats are suspicious
+        // codecs that neither declare pixel formats nor accept any of the probed ones
+        // are suspicious
         return MinAVScore;
 
     auto formatScoreCalculator = targetSwFormatScoreCalculator(sourceSWFormat);

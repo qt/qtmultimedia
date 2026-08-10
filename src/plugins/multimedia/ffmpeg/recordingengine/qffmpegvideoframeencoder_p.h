@@ -78,7 +78,6 @@ private:
                                         const QMediaEncoderSettings &encoderSettings,
                                         bool needsGlobalHeader);
 
-    void initTargetSize();
     void initCodecFrameRate();
     void initStream();
 
