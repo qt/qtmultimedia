@@ -3,9 +3,9 @@
 
 #include "playbackengine/qffmpegplaybackengineobject_p.h"
 
-#include "QtCore/qchronotimer.h"
-#include "QtCore/qdebug.h"
-#include "QtCore/qscopedvaluerollback.h"
+#include <QtCore/qchronotimer.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qscopedvaluerollback.h>
 
 QT_BEGIN_NAMESPACE
 

@@ -3,11 +3,6 @@
 
 #include "playbackengine/qffmpegtimecontroller_p.h"
 
-#include "qglobal.h"
-#include "qdebug.h"
-
-#include <algorithm>
-
 QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {

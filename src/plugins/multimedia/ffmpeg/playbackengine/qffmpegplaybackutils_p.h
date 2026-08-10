@@ -15,10 +15,10 @@
 // We mean it.
 //
 
-#include <qtypes.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegtime_p.h>
 
 #include <QtCore/qdebug.h>
+#include <QtCore/qtypes.h>
 
 QT_BEGIN_NAMESPACE
 

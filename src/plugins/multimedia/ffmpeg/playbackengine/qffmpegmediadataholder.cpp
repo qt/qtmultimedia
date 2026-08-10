@@ -6,17 +6,15 @@
 #include "qffmpegmediametadata_p.h"
 #include "qffmpegmediaformatinfo_p.h"
 #include "qffmpegioutils_p.h"
-#include "qiodevice.h"
-#include "qdatetime.h"
-#include "qloggingcategory.h"
 
 #include <QtMultimedia/qplaybackoptions.h>
 #include <QtMultimedia/private/qmediametadata_p.h>
-
-#include <math.h>
-#include <optional>
-
+#include <QtCore/qiodevice.h>
+#include <QtCore/qdatetime.h>
+#include <QtCore/qloggingcategory.h>
 #include <QtCore/private/qminimalflatset_p.h>
+
+#include <optional>
 
 QT_BEGIN_NAMESPACE
 
