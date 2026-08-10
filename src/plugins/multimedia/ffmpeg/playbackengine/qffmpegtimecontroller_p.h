@@ -14,7 +14,6 @@
 // We mean it.
 //
 
-#include "qglobal.h"
 #include <QtFFmpegMediaPluginImpl/private/qffmpegtime_p.h>
 
 #include <chrono>
