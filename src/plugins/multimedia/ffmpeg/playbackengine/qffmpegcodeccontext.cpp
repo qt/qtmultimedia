@@ -75,9 +75,8 @@ q23::expected<CodecContext, QString> CodecContext::create(AVStream *stream,
         decoder = QFFmpeg::findAVDecoder(stream->codecpar->codec_id);
 
     if (!decoder)
-        return q23::unexpected{
-            QString(u"No %1 decoder found").arg(videoCodecPolicy == Hw ? "HW" : "SW")
-        };
+        return q23::unexpected{ u"No %1 decoder found"_s.arg(videoCodecPolicy == Hw ? "HW"
+                                                                                    : "SW") };
 
     qCDebug(qLcPlaybackEngineCodec)
             << "found decoder" << decoder->name() << "for id" << decoder->id();
