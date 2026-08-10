@@ -83,7 +83,9 @@ namespace {
 
 namespace MetadataLookupImpl {
 
-#ifdef __cpp_lib_constexpr_algorithms
+// note: libstdc++ 11 has incomplete support for ranges (missing owning_view, P2415)
+#if defined(__cpp_lib_constexpr_algorithms) && defined(__cpp_lib_ranges) \
+        && (!defined(_GLIBCXX_RELEASE) || _GLIBCXX_RELEASE >= 12)
 #  define constexpr_lookup constexpr
 #else
 #  define constexpr_lookup /*constexpr*/
