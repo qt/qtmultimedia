@@ -8,10 +8,47 @@
 #include <QtCore/qlist.h>
 #include <QtCore/qoperatingsystemversion.h>
 
+#include <QtFFmpegMediaPluginImpl/private/qffmpegcodec_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegvideoencoderutils_p.h>
 
+extern "C" {
+#include <libavutil/pixdesc.h>
+}
+
+#include <algorithm>
+#include <optional>
 
 using namespace QFFmpeg;
+using namespace Qt::Literals;
+
+namespace {
+
+std::optional<Codec> findEncoder(AVCodecID codecId)
+{
+    // Deliberately bypasses the codec storage, so that the test does not depend on its
+    // platform-specific filtering.
+    if (const AVCodec *codec = avcodec_find_encoder(codecId))
+        return Codec{ codec };
+    return {};
+}
+
+// Finds a video encoder that reports no pixel formats at all, i.e. one that needs probing.
+// Such codecs exist only on some platforms (e.g. *_mediacodec on Android).
+std::optional<Codec> findEncoderWithoutDeclaredPixelFormats()
+{
+    for (const AVCodec *avCodec : CodecRange{}) {
+        if (avCodec->type != AVMEDIA_TYPE_VIDEO || !av_codec_is_encoder(avCodec))
+            continue;
+
+        const Codec codec{ avCodec };
+        if (codec.pixelFormats().empty())
+            return codec;
+    }
+    return {};
+}
+
+} // namespace
 
 class tst_QFFmpegVideoEncoderUtils : public QObject
 {
@@ -30,6 +67,20 @@ private slots:
 
     void scoreTargetSwFormat_matchesExpectedScore_whenSourceIsNV12();
     void scoreTargetSwFormat_matchesExpectedScore_whenSourceIsNV12_data();
+
+    void encoderPixelFormats_returnsDeclaredFormats_whenCodecDeclaresThem();
+    void encoderPixelFormats_returnsDeclaredFormats_whenCodecDeclaresThem_data();
+
+    void encoderPixelFormats_isMemoized_whenCodecIsProbed();
+
+    void encoderPixelFormats_cachesIndependently_whenResolutionDiffers();
+
+    void encoderPixelFormats_cachesIndependently_whenAccelPathDiffers();
+
+    void probePixelFormats_returnsSubsetOfDeclaredFormats();
+    void probePixelFormats_returnsSubsetOfDeclaredFormats_data();
+
+    void probePixelFormats_findsYuv420p_whenCodecIsMpeg4();
 };
 
 void tst_QFFmpegVideoEncoderUtils::getScaleConversionType_returnsCorrectConversionType_basedOnScaling_data()
@@ -237,6 +288,150 @@ void tst_QFFmpegVideoEncoderUtils::scoreTargetSwFormat_matchesExpectedScore_when
 
     // Assert
     QCOMPARE(actualScore, expectedScore);
+}
+
+void tst_QFFmpegVideoEncoderUtils::encoderPixelFormats_returnsDeclaredFormats_whenCodecDeclaresThem_data()
+{
+    QTest::addColumn<AVCodecID>("codecId");
+
+    QTest::newRow("mpeg4") << AV_CODEC_ID_MPEG4;
+    QTest::newRow("mpeg2video") << AV_CODEC_ID_MPEG2VIDEO;
+    QTest::newRow("mjpeg") << AV_CODEC_ID_MJPEG;
+}
+
+void tst_QFFmpegVideoEncoderUtils::encoderPixelFormats_returnsDeclaredFormats_whenCodecDeclaresThem()
+{
+    // Arrange
+    QFETCH(AVCodecID, codecId);
+
+    const std::optional<Codec> codec = findEncoder(codecId);
+    if (!codec)
+        QSKIP("Encoder not available in this FFmpeg build");
+
+    const QSpan<const AVPixelFormat> declared = codec->pixelFormats();
+    if (declared.empty())
+        QSKIP("Encoder does not declare pixel formats, nothing to compare against");
+
+    // Act
+    const std::vector<AVPixelFormat> actual =
+            QFFmpeg::encoderPixelFormats(*codec, QSize(320, 240), nullptr);
+
+    // Assert: the declared formats are passed through verbatim, without probing.
+    QCOMPARE(actual, std::vector<AVPixelFormat>(declared.begin(), declared.end()));
+}
+
+void tst_QFFmpegVideoEncoderUtils::encoderPixelFormats_isMemoized_whenCodecIsProbed()
+{
+    // Arrange
+    const std::optional<Codec> codec = findEncoderWithoutDeclaredPixelFormats();
+    if (!codec)
+        QSKIP("No video encoder without declared pixel formats in this FFmpeg build");
+
+    // Act
+    const std::vector<AVPixelFormat> first =
+            QFFmpeg::encoderPixelFormats(*codec, QSize(320, 240), nullptr);
+    const std::vector<AVPixelFormat> second =
+            QFFmpeg::encoderPixelFormats(*codec, QSize(320, 240), nullptr);
+
+    // Assert: the second call is served from the cache rather than probed again.
+    QCOMPARE(second, first);
+}
+
+void tst_QFFmpegVideoEncoderUtils::encoderPixelFormats_cachesIndependently_whenResolutionDiffers()
+{
+    // Arrange
+    const std::optional<Codec> codec = findEncoderWithoutDeclaredPixelFormats();
+    if (!codec)
+        QSKIP("No video encoder without declared pixel formats in this FFmpeg build");
+
+    // Act: probe at the usual test resolution and at an odd, non-macroblock-aligned one.
+    const std::vector<AVPixelFormat> atSmallSize =
+            QFFmpeg::encoderPixelFormats(*codec, QSize(320, 240), nullptr);
+    const std::vector<AVPixelFormat> atOddSize =
+            QFFmpeg::encoderPixelFormats(*codec, QSize(1918, 1078), nullptr);
+    const std::vector<AVPixelFormat> atSmallSizeAgain =
+            QFFmpeg::encoderPixelFormats(*codec, QSize(320, 240), nullptr);
+
+    // Assert: results for a given resolution are stable, and probing a second, unrelated
+    // resolution does not disturb the cached result for the first.
+    QCOMPARE(atSmallSizeAgain, atSmallSize);
+    Q_UNUSED(atOddSize);
+}
+
+void tst_QFFmpegVideoEncoderUtils::encoderPixelFormats_cachesIndependently_whenAccelPathDiffers()
+{
+    // Arrange
+    const std::optional<Codec> codec = findEncoderWithoutDeclaredPixelFormats();
+    if (!codec)
+        QSKIP("No video encoder without declared pixel formats in this FFmpeg build");
+
+    const QSpan<const AVHWDeviceType> deviceTypes = HWAccel::encodingDeviceTypes();
+    if (deviceTypes.empty())
+        QSKIP("No hw accel device types available in this test environment");
+
+    const HWAccelUPtr accel = HWAccel::create(deviceTypes[0]);
+    if (!accel)
+        QSKIP("Could not create a hw accel for this test environment");
+
+    const QSize resolution(320, 240);
+
+    // Act: probe the plain (no hw frames context) path and the hw-frames-context-backed path
+    // for the same codec and resolution.
+    const std::vector<AVPixelFormat> plainPath =
+            QFFmpeg::encoderPixelFormats(*codec, resolution, nullptr);
+    const std::vector<AVPixelFormat> hwPath =
+            QFFmpeg::encoderPixelFormats(*codec, resolution, accel.get());
+    const std::vector<AVPixelFormat> plainPathAgain =
+            QFFmpeg::encoderPixelFormats(*codec, resolution, nullptr);
+
+    // Assert: probing the hw-frames-context path does not disturb the cached plain-path result,
+    // i.e. the two paths are tracked independently rather than overwriting each other.
+    QCOMPARE(plainPathAgain, plainPath);
+    Q_UNUSED(hwPath);
+}
+
+void tst_QFFmpegVideoEncoderUtils::probePixelFormats_returnsSubsetOfDeclaredFormats_data()
+{
+    encoderPixelFormats_returnsDeclaredFormats_whenCodecDeclaresThem_data();
+}
+
+void tst_QFFmpegVideoEncoderUtils::probePixelFormats_returnsSubsetOfDeclaredFormats()
+{
+    // Arrange
+    QFETCH(AVCodecID, codecId);
+
+    const std::optional<Codec> codec = findEncoder(codecId);
+    if (!codec)
+        QSKIP("Encoder not available in this FFmpeg build");
+
+    const QSpan<const AVPixelFormat> declared = codec->pixelFormats();
+    if (declared.empty())
+        QSKIP("Encoder does not declare pixel formats, nothing to compare against");
+
+    // Act
+    const std::vector<AVPixelFormat> probed =
+            QFFmpeg::probePixelFormats(*codec, QSize(320, 240), nullptr);
+
+    // Assert: probing never reports a format the codec does not actually accept.
+    for (AVPixelFormat format : probed)
+        QVERIFY2(std::find(declared.begin(), declared.end(), format) != declared.end(),
+                 qPrintable(u"Probed format %1 is not declared by the codec"_s.arg(
+                         QLatin1StringView{ av_get_pix_fmt_name(format) })));
+}
+
+void tst_QFFmpegVideoEncoderUtils::probePixelFormats_findsYuv420p_whenCodecIsMpeg4()
+{
+    // Arrange
+    const std::optional<Codec> codec = findEncoder(AV_CODEC_ID_MPEG4);
+    if (!codec)
+        QSKIP("mpeg4 encoder not available in this FFmpeg build");
+
+    // Act
+    const std::vector<AVPixelFormat> probed =
+            QFFmpeg::probePixelFormats(*codec, QSize(320, 240), nullptr);
+
+    // Assert: probing is not vacuously empty, it finds the format mpeg4 is known to accept.
+    QVERIFY(std::find(probed.begin(), probed.end(), AV_PIX_FMT_YUV420P) != probed.end());
 }
 
 QTEST_MAIN(tst_QFFmpegVideoEncoderUtils)

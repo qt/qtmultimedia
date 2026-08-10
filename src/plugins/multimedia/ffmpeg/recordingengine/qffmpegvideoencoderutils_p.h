@@ -24,8 +24,17 @@ QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
+// accel == nullptr probes/looks up the plain path (no hw_frames_ctx, i.e. ByteBuffer/MMAP-style
+// transport); accel != nullptr probes/looks up the path where the codec is opened with a
+// throwaway hw frames context using accel's hw format (Surface/DMABUF-style transport). The two
+// can accept different sw formats on real hardware (e.g. Android MediaCodec, V4L2 M2M).
+std::vector<AVPixelFormat> encoderPixelFormats(const Codec &, QSize resolution,
+                                               const HWAccel *accel);
+std::vector<AVPixelFormat> probePixelFormats(const Codec &, QSize resolution,
+                                             const HWAccel *accel);
+
 std::optional<AVPixelFormat> findTargetSWFormat(AVPixelFormat sourceSWFormat, const Codec &codec,
-                                                const HWAccel &accel);
+                                                const HWAccel &accel, QSize resolution);
 
 AVScore scoreTargetSwFormat(AVPixelFormat source, AVPixelFormat target);
 
@@ -37,12 +46,13 @@ struct ScoredPixelFormat
 
 // sorted by score
 std::vector<ScoredPixelFormat> findAndScoreTargetSWFormats(AVPixelFormat sourceSWFormat,
-                                                           const Codec &, const HWAccel &);
+                                                           const Codec &, const HWAccel &,
+                                                           QSize resolution);
 
 std::optional<AVPixelFormat> findTargetFormat(AVPixelFormat sourceSWFormat, const Codec &codec,
-                                              const HWAccel *accel);
+                                              const HWAccel *accel, QSize resolution);
 
-AVScore findSWFormatScores(const Codec &codec, AVPixelFormat sourceSWFormat);
+AVScore findSWFormatScores(const Codec &codec, AVPixelFormat sourceSWFormat, QSize resolution);
 
 /**
  * @brief adjustFrameRate resolves the effective frame rate to negotiate with a codec.

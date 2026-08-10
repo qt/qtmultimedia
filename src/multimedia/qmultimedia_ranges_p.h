@@ -36,6 +36,8 @@ namespace QtMultimediaPrivate::ranges {
 
 using std::ranges::range_value_t;
 
+using std::ranges::subrange;
+
 using std::ranges::all_of;
 using std::ranges::any_of;
 using std::ranges::copy;

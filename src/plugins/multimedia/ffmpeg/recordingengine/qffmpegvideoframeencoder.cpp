@@ -111,7 +111,8 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &enc
         // otherwise fall back to software
         encoder = [&]() -> VideoFrameEncoderUPtr {
             const std::vector encoders = findAndScoreEncoders(codecId, [&](const Codec &codec) {
-                return findSWFormatScores(codec, sourceParams.swFormat);
+                const QSize resolution = adjustVideoResolution(codec, encoderSettings.videoResolution());
+                return findSWFormatScores(codec, sourceParams.swFormat, resolution);
             });
 
             for (const auto &[codec, score] : encoders) {
@@ -135,13 +136,33 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &enc
 }
 
 static AVPixelFormat inferHardwareFormat(AVPixelFormat sourceSwFormat, const Codec &codec,
-                                         HWAccel *accel)
+                                         HWAccel *accel, QSize targetSize)
 {
-    const std::optional format = findTargetFormat(sourceSwFormat, codec, accel);
+    const std::optional format = findTargetFormat(sourceSwFormat, codec, accel, targetSize);
     if (!format)
         qWarning() << "Could not find target format for codecId" << codec.id();
 
     return format.value_or(AV_PIX_FMT_NONE);
+}
+
+static QSize computeTargetSize(const Codec &codec, const QMediaEncoderSettings &settings)
+{
+    QSize targetSize = adjustVideoResolution(codec, settings.videoResolution());
+
+#ifdef Q_OS_WINDOWS
+    // TODO: investigate, there might be more encoders not supporting odd resolution
+    if (codec.name() == u"h264_mf") {
+        auto makeEven = [](int size) { return size & ~1; };
+        const QSize fixedSize(makeEven(targetSize.width()), makeEven(targetSize.height()));
+        if (fixedSize != targetSize) {
+            qCDebug(qLcVideoFrameEncoder) << "Fix odd video resolution for codec" << codec.name()
+                                          << ":" << targetSize << "->" << fixedSize;
+            targetSize = fixedSize;
+        }
+    }
+#endif
+
+    return targetSize;
 }
 
 VideoFrameEncoder::VideoFrameEncoder(AVStream *stream, const Codec &codec, HWAccelUPtr hwAccel,
@@ -154,12 +175,12 @@ VideoFrameEncoder::VideoFrameEncoder(AVStream *stream, const Codec &codec, HWAcc
       m_accel(std::move(hwAccel)),
       m_needsGlobalHeader(needsGlobalHeader),
       m_sourceSize(sourceParams.size),
+      m_targetSize(computeTargetSize(codec, encoderSettings)),
       m_sourceFormat(sourceParams.format),
       m_sourceSWFormat(sourceParams.swFormat),
-      m_targetFormat(inferHardwareFormat(sourceParams.swFormat, codec, m_accel.get())),
+      m_targetFormat(inferHardwareFormat(sourceParams.swFormat, codec, m_accel.get(), m_targetSize)),
       m_sourceFrameRate(sourceParams.frameRate)
 {
-    initTargetSize();
     initCodecFrameRate();
     initStream();
 }
@@ -222,24 +243,6 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(AVStream *stream, const Codec &c
     return nullptr;
 }
 
-void VideoFrameEncoder::initTargetSize()
-{
-    m_targetSize = adjustVideoResolution(m_codec, m_settings.videoResolution());
-
-#ifdef Q_OS_WINDOWS
-    // TODO: investigate, there might be more encoders not supporting odd resolution
-    if (m_codec.name() == u"h264_mf") {
-        auto makeEven = [](int size) { return size & ~1; };
-        const QSize fixedSize(makeEven(m_targetSize.width()), makeEven(m_targetSize.height()));
-        if (fixedSize != m_targetSize) {
-            qCDebug(qLcVideoFrameEncoder) << "Fix odd video resolution for codec" << m_codec.name()
-                                          << ":" << m_targetSize << "->" << fixedSize;
-            m_targetSize = fixedSize;
-        }
-    }
-#endif
-}
-
 void VideoFrameEncoder::initCodecFrameRate()
 {
     const auto frameRates = m_codec.frameRates();
@@ -255,7 +258,8 @@ std::vector<ScoredPixelFormat> VideoFrameEncoder::enumerateTargetSwFormats() con
 {
     if (isHwPixelFormat(m_targetFormat)) {
         Q_ASSERT(m_accel);
-        return QFFmpeg::findAndScoreTargetSWFormats(m_sourceSWFormat, m_codec, *m_accel);
+        return QFFmpeg::findAndScoreTargetSWFormats(m_sourceSWFormat, m_codec, *m_accel,
+                                                    m_targetSize);
     } else {
         return std::vector{
             ScoredPixelFormat{
