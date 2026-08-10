@@ -13,17 +13,21 @@
 #include "qffmpegmediaintegration_p.h"
 #include "qffmpegvideobuffer_p.h"
 #include "qffmpeg_ranges_p.h"
-#include "qscopedvaluerollback.h"
 
-#include <QtCore/QElapsedTimer>
+#include <QtCore/qscopedvaluerollback.h>
+#include <QtCore/qloggingcategory.h>
+#include <QtCore/qelapsedtimer.h>
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 
 #ifdef Q_OS_LINUX
-#  include "QtCore/qfile.h"
-#  include <QLibrary>
+#  include <QtCore/qfile.h>
+#  include <QtCore/qlibrary.h>
+#  include <QtCore/qdir.h>
+#  include <QtCore/qjsondocument.h>
+#  include <QtCore/qjsonobject.h>
 #endif
 
-#include <rhi/qrhi.h>
-#include <qloggingcategory.h>
+#include <algorithm>
 #include <unordered_set>
 
 /* Infrastructure for HW acceleration goes into this file. */
@@ -68,6 +72,62 @@ static AVBufferUPtr loadHWContext(AVHWDeviceType type)
     return nullptr;
 }
 
+#if defined(Q_OS_LINUX)
+// Mesa's llvmpipe and Google's SwiftShader are pure-software Vulkan implementations: using them
+// for "hw" encoding/decoding buys nothing over FFmpeg's native CPU codecs.
+static bool isSoftwareVulkanIcdManifest(const QString &manifestPath)
+{
+    QFile file(manifestPath);
+    if (!file.open(QIODevice::ReadOnly))
+        return false;
+
+    const QJsonObject icd = QJsonDocument::fromJson(file.readAll())[u"ICD"_s].toObject();
+    const QString libraryPath = icd[u"library_path"_s].toString();
+
+    return libraryPath.contains(u"lvp"_s, Qt::CaseInsensitive)
+            || libraryPath.contains(u"swiftshader"_s, Qt::CaseInsensitive);
+}
+
+static bool hasSoftwareVulkanIcdRegistered()
+{
+    namespace views = QtMultimediaPrivate::views;
+    namespace ranges = QtMultimediaPrivate::ranges;
+
+    const std::vector<QString> manifestPaths = [] {
+        // VK_DRIVER_FILES is the current loader env var name, VK_ICD_FILENAMES the legacy one;
+        // either, if set, replaces the default search path entirely.
+        QByteArray overrideEnv = qgetenv("VK_DRIVER_FILES");
+        if (overrideEnv.isEmpty())
+            overrideEnv = qgetenv("VK_ICD_FILENAMES");
+        if (!overrideEnv.isEmpty())
+            return overrideEnv.split(':') | views::filter([](const QByteArray &path) {
+                return !path.isEmpty();
+            }) | views::transform([](const QByteArray &path) {
+                return QString::fromUtf8(path);
+            }) | ranges::to<std::vector<QString>>();
+
+        const std::initializer_list<QDir> searchDirs = {
+            QDir(QDir::homePath() + u"/.local/share/vulkan/icd.d"_s),
+            u"/usr/local/share/vulkan/icd.d"_s,
+            u"/usr/share/vulkan/icd.d"_s,
+            u"/etc/vulkan/icd.d"_s,
+        };
+
+        std::vector<QString> paths;
+        for (const QDir &dir : searchDirs) {
+            const QFileInfoList entries = dir.entryInfoList(QStringList(u"*.json"_s), QDir::Files);
+            auto absolutePaths = entries | views::transform([](const QFileInfo &entry) {
+                return entry.absoluteFilePath();
+            });
+            paths.insert(paths.end(), absolutePaths.begin(), absolutePaths.end());
+        }
+        return paths;
+    }();
+
+    return ranges::any_of(manifestPaths, isSoftwareVulkanIcdManifest);
+}
+#endif // Q_OS_LINUX
+
 // FFmpeg might crash on loading non-existing hw devices.
 // Let's roughly precheck drivers/libraries.
 static bool precheckDriver(AVHWDeviceType type)
@@ -85,6 +145,13 @@ static bool precheckDriver(AVHWDeviceType type)
             return false;
         lib.unload();
         return true;
+    }
+
+    if (type == AV_HWDEVICE_TYPE_VULKAN && hasSoftwareVulkanIcdRegistered()) {
+        qCDebug(qLHWAccel) << "A software Vulkan ICD (llvmpipe/SwiftShader) is registered on this "
+                              "system; skipping Vulkan hwaccel, as it offers no real acceleration "
+                              "benefit over native CPU codecs";
+        return false;
     }
 #elif defined(Q_OS_WINDOWS)
     if (type == AV_HWDEVICE_TYPE_D3D11VA)

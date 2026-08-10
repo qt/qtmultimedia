@@ -32,7 +32,8 @@ QT_BEGIN_NAMESPACE
 
 namespace QtMultimediaPrivate::ranges {
 
-#ifdef __cpp_lib_ranges
+// note: libstdc++ 11 has incomplete support for ranges (missing owning_view, P2415)
+#if defined(__cpp_lib_ranges) && (!defined(_GLIBCXX_RELEASE) || _GLIBCXX_RELEASE >= 12)
 
 using std::ranges::range_value_t;
 
@@ -330,7 +331,8 @@ auto to()
 
 namespace QtMultimediaPrivate::views {
 
-#ifdef __cpp_lib_ranges
+// note: libstdc++ 11 has incomplete support for ranges (missing owning_view, P2415)
+#if defined(__cpp_lib_ranges) && (!defined(_GLIBCXX_RELEASE) || _GLIBCXX_RELEASE >= 12)
 using std::views::filter;
 using std::views::keys;
 using std::views::transform;
