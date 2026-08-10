@@ -18,6 +18,8 @@
 
 QT_USE_NAMESPACE
 
+using namespace Qt::Literals;
+
 namespace {
 
 // All these methods to work with exposure/ISO/SS in custom mode do not support macOS.
@@ -227,8 +229,8 @@ void QAVFCameraBase::forceSetFocusMode(QCamera::FocusMode mode)
     if (!isFocusModeSupported(mode)) {
         qCDebug(qLcCamera)
                 << Q_FUNC_INFO
-                << QString(u"attempted to set focus-mode '%1' on camera where it is unsupported.")
-                           .arg(QMetaEnum::fromType<QCamera::FocusMode>().valueToKey(mode));
+                << u"attempted to set focus-mode '%1' on camera where it is unsupported."_s.arg(
+                           QMetaEnum::fromType<QCamera::FocusMode>().valueToKey(mode));
         return;
     }
 
