@@ -3,7 +3,6 @@
 
 #include "qgstvideobuffer_p.h"
 #include <private/qvideotexturehelper_p.h>
-#include <QtMultimedia/private/qmultimedia_drm_support_p.h>
 #include <QtCore/qloggingcategory.h>
 
 #include <gst/video/video.h>
@@ -13,7 +12,6 @@
 
 #include <common/qgstutils_p.h>
 
-#include <optional>
 
 #if QT_CONFIG(gstreamer_gl)
 #  include <QtGui/rhi/qrhi.h>
@@ -31,6 +29,8 @@
 #  endif
 
 #  if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
+#    include <QtMultimedia/private/qmultimedia_drm_support_p.h>
+#    include <optional>
 #    include <common/qgstreameregldisplay_p.h>
 #    include <gst/allocators/gstdmabuf.h>
 #  endif
