@@ -9,6 +9,7 @@
 #include <QtCore/QStandardPaths>
 #include <QtCore/QDir>
 #include <QtMultimedia/QCameraDevice>
+#include <QtMultimedia/QCameraFormat>
 #include <QtMultimedia/QAudioDevice>
 #include <QtMultimedia/QMediaCaptureSession>
 #include <QtMultimedia/QMediaRecorder>
@@ -16,6 +17,8 @@
 #include <QtMultimedia/QMediaDevices>
 #include <QtMultimedia/QCamera>
 #include <QtMultimedia/QAudioInput>
+#include <QtMultimedia/QVideoFrameFormat>
+#include <algorithm>
 #include <chrono>
 #include <signal.h>
 #include <filesystem>
@@ -31,6 +34,8 @@ struct CommandLineArgs
     std::optional<std::chrono::seconds> recordingDuration;
     std::optional<std::filesystem::path> outputPath;
     std::optional<QMediaFormat::VideoCodec> videoCodec;
+    std::optional<QVideoFrameFormat::PixelFormat> cameraPixelFormat;
+    std::optional<QSize> resolution;
 };
 
 QString generateOutputPath()
@@ -71,6 +76,21 @@ std::optional<CommandLineArgs> parseCommandLine(QCoreApplication &app)
         u"codec"_s,
     };
     parser.addOption(videoCodecOption);
+
+    const QCommandLineOption cameraPixelFormatOption{
+        QList{ u"p"_s, u"camera-pixel-format"_s },
+        u"Camera pixel format (yuyv, uyvy, nv12, nv21, jpeg, yuv420p, yuv422p, y8, y16, "
+        u"argb8888, xrgb8888)"_s,
+        u"format"_s,
+    };
+    parser.addOption(cameraPixelFormatOption);
+
+    const QCommandLineOption resolutionOption{
+        QList{ u"r"_s, u"resolution"_s },
+        u"Camera resolution, e.g. 1280x720"_s,
+        u"WxH"_s,
+    };
+    parser.addOption(resolutionOption);
 
     parser.process(app);
 
@@ -120,6 +140,52 @@ std::optional<CommandLineArgs> parseCommandLine(QCoreApplication &app)
         }
     }
 
+    // Parse camera pixel format
+    if (parser.isSet(cameraPixelFormatOption)) {
+        QString pixelFormatStr = parser.value(cameraPixelFormatOption).toLower();
+        if (pixelFormatStr == u"yuyv"_s) {
+            args.cameraPixelFormat = QVideoFrameFormat::Format_YUYV;
+        } else if (pixelFormatStr == u"uyvy"_s) {
+            args.cameraPixelFormat = QVideoFrameFormat::Format_UYVY;
+        } else if (pixelFormatStr == u"nv12"_s) {
+            args.cameraPixelFormat = QVideoFrameFormat::Format_NV12;
+        } else if (pixelFormatStr == u"nv21"_s) {
+            args.cameraPixelFormat = QVideoFrameFormat::Format_NV21;
+        } else if (pixelFormatStr == u"jpeg"_s) {
+            args.cameraPixelFormat = QVideoFrameFormat::Format_Jpeg;
+        } else if (pixelFormatStr == u"yuv420p"_s) {
+            args.cameraPixelFormat = QVideoFrameFormat::Format_YUV420P;
+        } else if (pixelFormatStr == u"yuv422p"_s) {
+            args.cameraPixelFormat = QVideoFrameFormat::Format_YUV422P;
+        } else if (pixelFormatStr == u"y8"_s) {
+            args.cameraPixelFormat = QVideoFrameFormat::Format_Y8;
+        } else if (pixelFormatStr == u"y16"_s) {
+            args.cameraPixelFormat = QVideoFrameFormat::Format_Y16;
+        } else if (pixelFormatStr == u"argb8888"_s) {
+            args.cameraPixelFormat = QVideoFrameFormat::Format_ARGB8888;
+        } else if (pixelFormatStr == u"xrgb8888"_s) {
+            args.cameraPixelFormat = QVideoFrameFormat::Format_XRGB8888;
+        } else {
+            qWarning() << "Unknown camera pixel format:" << pixelFormatStr;
+            return std::nullopt;
+        }
+    }
+
+    // Parse resolution
+    if (parser.isSet(resolutionOption)) {
+        QString resolutionStr = parser.value(resolutionOption);
+        QStringList parts = resolutionStr.split(u'x', Qt::SkipEmptyParts);
+        bool widthOk = false;
+        bool heightOk = false;
+        int width = parts.size() == 2 ? parts[0].toInt(&widthOk) : 0;
+        int height = parts.size() == 2 ? parts[1].toInt(&heightOk) : 0;
+        if (!widthOk || !heightOk || width <= 0 || height <= 0) {
+            qWarning() << "Invalid resolution:" << resolutionStr << ", expected format WxH";
+            return std::nullopt;
+        }
+        args.resolution = QSize(width, height);
+    }
+
     return args;
 }
 
@@ -143,6 +209,28 @@ int main(int argc, char **argv)
 
     qInfo() << "recording from camera:" << camera.cameraDevice().description();
     qInfo() << "recording from audio device:" << audioInput.device().description();
+
+    if (args->cameraPixelFormat || args->resolution) {
+        const QList<QCameraFormat> formats = camera.cameraDevice().videoFormats();
+        auto it = std::find_if(formats.begin(), formats.end(), [&](const QCameraFormat &format) {
+            if (args->cameraPixelFormat && format.pixelFormat() != *args->cameraPixelFormat)
+                return false;
+            if (args->resolution && format.resolution() != *args->resolution)
+                return false;
+            return true;
+        });
+        if (it == formats.end()) {
+            qInfo() << "Requested camera format not supported. Supported formats:";
+            for (const QCameraFormat &format : formats) {
+                qInfo() << " " << format.pixelFormat() << format.resolution()
+                        << format.minFrameRate() << "-" << format.maxFrameRate() << "fps";
+            }
+            return 1;
+        }
+        qInfo() << "selecting camera format:" << it->pixelFormat() << it->resolution()
+                << it->minFrameRate() << "-" << it->maxFrameRate() << "fps";
+        camera.setCameraFormat(*it);
+    }
 
     // Create capture session and recorder
     QMediaCaptureSession session;
