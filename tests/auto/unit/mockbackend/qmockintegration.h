@@ -15,8 +15,9 @@
 // We mean it.
 //
 
-#include <private/qplatformmediaintegration_p.h>
 #include <QtCore/qplugin.h>
+
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -100,15 +101,15 @@ private:
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(QMockIntegration::Flags);
 
-#define Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN          \
-    Q_IMPORT_PLUGIN(MockMultimediaPlugin)        \
-    struct EnableMockPlugin                      \
-    {                                            \
-        EnableMockPlugin()                       \
-        {                                        \
-            qputenv("QT_MEDIA_BACKEND", "mock"); \
-        }                                        \
-    };                                           \
+#define Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN                     \
+    Q_IMPORT_PLUGIN(MockMultimediaPlugin)                   \
+    struct EnableMockPlugin                                 \
+    {                                                       \
+        EnableMockPlugin()                                  \
+        {                                                   \
+            QPlatformMediaIntegration::setBackend("mock");  \
+        }                                                   \
+    };                                                      \
     static EnableMockPlugin s_mockMultimediaPluginEnabler;
 
 
