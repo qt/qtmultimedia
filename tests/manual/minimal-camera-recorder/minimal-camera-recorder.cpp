@@ -67,7 +67,7 @@ std::optional<CommandLineArgs> parseCommandLine(QCoreApplication &app)
 
     const QCommandLineOption videoCodecOption{
         QList{ u"c"_s, u"video-codec"_s },
-        u"Video codec (h264, h265, vp8, vp9, av1)"_s,
+        u"Video codec (h264, h265, vp8, vp9, av1, mjpeg, mpeg1, mpeg2, mpeg4, theora)"_s,
         u"codec"_s,
     };
     parser.addOption(videoCodecOption);
@@ -105,6 +105,16 @@ std::optional<CommandLineArgs> parseCommandLine(QCoreApplication &app)
             args.videoCodec = QMediaFormat::VideoCodec::VP9;
         } else if (codecStr == u"av1"_s) {
             args.videoCodec = QMediaFormat::VideoCodec::AV1;
+        } else if (codecStr == u"mjpeg"_s) {
+            args.videoCodec = QMediaFormat::VideoCodec::MotionJPEG;
+        } else if (codecStr == u"mpeg1"_s) {
+            args.videoCodec = QMediaFormat::VideoCodec::MPEG1;
+        } else if (codecStr == u"mpeg2"_s) {
+            args.videoCodec = QMediaFormat::VideoCodec::MPEG2;
+        } else if (codecStr == u"mpeg4"_s) {
+            args.videoCodec = QMediaFormat::VideoCodec::MPEG4;
+        } else if (codecStr == u"theora"_s) {
+            args.videoCodec = QMediaFormat::VideoCodec::Theora;
         } else {
             qWarning() << "Unknown video codec:" << codecStr << ", using H264";
         }
