@@ -13,7 +13,7 @@ static qreal screenFrameRateToReal(std::optional<qreal> frameRate)
 QQuickScreenCapture::QQuickScreenCapture(QObject *parent) : QScreenCapture(parent)
 {
     connect(this, &QScreenCapture::screenChanged, this, [this] {
-        emit qmlScreenChanged(ensureQmlScreen());
+        emit QQuickScreenCapture::screenChanged(ensureQmlScreen());
     });
 
     connect(this, &QScreenCapture::maximumFrameRateChanged, this,

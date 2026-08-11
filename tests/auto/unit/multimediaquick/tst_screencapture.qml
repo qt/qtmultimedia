@@ -19,8 +19,10 @@ TestCase {
         id: screenCaptureComponent
         ScreenCapture {
             property int screenChangedCount: 0
-            onScreenChanged: () => {
+            property ScreenInfo lastScreen: null
+            onScreenChanged: (newScreen) => {
                 screenChangedCount++;
+                lastScreen = newScreen;
             }
 
             property int maximumFrameRateChangedCount: 0
@@ -104,16 +106,36 @@ TestCase {
         compare(capture.screenChangedCount, 1);
     }
 
+    function test_screenChanged_carriesQmlScreen() {
+        let capture = createScreenCapture();
+        let spy = createSpy(capture, "screenChanged");
+        let screen = Qt.application.screens[0];
+
+        capture.screen = screen;
+        compare(spy.count, 1);
+
+        // The signal argument must be the QML screen object exposed by the
+        // 'screen' property, not the underlying C++ QScreen.
+        let argument = spy.signalArguments[0][0];
+        verify(argument);
+        compare(argument.name, screen.name);
+        compare(argument, capture.screen);
+        compare(capture.lastScreen, capture.screen);
+    }
+
     function test_screenChanged_isConnectable() {
         let capture = createScreenCapture();
 
         let connectCount = 0;
-        capture.screenChanged.connect(() => {
+        let lastScreen = null;
+        capture.screenChanged.connect((newScreen) => {
             connectCount++;
+            lastScreen = newScreen;
         });
 
         capture.screen = Qt.application.screens[0];
         compare(connectCount, 1);
+        compare(lastScreen, capture.screen);
     }
 
     function test_settingScreenToNull_clearsScreen() {
@@ -311,13 +333,11 @@ TestCase {
         verify(firstScreenObject);
 
         let spy = createSpy(capture, "screenChanged");
-        let qmlSpy = createSpy(capture, "qmlScreenChanged");
 
         // Assigning a different QML screen object that wraps the same underlying
         // screen must neither emit a signal nor replace the exposed object.
         capture.screen = screen;
         compare(spy.count, 0);
-        compare(qmlSpy.count, 0);
         compare(capture.screen, firstScreenObject);
     }
 
@@ -342,11 +362,10 @@ TestCase {
         ScreenCaptureHelper.rememberQmlScreen(capture);
         verify(!ScreenCaptureHelper.rememberedQmlScreenIsDestroyed());
 
-        // Note that 'screenChanged' is the inherited C++ signal, which carries a
-        // QScreen. The screen property is notified by 'qmlScreenChanged', which
-        // carries the QML screen object.
+        // Note that 'screenChanged' shadows the inherited C++ signal of the same
+        // name, so the signal seen from QML carries the QML screen object rather
+        // than the underlying QScreen.
         let spy = createSpy(capture, "screenChanged");
-        let qmlSpy = createSpy(capture, "qmlScreenChanged");
         let handlerCountBefore = capture.screenChangedCount;
 
         // Act: change the screen through the C++ API.
@@ -356,7 +375,6 @@ TestCase {
             ScreenCaptureHelper.clearScreen(capture);
 
         compare(spy.count, 1);
-        compare(qmlSpy.count, 1);
         compare(capture.screenChangedCount, handlerCountBefore + 1);
 
         // The exposed object is replaced with a new one, and the old one is
@@ -364,7 +382,8 @@ TestCase {
         verify(capture.screen);
         verify(capture.screen !== oldScreenObject);
         verify(ScreenCaptureHelper.rememberedQmlScreenIsDestroyed());
-        compare(qmlSpy.signalArguments[0][0], capture.screen);
+        compare(spy.signalArguments[0][0], capture.screen);
+        compare(capture.lastScreen, capture.screen);
         compare(capture.screen.name,
             data.useScreen ? ScreenCaptureHelper.primaryScreenName : "");
     }
