@@ -19,8 +19,6 @@
 #include <QtFFmpegMediaPluginImpl/private/qffmpegcodeccontext_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegplaybackutils_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegtime_p.h>
-#include <QtCore/qobject.h>
-#include <QtCore/qpointer.h>
 #include <QtCore/qshareddata.h>
 
 #include <optional>
