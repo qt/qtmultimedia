@@ -337,7 +337,13 @@ bool VideoFrameEncoder::initCodecContext()
     }
 
     // copies format, size, color params, framerate
-    avcodec_parameters_to_context(m_codecContext.get(), m_stream->codecpar);
+    const int status = avcodec_parameters_to_context(m_codecContext.get(), m_stream->codecpar);
+    if (status < 0) {
+        qCWarning(qLcVideoFrameEncoder)
+                << "Cannot set codec parameters; result:" << AVError(status);
+        return false;
+    }
+
 #if !QT_CODEC_PARAMETERS_HAVE_FRAMERATE
     m_codecContext->framerate = m_codecFrameRate;
 #endif
@@ -448,7 +454,12 @@ struct FrameConverter
         scaledFrame->width = size.width();
         scaledFrame->height = size.height();
 
-        av_frame_get_buffer(scaledFrame.get(), 0);
+        const int status = av_frame_get_buffer(scaledFrame.get(), 0);
+        if (status < 0) {
+            qCWarning(qLcVideoFrameEncoder)
+                    << "Failed to allocate scaled frame buffer:" << AVError(status);
+            return;
+        }
 
         const AVFrame *srcFrame = currentFrame();
 

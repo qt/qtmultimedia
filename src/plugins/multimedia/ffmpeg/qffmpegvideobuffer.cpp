@@ -18,6 +18,8 @@ QT_BEGIN_NAMESPACE
 
 using namespace QFFmpeg;
 
+Q_STATIC_LOGGING_CATEGORY(qLcFFmpegVideoBuffer, "qt.multimedia.ffmpeg.videobuffer");
+
 static bool isFrameFlipped(const AVFrame& frame) {
     for (int i = 0; i < AV_NUM_DATA_POINTERS && frame.data[i]; ++i) {
         if (frame.linesize[i] < 0)
@@ -66,7 +68,12 @@ void QFFmpegVideoBuffer::convertSWFrame()
         newFrame->width = m_size.width();
         newFrame->height = m_size.height();
         newFrame->format = targetAVPixelFormat;
-        av_frame_get_buffer(newFrame.get(), 0);
+        const int status = av_frame_get_buffer(newFrame.get(), 0);
+        if (status < 0) {
+            qCWarning(qLcFFmpegVideoBuffer)
+                    << "Failed to allocate frame buffer:" << AVError(status);
+            return;
+        }
 
         sws_scale(scaleContext.get(), m_swFrame->data, m_swFrame->linesize, 0, m_swFrame->height,
                   newFrame->data, newFrame->linesize);

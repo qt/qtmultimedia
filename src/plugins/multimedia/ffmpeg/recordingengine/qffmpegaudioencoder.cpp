@@ -56,7 +56,12 @@ bool openCodecContext(AVCodecContext *codecContext, AVStream *stream,
     Q_ASSERT(codecContext);
     codecContext->time_base = stream->time_base;
 
-    avcodec_parameters_to_context(codecContext, stream->codecpar);
+    int status = avcodec_parameters_to_context(codecContext, stream->codecpar);
+    if (status < 0) {
+        qCWarning(qLcFFmpegAudioEncoder)
+                << "Cannot set codec parameters; result:" << AVError(status);
+        return false;
+    }
 
     // if avcodec_open2 fails, it may clean codecContext->codec
     Codec codec{ codecContext->codec };
@@ -65,21 +70,21 @@ bool openCodecContext(AVCodecContext *codecContext, AVStream *stream,
     applyAudioEncoderOptions(settings, codec.name(), codecContext, opts);
     applyExperimentalCodecOptions(codec, opts);
 
-    int res = avcodec_open2(codecContext, codec.get(), opts);
+    status = avcodec_open2(codecContext, codec.get(), opts);
 
-    if (res != 0) {
+    if (status != 0) {
         qCWarning(qLcFFmpegAudioEncoder)
-                << "Cannot open audio codec" << codec.name() << "; result:" << AVError(res);
+                << "Cannot open audio codec" << codec.name() << "; result:" << AVError(status);
         return false;
     }
 
     qCDebug(qLcFFmpegAudioEncoder) << "audio codec params: fmt=" << codecContext->sample_fmt
                                    << "rate=" << codecContext->sample_rate;
 
-    res = avcodec_parameters_from_context(stream->codecpar, codecContext);
-    if (res < 0) {
+    status = avcodec_parameters_from_context(stream->codecpar, codecContext);
+    if (status < 0) {
         qCWarning(qLcFFmpegAudioEncoder) << "Cannot get parameters from audio codec context"
-                                         << codec.name() << "; result:" << AVError(res);
+                                         << codec.name() << "; result:" << AVError(status);
         return false;
     }
 
@@ -329,8 +334,12 @@ void AudioEncoder::ensurePendingFrame(int availableSamplesCount)
             !(m_codecContext->codec->capabilities & AV_CODEC_CAP_VARIABLE_FRAME_SIZE)
             && m_codecContext->frame_size;
     m_avFrame->nb_samples = isFixedFrameSize ? m_codecContext->frame_size : availableSamplesCount;
-    if (m_avFrame->nb_samples)
-        av_frame_get_buffer(m_avFrame.get(), 0);
+    if (m_avFrame->nb_samples) {
+        const int status = av_frame_get_buffer(m_avFrame.get(), 0);
+        if (status < 0)
+            qCWarning(qLcFFmpegAudioEncoder)
+                    << "Failed to allocate audio frame buffer:" << AVError(status);
+    }
 
     const auto &timeBase = m_stream->time_base;
     const auto pts = timeBase.den && timeBase.num
