@@ -65,7 +65,7 @@ bool openCodecContext(AVCodecContext *codecContext, AVStream *stream,
     applyAudioEncoderOptions(settings, codec.name(), codecContext, opts);
     applyExperimentalCodecOptions(codec, opts);
 
-    const int res = avcodec_open2(codecContext, codec.get(), opts);
+    int res = avcodec_open2(codecContext, codec.get(), opts);
 
     if (res != 0) {
         qCWarning(qLcFFmpegAudioEncoder)
@@ -76,7 +76,12 @@ bool openCodecContext(AVCodecContext *codecContext, AVStream *stream,
     qCDebug(qLcFFmpegAudioEncoder) << "audio codec params: fmt=" << codecContext->sample_fmt
                                    << "rate=" << codecContext->sample_rate;
 
-    avcodec_parameters_from_context(stream->codecpar, codecContext);
+    res = avcodec_parameters_from_context(stream->codecpar, codecContext);
+    if (res < 0) {
+        qCWarning(qLcFFmpegAudioEncoder) << "Cannot get parameters from audio codec context"
+                                         << codec.name() << "; result:" << AVError(res);
+        return false;
+    }
 
     return true;
 }

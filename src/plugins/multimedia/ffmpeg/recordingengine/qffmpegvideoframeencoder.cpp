@@ -372,8 +372,6 @@ bool VideoFrameEncoder::initCodecContext()
                 m_codecContext->hw_frames_ctx = av_buffer_ref(framesContext);
     }
 
-    avcodec_parameters_from_context(m_stream->codecpar, m_codecContext.get());
-
     return true;
 }
 
@@ -387,7 +385,7 @@ bool VideoFrameEncoder::open()
 
     qCDebug(qLcVideoFrameEncoder) << "Opening encoder" << m_codec.name() << "with" << opts;
 
-    const int res = avcodec_open2(m_codecContext.get(), m_codec.get(), opts);
+    int res = avcodec_open2(m_codecContext.get(), m_codec.get(), opts);
     if (res < 0) {
         qCWarning(qLcVideoFrameEncoder)
                 << "Couldn't open video encoder" << m_codec.name() << "; result:" << AVError(res);
@@ -395,6 +393,14 @@ bool VideoFrameEncoder::open()
     }
     qCDebug(qLcVideoFrameEncoder) << "video codec opened" << res << "time base"
                                   << m_codecContext->time_base;
+
+    res = avcodec_parameters_from_context(m_stream->codecpar, m_codecContext.get());
+    if (res < 0) {
+        qCWarning(qLcVideoFrameEncoder) << "Cannot get parameters from video codec context"
+                                        << m_codec.name() << "; result:" << AVError(res);
+        return false;
+    }
+
     return true;
 }
 
