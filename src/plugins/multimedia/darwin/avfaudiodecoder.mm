@@ -168,15 +168,15 @@ NSDictionary *av_audio_settings_for_format(const QAudioFormat &format)
     int sampleSize = format.bytesPerSample() * 8;
     BOOL isFloat = format.sampleFormat() == QAudioFormat::Float;
 
-    NSDictionary *audioSettings = [NSDictionary dictionaryWithObjectsAndKeys:
-        [NSNumber numberWithInt:kAudioFormatLinearPCM], AVFormatIDKey,
-        [NSNumber numberWithFloat:sampleRate], AVSampleRateKey,
-        [NSNumber numberWithInt:nChannels], AVNumberOfChannelsKey,
-        [NSNumber numberWithInt:sampleSize], AVLinearPCMBitDepthKey,
-        [NSNumber numberWithBool:isFloat], AVLinearPCMIsFloatKey,
-        [NSNumber numberWithBool:NO], AVLinearPCMIsNonInterleaved,
-        [NSNumber numberWithBool:NO], AVLinearPCMIsBigEndianKey,
-        nil];
+    NSDictionary *audioSettings = @{
+        AVFormatIDKey : @(kAudioFormatLinearPCM),
+        AVSampleRateKey : @(sampleRate),
+        AVNumberOfChannelsKey : @(nChannels),
+        AVLinearPCMBitDepthKey : @(sampleSize),
+        AVLinearPCMIsFloatKey : @(isFloat),
+        AVLinearPCMIsNonInterleaved : @NO,
+        AVLinearPCMIsBigEndianKey : @NO,
+    };
 
     return audioSettings;
 }

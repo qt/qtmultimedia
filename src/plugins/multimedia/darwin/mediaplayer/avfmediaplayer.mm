@@ -206,7 +206,7 @@ struct GuardedPlatformPlayer
         __block AVURLAsset *asset = [[AVURLAsset URLAssetWithURL:m_URL options:nil] retain];
         [asset.resourceLoader setDelegate:self queue:dispatch_get_main_queue()];
 
-        __block NSArray *requestedKeys = [[NSArray arrayWithObjects:AVF_TRACKS_KEY, AVF_PLAYABLE_KEY, nil] retain];
+        __block NSArray *requestedKeys = [@[ AVF_TRACKS_KEY, AVF_PLAYABLE_KEY ] retain];
 
         __block AVFMediaPlayerObserver *blockSelf = [self retain];
 
@@ -305,10 +305,10 @@ struct GuardedPlatformPlayer
         //Generate an error describing the failure.
         NSString *localizedDescription = NSLocalizedString(@"Item cannot be played", @"Item cannot be played description");
         NSString *localizedFailureReason = NSLocalizedString(@"The assets tracks were loaded, but couldn't create player item.", @"Item cannot be played failure reason");
-        NSDictionary *errorDict = [NSDictionary dictionaryWithObjectsAndKeys:
-                localizedDescription, NSLocalizedDescriptionKey,
-                localizedFailureReason, NSLocalizedFailureReasonErrorKey,
-                nil];
+        NSDictionary *errorDict = @{
+            NSLocalizedDescriptionKey : localizedDescription,
+            NSLocalizedFailureReasonErrorKey : localizedFailureReason,
+        };
         NSError *assetCannotBePlayedError = [NSError errorWithDomain:@"StitchedStreamPlayer" code:0 userInfo:errorDict];
 
         [self assetFailedToPrepareForPlayback:assetCannotBePlayedError];
