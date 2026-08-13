@@ -394,8 +394,7 @@ q23::expected<void, QString> QAVFCamera::tryApplyFormatToCaptureSession(
 
     Q_ASSERT(m_avCaptureVideoDataOutput);
     NSDictionary *outputSettings = @{
-        (NSString *)kCVPixelBufferPixelFormatTypeKey
-            : [NSNumber numberWithUnsignedInt:outputCvPixelFormat],
+        (NSString *)kCVPixelBufferPixelFormatTypeKey : @(outputCvPixelFormat),
         (NSString *)kCVPixelBufferMetalCompatibilityKey : @true
     };
     m_avCaptureVideoDataOutput.data().videoSettings = outputSettings;
@@ -756,9 +755,7 @@ q23::expected<void, QString> QAVFCamera::requestStillPhotoCapture()
         return q23::unexpected{ u"Internal camera configuration error"_s };
     }
 
-    NSDictionary *formatDict =
-        [NSDictionary dictionaryWithObject:[NSNumber numberWithUnsignedInt:captureFormat]
-                                    forKey:(id)kCVPixelBufferPixelFormatTypeKey];
+    NSDictionary *formatDict = @{ (id)kCVPixelBufferPixelFormatTypeKey : @(captureFormat) };
 
     // Set the settings for this capture.
     //

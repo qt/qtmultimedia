@@ -443,7 +443,7 @@ static AVMutableMetadataItem *setAVMetadataItemForKey(QMediaMetaData::Key key, c
         bool ok;
         int rotation = value.toInt(&ok);
         if (ok)
-            item.value = [NSNumber numberWithInt:rotation];
+            item.value = @(rotation);
     }
     default: {
         switch (value.typeId()) {
@@ -452,15 +452,15 @@ static AVMutableMetadataItem *setAVMetadataItemForKey(QMediaMetaData::Key key, c
             break;
         }
         case QMetaType::Int: {
-            item.value = [NSNumber numberWithInt:value.toInt()];
+            item.value = @(value.toInt());
             break;
         }
         case QMetaType::LongLong: {
-            item.value = [NSNumber numberWithLongLong:value.toLongLong()];
+            item.value = @(value.toLongLong());
             break;
         }
         case QMetaType::Double: {
-            item.value = [NSNumber numberWithDouble:value.toDouble()];
+            item.value = @(value.toDouble());
             break;
         }
         case QMetaType::QDate:

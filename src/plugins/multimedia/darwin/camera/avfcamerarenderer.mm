@@ -269,7 +269,7 @@ void AVFCameraRenderer::setPixelFormat(QVideoFrameFormat::PixelFormat pixelForma
     if (isSupported) {
         NSDictionary *outputSettings = @{
             (NSString *)
-            kCVPixelBufferPixelFormatTypeKey : [NSNumber numberWithUnsignedInt:cvPixelFormat]
+            kCVPixelBufferPixelFormatTypeKey : @(cvPixelFormat)
 #ifndef Q_OS_IOS // On iOS this key generates a warning about 'unsupported key'.
             ,
             (NSString *)kCVPixelBufferMetalCompatibilityKey : @true
