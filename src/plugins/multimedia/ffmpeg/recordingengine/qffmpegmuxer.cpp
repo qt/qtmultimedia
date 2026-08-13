@@ -44,7 +44,9 @@ void Muxer::cleanup()
     while (!m_packetQueue.empty())
         processOne();
 
-    av_interleaved_write_frame(m_encoder->avFormatContext(), nullptr);
+    const int status = av_interleaved_write_frame(m_encoder->avFormatContext(), nullptr);
+    if (status < 0)
+        qCWarning(qLcFFmpegMuxer) << "Failed to flush muxer:" << AVError(status);
 }
 
 bool QFFmpeg::Muxer::hasData() const
@@ -72,7 +74,9 @@ void Muxer::processOne()
     // This means that av_interleaved_write_frame takes ownership of the AVBufferRef field, not the
     // whole AVPacket.
 
-    av_interleaved_write_frame(m_encoder->avFormatContext(), packet.get());
+    const int status = av_interleaved_write_frame(m_encoder->avFormatContext(), packet.get());
+    if (status < 0)
+        qCWarning(qLcFFmpegMuxer) << "Failed to write packet to file:" << AVError(status);
     Q_ASSERT(packet->buf == nullptr); // av_interleaved_write_frame took ownership of the buffer
 }
 
