@@ -10,6 +10,7 @@
 #include <QtCore/qoperatingsystemversion.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/qspan.h>
 
 #include <algorithm>
 #include <array>
@@ -345,7 +346,7 @@ struct CodecStoreSingleton
 
 Q_APPLICATION_STATIC(CodecStoreSingleton, codecStoreSingleton)
 
-const CodecsStorage &codecsStorage(CodecRole codecsType)
+QSpan<const Codec> codecsStorage(CodecRole codecsType)
 {
     return codecStoreSingleton->codecStoreFuture.get()[qToUnderlying(codecsType)];
 }
@@ -353,18 +354,20 @@ const CodecsStorage &codecsStorage(CodecRole codecsType)
 std::optional<Codec> findAVCodec(CodecRole codecsType, AVCodecID codecId,
                                  const std::optional<PixelOrSampleFormat> &format)
 {
-    const CodecsStorage& storage = codecsStorage(codecsType);
+    namespace ranges = QtMultimediaPrivate::ranges;
 
-    // Storage is sorted, so we can quickly narrow down the search to codecs with the specific id.
-    auto [begin, end] = ranges::equal_range(storage, codecId, CodecsComparator{});
+    QSpan codecs = codecsStorage(codecsType);
+
+    // Codecs are sorted, so we can quickly narrow down the search to codecs with the specific id.
+    auto codecsForId = ranges::equal_range(codecs, codecId, CodecsComparator{});
 
     // Within the narrowed down range, look for a codec that supports the format.
     // If no format is specified, return the first one.
-    auto codecIt = std::find_if(begin, end, [&format](const Codec &codec) {
+    auto codecIt = ranges::find_if(codecsForId, [&](const Codec &codec) {
         return !format || isAVFormatSupported(codec, *format);
     });
 
-    if (codecIt != end)
+    if (codecIt != codecsForId.end())
         return *codecIt;
 
     return {};
@@ -373,14 +376,14 @@ std::optional<Codec> findAVCodec(CodecRole codecsType, AVCodecID codecId,
 } // namespace
 
 std::vector<CodecScoreRecord>
-findAndScoreCodecs(CodecRole type, AVCodecID codecId,
+findAndScoreCodecs(CodecRole codecsType, AVCodecID codecId,
                    const qxp::function_ref<AVScore(const Codec &)> &scoreFunction)
 {
     namespace ranges = QtMultimediaPrivate::ranges;
     namespace views = QtMultimediaPrivate::views;
 
-    const auto storage = codecsStorage(type);
-    auto codecsForId = ranges::equal_range(storage, codecId, CodecsComparator{});
+    QSpan codecs = codecsStorage(codecsType);
+    auto codecsForId = ranges::equal_range(codecs, codecId, CodecsComparator{});
     auto scoredCodecs = views::transform(codecsForId, [&](const Codec &codec) {
         return CodecScoreRecord{
             codec,
