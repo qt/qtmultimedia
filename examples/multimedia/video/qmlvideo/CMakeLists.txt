@@ -57,7 +57,6 @@ install(TARGETS qmlvideoexample
 qt_generate_deploy_qml_app_script(
     TARGET qmlvideoexample
     OUTPUT_SCRIPT deploy_script
-    MACOS_BUNDLE_POST_BUILD
     NO_UNSUPPORTED_PLATFORM_ERROR
 )
 
