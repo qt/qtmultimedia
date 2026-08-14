@@ -61,6 +61,7 @@ QPipewireAudioSinkStream::QPipewireAudioSinkStream(QAudioDevice device,
 
 QPipewireAudioSinkStream::~QPipewireAudioSinkStream()
 {
+    Q_ASSERT(!m_ringbufferDrained.thread() || m_ringbufferDrained.thread()->isCurrentThread());
     resetStream();
     Q_ASSERT(!m_deviceRemovalObserver);
 }
@@ -323,8 +324,9 @@ void QPipewireAudioSinkStream::stateChanged(pw_stream_state oldState, pw_stream_
     case pw_stream_state::PW_STREAM_STATE_UNCONNECTED: {
         m_disconnectSemaphore.release();
         QAudioContextManager::instance()->unregisterStreamReference(m_self);
-        m_self.reset();
-        // CAVEAT: m_self may have been the last owner causing the object to be destroyed now.
+        invokeOnAppThread([self = std::move(m_self)] {
+            // drop refcount on app thread
+        });
         break;
 
     default:

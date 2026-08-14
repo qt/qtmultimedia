@@ -47,6 +47,7 @@ QPipewireAudioSourceStream::QPipewireAudioSourceStream(QAudioDevice device, cons
 
 QPipewireAudioSourceStream::~QPipewireAudioSourceStream()
 {
+    Q_ASSERT(!m_xrunOccurred.thread() || m_xrunOccurred.thread()->isCurrentThread());
     resetStream();
 }
 
@@ -253,7 +254,9 @@ void QPipewireAudioSourceStream::stateChanged(pw_stream_state /*oldState*/, pw_s
     case pw_stream_state::PW_STREAM_STATE_UNCONNECTED:
         m_streamDisconnected.release();
         QAudioContextManager::instance()->unregisterStreamReference(m_self);
-        m_self.reset();
+        invokeOnAppThread([self = std::move(m_self)] {
+            // drop refcount on app thread
+        });
         break;
 
     default:
