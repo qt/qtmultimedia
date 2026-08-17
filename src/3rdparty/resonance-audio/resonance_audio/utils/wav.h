@@ -18,6 +18,7 @@ limitations under the License.
 #define RESONANCE_AUDIO_UTILS_WAV_H_
 
 #include <cstdint>
+#include <istream>
 #include <memory>
 #include <vector>
 
