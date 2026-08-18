@@ -48,7 +48,7 @@ parseSampleFormat(const spa_pod &pod)
 std::optional<std::variant<SpaRange<int>, int>> parseSamplingRates(const spa_pod &pod)
 {
     std::optional<int> rate =
-            spaParsePodPropertyScalar<int>(pod, SPA_TYPE_OBJECT_Format, SPA_FORMAT_AUDIO_format);
+            spaParsePodPropertyScalar<int>(pod, SPA_TYPE_OBJECT_Format, SPA_FORMAT_AUDIO_rate);
     if (rate)
         return rate;
 
