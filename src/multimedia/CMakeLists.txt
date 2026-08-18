@@ -256,6 +256,7 @@ if (QT_FEATURE_pipewire)
             pipewire/qpipewire_audiosink.cpp                pipewire/qpipewire_audiosink_p.h
             pipewire/qpipewire_audiosource.cpp              pipewire/qpipewire_audiosource_p.h
             pipewire/qpipewire_audiostream.cpp              pipewire/qpipewire_audiostream_p.h
+            pipewire/qpipewire_camera.cpp                   pipewire/qpipewire_camera_p.h
             pipewire/qpipewire_cameracontextmanager.cpp     pipewire/qpipewire_cameracontextmanager_p.h
             pipewire/qpipewire_cameradevicemonitor.cpp      pipewire/qpipewire_cameradevicemonitor_p.h
             pipewire/qpipewire_cameradevices.cpp            pipewire/qpipewire_cameradevices_p.h
