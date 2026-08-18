@@ -10,7 +10,7 @@ if(QT_FEATURE_ffmpeg_stubs)
     return()
 endif()
 
-qt_internal_add_test(tst_ffmpeg_utils
+qt_internal_multimedia_add_test(tst_ffmpeg_utils
     SOURCES
         tst_ffmpeg_utils.cpp
     LIBRARIES
