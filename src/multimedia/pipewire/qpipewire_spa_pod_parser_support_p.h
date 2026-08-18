@@ -105,7 +105,7 @@ template <typename T>
 std::optional<T> spaParsePodPropertyScalar(const spa_pod &pod, unsigned spaObjectType,
                                            unsigned objectProperty)
 {
-    T value;
+    T value{};
     int status = [&] {
         if constexpr (std::is_enum_v<T>) {
             return spa_pod_parse_object(&pod, spaObjectType, nullptr, objectProperty,
@@ -121,9 +121,9 @@ std::optional<T> spaParsePodPropertyScalar(const spa_pod &pod, unsigned spaObjec
         }
     }();
 
-    if (status == 0)
-        return value;
-    return std::nullopt;
+    if (status < 0)
+        return std::nullopt;
+    return value;
 }
 
 template <typename Visitor>
