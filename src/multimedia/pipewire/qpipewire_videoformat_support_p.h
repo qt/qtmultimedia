@@ -44,6 +44,14 @@ constexpr QSize toQSize(spa_rectangle rect)
     };
 }
 
+constexpr spa_rectangle toSpaRectangle(QSize size)
+{
+    return spa_rectangle{
+        .width = uint32_t(size.width()),
+        .height = uint32_t(size.height()),
+    };
+}
+
 } // namespace QtPipeWire
 
 QT_END_NAMESPACE

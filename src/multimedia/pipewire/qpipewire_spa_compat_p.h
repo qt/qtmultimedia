@@ -20,6 +20,11 @@
 // old distros may miss functinality from newer upstream.
 // we collect them here for the time being
 
+#if !__has_include(<spa/param/buffers.h>)
+// older releases define SPA_PARAM_Buffers and SPA_PARAM_BUFFERS_* in param.h
+#include <spa/param/param.h>
+#endif
+
 #if !__has_include(<spa/param/audio/raw-utils.h>)
 #ifdef __cplusplus
 extern "C" {
