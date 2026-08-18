@@ -36,11 +36,20 @@ using QtMultimediaPrivate::drop;
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T>
+bool spaChoiceHoldsElementsOfSize(const struct spa_pod *value)
+{
+    return SPA_POD_CHOICE_VALUE_SIZE(value) == sizeof(T);
+}
+
+template <typename T>
 struct SpaRange
 {
     static std::optional<SpaRange> parse(const struct spa_pod *value)
     {
         if (SPA_POD_CHOICE_N_VALUES(value) != 3)
+            return std::nullopt;
+
+        if (!spaChoiceHoldsElementsOfSize<T>(value))
             return std::nullopt;
 
         T *v = reinterpret_cast<T *>(SPA_POD_CHOICE_VALUES(value));
@@ -65,6 +74,9 @@ struct SpaEnum
         int numberOfChoices = SPA_POD_CHOICE_N_VALUES(value);
 
         if (SPA_POD_CHOICE_N_VALUES(value) < 1)
+            return std::nullopt;
+
+        if (!spaChoiceHoldsElementsOfSize<T>(value))
             return std::nullopt;
 
         QSpan<const T> values{
