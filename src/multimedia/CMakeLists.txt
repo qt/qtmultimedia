@@ -258,6 +258,7 @@ if (QT_FEATURE_pipewire)
             pipewire/qpipewire_audiostream.cpp              pipewire/qpipewire_audiostream_p.h
             pipewire/qpipewire_cameracontextmanager.cpp     pipewire/qpipewire_cameracontextmanager_p.h
             pipewire/qpipewire_cameradevicemonitor.cpp      pipewire/qpipewire_cameradevicemonitor_p.h
+            pipewire/qpipewire_cameradevices.cpp            pipewire/qpipewire_cameradevices_p.h
             pipewire/qpipewire_cameranode.cpp               pipewire/qpipewire_cameranode_p.h
             pipewire/qpipewire_instance.cpp                 pipewire/qpipewire_instance_p.h
             pipewire/qpipewire_propertydict.cpp             pipewire/qpipewire_propertydict_p.h
