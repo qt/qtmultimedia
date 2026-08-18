@@ -18,6 +18,7 @@
 #include <QtMultimedia/private/qaudio_qspan_support_p.h>
 #include <QtMultimedia/private/qpipewire_spa_pod_parser_support_p.h>
 #include <QtMultimedia/qaudioformat.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtCore/qglobal.h>
 #include <QtCore/qlist.h>
 #include <QtCore/qspan.h>
@@ -34,7 +35,7 @@ QT_BEGIN_NAMESPACE
 
 namespace QtPipeWire {
 
-struct SpaObjectAudioFormat
+struct Q_MULTIMEDIA_EXPORT SpaObjectAudioFormat
 {
     static std::optional<SpaObjectAudioFormat> parse(const struct spa_pod_object *obj);
     static std::optional<SpaObjectAudioFormat> parse(const struct spa_pod *pod);
@@ -45,7 +46,7 @@ struct SpaObjectAudioFormat
     std::optional<QList<spa_audio_channel>> channelPositions; // COW-able
 };
 
-spa_audio_info_raw asSpaAudioInfoRaw(const QAudioFormat &);
+Q_MULTIMEDIA_EXPORT spa_audio_info_raw asSpaAudioInfoRaw(const QAudioFormat &);
 
 inline constexpr std::array channelPositionsMono{ SPA_AUDIO_CHANNEL_MONO };
 inline constexpr std::array channelPositionsStereo{ SPA_AUDIO_CHANNEL_FL, SPA_AUDIO_CHANNEL_FR };
