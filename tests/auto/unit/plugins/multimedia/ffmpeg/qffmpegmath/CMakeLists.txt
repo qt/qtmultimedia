@@ -5,12 +5,8 @@
 ## tst_qffmpegmath Test:
 #####################################################################
 
-if(QT_FEATURE_ffmpeg_stubs)
-    message(WARNING "tst_qffmpegmath can not run with stubbed ffmpeg because of QTBUG-133914")
-    return()
-endif()
-
 qt_internal_multimedia_add_test(tst_qffmpegmath
+    LINK_FFMPEG_STUBS
     SOURCES
         tst_qffmpegmath.cpp
     LIBRARIES

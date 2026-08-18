@@ -10,6 +10,7 @@ if(NOT WIN32)
 endif()
 
 qt_internal_multimedia_add_test(tst_texturebridge
+    LINK_FFMPEG_STUBS
     SOURCES
         devicecontext.cpp devicecontext.h
         tst_texturebridge.cpp
