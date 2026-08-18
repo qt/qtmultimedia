@@ -13,6 +13,10 @@ function(qt_internal_multimedia_add_test name)
 
     qt_internal_add_test(${name} ${args_UNPARSED_ARGUMENTS})
 
+    if(NOT TARGET ${name})
+        return()
+    endif()
+
     if(args_MACOS_BUNDLE AND APPLE)
         set_target_properties(${name} PROPERTIES
             MACOSX_BUNDLE TRUE
