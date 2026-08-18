@@ -7,13 +7,9 @@
 #include <QtMultimedia/private/qpipewire_videoformat_support_p.h>
 #include <QtMultimedia/private/qmemoryvideobuffer_p.h>
 #include <QtMultimedia/private/qpipewire_async_support_p.h>
+#include <QtMultimedia/private/qpipewire_portal_p.h>
 #include <QtMultimedia/private/qvideoframe_p.h>
-#include <QtGui/private/qdesktopunixservices_p.h>
-#include <QtGui/private/qguiapplication_p.h>
-#include <QtGui/qguiapplication.h>
-#include <QtGui/qpa/qplatformintegration.h>
 #include <QtCore/qloggingcategory.h>
-#include <QtCore/quuid.h>
 #include <QtCore/qvariantmap.h>
 #include <QtDBus/qdbusconnection.h>
 #include <QtDBus/qdbusinterface.h>
@@ -45,8 +41,7 @@ namespace QtPipeWire {
 QPipeWireCaptureHelper::QPipeWireCaptureHelper(QPipeWireCapture &capture,
                                                std::shared_ptr<QPipeWireInstance> instance)
     : QSurfaceCaptureGrabber(CreateGrabbingThread),
-      m_pwInstance(std::move(instance)),
-      m_requestTokenPrefix(QUuid::createUuid().toString(QUuid::Id128))
+      m_pwInstance(std::move(instance))
 {
     Q_ASSERT(m_pwInstance);
 
@@ -121,23 +116,13 @@ void QPipeWireCaptureHelper::gotRequestResponse(uint result, const QVariantMap &
     }
 }
 
-QString QPipeWireCaptureHelper::allocateToken()
-{
-    return u"qtmm_%1_%2"_s.arg(m_requestTokenPrefix).arg(++m_tokenCounter);
-}
-
 bool QPipeWireCaptureHelper::subscribeToRequestResponse(const QString &handleToken)
 {
     Q_ASSERT(m_pendingRequestPath.isEmpty());
 
     QDBusConnection bus = QDBusConnection::sessionBus();
 
-    QString sender = bus.baseService(); // ":1.23"
-    if (sender.startsWith(u':'))
-        sender.remove(0, 1);
-    sender.replace(u'.', u'_');
-
-    QString path = u"/org/freedesktop/portal/desktop/request/%1/%2"_s.arg(sender, handleToken);
+    QString path = QtPipeWire::portalRequestPath(bus, handleToken);
 
     const bool ok = bus.connect(u"org.freedesktop.portal.Desktop"_s, path,
                                 u"org.freedesktop.portal.Request"_s, u"Response"_s, this,
@@ -185,13 +170,13 @@ void QPipeWireCaptureHelper::createSession()
     if (!m_screenCastInterface)
         return;
 
-    const QString handleToken = allocateToken();
+    const QString handleToken = allocatePortalRequestToken();
     if (!subscribeToRequestResponse(handleToken))
         return;
 
     QVariantMap options{
         { u"handle_token"_s, handleToken },
-        { u"session_handle_token"_s, allocateToken() },
+        { u"session_handle_token"_s, allocatePortalRequestToken() },
     };
     QDBusMessage reply = m_screenCastInterface->call(u"CreateSession"_s, options);
     if (!reply.errorMessage().isEmpty()) {
@@ -218,7 +203,7 @@ void QPipeWireCaptureHelper::selectSources(const QDBusObjectPath &sessionHandle)
             u"org.freedesktop.portal.Desktop"_s, sessionHandle.path(),
             u"org.freedesktop.portal.Session"_s, u"Closed"_s, this, SLOT(sessionClosed()));
 
-    const QString handleToken = allocateToken();
+    const QString handleToken = allocatePortalRequestToken();
     if (!subscribeToRequestResponse(handleToken))
         return;
 
@@ -246,7 +231,7 @@ void QPipeWireCaptureHelper::startStream()
     if (!m_screenCastInterface)
         return;
 
-    const QString handleToken = allocateToken();
+    const QString handleToken = allocatePortalRequestToken();
     if (!subscribeToRequestResponse(handleToken))
         return;
 
@@ -254,10 +239,7 @@ void QPipeWireCaptureHelper::startStream()
         { u"handle_token"_s, handleToken },
     };
 
-    auto *unixServices = dynamic_cast<QDesktopUnixServices *>(QGuiApplicationPrivate::platformIntegration()->services());
-    const QString parentWindow = QGuiApplication::focusWindow() && unixServices
-            ? unixServices->portalWindowIdentifier(QGuiApplication::focusWindow())
-            : QString();
+    const QString parentWindow = QtPipeWire::portalParentWindowIdentifier();
     QDBusMessage reply = m_screenCastInterface->call("Start"_L1, QDBusObjectPath(m_sessionHandle),
                                                      parentWindow, options);
     if (!reply.errorMessage().isEmpty()) {

@@ -3,16 +3,12 @@
 
 #include "qpipewire_instance_p.h"
 
+#include <QtMultimedia/private/qpipewire_portal_p.h>
 #include <QtMultimedia/private/qpipewire_propertydict_p.h>
 #include <QtMultimedia/private/qpipewire_support_p.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #if QT_CONFIG(pipewire_symbolloader)
 #  include <QtMultimedia/private/qpipewire_symbolloader_p.h>
-#endif
-
-#if QT_CONFIG(pipewire_screencapture)
-#  include <QtDBus/qdbusinterface.h>
-#  include <QtDBus/qdbusmessage.h>
 #endif
 
 #include <QtCore/qcoreapplication.h>
@@ -103,34 +99,12 @@ pw_loop *QPipeWireInstance::eventLoop() const
     return m_eventLoop.loop();
 }
 
-#if QT_CONFIG(pipewire_screencapture)
-static std::optional<uint> portalInterfaceVersion(const QString &interface)
-{
-    QDBusInterface properties(u"org.freedesktop.portal.Desktop"_s,
-                              u"/org/freedesktop/portal/desktop"_s,
-                              u"org.freedesktop.DBus.Properties"_s, QDBusConnection::sessionBus());
-
-    QDBusMessage reply = properties.call(u"Get"_s, interface, u"version"_s);
-
-    if (reply.type() != QDBusMessage::ReplyMessage || reply.arguments().size() != 1) {
-        qCDebug(lcPipewire) << interface << "not available:" << reply.errorName()
-                            << reply.errorMessage();
-        return std::nullopt;
-    }
-
-    // The property is a variant, which arrives wrapped in a QDBusVariant.
-    const uint version = reply.arguments().at(0).toUInt();
-    qCDebug(lcPipewire) << interface << "version" << version;
-    return version;
-}
-#endif
-
 bool QPipeWireInstance::hasScreenCastPortal()
 {
 #if QT_CONFIG(pipewire_screencapture)
     if (!m_hasScreenCastPortal)
         m_hasScreenCastPortal =
-                portalInterfaceVersion(u"org.freedesktop.portal.ScreenCast"_s).has_value();
+                portalInterfaceVersion("org.freedesktop.portal.ScreenCast"_L1).has_value();
     return *m_hasScreenCastPortal;
 #else
     return false;
