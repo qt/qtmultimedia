@@ -79,6 +79,10 @@ public:
                 && photoResolutions == other.photoResolutions && videoFormats == other.videoFormats;
     }
 
+    static QCameraDevice create(std::unique_ptr<QCameraDevicePrivate> device)
+    {
+        return QCameraDevice(device.release());
+    }
     QCameraDevice create() { return QCameraDevice(this); }
 };
 

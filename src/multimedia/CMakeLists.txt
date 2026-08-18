@@ -248,24 +248,26 @@ if (QT_FEATURE_pipewire)
         SYSTEM_INCLUDE_DIRECTORIES
             "${PipeWire_INCLUDE_DIRS};${Spa_INCLUDE_DIRS}"
         SOURCES
-            pipewire/qpipewire_async_support.cpp       pipewire/qpipewire_async_support_p.h
-            pipewire/qpipewire_audiocontextmanager.cpp pipewire/qpipewire_audiocontextmanager_p.h
-            pipewire/qpipewire_audiodevice.cpp         pipewire/qpipewire_audiodevice_p.h
-            pipewire/qpipewire_audiodevicemonitor.cpp  pipewire/qpipewire_audiodevicemonitor_p.h
-            pipewire/qpipewire_audiodevices.cpp        pipewire/qpipewire_audiodevices_p.h
-            pipewire/qpipewire_audiosink.cpp           pipewire/qpipewire_audiosink_p.h
-            pipewire/qpipewire_audiosource.cpp         pipewire/qpipewire_audiosource_p.h
-            pipewire/qpipewire_audiostream.cpp         pipewire/qpipewire_audiostream_p.h
-            pipewire/qpipewire_cameranode.cpp          pipewire/qpipewire_cameranode_p.h
-            pipewire/qpipewire_instance.cpp            pipewire/qpipewire_instance_p.h
-            pipewire/qpipewire_propertydict.cpp        pipewire/qpipewire_propertydict_p.h
-            pipewire/qpipewire_registry_support.cpp    pipewire/qpipewire_registry_support_p.h
+            pipewire/qpipewire_async_support.cpp            pipewire/qpipewire_async_support_p.h
+            pipewire/qpipewire_audiocontextmanager.cpp      pipewire/qpipewire_audiocontextmanager_p.h
+            pipewire/qpipewire_audiodevice.cpp              pipewire/qpipewire_audiodevice_p.h
+            pipewire/qpipewire_audiodevicemonitor.cpp       pipewire/qpipewire_audiodevicemonitor_p.h
+            pipewire/qpipewire_audiodevices.cpp             pipewire/qpipewire_audiodevices_p.h
+            pipewire/qpipewire_audiosink.cpp                pipewire/qpipewire_audiosink_p.h
+            pipewire/qpipewire_audiosource.cpp              pipewire/qpipewire_audiosource_p.h
+            pipewire/qpipewire_audiostream.cpp              pipewire/qpipewire_audiostream_p.h
+            pipewire/qpipewire_cameracontextmanager.cpp     pipewire/qpipewire_cameracontextmanager_p.h
+            pipewire/qpipewire_cameradevicemonitor.cpp      pipewire/qpipewire_cameradevicemonitor_p.h
+            pipewire/qpipewire_cameranode.cpp               pipewire/qpipewire_cameranode_p.h
+            pipewire/qpipewire_instance.cpp                 pipewire/qpipewire_instance_p.h
+            pipewire/qpipewire_propertydict.cpp             pipewire/qpipewire_propertydict_p.h
+            pipewire/qpipewire_registry_support.cpp         pipewire/qpipewire_registry_support_p.h
             pipewire/qpipewire_spa_compat_p.h
-            pipewire/qpipewire_spa_pod_support.cpp     pipewire/qpipewire_spa_pod_support_p.h
+            pipewire/qpipewire_spa_pod_support.cpp          pipewire/qpipewire_spa_pod_support_p.h
             pipewire/qpipewire_spa_pod_parser_support_p.h
             pipewire/qpipewire_spa_video_format_support.cpp pipewire/qpipewire_spa_video_format_support_p.h
-            pipewire/qpipewire_support.cpp             pipewire/qpipewire_support_p.h
-            pipewire/qpipewire_videoformat_support.cpp pipewire/qpipewire_videoformat_support_p.h
+            pipewire/qpipewire_support.cpp                  pipewire/qpipewire_support_p.h
+            pipewire/qpipewire_videoformat_support.cpp      pipewire/qpipewire_videoformat_support_p.h
     )
 
     if(QT_FEATURE_pipewire_symbolloader)
