@@ -15,6 +15,7 @@
 // We mean it.
 //
 
+#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtCore/qglobal.h>
 
 #include <pipewire/pipewire.h>
@@ -42,7 +43,7 @@ enum class PipewireRegistryType : uint8_t
     SecurityContext,
 };
 
-std::optional<PipewireRegistryType> parsePipewireRegistryType(std::string_view sv);
+Q_MULTIMEDIA_EXPORT std::optional<PipewireRegistryType> parsePipewireRegistryType(std::string_view sv);
 
 } // namespace QtPipeWire
 
