@@ -145,7 +145,7 @@ endfunction()
 function(qt_internal_multimedia_set_stub_libraries stub stub_target)
     qt_internal_extend_target(${stub_target} LIBRARIES Qt::Core Qt::MultimediaPrivate)
 
-    if (LINK_STUBS_TO_FFMPEG_PLUGIN AND ${stub} STREQUAL "va")
+    if (QT_LINK_STUBS_TO_FFMPEG_PLUGIN AND ${stub} STREQUAL "va")
         qt_internal_extend_target(FFmpegMediaPluginImplPrivate LIBRARIES ${stub_target})
     endif()
 endfunction()
