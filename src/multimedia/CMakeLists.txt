@@ -278,14 +278,20 @@ if (QT_FEATURE_pipewire)
         )
     endif()
 
+    if (QT_FEATURE_dbus AND QT_FEATURE_pipewire)
+        qt_internal_extend_target(Multimedia
+            SOURCES
+                pipewire/qpipewire_portal.cpp pipewire/qpipewire_portal_p.h
+            LIBRARIES
+                Qt::DBus
+        )
+    endif()
 
     if (QT_FEATURE_pipewire_screencapture)
         qt_internal_extend_target(Multimedia
             SOURCES
                 pipewire/qpipewire_screencapture.cpp       pipewire/qpipewire_screencapture_p.h
                 pipewire/qpipewire_screencapturehelper.cpp pipewire/qpipewire_screencapturehelper_p.h
-            LIBRARIES
-                Qt::DBus
         )
     endif()
 
