@@ -21,6 +21,8 @@
 
 QT_BEGIN_NAMESPACE
 
+class QImage;
+
 QMediaMetaData taglistToMetaData(const QGstTagListHandle &);
 void extendMetaDataFromTagList(QMediaMetaData &, const QGstTagListHandle &);
 
@@ -41,6 +43,8 @@ struct RotationResult
     }
 };
 RotationResult parseRotationTag(std::string_view);
+
+QImage parseImage(const GValue &);
 
 QT_END_NAMESPACE
 

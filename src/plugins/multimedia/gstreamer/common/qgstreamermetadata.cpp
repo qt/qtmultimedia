@@ -53,6 +53,30 @@ RotationResult parseRotationTag(std::string_view tag)
     return { QtVideo::Rotation::None, false };
 }
 
+QImage parseImage(const GValue &val)
+{
+    Q_ASSERT(G_VALUE_TYPE(&val) == GST_TYPE_SAMPLE);
+
+    GstSample *sample = (GstSample *)g_value_get_boxed(&val);
+    GstCaps *caps = gst_sample_get_caps(sample);
+    if (caps && !gst_caps_is_empty(caps)) {
+        GstStructure *structure = gst_caps_get_structure(caps, 0);
+        const gchar *name = gst_structure_get_name(structure);
+        if (QByteArray(name).startsWith("image/")) {
+            GstBuffer *buffer = gst_sample_get_buffer(sample);
+            if (buffer) {
+                GstMapInfo info;
+                gst_buffer_map(buffer, &info, GST_MAP_READ);
+                QImage image = QImage::fromData(info.data, info.size, name);
+                gst_buffer_unmap(buffer, &info);
+                return image;
+            }
+        }
+    }
+
+    return {};
+}
+
 namespace {
 
 namespace MetadataLookupImpl {
@@ -221,30 +245,6 @@ QDateTime parseDateTime(const GValue &val)
     Q_ASSERT(G_VALUE_TYPE(&val) == GST_TYPE_DATE_TIME);
     const GstDateTime *dateTime = (const GstDateTime *)g_value_get_boxed(&val);
     return parseDateTime(dateTime);
-}
-
-QImage parseImage(const GValue &val)
-{
-    Q_ASSERT(G_VALUE_TYPE(&val) == GST_TYPE_SAMPLE);
-
-    GstSample *sample = (GstSample *)g_value_get_boxed(&val);
-    GstCaps *caps = gst_sample_get_caps(sample);
-    if (caps && !gst_caps_is_empty(caps)) {
-        GstStructure *structure = gst_caps_get_structure(caps, 0);
-        const gchar *name = gst_structure_get_name(structure);
-        if (QByteArray(name).startsWith("image/")) {
-            GstBuffer *buffer = gst_sample_get_buffer(sample);
-            if (buffer) {
-                GstMapInfo info;
-                gst_buffer_map(buffer, &info, GST_MAP_READ);
-                QImage image = QImage::fromData(info.data, info.size, name);
-                gst_buffer_unmap(buffer, &info);
-                return image;
-            }
-        }
-    }
-
-    return {};
 }
 
 std::optional<double> parseFractionAsDouble(const GValue &val)
