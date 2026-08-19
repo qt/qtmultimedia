@@ -4,5 +4,6 @@
 add_subdirectory(qffmpegmath)
 add_subdirectory(texturebridge)
 add_subdirectory(qffmpegvideoencoderutils)
+add_subdirectory(qffmpegsubtitledecoder)
 add_subdirectory(tst_ffmpeg_utils)
 add_subdirectory(qwindowscamera)

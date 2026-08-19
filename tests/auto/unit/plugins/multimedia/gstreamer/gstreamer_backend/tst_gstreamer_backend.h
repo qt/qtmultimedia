@@ -39,6 +39,9 @@ private slots:
 
     void parseRotationTag_returnsCorrectResults();
 
+    void parseImage_returnsCorrectResults();
+    void parseImage_returnsCorrectResults_data();
+
     void QGstBin_createFromPipelineDescription();
     void QGstElement_createFromPipelineDescription();
     void QGstElement_createFromPipelineDescription_multipleElementsCreatesBin();

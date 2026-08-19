@@ -6,6 +6,7 @@
 #include <QtTest/qtest.h>
 
 #include <QtCore/qtemporaryfile.h>
+#include <QtGui/qimage.h>
 #include <QtMultimedia/qmediaformat.h>
 #include <QtMultimedia/private/qmultimediautils_p.h>
 #include <QtGstreamerMediaPluginImpl/private/qgst_handle_types_p.h>
@@ -15,6 +16,7 @@
 #include <QtGstreamerMediaPluginImpl/private/qgstpipeline_p.h>
 #include <QtGstreamerMediaPluginImpl/private/qgstreamermetadata_p.h>
 
+#include <array>
 #include <set>
 #include <variant>
 
@@ -285,6 +287,81 @@ void tst_GStreamer::parseRotationTag_returnsCorrectResults()
                 (RotationResult{ QtVideo::Rotation::None, true }));
     QCOMPARE_EQ(parseRotationTag("flip-rotate-270"),
                 (RotationResult{ QtVideo::Rotation::Clockwise90, true }));
+}
+
+void tst_GStreamer::parseImage_returnsCorrectResults()
+{
+    QFETCH(QByteArray, mimeType);
+    QFETCH(QByteArray, payload);
+    QFETCH(bool, expectedNull);
+    QFETCH(QSize, expectedSize);
+
+    gpointer copy = g_memdup2(reinterpret_cast<const guint8 *>(payload.constData()),
+                              payload.size());
+    QGstBufferHandle buffer{
+        gst_buffer_new_wrapped(copy, payload.size()),
+        QGstBufferHandle::HasRef,
+    };
+
+    QGstCaps caps = mimeType.isEmpty()
+            ? QGstCaps{ gst_caps_new_empty(), QGstCaps::HasRef }
+            : QGstCaps{ gst_caps_new_empty_simple(mimeType.constData()), QGstCaps::HasRef };
+
+    // gst_sample_new() takes its own references on buffer/caps, so the handles above
+    // still own theirs and release them at scope exit (see fuzz_qgstreamerparseimage.cpp
+    // for the same pattern).
+    GstSample *sample = gst_sample_new(buffer.get(), caps.caps(), nullptr, nullptr);
+
+    GValue val = G_VALUE_INIT;
+    g_value_init(&val, GST_TYPE_SAMPLE);
+    // Transfers ownership of "sample" into the GValue; do not unref sample separately.
+    g_value_take_boxed(&val, sample);
+
+    QImage image = parseImage(val);
+
+    QCOMPARE_EQ(image.isNull(), expectedNull);
+    if (!expectedNull)
+        QCOMPARE_EQ(image.size(), expectedSize);
+
+    g_value_unset(&val);
+}
+
+void tst_GStreamer::parseImage_returnsCorrectResults_data()
+{
+    // A minimal, valid 1x1 grayscale+alpha PNG, decode verified independently via
+    // QImage::fromData(). kUndecodablePng1x1 below is a different, commonly-quoted "smallest
+    // PNG" byte sequence that looks plausible (correct signature/IHDR) but fails to decode
+    // ("libpng error: Not enough image data") -- reused as the undecodable-bytes test case.
+    static constexpr std::array<unsigned char, 68> kValidPng1x1 = {
+        0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44,
+        0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x04, 0x00, 0x00, 0x00, 0xb5,
+        0x1c, 0x0c, 0x02, 0x00, 0x00, 0x00, 0x0b, 0x49, 0x44, 0x41, 0x54, 0x78, 0xda, 0x63, 0x64,
+        0xf8, 0x0f, 0x00, 0x01, 0x05, 0x01, 0x01, 0x27, 0x18, 0xe3, 0x66, 0x00, 0x00, 0x00, 0x00,
+        0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
+    };
+    static constexpr std::array<unsigned char, 69> kUndecodablePng1x1 = {
+        0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44,
+        0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x06, 0x00, 0x00, 0x00, 0x1F,
+        0x15, 0xC4, 0x89, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x44, 0x41, 0x54, 0x08, 0xD7, 0x63, 0xF8,
+        0xCF, 0xC0, 0x00, 0x00, 0x03, 0x01, 0x01, 0x00, 0x18, 0xDD, 0x8D, 0xB0, 0x00, 0x00, 0x00,
+        0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82,
+    };
+
+    const QByteArray validPng(reinterpret_cast<const char *>(kValidPng1x1.data()),
+                              kValidPng1x1.size());
+    const QByteArray undecodablePng(reinterpret_cast<const char *>(kUndecodablePng1x1.data()),
+                                    kUndecodablePng1x1.size());
+
+    QTest::addColumn<QByteArray>("mimeType");
+    QTest::addColumn<QByteArray>("payload");
+    QTest::addColumn<bool>("expectedNull");
+    QTest::addColumn<QSize>("expectedSize");
+
+    QTest::newRow("valid png") << "image/png"_ba << validPng << false << QSize(1, 1);
+    QTest::newRow("non-image mime type") << "audio/x-raw"_ba << validPng << true << QSize();
+    QTest::newRow("empty caps") << QByteArray() << validPng << true << QSize();
+    QTest::newRow("undecodable image bytes")
+            << "image/png"_ba << undecodablePng << true << QSize();
 }
 
 void tst_GStreamer::QGstBin_createFromPipelineDescription()

@@ -3,6 +3,7 @@
 // Qt-Security score:critical reason:data-parser
 
 #include "mfmetadata_p.h"
+#include "qwindowsasfpicture_p.h"
 
 #include <QtMultimedia/qmediametadata.h>
 #include <QtMultimedia/private/qmediametadata_p.h>
@@ -162,48 +163,6 @@ QMediaMetaData MFMetaData::fromNative(IMFMediaSource* mediaSource)
     }
 
     return metaData;
-}
-
-// MinGW's mfidl.h declares ASF_FLAT_PICTURE without the #pragma pack(1) that the
-// Windows SDK applies, making sizeof() 8 there instead of 5. Use our own packed
-// definition on both toolchains, so there is a single code path guarded by the
-// static_assert below.
-#pragma pack(push, 1)
-struct QMM_ASF_FLAT_PICTURE
-{
-    BYTE bPictureType;
-    DWORD dwDataLen;
-};
-#pragma pack(pop)
-static_assert(sizeof(QMM_ASF_FLAT_PICTURE) == 5);
-static_assert(alignof(QMM_ASF_FLAT_PICTURE) == 1);
-
-static QImage imageFromAsfFlatPicture(const BLOB &blob)
-{
-    if (blob.cbSize <= sizeof(QMM_ASF_FLAT_PICTURE))
-        return {};
-
-    const auto *pic = reinterpret_cast<const QMM_ASF_FLAT_PICTURE *>(blob.pBlobData);
-    const BYTE *p = blob.pBlobData + sizeof(QMM_ASF_FLAT_PICTURE);
-    const BYTE *end = blob.pBlobData + blob.cbSize;
-
-    // Skip MIME type (null-terminated UTF-16)
-    while (p + 1 < end && (p[0] || p[1]))
-        p += 2;
-    p += 2;
-    if (p > end)
-        return {};
-
-    // Skip description (null-terminated UTF-16)
-    while (p + 1 < end && (p[0] || p[1]))
-        p += 2;
-    p += 2;
-    if (p > end || pic->dwDataLen > static_cast<DWORD>(end - p))
-        return {};
-
-    QImage img;
-    img.loadFromData(p, pic->dwDataLen);
-    return img;
 }
 
 QMediaMetaData MFMetaData::fromNative(IMFMetadata *metadata)

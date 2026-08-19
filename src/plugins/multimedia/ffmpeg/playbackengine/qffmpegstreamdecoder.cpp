@@ -234,6 +234,16 @@ void StreamDecoder::decodeSubtitle(const Packet &packet)
         return;
     }
     //        qCDebug(qLcDecoder) << "    got subtitle (" << start << "--" << end << "):";
+    QString text = subtitleTextFromAVSubtitle(subtitle);
+
+    onFrameFound({ m_sessionCtx.offset, text, start, end - start, id() });
+
+    // TODO: maybe optimize
+    onFrameFound({ m_sessionCtx.offset, QString(), end, TrackDuration(0), id() });
+}
+
+QString subtitleTextFromAVSubtitle(const AVSubtitle &subtitle)
+{
     QString text;
     for (uint i = 0; i < subtitle.num_rects; ++i) {
         const auto *r = subtitle.rects[i];
@@ -260,12 +270,9 @@ void StreamDecoder::decodeSubtitle(const Packet &packet)
     text.replace(QLatin1String("\r\n"), QLatin1String("\n"));
     if (text.endsWith(QLatin1Char('\n')))
         text.chop(1);
-
-    onFrameFound({ m_sessionCtx.offset, text, start, end - start, id() });
-
-    // TODO: maybe optimize
-    onFrameFound({ m_sessionCtx.offset, QString(), end, TrackDuration(0), id() });
+    return text;
 }
+
 } // namespace QFFmpeg
 
 QT_END_NAMESPACE

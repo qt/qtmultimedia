@@ -6,6 +6,7 @@ qt_internal_add_plugin(QWindowsMediaPlugin
     PLUGIN_TYPE multimedia
     SOURCES
         common/mfmetadata.cpp common/mfmetadata_p.h
+        common/qwindowsasfpicture.cpp common/qwindowsasfpicture_p.h
         decoder/mfaudiodecodercontrol.cpp decoder/mfaudiodecodercontrol_p.h
         decoder/mfdecodersourcereader.cpp decoder/mfdecodersourcereader_p.h
         decoder/mfdecodersourcereadercallback.cpp decoder/mfdecodersourcereadercallback_p.h
