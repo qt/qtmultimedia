@@ -202,6 +202,43 @@ private slots:
         QCOMPARE(value2.use_count(), 2);
     }
 
+    void getOrCreate_createsValue_whenRhiIsNotInTheMap()
+    {
+        // Arrange
+        auto rhi = createRhi();
+        ValueProvider valueProvider{ makeValue(1) };
+
+        // Act
+        Value &result = m_mapper.getOrCreate(*rhi, [&] {
+            return Value(valueProvider);
+        });
+
+        // Assert
+        QCOMPARE(result, valueProvider.value);
+        QCOMPARE(valueProvider.invocationCount, 1);
+        QCOMPARE(m_mapper.get(rhi.get()), &result);
+    }
+
+    void getOrCreate_returnsExistingValue_whenRhiIsInTheMap()
+    {
+        // Arrange
+        auto rhi = createRhi();
+        Value value = makeValue(1);
+        Value *addingResult = m_mapper.tryMap(*rhi, value).first;
+
+        ValueProvider valueProvider{ makeValue(2) };
+
+        // Act
+        Value &result = m_mapper.getOrCreate(*rhi, [&] {
+            return Value(valueProvider);
+        });
+
+        // Assert
+        QCOMPARE(&result, addingResult);
+        QCOMPARE(result, value);
+        QCOMPARE(valueProvider.invocationCount, 0);
+    }
+
     void findRhi_findsRhiAccordingToPredicate()
     {
         // Arrange

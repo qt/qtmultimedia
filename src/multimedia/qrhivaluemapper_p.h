@@ -115,6 +115,14 @@ public:
         return rhiIt == m_data->storage.end() ? nullptr : &rhiIt->second;
     }
 
+    template <typename Functor>
+    Value &getOrCreate(QRhi &rhi, Functor &&factory)
+    {
+        if (Value *value = get(&rhi))
+            return *value;
+        return *tryMap(rhi, factory()).first;
+    }
+
     //    To be added for thread-safe value read:
     //
     //    template <typename Reader>
