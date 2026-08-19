@@ -146,12 +146,13 @@ GstFlowReturn QGstSubtitleSink::wait_event(GstBaseSink *base, GstEvent *event)
 GstFlowReturn QGstSubtitleSink::render(GstBaseSink *base, GstBuffer *buffer)
 {
     ST_SINK(base);
-    GstMemory *mem = gst_buffer_get_memory(buffer, 0);
+    QGstMemoryHandle mem{ gst_buffer_get_memory(buffer, 0), QGstMemoryHandle::HasRef };
     GstMapInfo info;
     QString subtitle;
-    if (gst_memory_map(mem, &info, GST_MAP_READ))
-        subtitle = QString::fromUtf8(reinterpret_cast<const char *>(info.data));
-    gst_memory_unmap(mem, &info);
+    if (gst_memory_map(mem.get(), &info, GST_MAP_READ)) {
+        subtitle = QString::fromUtf8(reinterpret_cast<const char *>(info.data), qsizetype(info.size));
+        gst_memory_unmap(mem.get(), &info);
+    }
 //    qDebug() << "render" << buffer << subtitle;
     sink->observer->updateSubtitle(subtitle);
     return GST_FLOW_OK;
