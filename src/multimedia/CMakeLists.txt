@@ -169,6 +169,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_network
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_linux_dmabuf
     SOURCES
         video/qdmabuftextureimporter.cpp video/qdmabuftextureimporter_p.h
+        video/qdmabufvideobuffer.cpp video/qdmabufvideobuffer_p.h
     LIBRARIES
         EGL::EGL
 )

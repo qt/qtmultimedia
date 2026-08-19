@@ -52,6 +52,7 @@ public:
     explicit DmaBufEglContext(QRhi *rhi);
 
     bool isValid() const { return m_valid; }
+    void invalidate() { m_valid = false; }
 
     QOpenGLContext *glContext() const { return m_glContext; }
     Qt::HANDLE eglDisplay() const { return m_eglDisplay; }
