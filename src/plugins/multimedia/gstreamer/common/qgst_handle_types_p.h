@@ -117,6 +117,18 @@ struct QGstDateTimeHandleTraits
     }
 };
 
+struct QGstMemoryHandleTraits
+{
+    using Type = GstMemory *;
+    static constexpr Type invalidValue() noexcept { return nullptr; }
+    static Type ref(Type handle) noexcept { return gst_memory_ref(handle); }
+    static bool unref(Type handle) noexcept
+    {
+        gst_memory_unref(handle);
+        return true;
+    }
+};
+
 template <typename GstType>
 struct QGstHandleHelper
 {
@@ -208,6 +220,7 @@ using QUniqueGStringHandle = QUniqueHandle<QGstImpl::QUniqueGStringHandleTraits>
 using QUniqueGErrorHandle = QUniqueHandle<QGstImpl::QUniqueGErrorHandleTraits>;
 using QUniqueGDateHandle = QUniqueHandle<QGstImpl::QUniqueGDateHandleTraits>;
 using QGstDateTimeHandle = QtPrivate::QSharedHandle<QGstImpl::QGstDateTimeHandleTraits>;
+using QGstMemoryHandle = QtPrivate::QSharedHandle<QGstImpl::QGstMemoryHandleTraits>;
 using QGstBufferHandle = QGstImpl::QGstMiniObjectHandleHelper<GstBuffer>::SharedHandle;
 using QGstContextHandle = QGstImpl::QGstMiniObjectHandleHelper<GstContext>::SharedHandle;
 using QGstGstDateTimeHandle = QGstImpl::QGstMiniObjectHandleHelper<GstDateTime>::SharedHandle;
