@@ -37,7 +37,16 @@ QAudioDevices::QAudioDevices()
 
 bool QAudioDevices::isSupported()
 {
-    return QPipeWireInstance::isLoaded() && QAudioContextManager::minimumRequirementMet()
+    if (!QPipeWireInstance::isLoaded())
+        return false;
+
+    if (auto check = QPipeWireInstance::checkSupportPluginsLoadable(); !check) {
+        qCWarning(lcPipewire) << "PipeWire support plugins could not be loaded:"
+                              << check.error().message();
+        return false;
+    }
+
+    return QAudioContextManager::minimumRequirementMet()
             && QAudioContextManager::instance()->isConnected();
 }
 

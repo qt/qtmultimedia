@@ -72,7 +72,6 @@ QAudioContextManager::~QAudioContextManager()
     m_registry.reset();
     m_coreConnection.reset();
     m_context.reset();
-    m_eventLoop.reset();
 }
 
 bool QAudioContextManager::minimumRequirementMet()
@@ -97,12 +96,12 @@ QAudioDeviceMonitor &QAudioContextManager::deviceMonitor()
 
 bool QAudioContextManager::isInPwThreadLoop()
 {
-    return pw_thread_loop_in_thread(instance()->m_eventLoop.get());
+    return instance()->m_eventLoop.isInThread();
 }
 
 pw_loop *QAudioContextManager::getEventLoop()
 {
-    return pw_thread_loop_get_loop(instance()->m_eventLoop.get());
+    return instance()->m_eventLoop.loop();
 }
 
 PwNodeHandle QAudioContextManager::bindNode(ObjectId id)
@@ -159,25 +158,20 @@ const PwCoreConnectionHandle &QAudioContextManager::coreConnection() const
 
 void QAudioContextManager::prepareEventLoop()
 {
-    m_eventLoop = PwThreadLoopHandle{
-        pw_thread_loop_new("QAudioContext", /*props=*/nullptr),
-    };
-    if (!m_eventLoop) {
+    if (!m_eventLoop)
         qFatal() << "Failed to create pipewire main loop" << make_error_code().message();
-        return;
-    }
 }
 
 void QAudioContextManager::startEventLoop()
 {
-    int status = pw_thread_loop_start(m_eventLoop.get());
+    int status = m_eventLoop.start();
     if (status < 0)
         qFatal() << "Failed to start event loop" << make_error_code(-status).message();
 }
 
 void QAudioContextManager::stopEventLoop()
 {
-    pw_thread_loop_stop(m_eventLoop.get());
+    m_eventLoop.stop();
 }
 
 void QAudioContextManager::prepareContext()
@@ -189,7 +183,7 @@ void QAudioContextManager::prepareContext()
 
     Q_ASSERT(m_eventLoop);
     m_context = PwContextHandle{
-        pw_context_new(pw_thread_loop_get_loop(m_eventLoop.get()), props.release(),
+        pw_context_new(m_eventLoop.loop(), props.release(),
                        /*user_data_size=*/0),
     };
 }
@@ -314,7 +308,7 @@ void QAudioContextManager::stopListenDefaultMetadataObject()
     if (!m_defaultMetadataObject)
         return;
 
-    runWithEventLoopLock([&] {
+    m_eventLoop.runWithEventLoopLock([&] {
         spa_hook_remove(&m_defaultMetadataObjectListener);
         m_defaultMetadataObject.reset();
     });
@@ -456,7 +450,7 @@ void QAudioContextManager::stopDeviceMonitor()
     if (!m_registry)
         return;
 
-    runWithEventLoopLock([&] {
+    m_eventLoop.runWithEventLoopLock([&] {
         m_deviceMonitor->clearAllObservers();
 
         spa_hook_remove(&m_registryListener);

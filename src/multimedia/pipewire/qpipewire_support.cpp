@@ -13,6 +13,69 @@
 
 QT_BEGIN_NAMESPACE
 
+namespace QtPipeWire {
+
+PWThreadedEventLoop::PWThreadedEventLoop(const char *name)
+    : m_loop{
+          pw_thread_loop_new(name, /*props=*/nullptr),
+      }
+{
+}
+
+PWThreadedEventLoop::~PWThreadedEventLoop() = default;
+
+PWThreadedEventLoop::operator bool() const
+{
+    return bool(m_loop);
+}
+
+int PWThreadedEventLoop::start()
+{
+    return pw_thread_loop_start(m_loop.get());
+}
+
+void PWThreadedEventLoop::stop()
+{
+    pw_thread_loop_stop(m_loop.get());
+}
+
+pw_thread_loop *PWThreadedEventLoop::get() const
+{
+    return m_loop.get();
+}
+
+pw_loop *PWThreadedEventLoop::loop() const
+{
+    return pw_thread_loop_get_loop(m_loop.get());
+}
+
+bool PWThreadedEventLoop::isInThread() const
+{
+    return pw_thread_loop_in_thread(m_loop.get());
+}
+
+void PWThreadedEventLoop::lock()
+{
+    pw_thread_loop_lock(m_loop.get());
+}
+
+void PWThreadedEventLoop::unlock()
+{
+    pw_thread_loop_unlock(m_loop.get());
+}
+
+int PWThreadedEventLoop::wait_for(std::chrono::seconds waitMax)
+{
+    return pw_thread_loop_timed_wait(m_loop.get(), int(waitMax.count()));
+}
+
+void PWThreadedEventLoop::signal(bool waitForAccept)
+{
+    pw_thread_loop_signal(m_loop.get(), waitForAccept);
+}
+
+} // namespace QtPipeWire
+
 // debug support
 QDebug operator<<(QDebug dbg, const spa_dict &dict)
 {

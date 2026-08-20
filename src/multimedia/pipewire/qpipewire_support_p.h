@@ -18,7 +18,9 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qglobal.h>
 
+#include <chrono>
 #include <memory>
+#include <mutex>
 #include <pipewire/extensions/metadata.h>
 #include <system_error>
 
@@ -79,6 +81,53 @@ struct PwCoreConnectionDeleter
 };
 
 using PwCoreConnectionHandle = std::unique_ptr<pw_core, PwCoreConnectionDeleter>;
+
+struct SpaHandleDeleter
+{
+    void operator()(spa_handle *handle) const
+    {
+        int status = pw_unload_spa_handle(handle);
+        if (status < 0)
+            qWarning() << "Failed to unload spa_handle:" << make_error_code(-status).message();
+    }
+};
+
+using SpaHandleHandle = std::unique_ptr<spa_handle, SpaHandleDeleter>;
+
+class PWThreadedEventLoop
+{
+public:
+    explicit PWThreadedEventLoop(const char *name);
+    ~PWThreadedEventLoop();
+
+    Q_DISABLE_COPY_MOVE(PWThreadedEventLoop)
+
+    explicit operator bool() const;
+
+    int start();
+    void stop();
+
+    pw_thread_loop *get() const;
+    pw_loop *loop() const;
+
+    bool isInThread() const;
+
+    void lock();
+    void unlock();
+
+    int wait_for(std::chrono::seconds waitMax);
+    void signal(bool waitForAccept);
+
+    template <typename Closure>
+    auto runWithEventLoopLock(Closure &&c)
+    {
+        std::lock_guard guard{ *this };
+        return c();
+    }
+
+private:
+    PwThreadLoopHandle m_loop;
+};
 
 // strong id types
 

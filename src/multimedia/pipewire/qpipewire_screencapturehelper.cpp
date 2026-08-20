@@ -33,6 +33,7 @@
 #include <QtDBus/qdbusunixfiledescriptor.h>
 
 #include <fcntl.h>
+#include <mutex>
 
 // pipewire's macros tend to emit unused value warnings
 QT_WARNING_PUSH
@@ -41,6 +42,7 @@ QT_WARNING_DISABLE_CLANG("-Wunused-value")
 QT_BEGIN_NAMESPACE
 
 using namespace Qt::StringLiterals;
+using namespace std::chrono_literals;
 
 Q_STATIC_LOGGING_CATEGORY(qLcPipeWireCapture, "qt.multimedia.pipewire.capture");
 Q_STATIC_LOGGING_CATEGORY(qLcPipeWireCaptureMore, "qt.multimedia.pipewire.capture.more");
@@ -79,6 +81,7 @@ Q_GLOBAL_STATIC(PipeWireCaptureGlobalState, globalState)
 
 QPipeWireCaptureHelper::QPipeWireCaptureHelper(QPipeWireCapture &capture)
     : QSurfaceCaptureGrabber(CreateGrabbingThread),
+      m_threadLoop("qt-multimedia-pipewire-loop"),
       m_requestTokenPrefix(QUuid::createUuid().toString(QUuid::WithoutBraces).left(8))
 {
     addFrameCallback(&capture, &QPipeWireCapture::newVideoFrame);
@@ -340,35 +343,6 @@ void QPipeWireCaptureHelper::openPipeWireRemote()
     m_operationState = OpenPipeWireRemote;
 }
 
-namespace {
-class LoopLocker
-{
-public:
-    LoopLocker(pw_thread_loop *threadLoop)
-        : m_threadLoop(threadLoop) {
-        lock();
-    }
-    ~LoopLocker() {
-        unlock();
-    }
-
-    void lock() {
-        if (m_threadLoop)
-            pw_thread_loop_lock(m_threadLoop);
-    }
-
-    void unlock() {
-        if (m_threadLoop) {
-            pw_thread_loop_unlock(m_threadLoop);
-            m_threadLoop = nullptr;
-        }
-    }
-
-private:
-    pw_thread_loop *m_threadLoop = nullptr;
-};
-} // namespace
-
 bool QPipeWireCaptureHelper::open(int pipewireFd)
 {
     if (m_streams.isEmpty())
@@ -442,9 +416,6 @@ bool QPipeWireCaptureHelper::open(int pipewireFd)
         },
     };
 
-    m_threadLoop = PwThreadLoopHandle{
-        pw_thread_loop_new("qt-multimedia-pipewire-loop", nullptr),
-    };
     if (!m_threadLoop) {
         m_err = true;
         updateError(QPlatformSurfaceCapture::Error::InternalError,
@@ -453,7 +424,7 @@ bool QPipeWireCaptureHelper::open(int pipewireFd)
     }
 
     m_context = PwContextHandle{
-        pw_context_new(pw_thread_loop_get_loop(m_threadLoop.get()), nullptr, 0),
+        pw_context_new(m_threadLoop.loop(), nullptr, 0),
     };
     if (!m_context) {
         m_err = true;
@@ -487,16 +458,16 @@ bool QPipeWireCaptureHelper::open(int pipewireFd)
 
     updateCoreInitSeq();
 
-    if (pw_thread_loop_start(m_threadLoop.get()) != 0) {
+    if (m_threadLoop.start() != 0) {
         m_err = true;
         updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"QPipeWireCaptureHelper failed at pw_thread_loop_start()."_s);
         return false;
     }
 
-    LoopLocker locker(m_threadLoop.get());
+    std::unique_lock locker(m_threadLoop);
     while (!m_initDone) {
-        if (pw_thread_loop_timed_wait(m_threadLoop.get(), 2) != 0)
+        if (m_threadLoop.wait_for(2s) != 0)
             break;
     }
 
@@ -515,7 +486,7 @@ void QPipeWireCaptureHelper::onCoreEventDone(uint32_t id, int seq)
         spa_hook_remove(&m_coreListener);
 
         m_initDone = true;
-        pw_thread_loop_signal(m_threadLoop.get(), false);
+        m_threadLoop.signal(false);
     }
 }
 
@@ -637,7 +608,7 @@ void QPipeWireCaptureHelper::recreateStream()
     const struct spa_dict info = SPA_DICT_INIT(items.data(), items.size());
     auto *props = pw_properties_new_dict(&info);
 
-    LoopLocker locker(m_threadLoop.get());
+    std::unique_lock locker(m_threadLoop);
 
     m_stream = PwStreamHandle{
         pw_stream_new(m_core.get(), "video-capture", props),
@@ -707,14 +678,14 @@ void QPipeWireCaptureHelper::destroyStream(bool forceDrain)
         return;
 
     if (forceDrain) {
-        LoopLocker locker(m_threadLoop.get());
+        std::unique_lock locker(m_threadLoop);
         while (!m_streamPaused && !m_silence && !m_err) {
-            if (pw_thread_loop_timed_wait(m_threadLoop.get(), 1) != 0)
+            if (m_threadLoop.wait_for(1s) != 0)
                 break;
         }
     }
 
-    LoopLocker locker(m_threadLoop.get());
+    std::unique_lock locker(m_threadLoop);
     m_ignoreStateChange = true;
     pw_stream_disconnect(m_stream.get());
     m_stream = {};
@@ -730,7 +701,7 @@ void QPipeWireCaptureHelper::signalLoop(bool onProcessDone, bool err)
         m_err = true;
     if (onProcessDone)
         m_processed = true;
-    pw_thread_loop_signal(m_threadLoop.get(), false);
+    m_threadLoop.signal(false);
 }
 
 void QPipeWireCaptureHelper::onStateChanged(pw_stream_state old, pw_stream_state state, const char *error)
@@ -797,12 +768,11 @@ void QPipeWireCaptureHelper::destroy()
     m_state = Stopping;
     destroyStream(false);
 
-    pw_thread_loop_stop(m_threadLoop.get());
+    m_threadLoop.stop();
 
     m_registry = {};
     m_core = {};
     m_context = {};
-    m_threadLoop = {};
 
     m_state = NoState;
 }
