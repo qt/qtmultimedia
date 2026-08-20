@@ -94,7 +94,7 @@ qt_internal_add_module(Multimedia
         recording/qmediacapturesession.cpp recording/qmediacapturesession.h recording/qmediacapturesession_p.h
         recording/qmediarecorder.cpp recording/qmediarecorder.h recording/qmediarecorder_p.h
         recording/qscreencapture.cpp recording/qscreencapture.h
-        recording/qwindowcapture.cpp recording/qwindowcapture.h
+        recording/qwindowcapture.cpp recording/qwindowcapture.h recording/qwindowcapture_p.h
         recording/qcapturablewindow.cpp recording/qcapturablewindow.h recording/qcapturablewindow_p.h
         recording/qvideoframeinput.cpp recording/qvideoframeinput.h
         support/qiteratorfacade_p.h
