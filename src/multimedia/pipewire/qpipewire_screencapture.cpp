@@ -26,6 +26,12 @@ bool QPipeWireCapture::isSupported()
     if (!QPipeWireInstance::isLoaded())
         return false;
 
+    if (auto check = QPipeWireInstance::checkSupportPluginsLoadable(); !check) {
+        qCWarning(lcPipewire) << "PipeWire support plugins could not be loaded:"
+                              << check.error().message();
+        return false;
+    }
+
     return QPipeWireCaptureHelper::isSupported();
 }
 

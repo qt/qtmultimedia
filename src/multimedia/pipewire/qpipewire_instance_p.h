@@ -15,10 +15,13 @@
 // We mean it.
 //
 
+#include <QtCore/private/qexpected_p.h>
 #include <QtCore/qglobal.h>
 #include <QtCore/qloggingcategory.h>
 
 #include <pipewire/pipewire.h>
+
+#include <system_error>
 
 QT_BEGIN_NAMESPACE
 
@@ -30,7 +33,9 @@ class QPipeWireInstance
 {
 public:
     [[nodiscard]] static std::shared_ptr<QPipeWireInstance> instance();
-    static bool isLoaded();
+    [[nodiscard]] static bool isLoaded();
+    [[nodiscard]] static q23::expected<void, std::error_code> hasSPAFactory(const char *factoryName);
+    [[nodiscard]] static q23::expected<void, std::error_code> checkSupportPluginsLoadable();
 
     QPipeWireInstance();
     ~QPipeWireInstance();

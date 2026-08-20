@@ -11,6 +11,9 @@
 
 #include <QtCore/qmutex.h>
 
+#include <spa/utils/names.h>
+
+#include <array>
 #include <mutex>
 
 QT_BEGIN_NAMESPACE
@@ -49,6 +52,37 @@ bool QPipeWireInstance::isLoaded()
 #else
     return 1;
 #endif
+}
+
+q23::expected<void, std::error_code> QPipeWireInstance::hasSPAFactory(const char *factoryName)
+{
+    std::array<spa_support, 32> support{};
+    uint32_t n_support = pw_get_support(support.data(), uint32_t(support.size()));
+
+    SpaHandleHandle handle{
+        pw_load_spa_handle(/*lib=*/nullptr, factoryName, /*info=*/nullptr, n_support,
+                           support.data()),
+    };
+    if (!handle)
+        return q23::unexpected{ make_error_code() };
+
+    return {};
+}
+
+q23::expected<void, std::error_code> QPipeWireInstance::checkSupportPluginsLoadable()
+{
+    // required for the pipewire event loop
+    static constexpr std::array requiredPlugins{
+        SPA_NAME_SUPPORT_SYSTEM,
+        SPA_NAME_SUPPORT_LOOP,
+    };
+
+    for (const char *pluginName : requiredPlugins) {
+        if (auto check = hasSPAFactory(pluginName); !check)
+            return check;
+    }
+
+    return {};
 }
 
 QPipeWireInstance::QPipeWireInstance()

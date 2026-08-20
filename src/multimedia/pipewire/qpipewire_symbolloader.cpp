@@ -50,6 +50,9 @@ INIT_FUNC(pw_stream_queue_buffer);
 INIT_OPT_FUNC(pw_stream_get_time_n);
 INIT_FUNC(pw_proxy_destroy);
 INIT_FUNC(pw_get_library_version);
+INIT_FUNC(pw_get_support);
+INIT_FUNC(pw_load_spa_handle);
+INIT_FUNC(pw_unload_spa_handle);
 
 END_INIT_FUNCS()
 
@@ -85,5 +88,8 @@ DEFINE_FUNC(pw_stream_queue_buffer, 2);
 DEFINE_FUNC(pw_stream_get_time_n, 3, -1);
 DEFINE_FUNC(pw_proxy_destroy, 1);
 DEFINE_FUNC(pw_get_library_version, 0);
+DEFINE_FUNC(pw_get_support, 2);
+DEFINE_FUNC(pw_load_spa_handle, 5);
+DEFINE_FUNC(pw_unload_spa_handle, 1);
 
 DEFINE_IS_LOADED_CHECKER(qPipewireIsLoaded)

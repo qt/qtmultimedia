@@ -95,7 +95,7 @@ private:
     QVideoFrameFormat::PixelFormat m_pixelFormat{};
     QSize m_size;
 
-    PwThreadLoopHandle m_threadLoop;
+    PWThreadedEventLoop m_threadLoop;
     PwContextHandle m_context;
 
     PwCoreConnectionHandle m_core;
