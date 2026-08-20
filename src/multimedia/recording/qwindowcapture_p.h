@@ -29,8 +29,18 @@ class QPlatformSurfaceCapture;
 class Q_MULTIMEDIA_EXPORT QWindowCapturePrivate : public QObjectPrivate
 {
 public:
+    [[nodiscard]] static QWindowCapturePrivate *get(QWindowCapture &capture)
+    {
+        return capture.d_func();
+    }
+
     QMediaCaptureSession *captureSession = nullptr;
     std::unique_ptr<QPlatformSurfaceCapture> platformWindowCapture;
+
+    // Only applied when next stream starts.
+    void setIgnoreCursor(bool);
+    // Only applied when next stream starts.
+    void setIgnoreDropShadow(bool);
 };
 
 QT_END_NAMESPACE

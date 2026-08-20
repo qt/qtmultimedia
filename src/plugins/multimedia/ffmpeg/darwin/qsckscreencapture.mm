@@ -157,20 +157,22 @@ bool QSckScreenCapture::setActiveInternal(bool active)
 
         AVFScopedPointer<SCDisplay> &scDisplay = *scDisplayResult;
 
-        auto setupConnections = [&](QMacScreenCaptureKit &newObject) {
-            setupQMacScreenCaptureKitConnections(*this, newObject);
-        };
-
         if (m_session)
             m_session->onSourceActivating(*this);
 
         // Start and wait for the stream to start. Blocking operation.
+        QMacScreenCaptureKit::CreateStreamInfo createInfo = {};
+        createInfo.streamId = newStreamId;
+        createInfo.connectionSetupFn = [&](QMacScreenCaptureKit &newObject) {
+            setupQMacScreenCaptureKitConnections(*this, newObject);
+        };
+        createInfo.streamSettings.frameRate = frameRate();
+        createInfo.streamSettings.overrideIgnoreCursor = ignoreCursor();
+        createInfo.streamSettings.overrideIgnoreDropShadow = ignoreDropShadow();
         using ResultType = q23::expected<std::unique_ptr<QMacScreenCaptureKit>, QString>;
         std::future<ResultType> streamResultFuture = QMacScreenCaptureKit::createStreamFromDisplay(
-            newStreamId,
-            scDisplay.data(),
-            frameRate(),
-            setupConnections);
+            createInfo,
+            scDisplay.data());
         ResultType streamResult = streamResultFuture.get();
         if (!streamResult) {
             if (m_session)
