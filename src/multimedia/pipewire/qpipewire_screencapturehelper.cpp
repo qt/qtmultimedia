@@ -629,12 +629,12 @@ void QPipeWireCaptureHelper::recreateStream()
     destroyStream(true);
 
     auto streamInfo = m_streams[0];
-    struct std::array<spa_dict_item, 4> items;
-    struct spa_dict info;
-    items[0] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_TYPE, "Video");
-    items[1] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_CATEGORY, "Capture");
-    items[2] = SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_ROLE, "Screen");
-    info = SPA_DICT_INIT(items.data(), 3);
+    const struct std::array<spa_dict_item, 3> items{
+        SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_TYPE, "Video"),
+        SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_CATEGORY, "Capture"),
+        SPA_DICT_ITEM_INIT(PW_KEY_MEDIA_ROLE, "Screen"),
+    };
+    const struct spa_dict info = SPA_DICT_INIT(items.data(), items.size());
     auto *props = pw_properties_new_dict(&info);
 
     LoopLocker locker(m_threadLoop.get());
