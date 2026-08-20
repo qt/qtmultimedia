@@ -11,7 +11,7 @@ TestCase {
 
     function initTestCase() {
         verify(
-            MediaBackendUtils.isMediaBackendPluginLoaded,
+            TestHelper.isMediaBackendPluginLoaded,
             "No media backend plugin was loaded; the fallback integration was used.")
     }
 
