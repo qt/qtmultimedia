@@ -66,6 +66,14 @@ public:
     void setFrameRate(std::optional<qreal>);
     [[nodiscard]] std::optional<qreal> frameRate() const;
 
+    void setIgnoreCursor(bool);
+    // Applied on next stream start.
+    [[nodiscard]] bool ignoreCursor() const;
+
+    void setIgnoreDropShadow(bool);
+    // Applied on next stream start.
+    [[nodiscard]] bool ignoreDropShadow() const;
+
 protected:
     virtual bool setActiveInternal(bool) = 0;
 
@@ -85,6 +93,11 @@ private:
     QErrorInfo<Error> m_error;
     Source m_source;
     bool m_active = false;
+
+    // While not part of public API, these settings tend to impact
+    // integration tests.
+    bool m_ignoreCursor = false;
+    bool m_ignoreDropShadow = false;
 };
 
 QT_END_NAMESPACE

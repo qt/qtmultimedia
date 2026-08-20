@@ -145,17 +145,20 @@ bool QSckWindowCapture::setActiveInternal(bool active)
         if (m_session)
             m_session->onSourceActivating(*this);
 
-        auto setupConnections = [&](QMacScreenCaptureKit &newObject) {
+        QMacScreenCaptureKit::CreateStreamInfo createInfo = {};
+        createInfo.streamId = newStreamId;
+        createInfo.connectionSetupFn = [&](QMacScreenCaptureKit &newObject) {
             setupQMacScreenCaptureKitConnections(*this, newObject);
         };
+        createInfo.streamSettings.frameRate = frameRate();
+        createInfo.streamSettings.overrideIgnoreCursor = ignoreCursor();
+        createInfo.streamSettings.overrideIgnoreDropShadow = ignoreDropShadow();
 
         // Start and wait for the stream to start. Blocking operation.
         using ResultType = q23::expected<std::unique_ptr<QMacScreenCaptureKit>, QString>;
         std::future<ResultType> streamResultFuture = QMacScreenCaptureKit::createStreamFromWindow(
-            newStreamId,
-            scWindow.data(),
-            frameRate(),
-            setupConnections);
+            createInfo,
+            scWindow.data());
 
         ResultType streamResult = streamResultFuture.get();
         if (!streamResult) {

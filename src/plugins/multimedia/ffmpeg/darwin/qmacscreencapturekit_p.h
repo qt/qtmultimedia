@@ -79,6 +79,18 @@ public:
         std::vector<AVFScopedPointer<SCWindow>> windows;
     };
 
+    struct StreamSettings {
+        std::optional<qreal> frameRate;
+        bool overrideIgnoreCursor = false;
+        bool overrideIgnoreDropShadow = false;
+    };
+
+    struct CreateStreamInfo {
+        StreamId streamId = {};
+        std::function<void(QMacScreenCaptureKit&)> connectionSetupFn;
+        StreamSettings streamSettings = {};
+    };
+
     QMacScreenCaptureKit() = default;
     ~QMacScreenCaptureKit();
     QMacScreenCaptureKit(const QMacScreenCaptureKit &) = delete;
@@ -88,32 +100,22 @@ public:
 
     [[nodiscard]] StreamId streamId() const noexcept { return m_streamId; }
 
-    [[nodiscard]] static AVFScopedPointer<SCStreamConfiguration> createStreamConfig(
-        QSize resolutionPx,
-        std::optional<qreal> frameRate);
-
     [[nodiscard]] static std::future<q23::expected<CapturableItems, QString>> enumerateCapturableItems();
 
     [[nodiscard]] static std::future<q23::expected<std::unique_ptr<QMacScreenCaptureKit>, QString>>
     createStreamFromDisplay(
-        StreamId streamId,
-        SCDisplay *,
-        std::optional<qreal> frameRate,
-        std::function<void(QMacScreenCaptureKit&)> const &connectionSetup);
+        CreateStreamInfo const &,
+        SCDisplay *);
 
     [[nodiscard]] static std::future<q23::expected<std::unique_ptr<QMacScreenCaptureKit>, QString>>
     createStreamFromFilter(
-        StreamId streamId,
-        SCContentFilter *,
-        std::optional<qreal> frameRate,
-        std::function<void(QMacScreenCaptureKit&)> const &connectionSetup);
+        CreateStreamInfo const &,
+        SCContentFilter *);
 
     [[nodiscard]] static std::future<q23::expected<std::unique_ptr<QMacScreenCaptureKit>, QString>>
     createStreamFromWindow(
-        StreamId streamId,
-        SCWindow *,
-        std::optional<qreal> frameRate,
-        std::function<void(QMacScreenCaptureKit&)> const &connectionSetup);
+        CreateStreamInfo const &,
+        SCWindow *);
 
     // Called from background thread when stream needs to be configured with new
     // output resolution. Don't call directly.
@@ -130,9 +132,10 @@ signals:
 private:
     StreamId m_streamId = {};
 
-    // A copy of the frameRate when this class was created. Does not
-    // change after stream has started.
-    std::optional<qreal> m_frameRate;
+    // A copy of the stream settings when this class was created. Does
+    // not change after stream has started. Used for auto-reconfiguring
+    // our stream with new size when needed.
+    StreamSettings m_streamSettings = {};
 
     AVFScopedPointer<SCStream> m_stream;
     AVFScopedPointer<dispatch_queue_t> m_dispatchQueue;
@@ -142,7 +145,7 @@ private:
     static void startStreamReconfigure(
         SCStream *scStream,
         QSize resolutionPx,
-        std::optional<qreal> frameRate);
+        StreamSettings const &);
 };
 
 }

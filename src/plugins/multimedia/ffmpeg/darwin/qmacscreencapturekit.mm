@@ -286,6 +286,45 @@ static void handleFrameOutput(
         std::move(*videoFrameResult));
 }
 
+static AVFScopedPointer<SCStreamConfiguration> createStreamConfig(
+    QSize resolutionPx,
+    QMacScreenCaptureKit::StreamSettings const& settings)
+{
+    // SCStreamConfiguration defines the output format, having zero resolution makes no sense.
+    Q_ASSERT(!resolutionPx.isEmpty());
+
+    // TODO: Possible improvements include specifying pixel format, HDR,
+    // capturing system audio...
+    auto scStreamConfig = AVFScopedPointer{ [[SCStreamConfiguration alloc] init] };
+    scStreamConfig.data().width = resolutionPx.width();
+    scStreamConfig.data().height = resolutionPx.height();
+    // We make a best-effort to always adjust our video output to match the window/screen size.
+    // So we leave scaling off to be pixel-perfect whenever we can.
+    scStreamConfig.data().scalesToFit = false;
+    scStreamConfig.data().queueDepth = QMacScreenCaptureKit::queueDepth;
+    scStreamConfig.data().pixelFormat = QMacScreenCaptureKit::cvPixelFormat;
+    scStreamConfig.data().colorSpaceName = QMacScreenCaptureKit::cgColorSpace();
+    scStreamConfig.data().captureResolution = SCCaptureResolutionBest;
+    if (@available(macOS 15.0, *))
+        scStreamConfig.data().captureDynamicRange = SCCaptureDynamicRangeSDR;
+
+    if (settings.frameRate) {
+        Q_ASSERT(settings.frameRate > 0);
+        scStreamConfig.data().minimumFrameInterval =
+            CMTimeMake(1, static_cast<int32_t>(std::round(*settings.frameRate)));
+    } else {
+        scStreamConfig.data().minimumFrameInterval = kCMTimeZero;
+    }
+
+    // These settings are meant to override whatever the default is.
+    if (settings.overrideIgnoreCursor)
+        scStreamConfig.data().showsCursor = false;
+    if (settings.overrideIgnoreDropShadow)
+        scStreamConfig.data().ignoreShadowsSingleWindow = true;
+
+    return scStreamConfig;
+}
+
 static void configureStreamDelegate(
     QMacScreenCaptureStreamDelegate &streamDelegate,
     QMacScreenCaptureKit::StreamId streamId,
@@ -393,10 +432,8 @@ QMacScreenCaptureKit::enumerateCapturableItems()
 
 std::future<q23::expected<std::unique_ptr<QMacScreenCaptureKit>, QString>>
 QMacScreenCaptureKit::createStreamFromDisplay(
-    StreamId streamId,
-    SCDisplay *scDisplay,
-    std::optional<qreal> frameRate,
-    std::function<void(QMacScreenCaptureKit&)> const &connectionSetup)
+    CreateStreamInfo const& info,
+    SCDisplay *scDisplay)
 {
     Q_ASSERT(scDisplay);
 
@@ -404,23 +441,17 @@ QMacScreenCaptureKit::createStreamFromDisplay(
         initWithDisplay: scDisplay
         excludingWindows: @[] ] };
 
-    // SCDisplay.frame is in screen-points, not pixels. Multiply by
-    // pointPixelScale.
     return createStreamFromFilter(
-        streamId,
-        scContentFilter,
-        frameRate,
-        connectionSetup);
+        info,
+        scContentFilter);
 }
 
 // Note that we are using manual memory management here, because Obj-C block functions
 // do not support capturing move-only types.
 std::future<q23::expected<std::unique_ptr<QMacScreenCaptureKit>, QString>>
 QMacScreenCaptureKit::createStreamFromFilter(
-    StreamId streamId,
-    SCContentFilter *scContentFilter,
-    std::optional<qreal> frameRate,
-    std::function<void(QMacScreenCaptureKit&)> const &connectionSetup)
+    CreateStreamInfo const& createInfo,
+    SCContentFilter *scContentFilter)
 {
     using ResultType = q23::expected<std::unique_ptr<QMacScreenCaptureKit>, QString>;
 
@@ -439,14 +470,17 @@ QMacScreenCaptureKit::createStreamFromFilter(
         return future;
     }
 
-    AVFScopedPointer<SCStreamConfiguration> scStreamConfig =
-        QMacScreenCaptureKit::createStreamConfig(resolutionPx, frameRate);
+    const StreamSettings &streamSettings = createInfo.streamSettings;
+
+    AVFScopedPointer<SCStreamConfiguration> scStreamConfig = createStreamConfig(
+        resolutionPx,
+        streamSettings);
 
     auto captureKit = std::make_unique<QMacScreenCaptureKit>();
-    captureKit->m_streamId = streamId;
-    captureKit->m_frameRate = frameRate;
-    if (connectionSetup) {
-        connectionSetup(*captureKit);
+    captureKit->m_streamId = createInfo.streamId;
+    captureKit->m_streamSettings = streamSettings;
+    if (createInfo.connectionSetupFn) {
+        createInfo.connectionSetupFn(*captureKit);
     }
 
     q23::expected<AVFScopedPointer<QMacScreenCaptureStreamOutput>, QString> streamOutputResult =
@@ -461,7 +495,7 @@ QMacScreenCaptureKit::createStreamFromFilter(
     AVFScopedPointer<QMacScreenCaptureStreamOutput> &streamOutput = *streamOutputResult;
 
     auto streamDelegate = AVFScopedPointer{ [[QMacScreenCaptureStreamDelegate alloc] init] };
-    configureStreamDelegate(*streamDelegate.data(), streamId, *captureKit);
+    configureStreamDelegate(*streamDelegate.data(), createInfo.streamId, *captureKit);
 
     auto scStream = AVFScopedPointer { [[SCStream alloc]
         initWithFilter:scContentFilter
@@ -517,10 +551,8 @@ QMacScreenCaptureKit::createStreamFromFilter(
 // the stream ever starts, so we never miss any frames.
 std::future<q23::expected<std::unique_ptr<QMacScreenCaptureKit>, QString>>
 QMacScreenCaptureKit::createStreamFromWindow(
-    StreamId streamId,
-    SCWindow *scWindow,
-    std::optional<qreal> frameRate,
-    std::function<void(QMacScreenCaptureKit&)> const &connectionSetup)
+    CreateStreamInfo const& createInfo,
+    SCWindow *scWindow)
 {
     Q_ASSERT(scWindow);
 
@@ -528,43 +560,8 @@ QMacScreenCaptureKit::createStreamFromWindow(
         initWithDesktopIndependentWindow: scWindow] };
 
     return createStreamFromFilter(
-        streamId,
-        scContentFilter,
-        frameRate,
-        connectionSetup);
-}
-
-AVFScopedPointer<SCStreamConfiguration> QMacScreenCaptureKit::createStreamConfig(
-    QSize resolutionPx,
-    std::optional<qreal> frameRate)
-{
-    // SCStreamConfiguration defines the output format, having zero resolution makes no sense.
-    Q_ASSERT(!resolutionPx.isEmpty());
-
-    // TODO: Possible improvements include specifying pixel format, HDR,
-    // capturing system audio...
-    auto scStreamConfig = AVFScopedPointer{ [[SCStreamConfiguration alloc] init] };
-    scStreamConfig.data().width = resolutionPx.width();
-    scStreamConfig.data().height = resolutionPx.height();
-    // We make a best-effort to always adjust our video output to match the window/screen size.
-    // So we leave scaling off to be pixel-perfect whenever we can.
-    scStreamConfig.data().scalesToFit = false;
-    scStreamConfig.data().queueDepth = QMacScreenCaptureKit::queueDepth;
-    scStreamConfig.data().pixelFormat = QMacScreenCaptureKit::cvPixelFormat;
-    scStreamConfig.data().colorSpaceName = QMacScreenCaptureKit::cgColorSpace();
-    scStreamConfig.data().captureResolution = SCCaptureResolutionBest;
-    if (@available(macOS 15.0, *))
-        scStreamConfig.data().captureDynamicRange = SCCaptureDynamicRangeSDR;
-
-    if (frameRate) {
-        Q_ASSERT(frameRate > 0);
-        scStreamConfig.data().minimumFrameInterval =
-            CMTimeMake(1, static_cast<int32_t>(std::round(*frameRate)));
-    } else {
-        scStreamConfig.data().minimumFrameInterval = kCMTimeZero;
-    }
-
-    return scStreamConfig;
+        createInfo,
+        scContentFilter);
 }
 
 // Issues a stream configuration update, so that the stream will give us video frames
@@ -572,12 +569,13 @@ AVFScopedPointer<SCStreamConfiguration> QMacScreenCaptureKit::createStreamConfig
 void QMacScreenCaptureKit::startStreamReconfigure(
     SCStream *scStream,
     QSize resolutionPx,
-    std::optional<qreal> frameRate)
+    StreamSettings const &streamSettings)
 {
     Q_ASSERT(scStream);
 
-    AVFScopedPointer<SCStreamConfiguration> scStreamConfig =
-        QMacScreenCaptureKit::createStreamConfig(resolutionPx, frameRate);
+    AVFScopedPointer<SCStreamConfiguration> scStreamConfig = createStreamConfig(
+        resolutionPx,
+        streamSettings);
 
     [scStream
         updateConfiguration:scStreamConfig.data()
@@ -602,7 +600,7 @@ void QMacScreenCaptureKit::updateStream(QSize resolutionPx)
     Q_ASSERT(m_dispatchQueue);
     dispatch_assert_queue(m_dispatchQueue.data());
 
-    startStreamReconfigure(m_stream.data(), resolutionPx, m_frameRate);
+    startStreamReconfigure(m_stream.data(), resolutionPx, m_streamSettings);
 }
 
 } // namespace QFFmpeg
