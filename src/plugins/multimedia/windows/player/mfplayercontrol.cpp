@@ -94,6 +94,8 @@ void MFPlayerControl::handleStatusChanged(QMediaPlayer::MediaStatus status)
     if (status == mediaStatus())
         return;
 
+    mediaStatusChanged(status);
+
     switch (status) {
     case QMediaPlayer::EndOfMedia:
         if (doLoop()) {
@@ -114,7 +116,6 @@ void MFPlayerControl::handleStatusChanged(QMediaPlayer::MediaStatus status)
     default:
         break;
     }
-    mediaStatusChanged(status);
 }
 
 void MFPlayerControl::handleTracksChanged()
