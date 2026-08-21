@@ -35,7 +35,6 @@ public:
     [[nodiscard]] static std::shared_ptr<QPipeWireInstance> instance();
     [[nodiscard]] static bool isLoaded();
     [[nodiscard]] static q23::expected<void, std::error_code> hasSPAFactory(const char *factoryName);
-    [[nodiscard]] static q23::expected<void, std::error_code> checkSupportPluginsLoadable();
 
     QPipeWireInstance();
     ~QPipeWireInstance();

@@ -69,22 +69,6 @@ q23::expected<void, std::error_code> QPipeWireInstance::hasSPAFactory(const char
     return {};
 }
 
-q23::expected<void, std::error_code> QPipeWireInstance::checkSupportPluginsLoadable()
-{
-    // required for the pipewire event loop
-    static constexpr std::array requiredPlugins{
-        SPA_NAME_SUPPORT_SYSTEM,
-        SPA_NAME_SUPPORT_LOOP,
-    };
-
-    for (const char *pluginName : requiredPlugins) {
-        if (auto check = hasSPAFactory(pluginName); !check)
-            return check;
-    }
-
-    return {};
-}
-
 QPipeWireInstance::QPipeWireInstance()
 {
     pw_init(nullptr, nullptr);
