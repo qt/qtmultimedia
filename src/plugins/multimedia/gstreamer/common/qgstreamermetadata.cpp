@@ -18,7 +18,9 @@
 #include <qgstreamerformatinfo_p.h>
 
 QT_BEGIN_NAMESPACE
+
 namespace ranges = QtMultimediaPrivate::ranges;
+using namespace Qt::Literals;
 
 RotationResult parseRotationTag(std::string_view tag)
 {
@@ -62,7 +64,7 @@ QImage parseImage(const GValue &val)
     if (caps && !gst_caps_is_empty(caps)) {
         GstStructure *structure = gst_caps_get_structure(caps, 0);
         const gchar *name = gst_structure_get_name(structure);
-        if (QByteArray(name).startsWith("image/")) {
+        if (QLatin1StringView(name).startsWith("image/"_L1)) {
             GstBuffer *buffer = gst_sample_get_buffer(sample);
             if (buffer) {
                 GstMapInfo info;
