@@ -77,9 +77,11 @@ private:
     void startStream();
     void updateStreams(const QDBusArgument &streamsInfo);
     void openPipeWireRemote();
+    void closeSession();
 
 private Q_SLOTS:
     void gotRequestResponse(uint result, const QVariantMap &map);
+    void sessionClosed();
 
 private:
     const std::shared_ptr<QPipeWireInstance> m_pwInstance;
@@ -106,6 +108,7 @@ private:
     int m_requestToken = -1;
     QString m_requestTokenPrefix;
     QDBusObjectPath m_sessionHandle;
+    std::unique_ptr<QDBusInterface> m_sessionInterface;
 
     struct StreamInfo
     {

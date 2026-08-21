@@ -177,6 +177,12 @@ void QPipeWireCaptureHelper::selectSources(const QDBusObjectPath &sessionHandle)
         return;
 
     m_sessionHandle = sessionHandle;
+    m_sessionInterface = std::make_unique<QDBusInterface>(
+            u"org.freedesktop.portal.Desktop"_s, sessionHandle.path(),
+            u"org.freedesktop.portal.Session"_s, QDBusConnection::sessionBus());
+    m_sessionInterface->connection().connect(
+            u"org.freedesktop.portal.Desktop"_s, sessionHandle.path(),
+            u"org.freedesktop.portal.Session"_s, u"Closed"_s, this, SLOT(sessionClosed()));
 
     QVariantMap options{
         { u"handle_token"_s, getRequestToken() },
@@ -629,7 +635,38 @@ void QPipeWireCaptureHelper::destroy()
         m_core = {};
     });
 
+    closeSession();
+
     m_state = NoState;
+}
+
+void QPipeWireCaptureHelper::closeSession()
+{
+    if (m_sessionHandle.path().isEmpty())
+        return;
+
+    if (m_sessionInterface) {
+        m_sessionInterface->connection().disconnect(
+                u"org.freedesktop.portal.Desktop"_s, m_sessionHandle.path(),
+                u"org.freedesktop.portal.Session"_s, u"Closed"_s, this, SLOT(sessionClosed()));
+        m_sessionInterface->asyncCall(u"Close"_s);
+        m_sessionInterface.reset();
+    }
+
+    m_sessionHandle = {};
+}
+
+void QPipeWireCaptureHelper::sessionClosed()
+{
+    if (m_sessionHandle.path().isEmpty())
+        return;
+
+    qCWarning(qLcPipeWireCapture) << "org.freedesktop.portal.Session was closed externally";
+    m_sessionHandle = {};
+    m_sessionInterface.reset();
+    updateError(QPlatformSurfaceCapture::Error::InternalError,
+                u"PipeWire screen capture session was closed"_s);
+    stop();
 }
 
 void QPipeWireCaptureHelper::onParamChanged(uint32_t id, const struct spa_pod *param)
