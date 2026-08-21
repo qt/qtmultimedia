@@ -243,8 +243,10 @@ QPlatformSurfaceCapture *QFFmpegMediaIntegration::createScreenCapture(QScreenCap
 #endif
 
 #if QT_CONFIG(pipewire_screencapture)
-    if (QtPipeWire::QPipeWireCapture::isSupported())
-        return new QtPipeWire::QPipeWireCapture(QPlatformSurfaceCapture::ScreenSource{});
+    if (QtPipeWire::QPipeWireCapture::isSupported()) {
+        if (auto capture = QtPipeWire::QPipeWireCapture::create())
+            return capture.release();
+    }
 #endif
 
 #if QT_CONFIG(eglfs)

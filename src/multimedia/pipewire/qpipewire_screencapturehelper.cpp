@@ -78,12 +78,15 @@ struct PipeWireCaptureGlobalState
 
 Q_GLOBAL_STATIC(PipeWireCaptureGlobalState, globalState)
 
-
-QPipeWireCaptureHelper::QPipeWireCaptureHelper(QPipeWireCapture &capture)
+QPipeWireCaptureHelper::QPipeWireCaptureHelper(QPipeWireCapture &capture,
+                                               std::shared_ptr<QPipeWireInstance> instance)
     : QSurfaceCaptureGrabber(CreateGrabbingThread),
+      m_instance(std::move(instance)),
       m_threadLoop("qt-multimedia-pipewire-loop"),
       m_requestTokenPrefix(QUuid::createUuid().toString(QUuid::WithoutBraces).left(8))
 {
+    Q_ASSERT(m_instance);
+
     addFrameCallback(&capture, &QPipeWireCapture::newVideoFrame);
     connect(this, &QSurfaceCaptureGrabber::errorUpdated, &capture, &QPipeWireCapture::updateError);
 }
@@ -350,9 +353,6 @@ bool QPipeWireCaptureHelper::open(int pipewireFd)
 
     if (!globalState)
         return false;
-
-    if (!m_instance)
-        m_instance = QPipeWireInstance::instance();
 
     static const pw_core_events coreEvents = {
         .version = PW_VERSION_CORE_EVENTS,

@@ -64,7 +64,7 @@ public:
     const PwCoreConnectionHandle &coreConnection() const;
 
 private:
-    std::shared_ptr<QPipeWireInstance> m_libraryInstance;
+    const std::shared_ptr<QPipeWireInstance> m_libraryInstance;
 
     // event loop
     PWThreadedEventLoop m_eventLoop{ "QAudioContext" };

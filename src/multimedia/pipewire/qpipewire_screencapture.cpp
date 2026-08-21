@@ -14,9 +14,10 @@ using namespace Qt::StringLiterals;
 
 namespace QtPipeWire {
 
-QPipeWireCapture::QPipeWireCapture(Source initialSource)
-    : QPlatformSurfaceCapture(std::move(initialSource))
+QPipeWireCapture::QPipeWireCapture(Source initialSource, std::shared_ptr<QPipeWireInstance> instance)
+    : QPlatformSurfaceCapture(std::move(initialSource)), m_instance(std::move(instance))
 {
+    Q_ASSERT(m_instance);
 }
 
 QPipeWireCapture::~QPipeWireCapture() = default;
@@ -27,6 +28,15 @@ bool QPipeWireCapture::isSupported()
         return false;
 
     return QPipeWireCaptureHelper::isSupported();
+}
+
+std::unique_ptr<QPipeWireCapture> QPipeWireCapture::create(Source initialSource)
+{
+    auto instance = QPipeWireInstance::instance();
+    if (!instance)
+        return nullptr;
+
+    return std::make_unique<QPipeWireCapture>(std::move(initialSource), std::move(instance));
 }
 
 QVideoFrameFormat QPipeWireCapture::frameFormat() const
@@ -41,7 +51,7 @@ bool QPipeWireCapture::setActiveInternal(bool active)
 {
     // Initialize helper, keep alive between captures
     if (!m_helper)
-        m_helper = std::make_unique<QPipeWireCaptureHelper>(*this);
+        m_helper = std::make_unique<QPipeWireCaptureHelper>(*this, m_instance);
 
     if (!QPipeWireCaptureHelper::isSupported()) {
         updateError(QPlatformSurfaceCapture::Error::InternalError,
