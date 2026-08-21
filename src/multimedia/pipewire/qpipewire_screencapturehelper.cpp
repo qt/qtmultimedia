@@ -408,18 +408,17 @@ bool QPipeWireCaptureHelper::open(int pipewireFd)
     };
 
     std::unique_lock pwLock = m_pwInstance->eventLoopLock();
-    m_core = PwCoreConnectionHandle{
-        pw_context_connect_fd(m_pwInstance->context(), fcntl(pipewireFd, F_DUPFD_CLOEXEC, 5),
-                              nullptr, 0),
-    };
-    if (!m_core) {
+    int fd = fcntl(pipewireFd, F_DUPFD_CLOEXEC, 5);
+
+    auto connection = m_pwInstance->connectToPortal(fd);
+    if (!connection) {
         m_err = true;
         pwLock.unlock();
         updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"QPipeWireCaptureHelper failed at pw_context_connect_fd()."_s);
         return false;
     }
-
+    m_core = std::move(*connection);
     pw_core_add_listener(m_core.get(), &m_coreListener, &coreEvents, this);
 
     m_registry = PwRegistryHandle{

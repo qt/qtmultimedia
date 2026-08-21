@@ -67,7 +67,6 @@ private:
 
     // pw_core connection
     PwCoreConnectionHandle m_coreConnection;
-    void connectToPipewireInstance();
 
     // device monitor
     PwRegistryHandle m_registry;

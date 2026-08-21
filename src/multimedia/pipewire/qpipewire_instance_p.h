@@ -20,6 +20,7 @@
 #include <QtCore/private/qexpected_p.h>
 #include <QtCore/qglobal.h>
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/private/qexpected_p.h>
 
 #include <pipewire/pipewire.h>
 
@@ -56,8 +57,9 @@ public:
     pw_loop *eventLoop() const;
     PWThreadedEventLoop &pwEventLoop() { return m_eventLoop; };
 
-    // context
-    pw_context *context() const;
+    // connection factories
+    q23::expected<PwCoreConnectionHandle, std::error_code> connectToDaemon();
+    q23::expected<PwCoreConnectionHandle, std::error_code> connectToPortal(int fd);
 
     ~QPipeWireInstance();
 

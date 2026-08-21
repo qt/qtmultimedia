@@ -43,10 +43,13 @@ QAudioContextManager::QAudioContextManager():
     }
 {
     m_pwInstance->runWithEventLoopLock([&] {
-        connectToPipewireInstance();
-        if (!isConnected())
+        auto connection = m_pwInstance->connectToDaemon();
+        if (!connection) {
+            qCWarning(lcPipewireRegistry)
+                    << "Failed to connect to pipewire instance" << connection.error().message();
             return;
-
+        }
+        m_coreConnection = std::move(*connection);
         startDeviceMonitor();
     });
 }
@@ -144,17 +147,6 @@ void QAudioContextManager::unregisterStreamReference(
 const PwCoreConnectionHandle &QAudioContextManager::coreConnection() const
 {
     return m_coreConnection;
-}
-
-void QAudioContextManager::connectToPipewireInstance()
-{
-    m_coreConnection = PwCoreConnectionHandle{
-        pw_context_connect(m_pwInstance->context(), /*props=*/nullptr,
-                           /*user_data_size=*/0),
-    };
-
-    if (!m_coreConnection)
-        qInfo() << "Failed to connect to pipewire instance" << make_error_code().message();
 }
 
 void QAudioContextManager::objectAddedCb(void *data, uint32_t id, uint32_t permissions,

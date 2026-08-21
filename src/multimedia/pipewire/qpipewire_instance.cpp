@@ -96,9 +96,28 @@ pw_loop *QPipeWireInstance::eventLoop() const
     return m_eventLoop.loop();
 }
 
-pw_context *QPipeWireInstance::context() const
+q23::expected<PwCoreConnectionHandle, std::error_code> QPipeWireInstance::connectToDaemon()
 {
-    return m_context.get();
+    auto connection = PwCoreConnectionHandle{
+        pw_context_connect(m_context.get(), /*props=*/nullptr,
+                           /*user_data_size=*/0),
+    };
+
+    if (!connection)
+        return q23::unexpected(make_error_code(errno));
+    return connection;
+}
+
+q23::expected<PwCoreConnectionHandle, std::error_code> QPipeWireInstance::connectToPortal(int fd)
+{
+    auto connection = PwCoreConnectionHandle{
+        pw_context_connect_fd(m_context.get(), fd, /*props=*/nullptr,
+                              /*user_data_size=*/0),
+    };
+
+    if (!connection)
+        return q23::unexpected(make_error_code(errno));
+    return connection;
 }
 
 std::unique_ptr<QPipeWireInstance> QPipeWireInstance::create()
