@@ -43,7 +43,7 @@ class QPipeWireCaptureHelper : public QSurfaceCaptureGrabber
 {
     Q_OBJECT
 public:
-    explicit QPipeWireCaptureHelper(QPipeWireCapture &capture);
+    explicit QPipeWireCaptureHelper(QPipeWireCapture &, std::shared_ptr<QPipeWireInstance>);
     ~QPipeWireCaptureHelper() override;
 
     bool open(int fd);
@@ -88,7 +88,7 @@ private Q_SLOTS:
     void gotRequestResponse(uint result, const QVariantMap &map);
 
 private:
-    std::shared_ptr<QPipeWireInstance> m_instance;
+    const std::shared_ptr<QPipeWireInstance> m_instance;
 
     QVideoFrame m_currentFrame;
     QVideoFrameFormat m_videoFrameFormat;

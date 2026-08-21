@@ -17,27 +17,34 @@
 
 #include <QtMultimedia/private/qplatformsurfacecapture_p.h>
 
+#include <memory>
+
 QT_BEGIN_NAMESPACE
 
 namespace QtPipeWire {
 
 class QPipeWireCaptureHelper;
+class QPipeWireInstance;
 
 class Q_MULTIMEDIA_EXPORT QPipeWireCapture : public QPlatformSurfaceCapture
 {
     Q_OBJECT
+
 public:
-    explicit QPipeWireCapture(Source initialSource);
+    QPipeWireCapture(Source initialSource, std::shared_ptr<QPipeWireInstance>);
     ~QPipeWireCapture() override;
 
     QVideoFrameFormat frameFormat() const override;
 
     static bool isSupported();
 
+    static std::unique_ptr<QPipeWireCapture> create(Source initialSource = {});
+
 protected:
     bool setActiveInternal(bool active) override;
 
 private:
+    const std::shared_ptr<QPipeWireInstance> m_instance;
     std::unique_ptr<QPipeWireCaptureHelper> m_helper;
 };
 
