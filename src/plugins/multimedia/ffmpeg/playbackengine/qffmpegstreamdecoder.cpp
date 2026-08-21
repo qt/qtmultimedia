@@ -5,12 +5,16 @@
 
 #include "playbackengine/qffmpegmediadataholder_p.h"
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/qregularexpression.h>
+#include <QtCore/qspan.h>
 
 QT_BEGIN_NAMESPACE
 
 Q_STATIC_LOGGING_CATEGORY(qLcStreamDecoder, "qt.multimedia.ffmpeg.streamdecoder");
 
 namespace QFFmpeg {
+
+using namespace Qt::Literals;
 
 StreamDecoder::StreamDecoder(const PlaybackEngineObjectID &id, const CodecContext &codecContext,
                              TrackPosition absSeekPos)
@@ -242,33 +246,36 @@ void StreamDecoder::decodeSubtitle(const Packet &packet)
     onFrameFound({ m_sessionCtx.offset, QString(), end, TrackDuration(0), id() });
 }
 
+static QString extractSubtitleText(const AVSubtitleRect &r)
+{
+    if (r.text)
+        return QString::fromUtf8(r.text);
+
+    const char *ass = r.ass;
+    int nCommas = 0;
+    while (*ass) {
+        if (nCommas == 8)
+            break;
+        if (*ass == ',')
+            ++nCommas;
+        ++ass;
+    }
+    return QString::fromUtf8(ass);
+}
+
 QString subtitleTextFromAVSubtitle(const AVSubtitle &subtitle)
 {
     QString text;
-    for (uint i = 0; i < subtitle.num_rects; ++i) {
-        const auto *r = subtitle.rects[i];
-        //            qCDebug(qLcDecoder) << "    subtitletext:" << r->text << "/" << r->ass;
-        if (i)
-            text += QLatin1Char('\n');
-        if (r->text)
-            text += QString::fromUtf8(r->text);
-        else {
-            const char *ass = r->ass;
-            int nCommas = 0;
-            while (*ass) {
-                if (nCommas == 8)
-                    break;
-                if (*ass == ',')
-                    ++nCommas;
-                ++ass;
-            }
-            text += QString::fromUtf8(ass);
-        }
+
+    for (const AVSubtitleRect *r : QSpan(subtitle.rects, subtitle.num_rects)) {
+        if (r != subtitle.rects[0])
+            text += u'\n';
+
+        text += extractSubtitleText(*r);
     }
-    text.replace(QLatin1String("\\N"), QLatin1String("\n"));
-    text.replace(QLatin1String("\\n"), QLatin1String("\n"));
-    text.replace(QLatin1String("\r\n"), QLatin1String("\n"));
-    if (text.endsWith(QLatin1Char('\n')))
+    static const QRegularExpression lineBreakRe(u"\\\\N|\\\\n|\\r\\n"_s);
+    text.replace(lineBreakRe, u"\n"_s);
+    if (text.endsWith(u'\n'))
         text.chop(1);
     return text;
 }
