@@ -86,15 +86,12 @@ private Q_SLOTS:
     void gotRequestResponse(uint result, const QVariantMap &map);
 
 private:
-    const std::shared_ptr<QPipeWireInstance> m_instance;
+    const std::shared_ptr<QPipeWireInstance> m_pwInstance;
 
     QVideoFrame m_currentFrame;
     QVideoFrameFormat m_videoFrameFormat;
     QVideoFrameFormat::PixelFormat m_pixelFormat{};
     QSize m_size;
-
-    PWThreadedEventLoop m_threadLoop;
-    PwContextHandle m_context;
 
     PwCoreConnectionHandle m_core;
     spa_hook m_coreListener = {};
