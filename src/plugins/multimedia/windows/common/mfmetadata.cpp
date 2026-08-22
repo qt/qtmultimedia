@@ -164,13 +164,27 @@ QMediaMetaData MFMetaData::fromNative(IMFMediaSource* mediaSource)
     return metaData;
 }
 
+// MinGW's mfidl.h declares ASF_FLAT_PICTURE without the #pragma pack(1) that the
+// Windows SDK applies, making sizeof() 8 there instead of 5. Use our own packed
+// definition on both toolchains, so there is a single code path guarded by the
+// static_assert below.
+#pragma pack(push, 1)
+struct QMM_ASF_FLAT_PICTURE
+{
+    BYTE bPictureType;
+    DWORD dwDataLen;
+};
+#pragma pack(pop)
+static_assert(sizeof(QMM_ASF_FLAT_PICTURE) == 5);
+static_assert(alignof(QMM_ASF_FLAT_PICTURE) == 1);
+
 static QImage imageFromAsfFlatPicture(const BLOB &blob)
 {
-    if (blob.cbSize <= sizeof(ASF_FLAT_PICTURE))
+    if (blob.cbSize <= sizeof(QMM_ASF_FLAT_PICTURE))
         return {};
 
-    const auto *pic = reinterpret_cast<const ASF_FLAT_PICTURE *>(blob.pBlobData);
-    const BYTE *p = blob.pBlobData + sizeof(ASF_FLAT_PICTURE);
+    const auto *pic = reinterpret_cast<const QMM_ASF_FLAT_PICTURE *>(blob.pBlobData);
+    const BYTE *p = blob.pBlobData + sizeof(QMM_ASF_FLAT_PICTURE);
     const BYTE *end = blob.pBlobData + blob.cbSize;
 
     // Skip MIME type (null-terminated UTF-16)
@@ -225,7 +239,7 @@ QMediaMetaData MFMetaData::fromNative(IMFMetadata *metadata)
         for (ULONG i = 0; i < names->calpwstr.cElems; ++i) {
             const QStringView name(names->calpwstr.pElems[i]);
 
-            // WM/Picture blob: ASF_FLAT_PICTURE header followed by
+            // WM/Picture blob: QMM_ASF_FLAT_PICTURE header followed by
             // MIME type string, description string, and image data.
             if (name == u"WM/Picture") {
                 QtMultimediaPrivate::ScopedPropVariant value;
