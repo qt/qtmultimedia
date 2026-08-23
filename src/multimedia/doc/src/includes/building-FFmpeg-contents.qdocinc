@@ -43,6 +43,13 @@
 
 //! [android-linux]
 
+//! [ios]
+
+    \include building-FFmpeg-contents.qdocinc {common-header-ios}
+    \include building-FFmpeg-contents.qdocinc {ios-list}
+
+//! [ios]
+
 //! [common-list]
 
     \list
@@ -70,3 +77,25 @@
     The required steps are:
 
 //! [common-header-android]
+
+//! [common-header-ios]
+
+    This page explains how to configure and build \l{FFmpeg} for iOS as frameworks.
+    Compilation for iOS is a cross-compilation and presumes using macOS as a host system.
+    The required steps are:
+
+//! [common-header-ios]
+
+//! [ios-list]
+
+    \list
+        \li Get the FFmpeg source code.
+        \li Install the required dependencies.
+        \li Configure FFmpeg from the command line.
+        \li Build the development libraries.
+        \li Create iOS frameworks from the FFmpeg libraries.
+        \li Create XCFrameworks.
+        \li Embed the frameworks into an application bundle.
+    \endlist
+
+//! [ios-list]
