@@ -85,7 +85,7 @@ static bool isQnxSndBackend()
 
 static bool underrunIsAnError()
 {
-#if defined(Q_OS_APPLE) || defined(Q_OS_ANDROID) || defined(Q_OS_HARMONY)
+#if defined(Q_OS_APPLE) || defined(Q_OS_ANDROID) || defined(Q_OS_HARMONY) || defined(Q_OS_WINDOWS)
     return false;
 #endif
 
