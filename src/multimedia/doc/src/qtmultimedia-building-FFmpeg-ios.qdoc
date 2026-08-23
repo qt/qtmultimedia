@@ -6,101 +6,10 @@
 \title Building FFmpeg from source for iOS on macOS
 \brief This document describes how to build FFmpeg from source code.
 
-This page explains how to configure and build \l{FFmpeg} for iOS as frameworks.
-Compilation for iOS is a cross-compilation and presumes using macOS as a host system.
-The required steps are:
-
-\list
-\li Preparing build environment
-\li Getting the FFmpeg source code
-\li Configuring FFmpeg from the command line
-\li Building dynamic libraries
-\li Creating iOS frameworks from FFmpeg libraries
-\li Creating XCFrameworks
-\li Embedding frameworks
-\endlist
-
-\note The following documentation assumes that you work with FFmpeg libraries and code
-under \c{~/ffmpeg}.
-
-\section1 Preparing build environment
-
-The build environment for iOS is provided by Apple's Xcode application, which includes
-the toolchain (compiler, linker, and other tools), and the iOS platform-SDK (headers
-and libraries) that you build and link against.
-
-\section1 Getting the FFmpeg source code
-
-You can get the FFmpeg source code in these ways:
-
-\list
-\li Download from the
-\l{https://ffmpeg.org/download.html#get-sources}{FFmpeg download page}.
-\li Clone from git. For example, these commands clone the version \ffmpegversion of the
-FFmpeg sources to \c{~/ffmpeg/ffmpeg_src}.
-\badcode
-cd ~/ffmpeg/
-git clone --branch n9.0.1 https://git.ffmpeg.org/ffmpeg.git ffmpeg_src
-\endcode
-\endlist
-
-\note It is recommended to use the same FFmpeg version as documented in the
-\l{Qt Multimedia}{Qt Multimedia main page}.
-
-\section1 Configuring and building FFmpeg
-
-Create a \c build and \c installed directories inside the \c{~/ffmpeg} directory and
-navigate into \c build:
-
-\badcode
-mkdir ~/ffmpeg/build
-mkdir ~/ffmpeg/installed
-cd ~/ffmpeg/build
-\endcode
-
-To configure FFmpeg, run:
-
-\badcode
-../ffmpeg_src/configure --disable-programs --disable-doc --enable-network --enable-shared --disable-static \
-    --sysroot="$(xcrun --sdk iphoneos --show-sdk-path)" \
-    --enable-cross-compile \
-    --arch=arm64 \
-    --prefix=../installed \
-    --cc="xcrun --sdk iphoneos clang -arch arm64" \
-    --cxx="xcrun --sdk iphoneos clang++ -arch arm64" \
-    --extra-cflags="-miphoneos-version-min=16.0" \
-    --extra-cxxflags="-miphoneos-version-min=16.0" \
-    --extra-objcflags="-miphoneos-version-min=16.0" \
-    --extra-ldflags="-miphoneos-version-min=16.0" \
-    --install-name-dir='@rpath' \
-    --disable-audiotoolbox
-\endcode
-
-The command line programs and documentation are not needed; network features
-should be enabled. We build shared libraries and don't need static libraries (omit
-\c{--disable-static} to build static libraries). \c{--sysroot} specifies the root of cross-build
-tree. The \c{--prefix} argument specifies a path where the FFmpeg libraries are installed
-after building. We build on macOS host for iOS target so we enable cross compilation.
-\c{--extra-ldflags} set the minimum version of iOS.
-\c{--install-name-dir} is a string specifying the directory portion of the "install_name"
-field of shared libraries on Apple platforms for installed targets.
-AudioToolBox is disabled, since FFmpeg is using parts of AudioToolBox
-framework which are not available on iOS.
-
-\note In the example above, replacing 'iphoneos' with 'iphonesimulator',
-and 'miphoneos-version' with 'mios-simulator-version-min', configures
-FFmpeg to be built as libraries suitable for iOS simulator.
-
-To get help on other configuration options, run:
-\badcode
-../ffmpeg_src/configure --help
-\endcode
-
-After configuration is complete, build FFmpeg libraries:
-
-\badcode
-make -j install
-\endcode
+\include building-FFmpeg-contents.qdocinc {ios}
+\include building-FFmpeg-source.qdocinc {ios}
+\include building-FFmpeg-prerequisites.qdocinc {ios}
+\include building-FFmpeg-configure.qdocinc {ios}
 
 \section1 Creating iOS frameworks from FFmpeg libraries
 

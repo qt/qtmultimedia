@@ -97,6 +97,18 @@
 
 //! [android-linux]
 
+//! [ios]
+
+    \include building-FFmpeg-prerequisites.qdocinc {common-header}
+
+    \list
+        \li Xcode, which provides the toolchain (compiler, linker, and other tools)
+            and the iOS platform SDK (headers and libraries) that you build and
+            link against.
+    \endlist
+
+//! [ios]
+
 //! [common-header]
 
     \section1 Prerequisites

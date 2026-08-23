@@ -223,6 +223,66 @@
 
 //! [android-linux]
 
+//! [ios]
+
+    \section1 Configuring and building FFmpeg
+
+    Create a \c build and \c installed directory inside the \c{~/ffmpeg} directory,
+    and navigate into \c build:
+
+    \badcode
+        mkdir ~/ffmpeg/build
+        mkdir ~/ffmpeg/installed
+        cd ~/ffmpeg/build
+    \endcode
+
+    To configure FFmpeg, run:
+
+    \badcode
+        ../ffmpeg_src/configure --disable-programs --disable-doc --enable-network --enable-shared --disable-static \
+            --sysroot="$(xcrun --sdk iphoneos --show-sdk-path)" \
+            --enable-cross-compile \
+            --arch=arm64 \
+            --prefix=../installed \
+            --cc="xcrun --sdk iphoneos clang -arch arm64" \
+            --cxx="xcrun --sdk iphoneos clang++ -arch arm64" \
+            --extra-cflags="-miphoneos-version-min=16.0" \
+            --extra-cxxflags="-miphoneos-version-min=16.0" \
+            --extra-objcflags="-miphoneos-version-min=16.0" \
+            --extra-ldflags="-miphoneos-version-min=16.0" \
+            --install-name-dir='@rpath' \
+            --disable-audiotoolbox
+    \endcode
+
+    The command line programs and documentation are not needed; network features
+    should be enabled. We build shared libraries and don't need static libraries (omit
+    \c{--disable-static} to build static libraries). \c{--sysroot} specifies the root of
+    the cross-build tree. The \c{--prefix} argument specifies a path where the FFmpeg
+    libraries are installed after building. We build on a macOS host for the iOS target,
+    so we enable cross compilation. \c{--extra-ldflags} sets the minimum version of iOS.
+    \c{--install-name-dir} is a string specifying the directory portion of the
+    "install_name" field of shared libraries on Apple platforms for installed targets.
+    AudioToolBox is disabled, since FFmpeg uses parts of the AudioToolBox framework
+    which are not available on iOS.
+
+    \note In the example above, replacing 'iphoneos' with 'iphonesimulator',
+    and 'miphoneos-version' with 'mios-simulator-version-min', configures
+    FFmpeg to be built as libraries suitable for iOS simulator.
+
+    To get help on other configuration options, run:
+
+    \badcode
+        ../ffmpeg_src/configure --help
+    \endcode
+
+    After configuration is complete, build FFmpeg libraries:
+
+    \badcode
+        make -j install
+    \endcode
+
+//! [ios]
+
 //! [common-arguments-explained]
 
     The \c{--prefix} argument specifies a path where the FFmpeg development

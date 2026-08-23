@@ -37,6 +37,12 @@
 
 //! [android-linux]
 
+//! [ios]
+
+    \include building-FFmpeg-source.qdocinc {common} {\ffmpegversion} {\ffmpegreponame} {~/}
+
+//! [ios]
+
 // \1 is always "\ffmpegversion"
 // \2 is always "\ffmpegreponame".
 // \3 is the directory where you want to clone FFmpeg repository (e.g. "C:\\FFmpeg\\", "~/").
