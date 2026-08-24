@@ -20,10 +20,10 @@
 #include <QtCore/private/quniquehandle_types_p.h>
 #include <QtMultimedia/qaudioformat.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
+#include <QtMultimedia/private/qwmf_support_p.h>
 
 #include <mmreg.h>
 
-#include <chrono>
 #include <optional>
 
 struct IAudioClient;
@@ -41,10 +41,6 @@ namespace QWindowsAudioUtils
 using QtMultimediaPrivate::AudioEndpointRole;
 using QtMultimediaPrivate::NativePeriodFrames;
 
-// REFERENCE_TIME helper
-using reference_time = std::chrono::duration<long long, std::ratio<1, 10000000>>;
-static_assert(reference_time(1) == std::chrono::nanoseconds(100));
-
 // format utilities
 bool formatToWaveFormatExtensible(const QAudioFormat &format, WAVEFORMATEXTENSIBLE &wfx);
 std::optional<WAVEFORMATEXTENSIBLE> toWaveFormatExtensible(const QAudioFormat &format);
@@ -58,7 +54,7 @@ QAudioFormat::ChannelConfig maskToChannelConfig(UINT32 mask, int count);
 struct AudioClientCreationResult
 {
     ComPtr<IAudioClient3> client;
-    reference_time periodSize;
+    QWMF::reference_time periodSize;
     qsizetype audioClientFrames;
 };
 std::optional<AudioClientCreationResult>
@@ -76,13 +72,13 @@ bool audioClientSetRole(const ComPtr<IAudioClient3> &client, AudioEndpointRole r
 std::optional<quint32> getBufferSizeInFrames(const ComPtr<IAudioClient3> &client);
 struct AudioClientDevicePeriod
 {
-    reference_time defaultDuration;
-    reference_time minimalDuration;
+    QWMF::reference_time defaultDuration;
+    QWMF::reference_time minimalDuration;
 };
 std::optional<AudioClientDevicePeriod> getDevicePeriod(const ComPtr<IAudioClient3> &client);
 
 // wasapi thread helper
-void setMCSSForPeriodSize(reference_time);
+void setMCSSForPeriodSize(QWMF::reference_time);
 
 // error stringification
 QString audioClientErrorString(HRESULT);
