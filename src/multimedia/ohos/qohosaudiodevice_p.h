@@ -22,8 +22,10 @@ QT_BEGIN_NAMESPACE
 class QOhosAudioDevice : public QAudioDevicePrivate
 {
 public:
+    // maximumChannelCount is zero when OHAudio does not report it.
     QOhosAudioDevice(QByteArray id, QString description, QAudioDevice::Mode mode,
-                     QAudioFormat preferredFormat, bool isDefaultDevice);
+                     QAudioFormat preferredFormat, int maximumChannelCount,
+                     bool isDefaultDevice);
 };
 
 QT_END_NAMESPACE
