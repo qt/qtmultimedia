@@ -11,7 +11,9 @@
 #include <QtGui/qguiapplication.h>
 #include <QtGui/qpa/qplatformnativeinterface.h>
 
-#include <EGL/egl.h>
+#if QT_CONFIG(linux_dmabuf)
+#  include <QtMultimedia/private/qdmabuftextureimporter_p.h>
+#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -19,10 +21,6 @@ struct EglHolder
 {
     QMutex mutex;
     Qt::HANDLE display = nullptr;
-
-#  if QT_CONFIG(linux_dmabuf)
-    QFunctionPointer targetTexture2D = eglGetProcAddress("glEGLImageTargetTexture2DOES");
-#  endif
 
     void queryDisplay()
     {
@@ -47,17 +45,13 @@ Qt::HANDLE qGstEglDisplay()
 #  if QT_CONFIG(linux_dmabuf)
 bool qGstEglCanMapDmaBuf()
 {
+    using namespace QtMultimediaPrivate;
+
     EglHolder *holder = s_eglHolder();
     QMutexLocker lock(&holder->mutex);
     if (!holder->display && QThread::isMainThread())
         holder->queryDisplay();
-    return (holder->display && holder->targetTexture2D);
-}
-
-QFunctionPointer qGstEglImageTargetTexture2D()
-{
-    EglHolder *holder = s_eglHolder();
-    return holder->targetTexture2D;
+    return (holder->display && QEglImageFunctions::instance().isValid());
 }
 #  endif
 

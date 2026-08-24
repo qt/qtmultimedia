@@ -23,6 +23,28 @@ Q_STATIC_LOGGING_CATEGORY(qLDmaBuf, "qt.multimedia.dmabuf");
 
 namespace QtMultimediaPrivate {
 
+QEglImageFunctions::QEglImageFunctions()
+{
+    m_glEGLImageTargetTexture2DOES = reinterpret_cast<PFNGLEGLIMAGETARGETTEXTURE2DOESPROC>(
+            eglGetProcAddress("glEGLImageTargetTexture2DOES"));
+}
+
+const QEglImageFunctions &QEglImageFunctions::instance()
+{
+    static const QEglImageFunctions singleton;
+    return singleton;
+}
+
+bool QEglImageFunctions::isValid() const
+{
+    return m_glEGLImageTargetTexture2DOES != nullptr;
+}
+
+void QEglImageFunctions::glEGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image) const
+{
+    m_glEGLImageTargetTexture2DOES(target, image);
+}
+
 DmaBufEglContext::DmaBufEglContext(QRhi *rhi)
 {
     if (!rhi || rhi->backend() != QRhi::OpenGLES2) {
@@ -44,8 +66,7 @@ DmaBufEglContext::DmaBufEglContext(QRhi *rhi)
         qCDebug(qLDmaBuf) << "    no egl display, disabling";
         return;
     }
-    m_eglImageTargetTexture2D = eglGetProcAddress("glEGLImageTargetTexture2DOES");
-    if (!m_eglImageTargetTexture2D) {
+    if (!QEglImageFunctions::instance().isValid()) {
         qCDebug(qLDmaBuf) << "    no eglImageTargetTexture2D, disabling";
         return;
     }
@@ -147,9 +168,7 @@ importDmaBufTextures(QRhi &rhi, const DmaBufEglContext &eglContext, QSpan<const 
         functions.glActiveTexture(GL_TEXTURE0 + i);
         functions.glBindTexture(GL_TEXTURE_2D, glTextures[i]);
 
-        auto eglImageTargetTexture2D =
-                (PFNGLEGLIMAGETARGETTEXTURE2DOESPROC)eglContext.eglImageTargetTexture2D();
-        eglImageTargetTexture2D(GL_TEXTURE_2D, images[i]);
+        QEglImageFunctions::instance().glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, images[i]);
         GLenum error = glGetError();
         if (error) {
             qWarning() << "eglImageTargetTexture2D failed for plane" << i << "with error code"
