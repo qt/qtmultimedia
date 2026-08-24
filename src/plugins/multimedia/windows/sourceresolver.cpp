@@ -9,8 +9,7 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qfile.h>
 
-#include <mferror.h>
-#include <nserror.h>
+#include <mutex>
 
 QT_BEGIN_NAMESPACE
 
@@ -31,7 +30,7 @@ SourceResolver::~SourceResolver()
 
 HRESULT STDMETHODCALLTYPE SourceResolver::Invoke(IMFAsyncResult *pAsyncResult)
 {
-    QMutexLocker locker(&m_mutex);
+    std::lock_guard lock(m_mutex);
 
     if (!m_sourceResolver)
         return S_OK;
@@ -76,7 +75,7 @@ HRESULT STDMETHODCALLTYPE SourceResolver::GetParameters(DWORD*, DWORD*)
 
 void SourceResolver::load(const QUrl &url, QIODevice* stream)
 {
-    QMutexLocker locker(&m_mutex);
+    std::lock_guard lock(m_mutex);
     HRESULT hr = S_OK;
     if (!m_sourceResolver)
         hr = MFCreateSourceResolver(&m_sourceResolver);
@@ -155,7 +154,7 @@ void SourceResolver::load(const QUrl &url, QIODevice* stream)
 
 void SourceResolver::cancel()
 {
-    QMutexLocker locker(&m_mutex);
+    std::lock_guard lock(m_mutex);
     if (m_cancelCookie) {
         m_sourceResolver->CancelObjectCreation(m_cancelCookie.Get());
         m_cancelCookie = nullptr;
@@ -165,6 +164,7 @@ void SourceResolver::cancel()
 
 void SourceResolver::shutdown()
 {
+    std::lock_guard lock(m_mutex);
     if (m_mediaSource) {
         m_mediaSource->Shutdown();
         m_mediaSource = nullptr;
@@ -175,6 +175,7 @@ void SourceResolver::shutdown()
 
 ComPtr<IMFMediaSource> SourceResolver::mediaSource() const
 {
+    std::lock_guard lock(m_mutex);
     return m_mediaSource;
 }
 

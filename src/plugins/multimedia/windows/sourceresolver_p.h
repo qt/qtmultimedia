@@ -66,7 +66,7 @@ private:
     ComPtr<IMFSourceResolver> m_sourceResolver;
     ComPtr<IMFMediaSource> m_mediaSource;
     ComPtr<MFStream> m_stream;
-    QMutex m_mutex;
+    mutable QMutex m_mutex;
 };
 
 QT_END_NAMESPACE
