@@ -202,6 +202,7 @@ INIT_FUNC(SSL_read);
 INIT_FUNC(SSL_peek);
 INIT_FUNC(SSL_write);
 INIT_FUNC(SSL_ctrl);
+INIT_FUNC(SSL_get0_param);
 INIT_FUNC(SSL_get_ex_data);
 INIT_FUNC(SSL_set1_host);
 INIT_FUNC(SSL_set_accept_state);
@@ -239,6 +240,7 @@ INIT_FUNC(RAND_bytes);
 INIT_FUNC(X509_NAME_add_entry_by_txt);
 INIT_FUNC(X509_NAME_free);
 INIT_FUNC(X509_NAME_new);
+INIT_FUNC(X509_VERIFY_PARAM_set1_ip);
 INIT_FUNC(X509_digest);
 INIT_FUNC(X509_free);
 INIT_FUNC(X509_get_serialNumber);
@@ -334,7 +336,7 @@ DEFINE_FUNC(BIO_meth_set_create, 2);
 DEFINE_FUNC(BIO_meth_set_destroy, 2);
 DEFINE_FUNC(BIO_meth_set_callback_ctrl, 2);
 
-DEFINE_FUNC(BIO_read_ex, 4, -2);
+DEFINE_FUNC(BIO_read_ex, 4, 0);
 
 // DTLS functions
 
@@ -384,14 +386,14 @@ DEFINE_FUNC(EVP_sha256, 0);
 
 DEFINE_FUNC(PEM_read_bio_PrivateKey, 4);
 DEFINE_FUNC(PEM_read_bio_X509, 4);
-DEFINE_FUNC(PEM_write_bio_PrivateKey, 7, -1);
+DEFINE_FUNC(PEM_write_bio_PrivateKey, 7, 0);
 DEFINE_FUNC(PEM_write_bio_X509, 2);
 
 // SSL functions
 
 DEFINE_FUNC(SSL_CTX_ctrl, 4, -1);
 DEFINE_FUNC(SSL_CTX_free, 1);
-DEFINE_FUNC(SSL_CTX_load_verify_locations, 3, -1);
+DEFINE_FUNC(SSL_CTX_load_verify_locations, 3, 0);
 DEFINE_FUNC(SSL_CTX_new, 1);
 DEFINE_FUNC(SSL_CTX_set_default_verify_paths, 1);
 DEFINE_FUNC(SSL_CTX_set_info_callback, 2);
@@ -417,6 +419,7 @@ DEFINE_FUNC(SSL_read, 3, -1);
 DEFINE_FUNC(SSL_peek, 3);
 DEFINE_FUNC(SSL_write, 3, -1);
 DEFINE_FUNC(SSL_ctrl, 4);
+DEFINE_FUNC(SSL_get0_param, 1);
 DEFINE_FUNC(SSL_get_ex_data, 2);
 DEFINE_FUNC(SSL_set1_host, 2);
 DEFINE_FUNC(SSL_set_accept_state, 1);
@@ -433,7 +436,7 @@ DEFINE_FUNC(SSL_export_keying_material, 8, -1);
 
 // options are unsigned long in openssl 1.1.1, and uint64 in 3.x.x
 
-DEFINE_FUNC(SSL_get_error, 2);
+DEFINE_FUNC(SSL_get_error, 2, SSL_ERROR_SSL);
 
 DEFINE_FUNC(ERR_clear_error, 0);
 DEFINE_FUNC(ERR_get_error, 0);
@@ -455,6 +458,7 @@ DEFINE_FUNC(RAND_bytes, 2);
 DEFINE_FUNC(X509_NAME_add_entry_by_txt, 7);
 DEFINE_FUNC(X509_NAME_free, 1);
 DEFINE_FUNC(X509_NAME_new, 0);
+DEFINE_FUNC(X509_VERIFY_PARAM_set1_ip, 3);
 DEFINE_FUNC(X509_digest, 4, 0);
 DEFINE_FUNC(X509_free, 1);
 DEFINE_FUNC(X509_get_serialNumber, 1);
