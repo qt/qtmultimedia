@@ -12,10 +12,6 @@ static qreal windowFrameRateToReal(std::optional<qreal> frameRate)
 
 QQuickWindowCapture::QQuickWindowCapture(QObject *parent) : QWindowCapture(parent)
 {
-    connect(this, &QWindowCapture::maximumFrameRateChanged, this,
-            [this](std::optional<qreal> frameRate) {
-        emit QQuickWindowCapture::maximumFrameRateChanged(windowFrameRateToReal(frameRate));
-    });
 }
 
 /*!
