@@ -17,13 +17,18 @@
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qvideoframeformat.h>
 #include <QtMultimedia/qvideosink.h>
+#include <QtMultimedia/qtvideo.h>
 
 #include <QtGui/qmatrix4x4.h>
 #include <QtGui/qopenglcontext.h>
 #include <QtGui/qoffscreensurface.h>
+#include <QtGui/qguiapplication.h>
+#include <QtGui/qscreen.h>
 
 #include <QtCore/qfile.h>
 #include <QtCore/qloggingcategory.h>
+
+#include <atomic>
 #include <QtCore/qpointer.h>
 #include <QtCore/qthread.h>
 
@@ -346,6 +351,12 @@ public slots:
         m_rhi.reset();
     }
 
+    // Sampled on the GUI thread; QScreen must not be touched from this thread.
+    void setDisplayRotation(QtVideo::Rotation rotation)
+    {
+        m_displayRotation.store(rotation, std::memory_order_relaxed);
+    }
+
     void onFrameAvailable(quint64 index)
     {
         if (!m_surfaceImage || m_surfaceImage->index() != index)
@@ -360,8 +371,12 @@ public slots:
                                       0.0f,  0.0f, 1.0f, 0.0f,
                                       0.0f,  0.0f, 0.0f, 1.0f);
         QMatrix4x4 matrix = m_surfaceImage->transformMatrix();
+        // The sensor transform swaps x/y on 90/270; transpose the target to match aspect.
+        const bool axesSwapped = std::abs(matrix(0, 0)) < std::abs(matrix(0, 1));
+        const QSize outSize = axesSwapped ? m_size.transposed() : m_size;
+        const QtVideo::Rotation displayRotation = m_displayRotation.load(std::memory_order_relaxed);
         matrix *= flipV;
-        auto rgba = m_textureCopy->copyExternalTexture(m_size, matrix);
+        auto rgba = m_textureCopy->copyExternalTexture(outSize, matrix);
         if (!rgba)
             return;
         QPointer<QOpenGLContext> ctx;
@@ -369,10 +384,11 @@ public slots:
                     static_cast<const QRhiGles2NativeHandles *>(m_rhi->nativeHandles()))
             ctx = handles->context;
         auto buffer = std::make_unique<QOhosTextureVideoBuffer>(
-                std::move(rgba), m_size, std::weak_ptr<QRhi>(m_rhi),
+                std::move(rgba), outSize, std::weak_ptr<QRhi>(m_rhi),
                 QPointer<QObject>(this), ctx);
-        QVideoFrame frame = QVideoFramePrivate::createFrame(
-                std::move(buffer), QVideoFrameFormat(m_size, QVideoFrameFormat::Format_RGBA8888));
+        QVideoFrameFormat format(outSize, QVideoFrameFormat::Format_RGBA8888);
+        format.setRotation(displayRotation);
+        QVideoFrame frame = QVideoFramePrivate::createFrame(std::move(buffer), format);
         emit newFrame(frame);
     }
 
@@ -439,11 +455,13 @@ private:
     std::unique_ptr<QOhosSurfaceImage> m_surfaceImage;
     std::unique_ptr<TextureCopy> m_textureCopy;
     QSize m_size{ 1, 1 };
+    std::atomic<QtVideo::Rotation> m_displayRotation{ QtVideo::Rotation::None };
     bool m_isHeadless{ false };
 };
 
-QOhosVideoOutput::QOhosVideoOutput(QVideoSink *sink, QObject *parent)
-    : QObject(parent), m_sink(sink)
+QOhosVideoOutput::QOhosVideoOutput(QVideoSink *sink, ContentSource contentSource,
+                                   QObject *parent)
+    : QObject(parent), m_sink(sink), m_contentSource(contentSource)
 {
     m_textureThread = std::make_shared<QOhosTextureThread>();
     connect(m_textureThread.get(), &QOhosTextureThread::newFrame, this,
@@ -453,6 +471,35 @@ QOhosVideoOutput::QOhosVideoOutput(QVideoSink *sink, QObject *parent)
     if (auto *p = sink ? sink->platformVideoSink() : nullptr) {
         connect(p, &QPlatformVideoSink::rhiChanged, this, &QOhosVideoOutput::onRhiChanged);
     }
+
+    if (m_contentSource == ContentSource::Camera) {
+        if (QScreen *screen = QGuiApplication::primaryScreen()) {
+            connect(screen, &QScreen::orientationChanged, this,
+                    &QOhosVideoOutput::updateDisplayRotation);
+        }
+        updateDisplayRotation();
+    }
+}
+
+void QOhosVideoOutput::updateDisplayRotation()
+{
+    QtVideo::Rotation rotation = QtVideo::Rotation::None;
+    if (const QScreen *screen = QGuiApplication::primaryScreen()) {
+        switch (screen->angleBetween(screen->orientation(), screen->nativeOrientation())) {
+        case 90:
+            rotation = QtVideo::Rotation::Clockwise90;
+            break;
+        case 180:
+            rotation = QtVideo::Rotation::Clockwise180;
+            break;
+        case 270:
+            rotation = QtVideo::Rotation::Clockwise270;
+            break;
+        default:
+            break;
+        }
+    }
+    m_textureThread->setDisplayRotation(rotation);
 }
 
 void QOhosVideoOutput::onRhiChanged()
