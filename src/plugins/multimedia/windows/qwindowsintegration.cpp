@@ -14,6 +14,7 @@
 #include <private/qplatformmediaplugin_p.h>
 
 #include <QtCore/private/qfunctions_win_p.h>
+#include <QtCore/private/qsystemerror_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -31,18 +32,23 @@ public:
 
     QPlatformMediaIntegration* create(const QString &name) override
     {
-        if (name == u"windows")
+        if (name != u"windows")
+            return nullptr;
+
+        qt_win_ensureComInitializedOnThisThread();
+        HRESULT hr = MFStartup(MF_VERSION);
+        if (SUCCEEDED(hr))
             return new QWindowsMediaIntegration;
+
+        qWarning() << "Failed to initialize Media Foundation:"
+                   << QSystemError::windowsComString(hr);
         return nullptr;
     }
 };
 
 QWindowsMediaIntegration::QWindowsMediaIntegration()
     : QPlatformMediaIntegration("windows"_L1)
-{
-    qt_win_ensureComInitializedOnThisThread();
-    MFStartup(MF_VERSION);
-}
+{}
 
 QWindowsMediaIntegration::~QWindowsMediaIntegration()
 {
