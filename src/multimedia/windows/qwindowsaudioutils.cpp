@@ -240,8 +240,8 @@ std::optional<AudioClientDevicePeriod> getDevicePeriod(const ComPtr<IAudioClient
     }
 
     return AudioClientDevicePeriod{
-        reference_time{ defaultPeriodDuration },
-        reference_time{ minimalPeriodDuration },
+        QWMF::reference_time{ defaultPeriodDuration },
+        QWMF::reference_time{ minimalPeriodDuration },
     };
 }
 
@@ -382,7 +382,7 @@ createAudioClient(const ComPtr<IMMDevice> &device, const QAudioFormat &format,
         return std::nullopt;
 
     // qCDebug(qLcAudioSource) << devicePeriods->defaultDuration << devicePeriods->minimalDuration;
-    reference_time periodSize = devicePeriods->defaultDuration;
+    QWMF::reference_time periodSize = devicePeriods->defaultDuration;
     if (nativePeriodFrames) {
         std::chrono::microseconds dur{
             format.durationForFrames(qToUnderlying(*nativePeriodFrames))
@@ -407,9 +407,9 @@ createAudioClient(const ComPtr<IMMDevice> &device, const QAudioFormat &format,
             | AUDCLNT_STREAMFLAGS_RATEADJUST;
 
     hr = audioClient->Initialize(AUDCLNT_SHAREMODE_SHARED, streamFlags,
-                                 /*hnsBufferDuration=*/reference_time(periodSize).count(),
-                                 /*hnsPeriodicity=*/reference_time(periodSize).count(),
-                                 &waveFormat.Format, nullptr);
+                                 /*hnsBufferDuration=*/periodSize.count(),
+                                 /*hnsPeriodicity=*/periodSize.count(), &waveFormat.Format,
+                                 nullptr);
 
     if (FAILED(hr)) {
         qWarning() << "IAudioClient3::Initialize failed" << audioClientErrorString(hr);
@@ -484,7 +484,7 @@ bool audioClientSetRate(const ComPtr<IAudioClient3> &client, int rate)
     return true;
 }
 
-void setMCSSForPeriodSize(reference_time periodSize)
+void setMCSSForPeriodSize(QWMF::reference_time periodSize)
 {
     // heuristics are similar to what windows does for exclusive mode:
     // 10ms is the default, when going lower, "Pro Audio" is the way to go

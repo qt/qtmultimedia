@@ -83,7 +83,7 @@ private:
     ComPtr<IAudioClient3> m_audioClient;
     ComPtr<IAudioCaptureClient> m_captureClient;
 
-    QWindowsAudioUtils::reference_time m_periodSize;
+    QWMF::reference_time m_periodSize;
     qsizetype m_audioClientFrames;
 
     std::atomic_bool m_suspended{};
