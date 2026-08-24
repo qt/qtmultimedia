@@ -24,7 +24,6 @@ QT_BEGIN_NAMESPACE
 Qt::HANDLE qGstEglDisplay();
 
 #  if QT_CONFIG(linux_dmabuf)
-QFunctionPointer qGstEglImageTargetTexture2D();
 bool qGstEglCanMapDmaBuf();
 #  endif
 #endif

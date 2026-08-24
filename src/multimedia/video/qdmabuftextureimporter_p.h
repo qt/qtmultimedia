@@ -46,6 +46,21 @@ struct DmaBufPlane
     uint64_t modifier = DmaBufFormatModifierInvalid;
 };
 
+class Q_MULTIMEDIA_EXPORT QEglImageFunctions
+{
+    QEglImageFunctions();
+
+public:
+    static const QEglImageFunctions &instance();
+
+    bool isValid() const;
+
+    void glEGLImageTargetTexture2DOES(GLenum, GLeglImageOES) const;
+
+private:
+    PFNGLEGLIMAGETARGETTEXTURE2DOESPROC m_glEGLImageTargetTexture2DOES = nullptr;
+};
+
 class Q_MULTIMEDIA_EXPORT DmaBufEglContext
 {
 public:
@@ -56,12 +71,10 @@ public:
 
     QOpenGLContext *glContext() const { return m_glContext; }
     Qt::HANDLE eglDisplay() const { return m_eglDisplay; }
-    QFunctionPointer eglImageTargetTexture2D() const { return m_eglImageTargetTexture2D; }
 
 private:
     QOpenGLContext *m_glContext = nullptr;
     Qt::HANDLE m_eglDisplay = nullptr;
-    QFunctionPointer m_eglImageTargetTexture2D = nullptr;
     bool m_valid = false;
 };
 

@@ -29,6 +29,7 @@
 #  endif
 
 #  if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
+#    include <QtMultimedia/private/qdmabuftextureimporter_p.h>
 #    include <QtMultimedia/private/qmultimedia_drm_support_p.h>
 #    include <optional>
 #    include <common/qgstreameregldisplay_p.h>
@@ -313,8 +314,7 @@ static GlTextures mapFromGlTexture(const QGstBufferHandle &bufferHandle, GstVide
 
 #  if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
 static GlTextures mapFromDmaBuffer(QRhi *rhi, const QGstBufferHandle &bufferHandle,
-                                   const QGstVideoInfo &videoInfo, Qt::HANDLE eglDisplay,
-                                   QFunctionPointer eglImageTargetTexture2D)
+                                   const QGstVideoInfo &videoInfo, Qt::HANDLE eglDisplay)
 {
     qCDebug(qLcGstVideoBuffer) << "Importing textures from DMA buffer";
     logGlAndEglErrors("mapFromDmaBuffer");
@@ -323,7 +323,6 @@ static GlTextures mapFromDmaBuffer(QRhi *rhi, const QGstBufferHandle &bufferHand
 
     Q_ASSERT(gst_is_dmabuf_memory(gst_buffer_peek_memory(buffer, 0)));
     Q_ASSERT(eglDisplay);
-    Q_ASSERT(eglImageTargetTexture2D);
     Q_ASSERT(rhi);
     Q_ASSERT(rhi->backend() == QRhi::OpenGLES2);
 
@@ -497,8 +496,9 @@ static GlTextures mapFromDmaBuffer(QRhi *rhi, const QGstBufferHandle &bufferHand
         #endif
         functions.glBindTexture(target, textures.names[plane]);
 
-        auto EGLImageTargetTexture2D = (PFNGLEGLIMAGETARGETTEXTURE2DOESPROC)eglImageTargetTexture2D;
-        EGLImageTargetTexture2D(target, image);
+        using namespace QtMultimediaPrivate;
+
+        QEglImageFunctions::instance().glEGLImageTargetTexture2DOES(target, image);
         logGlAndEglErrors("glEGLImageTargetTexture2DOES");
 
         eglDestroyImage(eglDisplay, image);
@@ -519,9 +519,7 @@ QVideoFrameTexturesUPtr QGstVideoBuffer::mapTextures(QRhi &rhi, QVideoFrameTextu
 #  if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
     else if (m_memoryFormat == QGstCaps::DMABuf && qGstEglCanMapDmaBuf()
              && rhi.backend() == QRhi::OpenGLES2)
-        textures = mapFromDmaBuffer(&rhi, m_buffer, m_videoInfo, qGstEglDisplay(),
-                                    qGstEglImageTargetTexture2D());
-
+        textures = mapFromDmaBuffer(&rhi, m_buffer, m_videoInfo, qGstEglDisplay());
 #  endif
     if (textures.count > 0)
         return std::make_unique<QGstQVideoFrameTextures>(
