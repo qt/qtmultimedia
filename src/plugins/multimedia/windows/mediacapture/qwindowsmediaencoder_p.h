@@ -15,8 +15,7 @@
 #ifndef QWINDOWSMEDIAENCODER_H
 #define QWINDOWSMEDIAENCODER_H
 
-#include <private/qplatformmediarecorder_p.h>
-
+#include <QtMultimedia/private/qplatformmediarecorder_p.h>
 #include <QtCore/qglobal.h>
 #include <QtCore/qurl.h>
 

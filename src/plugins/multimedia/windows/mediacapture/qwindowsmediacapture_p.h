@@ -14,8 +14,8 @@
 // We mean it.
 //
 
-#include <private/qplatformmediacapture_p.h>
-#include <private/qplatformmediaintegration_p.h>
+#include <QtMultimedia/private/qplatformmediacapture_p.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
 
 QT_BEGIN_NAMESPACE
 

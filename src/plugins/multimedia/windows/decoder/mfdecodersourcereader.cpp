@@ -1,13 +1,17 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <system_error>
+#include "mfdecodersourcereader_p.h"
+
+#include <decoder/mfdecodersourcereadercallback_p.h>
+
+#include <QtCore/qdebug.h>
+#include <QtCore/qlogging.h>
+
 #include <mfapi.h>
 #include <mferror.h>
-#include <qlogging.h>
-#include <qdebug.h>
-#include "mfdecodersourcereader_p.h"
-#include "mfdecodersourcereadercallback_p.h"
+
+#include <system_error>
 
 QT_BEGIN_NAMESPACE
 

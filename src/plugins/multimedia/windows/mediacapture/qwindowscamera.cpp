@@ -3,9 +3,10 @@
 
 #include "qwindowscamera_p.h"
 
-#include "qwindowsmediadevicesession_p.h"
-#include "qwindowsmediacapture_p.h"
-#include <qcameradevice.h>
+#include <mediacapture/qwindowsmediacapture_p.h>
+#include <mediacapture/qwindowsmediadevicesession_p.h>
+
+#include <QtMultimedia/qcameradevice.h>
 
 QT_BEGIN_NAMESPACE
 

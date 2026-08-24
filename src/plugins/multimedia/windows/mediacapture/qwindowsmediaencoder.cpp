@@ -3,14 +3,16 @@
 
 #include "qwindowsmediaencoder_p.h"
 
-#include "qwindowsmediadevicesession_p.h"
-#include "qwindowsmediacapture_p.h"
-#include "mfmetadata_p.h"
-#include <QtCore/QUrl>
+#include <common/mfmetadata_p.h>
+#include <mediacapture/qwindowsmediacapture_p.h>
+#include <mediacapture/qwindowsmediadevicesession_p.h>
+
+#include <QtMultimedia/private/qmediarecorder_p.h>
+#include <QtMultimedia/private/qmediastoragelocation_p.h>
+#include <QtCore/qurl.h>
+
 #include <mferror.h>
 #include <shobjidl.h>
-#include <private/qmediastoragelocation_p.h>
-#include <private/qmediarecorder_p.h>
 
 QT_BEGIN_NAMESPACE
 

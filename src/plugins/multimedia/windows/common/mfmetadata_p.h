@@ -15,8 +15,9 @@
 // We mean it.
 //
 
-#include <qmediametadata.h>
-#include "mfidl.h"
+#include <QtMultimedia/qmediametadata.h>
+
+#include <mfidl.h>
 
 
 struct IMFMetadata;

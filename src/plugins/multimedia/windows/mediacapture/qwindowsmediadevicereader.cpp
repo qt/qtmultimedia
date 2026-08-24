@@ -3,18 +3,18 @@
 
 #include "qwindowsmediadevicereader_p.h"
 
-#include "private/qwindowsmultimediautils_p.h"
-#include <qvideosink.h>
-#include <qmediadevices.h>
-#include <qaudiodevice.h>
-#include <private/qmemoryvideobuffer_p.h>
-#include <private/qvideoframe_p.h>
-#include <QtCore/private/qcomptr_p.h>
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/qvideosink.h>
+#include <QtMultimedia/private/qmemoryvideobuffer_p.h>
+#include <QtMultimedia/private/qvideoframe_p.h>
+#include <QtMultimedia/private/qwindowsmultimediautils_p.h>
 #include <QtCore/qdebug.h>
+#include <QtCore/private/qcomptr_p.h>
 
-#include <mmdeviceapi.h>
-#include <mfidl.h>
 #include <cguid.h>
+#include <mfidl.h>
+#include <mmdeviceapi.h>
 
 QT_BEGIN_NAMESPACE
 

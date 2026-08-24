@@ -15,10 +15,11 @@
 // We mean it.
 //
 
-#include "mfdecodersourcereader_p.h"
-#include <private/qplatformaudiodecoder_p.h>
+#include <decoder/mfdecodersourcereader_p.h>
 #include <sourceresolver_p.h>
-#include <private/qwindowsresampler_p.h>
+
+#include <QtMultimedia/private/qplatformaudiodecoder_p.h>
+#include <QtMultimedia/private/qwindowsresampler_p.h>
 
 QT_BEGIN_NAMESPACE
 

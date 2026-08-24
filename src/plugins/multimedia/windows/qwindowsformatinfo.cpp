@@ -3,16 +3,16 @@
 
 #include "qwindowsformatinfo_p.h"
 
-#include <mfapi.h>
-#include <mftransform.h>
-#include <QtCore/private/qcomptr_p.h>
-#include <private/qwindowsmultimediautils_p.h>
-#include <private/qcomtaskresource_p.h>
-
+#include <QtMultimedia/private/qcomtaskresource_p.h>
+#include <QtMultimedia/private/qwindowsmultimediautils_p.h>
+#include <QtGui/qimagewriter.h>
+#include <QtCore/qhash.h>
 #include <QtCore/qlist.h>
 #include <QtCore/qset.h>
-#include <QtCore/qhash.h>
-#include <QtGui/qimagewriter.h>
+#include <QtCore/private/qcomptr_p.h>
+
+#include <mfapi.h>
+#include <mftransform.h>
 
 QT_BEGIN_NAMESPACE
 
