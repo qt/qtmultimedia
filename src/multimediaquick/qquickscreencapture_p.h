@@ -34,7 +34,7 @@ class Q_MULTIMEDIAQUICK_EXPORT QQuickScreenCapture : public QScreenCapture
     Q_OBJECT
     Q_PROPERTY(QQuickScreenInfo *screen READ ensureQmlScreen WRITE qmlSetScreen NOTIFY screenChanged)
     Q_PROPERTY(qreal maximumFrameRate READ qmlMaximumFrameRate WRITE qmlSetMaximumFrameRate RESET
-                       qmlResetMaximumFrameRate NOTIFY maximumFrameRateChanged REVISION(6, 12))
+        qmlResetMaximumFrameRate NOTIFY maximumFrameRateChanged FINAL REVISION(6, 12))
     QML_NAMED_ELEMENT(ScreenCapture)
 
 public:
@@ -50,7 +50,6 @@ public:
 
 Q_SIGNALS:
     void screenChanged(QQuickScreenInfo *);
-    Q_REVISION(6, 12) void maximumFrameRateChanged(qreal);
 
 private:
     QPointer<QQuickScreenInfo> m_qmlScreen;

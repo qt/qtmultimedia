@@ -26,7 +26,7 @@ TestCase {
         ScreenCapture {
             property int maximumFrameRateChangedCount: 0
             property real lastMaximumFrameRate: 0
-            onMaximumFrameRateChanged: (maximumFrameRate) => {
+            onMaximumFrameRateChanged: () => {
                 maximumFrameRateChangedCount++;
                 lastMaximumFrameRate = maximumFrameRate;
             }
@@ -89,7 +89,7 @@ TestCase {
         compare(capture.maximumFrameRateChangedCount, 1);
     }
 
-    function test_maximumFrameRateChanged_isAccessibleAndCarriesNewValue() {
+    function test_maximumFrameRateChanged_isAccessibleAndNotifiesNewValue() {
         let capture = createTemporaryObject(screenCaptureComponent, testCase);
         verify(capture);
 
@@ -100,15 +100,17 @@ TestCase {
         verify(spy);
         verify(spy.valid);
 
+        // The signal carries no argument, so the new value is read from the
+        // property in the handler.
         capture.maximumFrameRate = 60;
         compare(spy.count, 1);
-        compare(spy.signalArguments[0][0], 60);
+        compare(spy.signalArguments[0].length, 0);
         compare(capture.lastMaximumFrameRate, 60);
 
-        // Resetting reports the default value (-1) as the signal argument.
+        // Resetting notifies the default value (-1), not undefined.
         capture.maximumFrameRate = -1;
         compare(spy.count, 2);
-        compare(spy.signalArguments[1][0], -1);
+        compare(spy.signalArguments[1].length, 0);
         compare(capture.lastMaximumFrameRate, -1);
     }
 
@@ -117,12 +119,12 @@ TestCase {
         verify(capture);
 
         // The signal must be connectable via the signal.connect() syntax,
-        // and must deliver the new value to the connected handler.
+        // and the new value must be readable from the property when it fires.
         let connectCount = 0;
         let lastValue = 0;
-        capture.maximumFrameRateChanged.connect((maximumFrameRate) => {
+        capture.maximumFrameRateChanged.connect(() => {
             connectCount++;
-            lastValue = maximumFrameRate;
+            lastValue = capture.maximumFrameRate;
         });
 
         capture.maximumFrameRate = 60;

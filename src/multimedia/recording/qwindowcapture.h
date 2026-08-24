@@ -64,7 +64,7 @@ Q_SIGNALS:
     void windowChanged(QCapturableWindow window);
     void errorChanged();
     void errorOccurred(QWindowCapture::Error error, const QString &errorString);
-    Q_REVISION(6, 12) void maximumFrameRateChanged(std::optional<qreal>);
+    Q_REVISION(6, 12) void maximumFrameRateChanged();
 
 private:
     void setCaptureSession(QMediaCaptureSession *captureSession);

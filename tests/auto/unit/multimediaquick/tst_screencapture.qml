@@ -27,9 +27,9 @@ TestCase {
 
             property int maximumFrameRateChangedCount: 0
             property real lastMaximumFrameRate: -1
-            onMaximumFrameRateChanged: (newFrameRate) => {
+            onMaximumFrameRateChanged: () => {
                 maximumFrameRateChangedCount++;
-                lastMaximumFrameRate = newFrameRate;
+                lastMaximumFrameRate = maximumFrameRate;
             }
 
             property int activeChangedCount: 0
@@ -174,20 +174,22 @@ TestCase {
         compare(capture.maximumFrameRateChangedCount, 1);
     }
 
-    function test_maximumFrameRateChanged_carriesNewValueAsNumber() {
+    function test_maximumFrameRateChanged_isEmittedWithoutArguments() {
         let capture = createScreenCapture();
         let spy = createSpy(capture, "maximumFrameRateChanged");
 
+        // The signal is a plain property notification, so the new value is read
+        // from the property rather than from a signal argument.
         capture.maximumFrameRate = 60;
         compare(spy.count, 1);
-        compare(typeof spy.signalArguments[0][0], "number");
-        compare(spy.signalArguments[0][0], 60);
+        compare(spy.signalArguments[0].length, 0);
+        compare(capture.lastMaximumFrameRate, 60);
 
         // Clearing the frame rate reports the default value, not undefined.
         capture.maximumFrameRate = -1;
         compare(spy.count, 2);
-        compare(typeof spy.signalArguments[1][0], "number");
-        compare(spy.signalArguments[1][0], -1);
+        compare(spy.signalArguments[1].length, 0);
+        compare(typeof capture.maximumFrameRate, "number");
         compare(capture.lastMaximumFrameRate, -1);
     }
 
@@ -195,10 +197,10 @@ TestCase {
         let capture = createScreenCapture();
 
         let connectCount = 0;
-        let lastFrameRate = null;
-        capture.maximumFrameRateChanged.connect((newFrameRate) => {
+        let lastFrameRate = -1;
+        capture.maximumFrameRateChanged.connect(() => {
             connectCount++;
-            lastFrameRate = newFrameRate;
+            lastFrameRate = capture.maximumFrameRate;
         });
 
         capture.maximumFrameRate = 60;
@@ -432,8 +434,6 @@ TestCase {
         compare(capture.maximumFrameRateChangedCount, 1);
         compare(capture.lastMaximumFrameRate, 60);
         compare(spy.count, 1);
-        compare(typeof spy.signalArguments[0][0], "number");
-        compare(spy.signalArguments[0][0], 60);
     }
 
     function test_clearingMaximumFrameRateFromCpp_reportsMinusOneToQml() {
@@ -444,10 +444,9 @@ TestCase {
 
         // An unset std::optional must reach QML as -1, not as undefined.
         ScreenCaptureHelper.clearMaximumFrameRate(capture);
+        compare(typeof capture.maximumFrameRate, "number");
         compare(capture.maximumFrameRate, -1);
         compare(spy.count, 1);
-        compare(typeof spy.signalArguments[0][0], "number");
-        compare(spy.signalArguments[0][0], -1);
         compare(capture.lastMaximumFrameRate, -1);
     }
 

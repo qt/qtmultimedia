@@ -15,11 +15,6 @@ QQuickScreenCapture::QQuickScreenCapture(QObject *parent) : QScreenCapture(paren
     connect(this, &QScreenCapture::screenChanged, this, [this] {
         emit QQuickScreenCapture::screenChanged(ensureQmlScreen());
     });
-
-    connect(this, &QScreenCapture::maximumFrameRateChanged, this,
-            [this](std::optional<qreal> frameRate) {
-        emit QQuickScreenCapture::maximumFrameRateChanged(screenFrameRateToReal(frameRate));
-    });
 }
 
 void QQuickScreenCapture::qmlSetScreen(QQuickScreenInfo *qmlScreen)
