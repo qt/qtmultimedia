@@ -365,7 +365,8 @@ void QOhosMediaPlayer::setVideoSink(QVideoSink *sink)
     }
 
     if (!m_videoOutput) {
-        m_videoOutput = std::make_unique<QOhosVideoOutput>(sink, this);
+        m_videoOutput = std::make_unique<QOhosVideoOutput>(
+                sink, QOhosVideoOutput::ContentSource::MediaPlayer, this);
         connect(m_videoOutput.get(), &QOhosVideoOutput::surfaceReady, this,
                 &QOhosMediaPlayer::onVideoSurfaceReady);
     }

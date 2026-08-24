@@ -210,7 +210,8 @@ void QOhosCameraSession::setVideoSink(QVideoSink *sink)
     m_videoSink = sink;
     if (m_videoOutput)
         m_videoOutput.reset();
-    m_videoOutput = std::make_unique<QOhosVideoOutput>(sink, this);
+    m_videoOutput = std::make_unique<QOhosVideoOutput>(
+            sink, QOhosVideoOutput::ContentSource::Camera, this);
     connect(m_videoOutput.get(), &QOhosVideoOutput::surfaceReady, this,
             &QOhosCameraSession::onSurfaceReady);
 }
@@ -523,7 +524,8 @@ bool QOhosCameraSession::startSession()
     // attached, or an internal offscreen GLES2 RHI otherwise. surfaceReady will
     // re-attach later if a sink with a live RHI shows up.
     if (!m_videoOutput) {
-        m_videoOutput = std::make_unique<QOhosVideoOutput>(nullptr, this);
+        m_videoOutput = std::make_unique<QOhosVideoOutput>(
+                nullptr, QOhosVideoOutput::ContentSource::Camera, this);
         connect(m_videoOutput.get(), &QOhosVideoOutput::surfaceReady, this,
                 &QOhosCameraSession::onSurfaceReady);
     }

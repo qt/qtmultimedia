@@ -34,7 +34,11 @@ class QOhosVideoOutput : public QObject
 {
     Q_OBJECT
 public:
-    explicit QOhosVideoOutput(QVideoSink *sink, QObject *parent = nullptr);
+    // Only camera frames follow the device and need the display rotation.
+    enum class ContentSource { Camera, MediaPlayer };
+
+    explicit QOhosVideoOutput(QVideoSink *sink, ContentSource contentSource,
+                              QObject *parent = nullptr);
     ~QOhosVideoOutput() override;
 
     OHNativeWindow *nativeWindow();
@@ -50,9 +54,11 @@ signals:
 private slots:
     void onNewFrame(const QVideoFrame &frame);
     void onRhiChanged();
+    void updateDisplayRotation();
 
 private:
     QPointer<QVideoSink> m_sink;
+    ContentSource m_contentSource;
     QSize m_videoSize;
     std::shared_ptr<QOhosTextureThread> m_textureThread;
     bool m_surfaceCreatedWithoutRhi{ false };
