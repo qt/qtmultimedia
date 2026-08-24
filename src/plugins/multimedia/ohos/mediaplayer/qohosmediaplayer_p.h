@@ -82,6 +82,7 @@ private:
     void applyVolume();
 
     void onVideoSurfaceReady();
+    void tryApplyPendingSource();
     void applyPendingSource();
 
     // Native trampoline callbacks. Run on system threads — must marshal to Qt thread.
@@ -103,6 +104,8 @@ private:
     std::unique_ptr<QOhosVideoOutput> m_videoOutput;
     bool m_videoSurfaceAttached{ false };
     bool m_pendingSetMedia{ false };
+    bool m_sourceApplied{ false };
+    bool m_surfaceWaitStarted{ false };
 
     std::atomic<qint64> m_position{ 0 };
     qint64 m_duration{ 0 };

@@ -16,6 +16,7 @@
 #include <QtMultimedia/qvideosink.h>
 
 #include <QtCore/qfile.h>
+#include <QtCore/qtimer.h>
 #include <QtCore/qfileinfo.h>
 #include <QtCore/qtemporaryfile.h>
 #include <QtCore/qloggingcategory.h>
@@ -25,6 +26,8 @@
 #include <multimedia/player_framework/native_averrors.h>
 
 QT_BEGIN_NAMESPACE
+
+static constexpr int surfaceWaitTimeoutMs = 500;
 
 namespace {
 
@@ -208,19 +211,40 @@ void QOhosMediaPlayer::setMedia(const QUrl &media, QIODevice *stream)
         }
     }
 
-    // SetVideoSurface must run between SetSource and Prepare; defer only when
-    // the sink will eventually get an RHI (it's attached to a renderer that
-    // hasn't initialised yet). A bare QVideoSink with no RHI never produces a
-    // surface, so prepare without video — the player still emits state /
-    // metadata, just no rendering.
-    if (m_videoOutput && m_videoSink && m_videoSink->rhi()
-        && !m_videoOutput->nativeWindow()) {
+    m_pendingSetMedia = false;
+    m_sourceApplied = false;
+    m_surfaceWaitStarted = false;
+    // Apply on the next event-loop cycle so a videoOutput assigned right after
+    // the source is in place before we pick a prepare path.
+    QMetaObject::invokeMethod(this, &QOhosMediaPlayer::tryApplyPendingSource,
+                              Qt::QueuedConnection);
+}
+
+void QOhosMediaPlayer::tryApplyPendingSource()
+{
+    if (m_sourceApplied || m_media.isEmpty())
+        return;
+
+    // The surface can only be attached between SetSource and Prepare, so wait
+    // for it. A sink with no renderer never gets an RHI: give up and prepare
+    // without video rather than stall.
+    if (m_videoOutput && m_videoSink && !m_videoSink->rhi()) {
+        if (!m_surfaceWaitStarted) {
+            m_surfaceWaitStarted = true;
+            QTimer::singleShot(surfaceWaitTimeoutMs, this, [this] {
+                if (!m_sourceApplied && m_pendingSetMedia && !m_media.isEmpty()) {
+                    m_pendingSetMedia = false;
+                    m_sourceApplied = true;
+                    applyPendingSource();
+                }
+            });
+        }
         m_pendingSetMedia = true;
         mediaStatusChanged(QMediaPlayer::LoadingMedia);
         return;
     }
 
-    m_pendingSetMedia = false;
+    m_sourceApplied = true;
     applyPendingSource();
 }
 
@@ -318,7 +342,7 @@ void QOhosMediaPlayer::applyPendingSource()
 void QOhosMediaPlayer::play()
 {
     if (!m_player) {
-        m_pendingPlay = false;
+        m_pendingPlay = !m_media.isEmpty();
         return;
     }
 
@@ -417,6 +441,7 @@ void QOhosMediaPlayer::onVideoSurfaceReady()
 {
     if (m_pendingSetMedia && !m_media.isEmpty()) {
         m_pendingSetMedia = false;
+        m_sourceApplied = true;
         applyPendingSource();
     }
 }
