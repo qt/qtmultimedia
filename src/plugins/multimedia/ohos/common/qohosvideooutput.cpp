@@ -169,8 +169,8 @@ public:
                                               sizeof(g_quad)));
         m_vertexBuffer->create();
 
-        m_uniformBuffer.reset(m_rhi->newBuffer(QRhiBuffer::Dynamic, QRhiBuffer::UniformBuffer,
-                                               64 + 64 + 4 + 4));
+        m_uniformBuffer.reset(m_rhi->newBuffer(QRhiBuffer::Dynamic,
+                                               QRhiBuffer::UniformBuffer, 160));
         m_uniformBuffer->create();
 
         m_sampler.reset(m_rhi->newSampler(QRhiSampler::Nearest, QRhiSampler::Nearest,

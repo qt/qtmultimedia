@@ -492,7 +492,7 @@ set(VIDEO_VERTEX_SHADERS
 )
 
 set(VIDEO_SHADERS
-    "shaders/externalsampler.frag@glsl,100es,shaders/externalsampler_gles.frag"
+    "shaders/externalsampler.frag@glsl,100es,shaders/externalsampler_gles.frag@glsl,300es,shaders/externalsampler_gles3.frag"
     "shaders/abgr.frag"
     "shaders/argb.frag"
     "shaders/rgba.frag"
