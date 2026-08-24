@@ -168,6 +168,13 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_network
         Qt::Network
 )
 
+qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_egl
+    SOURCES
+        video/qeglimagefunctions.cpp video/qeglimagefunctions_p.h
+    LIBRARIES
+        EGL::EGL
+)
+
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_linux_dmabuf
     SOURCES
         video/qdmabufvideobuffer.cpp video/qdmabufvideobuffer_p.h

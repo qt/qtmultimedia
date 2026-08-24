@@ -10,6 +10,7 @@
 
 #  if QT_CONFIG(linux_dmabuf)
 #    include <QtMultimedia/private/qdmabuftextureimporter_p.h>
+#    include <QtMultimedia/private/qeglimagefunctions_p.h>
 #  endif
 
 QT_BEGIN_NAMESPACE

@@ -25,6 +25,8 @@
 #include <QtCore/qsize.h>
 #include <QtCore/private/qexpected_p.h>
 
+#include <EGL/egl.h>
+
 #include <array>
 #include <memory>
 
@@ -36,21 +38,6 @@ class QRhi;
 class QOpenGLContext;
 
 namespace QtMultimediaPrivate {
-
-class Q_MULTIMEDIA_EXPORT QEglImageFunctions
-{
-    QEglImageFunctions();
-
-public:
-    static const QEglImageFunctions &instance();
-
-    bool isValid() const;
-
-    void glEGLImageTargetTexture2DOES(GLenum, GLeglImageOES) const;
-
-private:
-    PFNGLEGLIMAGETARGETTEXTURE2DOESPROC m_glEGLImageTargetTexture2DOES = nullptr;
-};
 
 class Q_MULTIMEDIA_EXPORT DmaBufEglContext
 {

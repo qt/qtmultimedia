@@ -15,6 +15,8 @@
 
 #include <rhi/qrhi.h>
 
+#include <QtMultimedia/private/qeglimagefunctions_p.h>
+
 #include <cstring>
 
 #include <EGL/egl.h>
@@ -22,8 +24,7 @@
 
 QT_BEGIN_NAMESPACE
 
-static PFNEGLCREATEIMAGEKHRPROC s_eglCreateImageKHR;
-static PFNEGLDESTROYIMAGEKHRPROC s_eglDestroyImageKHR;
+using QtMultimediaPrivate::QEglImageFunctions;
 
 class QQnxWindowGrabberImage
 {
@@ -43,7 +44,7 @@ private:
     QSize m_size;
     screen_pixmap_t m_pixmap;
     screen_buffer_t m_pixmapBuffer;
-    EGLImageKHR m_eglImage;
+    EGLImage m_eglImage;
     GLuint m_glTexture;
     unsigned char *m_bufferAddress;
     int m_bufferStride;
@@ -65,14 +66,6 @@ QQnxWindowGrabber::QQnxWindowGrabber(QObject *parent)
     connect(&m_timer, &QTimer::timeout, this, &QQnxWindowGrabber::triggerUpdate);
 
     QCoreApplication::eventDispatcher()->installNativeEventFilter(this);
-
-    // Use of EGL images can be disabled by setting QQNX_MM_DISABLE_EGLIMAGE_SUPPORT to something
-    // non-zero.  This is probably useful only to test that this path still works since it results
-    // in a high CPU load.
-    if (!s_eglCreateImageKHR && qgetenv("QQNX_MM_DISABLE_EGLIMAGE_SUPPORT").toInt() == 0) {
-        s_eglCreateImageKHR = reinterpret_cast<PFNEGLCREATEIMAGEKHRPROC>(eglGetProcAddress("eglCreateImageKHR"));
-        s_eglDestroyImageKHR = reinterpret_cast<PFNEGLDESTROYIMAGEKHRPROC>(eglGetProcAddress("eglDestroyImageKHR"));
-    }
 
     QPlatformNativeInterface *const nativeInterface = QGuiApplication::platformNativeInterface();
     if (nativeInterface) {
@@ -235,6 +228,12 @@ void QQnxWindowGrabber::checkForEglImageExtension()
     if (!m_rhi || m_rhi->backend() != QRhi::OpenGLES2)
         return;
 
+    // Use of EGL images can be disabled by setting QQNX_MM_DISABLE_EGLIMAGE_SUPPORT to something
+    // non-zero.  This is probably useful only to test that this path still works since it results
+    // in a high CPU load.
+    if (qgetenv("QQNX_MM_DISABLE_EGLIMAGE_SUPPORT").toInt() != 0)
+        return;
+
     const EGLDisplay defaultDisplay = eglGetDisplay(EGL_DEFAULT_DISPLAY);
 
     const char *vendor = eglQueryString(defaultDisplay, EGL_VENDOR);
@@ -242,14 +241,7 @@ void QQnxWindowGrabber::checkForEglImageExtension()
     if (vendor && std::strstr(vendor, "VMWare"))
         return;
 
-    const char *eglExtensions = eglQueryString(defaultDisplay, EGL_EXTENSIONS);
-
-    if (!eglExtensions)
-        return;
-
-    m_eglImageSupported = std::strstr(eglExtensions, "EGL_KHR_image")
-                          && s_eglCreateImageKHR
-                          && s_eglDestroyImageKHR;
+    m_eglImageSupported = QEglImageFunctions::instance().isValid();
 }
 
 void QQnxWindowGrabber::triggerUpdate()
@@ -327,7 +319,8 @@ QQnxWindowGrabberImage::~QQnxWindowGrabberImage()
     if (m_glTexture)
         glDeleteTextures(1, &m_glTexture);
     if (m_eglImage)
-        s_eglDestroyImageKHR(eglGetDisplay(EGL_DEFAULT_DISPLAY), m_eglImage);
+        QEglImageFunctions::instance().eglDestroyImage(eglGetDisplay(EGL_DEFAULT_DISPLAY),
+                                                       m_eglImage);
     if (m_pixmap)
         screen_destroy_pixmap(m_pixmap);
 }
@@ -411,17 +404,20 @@ GLuint QQnxWindowGrabberImage::getTexture(screen_window_t window, const QSize &s
         glDeleteTextures(1, &m_glTexture);
         glGenTextures(1, &m_glTexture);
 
+        const auto &eglImageFunctions = QEglImageFunctions::instance();
+
         glBindTexture(GL_TEXTURE_2D, m_glTexture);
         if (m_eglImage) {
-            glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, 0);
-            s_eglDestroyImageKHR(eglGetDisplay(EGL_DEFAULT_DISPLAY), m_eglImage);
+            eglImageFunctions.glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, 0);
+            eglImageFunctions.eglDestroyImage(eglGetDisplay(EGL_DEFAULT_DISPLAY), m_eglImage);
             m_eglImage = 0;
         }
         if (!resize(size))
             return 0;
-        m_eglImage = s_eglCreateImageKHR(eglGetDisplay(EGL_DEFAULT_DISPLAY), EGL_NO_CONTEXT,
-                                         EGL_NATIVE_PIXMAP_KHR, m_pixmap, 0);
-        glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, m_eglImage);
+        m_eglImage = eglImageFunctions.eglCreateImage(eglGetDisplay(EGL_DEFAULT_DISPLAY),
+                                                      EGL_NO_CONTEXT, EGL_NATIVE_PIXMAP_KHR,
+                                                      m_pixmap);
+        eglImageFunctions.glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, m_eglImage);
     }
 
     if (!m_pixmap || !grab(window))
