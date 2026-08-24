@@ -32,7 +32,7 @@ class MFDecoderSourceReader : public QObject
     Q_OBJECT
 public:
     void clearSource() { m_sourceReader.Reset(); }
-    ComPtr<IMFMediaType> setSource(IMFMediaSource *source, QAudioFormat::SampleFormat);
+    ComPtr<IMFMediaType> setSource(const ComPtr<IMFMediaSource> &source, QAudioFormat::SampleFormat);
 
     void readNextSample();
 

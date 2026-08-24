@@ -10,6 +10,7 @@
 #include <QtMultimedia/private/qmediarecorder_p.h>
 #include <QtMultimedia/private/qmediastoragelocation_p.h>
 #include <QtCore/qurl.h>
+#include <QtCore/private/qcomptr_p.h>
 
 #include <mferror.h>
 #include <shobjidl.h>
@@ -157,15 +158,14 @@ void QWindowsMediaEncoder::saveMetadata()
 
         const QString nativeFileName = QDir::toNativeSeparators(m_fileName);
 
-        IPropertyStore *store = nullptr;
+        ComPtr<IPropertyStore> store;
 
         if (SUCCEEDED(SHGetPropertyStoreFromParsingName(reinterpret_cast<LPCWSTR>(nativeFileName.utf16()),
                                                         nullptr, GPS_READWRITE, IID_PPV_ARGS(&store)))) {
 
-            MFMetaData::toNative(m_metaData, store);
+            MFMetaData::toNative(m_metaData, store.Get());
 
             store->Commit();
-            store->Release();
         }
     }
 }

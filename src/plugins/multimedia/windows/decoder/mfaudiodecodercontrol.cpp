@@ -16,16 +16,15 @@ QT_BEGIN_NAMESPACE
 
 MFAudioDecoderControl::MFAudioDecoderControl(QAudioDecoder *parent)
     : QPlatformAudioDecoder(parent)
-    , m_sourceResolver(new SourceResolver)
+    , m_sourceResolver(makeComObject<SourceResolver>())
 {
-    connect(m_sourceResolver, &SourceResolver::mediaSourceReady, this, &MFAudioDecoderControl::handleMediaSourceReady);
-    connect(m_sourceResolver, &SourceResolver::error, this, &MFAudioDecoderControl::handleMediaSourceError);
+    connect(m_sourceResolver.Get(), &SourceResolver::mediaSourceReady, this, &MFAudioDecoderControl::handleMediaSourceReady);
+    connect(m_sourceResolver.Get(), &SourceResolver::error, this, &MFAudioDecoderControl::handleMediaSourceError);
 }
 
 MFAudioDecoderControl::~MFAudioDecoderControl()
 {
     m_sourceResolver->shutdown();
-    m_sourceResolver->Release();
 }
 
 void MFAudioDecoderControl::setSource(const QUrl &fileName)
@@ -87,7 +86,7 @@ void MFAudioDecoderControl::handleMediaSourceError(long hr)
     }
 }
 
-void MFAudioDecoderControl::startReadingSource(IMFMediaSource *source)
+void MFAudioDecoderControl::startReadingSource(const ComPtr<IMFMediaSource> &source)
 {
     Q_ASSERT(source);
 
@@ -135,7 +134,7 @@ void MFAudioDecoderControl::start()
     if (m_loadingSource) {
         m_deferredStart = true;
     } else {
-        IMFMediaSource *source = m_sourceResolver->mediaSource();
+        ComPtr<IMFMediaSource> source = m_sourceResolver->mediaSource();
         if (!source) {
             if (m_device)
                 error(QAudioDecoder::ResourceError, tr("Unable to read from specified device"));
