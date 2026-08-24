@@ -36,11 +36,18 @@ Q_CONSTINIT QOhosAudioDevices *g_audioDevicesInstance = nullptr;
 // arriving on an OHAudio thread cannot run against a half-destroyed instance.
 Q_CONSTINIT QBasicMutex g_callbackMutex;
 
-QAudioFormat preferredDeviceFormat(OH_AudioDeviceDescriptor *descriptor)
+struct DeviceFormatInfo
+{
+    QAudioFormat preferredFormat;
+    int maximumChannelCount = 0;
+};
+
+DeviceFormatInfo deviceFormatInfo(OH_AudioDeviceDescriptor *descriptor)
 {
     namespace ranges = QtMultimediaPrivate::ranges;
 
-    QAudioFormat format;
+    DeviceFormatInfo info;
+    QAudioFormat &format = info.preferredFormat;
 
     // OHAudio reports INVALID_PARAM for the channel counts (and sometimes the
     // sample rates) of otherwise valid devices such as USB headsets, so fall
@@ -51,8 +58,9 @@ QAudioFormat preferredDeviceFormat(OH_AudioDeviceDescriptor *descriptor)
     if (OH_AudioDeviceDescriptor_GetDeviceSampleRates(descriptor, &sampleRates, &sampleRateCount)
                 == AUDIOCOMMON_RESULT_SUCCESS
         && sampleRateCount > 0) {
-        format.setSampleRate(QtMultimediaPrivate::findClosestSamplingRate(
-                defaultSampleRate, QSpan<const uint32_t>{ sampleRates, sampleRateCount }));
+        const QSpan<const uint32_t> rates{ sampleRates, sampleRateCount };
+        format.setSampleRate(
+                QtMultimediaPrivate::findClosestSamplingRate(defaultSampleRate, rates));
     } else {
         format.setSampleRate(defaultSampleRate);
     }
@@ -67,12 +75,13 @@ QAudioFormat preferredDeviceFormat(OH_AudioDeviceDescriptor *descriptor)
                 ranges::contains(channels, 2u) ? 2u : *ranges::max_element(channels);
         format.setChannelConfig(
                 QAudioFormat::defaultChannelConfigForChannelCount(static_cast<int>(chosenChannels)));
+        info.maximumChannelCount = static_cast<int>(*ranges::max_element(channels));
     } else {
         format.setChannelConfig(QAudioFormat::ChannelConfigStereo);
     }
 
     format.setSampleFormat(QAudioFormat::Float);
-    return format;
+    return info;
 }
 
 QString deviceTypeLabel(OH_AudioDevice_Type type)
@@ -203,12 +212,12 @@ QList<QAudioDevice> enumerateDevices(QAudioDevice::Mode mode)
         OH_AudioDeviceDescriptor_GetDeviceId(descriptor, &deviceId);
 
         const QByteArray identifier = deviceIdentifier(descriptor);
-        const QAudioFormat preferredFormat = preferredDeviceFormat(descriptor);
+        const DeviceFormatInfo formatInfo = deviceFormatInfo(descriptor);
         const QString description = deviceDisplayDescription(descriptor);
         const bool isDefault = defaultDeviceId ? deviceId == *defaultDeviceId : i == 0;
 
         devices << QAudioDevicePrivate::createQAudioDevice(std::make_unique<QOhosAudioDevice>(
-                identifier, description, mode, preferredFormat,
+                identifier, description, mode, formatInfo.preferredFormat, formatInfo.maximumChannelCount,
                 isDefault));
     }
 
