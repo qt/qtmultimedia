@@ -3,6 +3,7 @@
 
 #include "qdmabuftextureimporter_p.h"
 
+#include <QtMultimedia/private/qeglimagefunctions_p.h>
 #include <QtMultimedia/private/qmultimedia_gl_support_p.h>
 #include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtMultimedia/private/qvideotexturehelper_p.h>
@@ -22,28 +23,6 @@ QT_BEGIN_NAMESPACE
 Q_STATIC_LOGGING_CATEGORY(qLDmaBuf, "qt.multimedia.dmabuf");
 
 namespace QtMultimediaPrivate {
-
-QEglImageFunctions::QEglImageFunctions()
-{
-    m_glEGLImageTargetTexture2DOES = reinterpret_cast<PFNGLEGLIMAGETARGETTEXTURE2DOESPROC>(
-            eglGetProcAddress("glEGLImageTargetTexture2DOES"));
-}
-
-const QEglImageFunctions &QEglImageFunctions::instance()
-{
-    static const QEglImageFunctions singleton;
-    return singleton;
-}
-
-bool QEglImageFunctions::isValid() const
-{
-    return m_glEGLImageTargetTexture2DOES != nullptr;
-}
-
-void QEglImageFunctions::glEGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image) const
-{
-    m_glEGLImageTargetTexture2DOES(target, image);
-}
 
 DmaBufEglContext::DmaBufEglContext(QRhi *rhi)
 {
@@ -105,6 +84,7 @@ importDmaBufTextures(QRhi &rhi, const DmaBufEglContext &eglContext, QSpan<const 
     QOpenGLContext *glContext = eglContext.glContext();
 
     QOpenGLFunctions functions(glContext);
+    const auto &elgImageFunctions = QEglImageFunctions::instance();
 
     auto *desc = QVideoTextureHelper::textureDescription(qtFormat);
     int nPlanes = desc->nplanes;
@@ -118,7 +98,7 @@ importDmaBufTextures(QRhi &rhi, const DmaBufEglContext &eglContext, QSpan<const 
 
     auto releaseTextures = qScopeGuard([&] {
         for (EGLImage img : images | views::filter_nonnull)
-            eglDestroyImage(eglDisplay, img);
+            elgImageFunctions.eglDestroyImage(eglDisplay, img);
 
         functions.glDeleteTextures(nPlanes, glTextures.data());
     });
@@ -144,16 +124,17 @@ importDmaBufTextures(QRhi &rhi, const DmaBufEglContext &eglContext, QSpan<const 
         };
         uint32_t img_attr_idx = 12;
         if (plane.modifier != DmaBufFormatModifierInvalid) {
-            const auto modifier = EGLAttrib(plane.modifier);
+            const auto modifier = qToUnderlying(plane.modifier);
             img_attr[img_attr_idx++] = EGL_DMA_BUF_PLANE0_MODIFIER_LO_EXT;
-            img_attr[img_attr_idx++] = modifier & 0xFFFFFFFF;
+            img_attr[img_attr_idx++] = EGLAttrib(modifier & 0xFFFFFFFF);
             img_attr[img_attr_idx++] = EGL_DMA_BUF_PLANE0_MODIFIER_HI_EXT;
-            img_attr[img_attr_idx++] = modifier >> 32;
+            img_attr[img_attr_idx++] = EGLAttrib(modifier >> 32);
         }
         img_attr[img_attr_idx++] = EGL_NONE;
         Q_ASSERT(img_attr_idx <= maxAttrCount);
-        images[i] = eglCreateImage(eglDisplay, EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, nullptr,
-                                   img_attr);
+        images[i] = elgImageFunctions.eglCreateImage(
+                eglDisplay, EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, nullptr,
+                QSpan<const EGLAttrib>(img_attr, img_attr_idx));
         if (!images[i]) {
             const EGLError error = EGLError(eglGetError());
             if (error == EGLError::BadMatch) {
@@ -173,7 +154,7 @@ importDmaBufTextures(QRhi &rhi, const DmaBufEglContext &eglContext, QSpan<const 
         functions.glActiveTexture(GL_TEXTURE0 + i);
         functions.glBindTexture(GL_TEXTURE_2D, glTextures[i]);
 
-        QEglImageFunctions::instance().glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, images[i]);
+        elgImageFunctions.glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, images[i]);
         const GLError error = GLError(glGetError());
         if (error != GLError::NoError) {
             qWarning() << "eglImageTargetTexture2D failed for plane" << i << "with" << error
@@ -187,7 +168,7 @@ importDmaBufTextures(QRhi &rhi, const DmaBufEglContext &eglContext, QSpan<const 
     for (int i = 0; i < nPlanes; ++i) {
         functions.glActiveTexture(GL_TEXTURE0 + i);
         functions.glBindTexture(GL_TEXTURE_2D, 0);
-        eglDestroyImage(eglDisplay, images[i]);
+        QEglImageFunctions::instance().eglDestroyImage(eglDisplay, images[i]);
     }
 
     return std::make_unique<DmaBufTextureHandles>(rhi, glContext, nPlanes, glTextures,

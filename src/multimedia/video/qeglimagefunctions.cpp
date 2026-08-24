@@ -1,0 +1,168 @@
+// Copyright (C) 2026 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+
+#include "qeglimagefunctions_p.h"
+
+#include <QtCore/qloggingcategory.h>
+
+#if defined(EGL_KHR_image)
+#  include <limits>
+#  include <mutex>
+#  include <optional>
+#  include <vector>
+#endif
+
+QT_BEGIN_NAMESPACE
+
+namespace QtMultimediaPrivate {
+
+namespace {
+
+#if defined(EGL_KHR_image)
+Q_STATIC_LOGGING_CATEGORY(qLcEglImage, "qt.multimedia.egl");
+
+// eglCreateImageKHR takes an EGLint attribute list, while our callers build an EGLAttrib
+// (intptr_t) list, as required by core eglCreateImage. On 64-bit platforms we need to perform
+// narrowing conversion; all of our current attribute values (dimensions, fds, offsets/strides,
+// and the already 32-bit-split dma-buf modifier) fit into EGLint, but we still validate this
+// rather than silently truncate.
+[[maybe_unused]] std::optional<std::vector<EGLint>> narrowToEGLint(QSpan<const EGLAttrib> attribs)
+{
+    std::vector<EGLint> narrowed(size_t(attribs.size()));
+
+    Q_ASSERT(sizeof(EGLAttrib) > sizeof(EGLint));
+    static std::once_flag warnOnce;
+    std::call_once(warnOnce, [] {
+        qCDebug(qLcEglImage) << "EGL_KHR_image_base fallback: narrowing 64-bit EGLAttrib "
+                                "attribute values to 32-bit EGLint";
+    });
+
+    for (qsizetype i = 0; i < attribs.size(); ++i) {
+        const EGLAttrib value = attribs[i];
+        if (value < std::numeric_limits<EGLint>::min()
+            || value > std::numeric_limits<EGLint>::max()) {
+            qCWarning(qLcEglImage)
+                    << "EGL attribute value" << value
+                    << "does not fit into EGLint; cannot use the EGL_KHR_image_base fallback";
+            return std::nullopt;
+        }
+        narrowed[size_t(i)] = EGLint(value);
+    }
+
+    return narrowed;
+}
+#endif
+
+template <typename Fn>
+Fn getEglFunction(const char *name)
+{
+    return reinterpret_cast<Fn>(eglGetProcAddress(name));
+}
+
+} // namespace
+
+QEglImageFunctions::QEglImageFunctions()
+    :
+#ifdef GL_OES_EGL_image
+      m_glEGLImageTargetTexture2DOES{
+          getEglFunction<PFNGLEGLIMAGETARGETTEXTURE2DOESPROC>("glEGLImageTargetTexture2DOES"),
+      }
+#endif
+#ifdef EGL_VERSION_1_5
+      ,
+      m_eglCreateImage{
+          getEglFunction<PFNEGLCREATEIMAGEPROC>("eglCreateImage"),
+      },
+      m_eglDestroyImage{
+          getEglFunction<PFNEGLDESTROYIMAGEPROC>("eglDestroyImage"),
+      }
+#endif
+#if defined(EGL_KHR_image)
+      ,
+      m_eglCreateImageKHR{
+          getEglFunction<PFNEGLCREATEIMAGEKHRPROC>("eglCreateImageKHR"),
+      },
+      m_eglDestroyImageKHR{
+          getEglFunction<PFNEGLDESTROYIMAGEKHRPROC>("eglDestroyImageKHR"),
+      }
+#endif
+{
+}
+
+const QEglImageFunctions &QEglImageFunctions::instance()
+{
+    static const QEglImageFunctions singleton;
+    return singleton;
+}
+
+bool QEglImageFunctions::isValid() const
+{
+#ifdef GL_OES_EGL_image
+    if (!m_glEGLImageTargetTexture2DOES)
+        return false;
+#else
+    return false;
+#endif
+
+#ifdef EGL_VERSION_1_5
+    if (m_eglCreateImage && m_eglDestroyImage)
+        return true;
+#endif
+#if defined(EGL_KHR_image)
+    if (m_eglCreateImageKHR && m_eglDestroyImageKHR)
+        return true;
+#endif
+    return false;
+}
+
+void QEglImageFunctions::glEGLImageTargetTexture2DOES(GLenum target, GLeglImageOES image) const
+{
+#ifdef GL_OES_EGL_image
+    m_glEGLImageTargetTexture2DOES(target, image);
+#endif
+}
+
+EGLImage QEglImageFunctions::eglCreateImage(EGLDisplay dpy, EGLContext ctx, EGLenum target,
+                                            EGLClientBuffer buffer,
+                                            QSpan<const EGLAttrib> attribs) const
+{
+#ifdef EGL_VERSION_1_5
+    if (m_eglCreateImage) {
+        return m_eglCreateImage(dpy, ctx, target, buffer,
+                                attribs.empty() ? nullptr : attribs.data());
+    }
+#endif
+#if defined(EGL_KHR_image)
+    if (m_eglCreateImageKHR) {
+        if constexpr (sizeof(EGLAttrib) == sizeof(EGLint)) {
+            return m_eglCreateImageKHR(
+                    dpy, ctx, target, buffer,
+                    attribs.empty() ? nullptr : reinterpret_cast<const EGLint *>(attribs.data()));
+        } else {
+            const auto narrowed = narrowToEGLint(attribs);
+            if (!narrowed)
+                return EGL_NO_IMAGE;
+            return m_eglCreateImageKHR(dpy, ctx, target, buffer,
+                                       narrowed->empty() ? nullptr : narrowed->data());
+        }
+    }
+#endif
+    return EGL_NO_IMAGE;
+}
+
+EGLBoolean QEglImageFunctions::eglDestroyImage(EGLDisplay dpy, EGLImage image) const
+{
+#ifdef EGL_VERSION_1_5
+    if (m_eglDestroyImage)
+        return m_eglDestroyImage(dpy, image);
+#endif
+#if defined(EGL_KHR_image)
+    if (m_eglDestroyImageKHR)
+        return m_eglDestroyImageKHR(dpy, image);
+#endif
+    return EGL_FALSE;
+}
+
+} // namespace QtMultimediaPrivate
+
+QT_END_NAMESPACE

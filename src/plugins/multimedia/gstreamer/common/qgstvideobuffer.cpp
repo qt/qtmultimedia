@@ -30,6 +30,7 @@
 
 #  if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
 #    include <QtMultimedia/private/qdmabuftextureimporter_p.h>
+#    include <QtMultimedia/private/qeglimagefunctions_p.h>
 #    include <QtMultimedia/private/qmultimedia_drm_support_p.h>
 #    include <QtMultimedia/private/qmultimedia_gl_support_p.h>
 #    include <optional>
@@ -479,11 +480,12 @@ static GlTextures mapFromDmaBuffer(QRhi *rhi, const QGstBufferHandle &bufferHand
         attr[i++] = EGL_NONE;
         Q_ASSERT(i <= maxAttrCount);
 
-        EGLImage image = eglCreateImage(eglDisplay,
-                                        EGL_NO_CONTEXT,
-                                        EGL_LINUX_DMA_BUF_EXT,
-                                        nullptr,
-                                        attr.data());
+        using namespace QtMultimediaPrivate;
+        const auto &elgImageFunctions = QEglImageFunctions::instance();
+
+        EGLImage image = elgImageFunctions.eglCreateImage(
+                eglDisplay, EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, nullptr,
+                QSpan<const EGLAttrib>(attr.data(), i));
         if (image == EGL_NO_IMAGE_KHR) {
             qCWarning(qLcGstVideoBuffer) << "could not create EGL image for plane" << plane
                                          << ", EGL error" << EGLError(eglGetError());
@@ -498,12 +500,10 @@ static GlTextures mapFromDmaBuffer(QRhi *rhi, const QGstBufferHandle &bufferHand
         #endif
         functions.glBindTexture(target, textures.names[plane]);
 
-        using namespace QtMultimediaPrivate;
-
-        QEglImageFunctions::instance().glEGLImageTargetTexture2DOES(target, image);
+        elgImageFunctions.glEGLImageTargetTexture2DOES(target, image);
         logGlAndEglErrors("glEGLImageTargetTexture2DOES");
 
-        eglDestroyImage(eglDisplay, image);
+        elgImageFunctions.eglDestroyImage(eglDisplay, image);
     }
 
     return textures;

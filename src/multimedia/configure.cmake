@@ -100,22 +100,32 @@ qt_config_compile_test("linux_v4l"
                    PROJECT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../config.tests/linux_v4l"
 )
 
-qt_config_compile_test(linux_dmabuf
-    LABEL "Linux DMA buffer support"
+qt_config_compile_test(egl_has_image
+    LABEL "EGL 1.5 or EGL_KHR_image"
     LIBRARIES
         EGL::EGL
     CODE
 "#include <EGL/egl.h>
 #include <EGL/eglext.h>
 
+#if !defined(EGL_VERSION_1_5) && !defined(EGL_KHR_image)
+#  error \"Need either EGL 1.5 or EGL_KHR_image for EGL image import\"
+#endif
+
 int main(int, char **)
 {
     /* BEGIN TEST: */
-    eglCreateImage(nullptr,
-        EGL_NO_CONTEXT,
-        EGL_LINUX_DMA_BUF_EXT,
-        nullptr,
-        nullptr);
+#ifdef EGL_VERSION_1_5
+    EGLAttrib attr[] = { EGL_LINUX_DRM_FOURCC_EXT, 0, EGL_NONE };
+    EGLImage image = EGL_NO_IMAGE;
+    (void)attr;
+    (void)image;
+#else
+    EGLint attr[] = { EGL_LINUX_DRM_FOURCC_EXT, 0, EGL_NONE };
+    EGLImageKHR image = EGL_NO_IMAGE_KHR;
+    (void)attr;
+    (void)image;
+#endif
     /* END TEST: */
     return 0;
 }
@@ -211,7 +221,7 @@ qt_feature("linux_v4l" PRIVATE
 )
 qt_feature("linux_dmabuf" PRIVATE
     LABEL "Linux DMA buffer support"
-    CONDITION UNIX AND TEST_linux_dmabuf
+    CONDITION UNIX AND TEST_egl_has_image AND QT_FEATURE_egl
 )
 qt_feature("vaapi" PRIVATE
     LABEL "VAAPI support"
