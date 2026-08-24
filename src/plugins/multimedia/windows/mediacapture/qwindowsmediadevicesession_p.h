@@ -15,11 +15,12 @@
 // We mean it.
 //
 
-#include <private/qtmultimediaglobal_p.h>
-#include <qcamera.h>
-#include <qaudiodevice.h>
-#include <private/qwindowsmultimediautils_p.h>
-#include <private/qplatformmediarecorder_p.h>
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qcamera.h>
+
+#include <QtMultimedia/private/qplatformmediarecorder_p.h>
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#include <QtMultimedia/private/qwindowsmultimediautils_p.h>
 
 QT_BEGIN_NAMESPACE
 

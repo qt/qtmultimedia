@@ -15,12 +15,13 @@
 // We mean it.
 //
 
+#include <QtCore/qobject.h>
+
+#include <QtCore/private/qcomobject_p.h>
+#include <QtCore/private/qcomptr_p.h>
+
 #include <mfidl.h>
 #include <mfreadwrite.h>
-
-#include <QtCore/qobject.h>
-#include <QtCore/private/qcomptr_p.h>
-#include <QtCore/private/qcomobject_p.h>
 
 QT_BEGIN_NAMESPACE
 

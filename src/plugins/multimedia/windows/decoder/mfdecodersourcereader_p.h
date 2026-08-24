@@ -15,13 +15,15 @@
 // We mean it.
 //
 
+#include <decoder/mfdecodersourcereadercallback_p.h>
+
+#include <QtMultimedia/qaudioformat.h>
+#include <QtCore/qobject.h>
+
+#include <QtCore/private/qcomptr_p.h>
+
 #include <mfidl.h>
 #include <mfreadwrite.h>
-
-#include <QtCore/qobject.h>
-#include "qaudioformat.h"
-#include <QtCore/private/qcomptr_p.h>
-#include "mfdecodersourcereadercallback_p.h"
 
 QT_BEGIN_NAMESPACE
 

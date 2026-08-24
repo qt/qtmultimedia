@@ -15,8 +15,9 @@
 // We mean it.
 //
 
-#include "mfstream_p.h"
-#include <QUrl>
+#include <mfstream_p.h>
+
+#include <QtCore/qurl.h>
 #include <QtCore/private/qcomobject_p.h>
 
 QT_BEGIN_NAMESPACE

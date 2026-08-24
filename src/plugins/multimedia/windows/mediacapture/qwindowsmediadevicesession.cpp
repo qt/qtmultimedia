@@ -3,13 +3,14 @@
 
 #include "qwindowsmediadevicesession_p.h"
 
-#include "qwindowsmediadevicereader_p.h"
-#include "private/qwindowsmultimediautils_p.h"
-#include "private/qplatformvideosink_p.h"
-#include <qvideosink.h>
+#include <mediacapture/qwindowsmediadevicereader_p.h>
+
+#include <QtMultimedia/qaudioinput.h>
+#include <QtMultimedia/qaudiooutput.h>
+#include <QtMultimedia/qvideosink.h>
+#include <QtMultimedia/private/qplatformvideosink_p.h>
+#include <QtMultimedia/private/qwindowsmultimediautils_p.h>
 #include <QtCore/qdebug.h>
-#include <qaudioinput.h>
-#include <qaudiooutput.h>
 
 #include <cguid.h>
 

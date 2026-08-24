@@ -2,29 +2,27 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 // Qt-Security score:critical reason:data-parser
 
-#include <qmediametadata.h>
+#include "mfmetadata_p.h"
 
-#include <QtCore/qdatetime.h>
-#include <QtCore/qtimezone.h>
-#include <QtCore/quuid.h>
-#include <QtCore/private/qcomptr_p.h>
-#include <QtCore/private/qflatmap_p.h>
-#include <QtCore/qvarlengtharray.h>
-#include <QtGui/qimage.h>
+#include <QtMultimedia/qmediametadata.h>
 #include <QtMultimedia/private/qmediametadata_p.h>
 #include <QtMultimedia/private/qwindows_scopedpropvariant_p.h>
 #include <QtMultimedia/private/qwindowsmultimediautils_p.h>
+#include <QtGui/qimage.h>
+#include <QtCore/qdatetime.h>
+#include <QtCore/qtimezone.h>
+#include <QtCore/quuid.h>
+#include <QtCore/qvarlengtharray.h>
+#include <QtCore/private/qcomptr_p.h>
+#include <QtCore/private/qflatmap_p.h>
 
-#include <guiddef.h>
 #include <cguid.h>
+#include <guiddef.h>
 #include <mfapi.h>
 #include <mfidl.h>
-#include <propvarutil.h>
 #include <propkey.h>
+#include <propvarutil.h>
 #include <wmsdkidl.h>
-
-
-#include "mfmetadata_p.h"
 
 //#define DEBUG_MEDIAFOUNDATION
 

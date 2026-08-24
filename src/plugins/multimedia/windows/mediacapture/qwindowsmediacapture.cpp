@@ -3,14 +3,16 @@
 
 #include "qwindowsmediacapture_p.h"
 
-#include "qwindowsmediaencoder_p.h"
-#include "qwindowscamera_p.h"
-#include "qwindowsmediadevicesession_p.h"
-#include "qwindowsimagecapture_p.h"
-#include "qmediadevices.h"
-#include "qaudiodevice.h"
-#include "private/qplatformaudioinput_p.h"
-#include "private/qplatformaudiooutput_p.h"
+#include <mediacapture/qwindowscamera_p.h>
+#include <mediacapture/qwindowsimagecapture_p.h>
+#include <mediacapture/qwindowsmediadevicesession_p.h>
+#include <mediacapture/qwindowsmediaencoder_p.h>
+
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qmediadevices.h>
+
+#include <QtMultimedia/private/qplatformaudioinput_p.h>
+#include <QtMultimedia/private/qplatformaudiooutput_p.h>
 
 QT_BEGIN_NAMESPACE
 

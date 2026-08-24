@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include <private/qplatformimagecapture_p.h>
+#include <QtMultimedia/private/qplatformimagecapture_p.h>
 
 QT_BEGIN_NAMESPACE
 

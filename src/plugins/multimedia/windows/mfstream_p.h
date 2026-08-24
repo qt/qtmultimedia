@@ -15,13 +15,15 @@
 // We mean it.
 //
 
+#include <QtCore/qcoreevent.h>
+#include <QtCore/qiodevice.h>
+#include <QtCore/qmutex.h>
+#include <QtCore/qpointer.h>
+
+#include <QtCore/private/qcomobject_p.h>
+
 #include <mfapi.h>
 #include <mfidl.h>
-#include <QtCore/qmutex.h>
-#include <QtCore/qiodevice.h>
-#include <QtCore/qcoreevent.h>
-#include <QtCore/qpointer.h>
-#include <QtCore/private/qcomobject_p.h>
 
 QT_BEGIN_NAMESPACE
 

@@ -15,19 +15,20 @@
 // We mean it.
 //
 
-#include <mfapi.h>
-#include <mfidl.h>
-#include <mferror.h>
-#include <mfreadwrite.h>
-
-#include <QtCore/qobject.h>
+#include <QtMultimedia/qcameradevice.h>
+#include <QtMultimedia/qmediarecorder.h>
+#include <QtMultimedia/qvideoframe.h>
 #include <QtCore/qmutex.h>
-#include <QtCore/qwaitcondition.h>
+#include <QtCore/qobject.h>
 #include <QtCore/qtimer.h>
+#include <QtCore/qwaitcondition.h>
+
 #include <QtCore/private/qcomobject_p.h>
-#include <qvideoframe.h>
-#include <qcameradevice.h>
-#include <qmediarecorder.h>
+
+#include <mfapi.h>
+#include <mferror.h>
+#include <mfidl.h>
+#include <mfreadwrite.h>
 
 QT_BEGIN_NAMESPACE
 

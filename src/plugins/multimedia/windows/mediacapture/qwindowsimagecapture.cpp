@@ -3,12 +3,12 @@
 
 #include "qwindowsimagecapture_p.h"
 
-#include "qwindowsmediadevicesession_p.h"
-#include "qwindowsmediacapture_p.h"
-#include <private/qmediastoragelocation_p.h>
+#include <mediacapture/qwindowsmediacapture_p.h>
+#include <mediacapture/qwindowsmediadevicesession_p.h>
 
-#include <QtConcurrent/qtconcurrentrun.h>
+#include <QtMultimedia/private/qmediastoragelocation_p.h>
 #include <QtGui/qimagewriter.h>
+#include <QtConcurrent/qtconcurrentrun.h>
 
 QT_BEGIN_NAMESPACE
 
