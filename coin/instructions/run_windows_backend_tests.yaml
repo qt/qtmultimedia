@@ -1,0 +1,14 @@
+type: Group
+enable_if:
+  condition: and
+  conditions:
+    - condition: runtime
+      env_var: TARGET_OS_COIN
+      contains_value: windows
+
+instructions:
+  - type: EnvironmentVariable
+    variableName: QT_MEDIA_BACKEND
+    variableValue: windows
+
+  - !include "{{qt/qtbase}}/coin_module_test_template_v3.yaml"

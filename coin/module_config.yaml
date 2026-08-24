@@ -21,4 +21,5 @@ instructions:
     - !include "{{qt/qtmultimedia}}/configure_tests_environment_for_ffmpeg_backend.yaml"
     - !include "{{qt/qtmultimedia}}/run_ffmpeg_backend_tests.yaml"
     - !include "{{qt/qtmultimedia}}/run_darwin_backend_tests.yaml"
+    - !include "{{qt/qtmultimedia}}/run_windows_backend_tests.yaml"
     - !include "{{qt/qtbase}}/coin_module_test_docs.yaml"

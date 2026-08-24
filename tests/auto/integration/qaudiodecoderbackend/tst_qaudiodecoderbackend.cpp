@@ -1144,6 +1144,7 @@ void tst_QAudioDecoderBackend::readIntoDifferentSampleFormat()
 
 void tst_QAudioDecoderBackend::readIntoDifferentChannelCount()
 {
+    QSKIP_WMF("Failures with Windows media foundation backend");
 #ifdef QT_TEST_DRWAV_AUDIO_DECODER
     QSKIP("dr_wav decoder does not support channel count conversion");
 #endif
@@ -1174,6 +1175,7 @@ void tst_QAudioDecoderBackend::readIntoDifferentChannelCount()
 
 void tst_QAudioDecoderBackend::read24bitFile()
 {
+    QSKIP_WMF("Failures with Windows media foundation backend");
     QAudioDecoder d;
     if (d.error() == QAudioDecoder::NotSupportedError)
         QSKIP("There is no audio decoding support on this platform.");
@@ -1250,6 +1252,7 @@ void tst_QAudioDecoderBackend::readMp3File()
 
 void tst_QAudioDecoderBackend::readOggFile()
 {
+    QSKIP_WMF("Failures with Windows media foundation backend");
 #ifdef QT_TEST_DRWAV_AUDIO_DECODER
     QSKIP("dr_wav only supports WAV files");
 #endif
@@ -1302,6 +1305,7 @@ void tst_QAudioDecoderBackend::readAacFile()
 
 void tst_QAudioDecoderBackend::readFlacFile()
 {
+    QSKIP_WMF("Failures with Windows media foundation backend");
 #ifdef QT_TEST_DRWAV_AUDIO_DECODER
     QSKIP("dr_wav only supports WAV files");
 #endif
