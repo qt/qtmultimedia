@@ -4,6 +4,7 @@
 import QtQuick
 import QtMultimedia
 import QtTest
+import QtMultimediaTest
 
 TestCase {
     id: testCase
@@ -261,5 +262,202 @@ TestCase {
         compare(ScreenCapture.CapturingNotSupported, 2);
         compare(ScreenCapture.CaptureFailed, 4);
         compare(ScreenCapture.NotFound, 5);
+    }
+
+    function test_screenCapture_convertsToCppScreenCapture() {
+        let capture = createScreenCapture();
+
+        // The helper methods take a QScreenCapture pointer, so a successful
+        // call proves the QML element converts to the C++ type.
+        verify(ScreenCaptureHelper.isScreenCapture(capture));
+        verify(ScreenCaptureHelper.isQuickScreenCapture(capture));
+    }
+
+    function test_screenAssignedFromQml_isVisibleInCpp() {
+        let capture = createScreenCapture();
+        verify(!ScreenCaptureHelper.hasScreen(capture));
+
+        capture.screen = Qt.application.screens[0];
+        verify(ScreenCaptureHelper.hasScreen(capture));
+        compare(ScreenCaptureHelper.screenName(capture), Qt.application.screens[0].name);
+
+        capture.screen = null;
+        verify(!ScreenCaptureHelper.hasScreen(capture));
+    }
+
+    function test_screenProperty_isTheObjectExposedToCpp() {
+        let capture = createScreenCapture();
+        capture.screen = Qt.application.screens[0];
+
+        // Reading the property repeatedly must hand out the same object, and it
+        // must be the very object the C++ side keeps.
+        compare(capture.screen, capture.screen);
+        compare(ScreenCaptureHelper.qmlScreen(capture), capture.screen);
+    }
+
+    function test_reassigningEquivalentScreen_keepsScreenObject_data() {
+        return [
+            { tag: "Null screen", useScreen: false },
+            { tag: "Primary screen", useScreen: true },
+        ];
+    }
+
+    function test_reassigningEquivalentScreen_keepsScreenObject(data) {
+        let capture = createScreenCapture();
+        let screen = data.useScreen ? Qt.application.screens[0] : null;
+
+        capture.screen = screen;
+        let firstScreenObject = capture.screen;
+        verify(firstScreenObject);
+
+        let spy = createSpy(capture, "screenChanged");
+        let qmlSpy = createSpy(capture, "qmlScreenChanged");
+
+        // Assigning a different QML screen object that wraps the same underlying
+        // screen must neither emit a signal nor replace the exposed object.
+        capture.screen = screen;
+        compare(spy.count, 0);
+        compare(qmlSpy.count, 0);
+        compare(capture.screen, firstScreenObject);
+    }
+
+    function test_settingScreenFromCpp_updatesQmlScreen_data() {
+        return [
+            { tag: "Null screen", useScreen: false },
+            { tag: "Primary screen", useScreen: true },
+        ];
+    }
+
+    function test_settingScreenFromCpp_updatesQmlScreen(data) {
+        let capture = createScreenCapture();
+
+        if (data.useScreen)
+            ScreenCaptureHelper.clearScreen(capture);
+        else
+            ScreenCaptureHelper.setPrimaryScreen(capture);
+
+        let oldScreenObject = capture.screen;
+        verify(oldScreenObject);
+
+        ScreenCaptureHelper.rememberQmlScreen(capture);
+        verify(!ScreenCaptureHelper.rememberedQmlScreenIsDestroyed());
+
+        // Note that 'screenChanged' is the inherited C++ signal, which carries a
+        // QScreen. The screen property is notified by 'qmlScreenChanged', which
+        // carries the QML screen object.
+        let spy = createSpy(capture, "screenChanged");
+        let qmlSpy = createSpy(capture, "qmlScreenChanged");
+        let handlerCountBefore = capture.screenChangedCount;
+
+        // Act: change the screen through the C++ API.
+        if (data.useScreen)
+            ScreenCaptureHelper.setPrimaryScreen(capture);
+        else
+            ScreenCaptureHelper.clearScreen(capture);
+
+        compare(spy.count, 1);
+        compare(qmlSpy.count, 1);
+        compare(capture.screenChangedCount, handlerCountBefore + 1);
+
+        // The exposed object is replaced with a new one, and the old one is
+        // destroyed rather than leaked.
+        verify(capture.screen);
+        verify(capture.screen !== oldScreenObject);
+        verify(ScreenCaptureHelper.rememberedQmlScreenIsDestroyed());
+        compare(qmlSpy.signalArguments[0][0], capture.screen);
+        compare(capture.screen.name,
+            data.useScreen ? ScreenCaptureHelper.primaryScreenName : "");
+    }
+
+    function test_settingScreenFromDeletedQmlScreen_stillExposesScreen_data() {
+        return [
+            { tag: "Null screen", useScreen: false },
+            { tag: "Primary screen", useScreen: true },
+        ];
+    }
+
+    function test_settingScreenFromDeletedQmlScreen_stillExposesScreen(data) {
+        let capture = createScreenCapture();
+
+        // The helper assigns the screen using a QQuickScreenInfo that is
+        // destroyed before it returns. The capture must not be left holding a
+        // dangling screen object.
+        ScreenCaptureHelper.setScreenFromTemporaryQmlScreen(capture, data.useScreen);
+
+        verify(capture.screen);
+        compare(capture.screen.name,
+                data.useScreen ? ScreenCaptureHelper.primaryScreenName : "");
+        compare(ScreenCaptureHelper.hasScreen(capture), data.useScreen);
+    }
+
+    function test_maximumFrameRateSetFromQml_isVisibleInCpp() {
+        let capture = createScreenCapture();
+
+        // The C++ property is a std::optional, which must be unset by default.
+        verify(!ScreenCaptureHelper.hasMaximumFrameRate(capture));
+
+        capture.maximumFrameRate = 60;
+        verify(ScreenCaptureHelper.hasMaximumFrameRate(capture));
+        compare(ScreenCaptureHelper.maximumFrameRate(capture), 60);
+
+        capture.maximumFrameRate = -1;
+        verify(!ScreenCaptureHelper.hasMaximumFrameRate(capture));
+    }
+
+    function test_settingMaximumFrameRateFromCpp_updatesQmlProperty() {
+        let capture = createScreenCapture();
+        let spy = createSpy(capture, "maximumFrameRateChanged");
+
+        ScreenCaptureHelper.setMaximumFrameRate(capture, 60);
+        compare(capture.maximumFrameRate, 60);
+        compare(capture.maximumFrameRateChangedCount, 1);
+        compare(capture.lastMaximumFrameRate, 60);
+        compare(spy.count, 1);
+        compare(typeof spy.signalArguments[0][0], "number");
+        compare(spy.signalArguments[0][0], 60);
+    }
+
+    function test_clearingMaximumFrameRateFromCpp_reportsMinusOneToQml() {
+        let capture = createScreenCapture();
+        ScreenCaptureHelper.setMaximumFrameRate(capture, 60);
+
+        let spy = createSpy(capture, "maximumFrameRateChanged");
+
+        // An unset std::optional must reach QML as -1, not as undefined.
+        ScreenCaptureHelper.clearMaximumFrameRate(capture);
+        compare(capture.maximumFrameRate, -1);
+        compare(spy.count, 1);
+        compare(typeof spy.signalArguments[0][0], "number");
+        compare(spy.signalArguments[0][0], -1);
+        compare(capture.lastMaximumFrameRate, -1);
+    }
+
+    function test_activeSetFromQml_isVisibleInCpp() {
+        let capture = createScreenCapture();
+        verify(!ScreenCaptureHelper.isActive(capture));
+
+        capture.active = true;
+        verify(ScreenCaptureHelper.isActive(capture));
+
+        capture.active = false;
+        verify(!ScreenCaptureHelper.isActive(capture));
+    }
+
+    function test_settingActiveFromCpp_updatesQmlProperty() {
+        let capture = createScreenCapture();
+        let spy = createSpy(capture, "activeChanged");
+
+        ScreenCaptureHelper.setActive(capture, true);
+        compare(capture.active, true);
+        compare(capture.activeChangedCount, 1);
+        compare(capture.lastActive, true);
+        compare(spy.count, 1);
+        compare(spy.signalArguments[0][0], true);
+
+        ScreenCaptureHelper.setActive(capture, false);
+        compare(capture.active, false);
+        compare(capture.activeChangedCount, 2);
+        compare(spy.count, 2);
+        compare(spy.signalArguments[1][0], false);
     }
 }
