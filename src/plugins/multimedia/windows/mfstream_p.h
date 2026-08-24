@@ -21,6 +21,7 @@
 #include <QtCore/qpointer.h>
 
 #include <QtCore/private/qcomobject_p.h>
+#include <QtCore/private/qcomptr_p.h>
 
 #include <mfapi.h>
 #include <mfidl.h>
@@ -101,7 +102,7 @@ private:
 
 protected:
     void customEvent(QEvent *event) override;
-    IMFAsyncResult *m_currentReadResult;
+    ComPtr<IMFAsyncResult> m_currentReadResult;
 };
 
 QT_END_NAMESPACE

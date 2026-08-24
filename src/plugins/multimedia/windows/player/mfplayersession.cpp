@@ -204,7 +204,7 @@ void MFPlayerSession::handleMediaSourceReady()
     qDebug() << "handleMediaSourceReady";
 #endif
     HRESULT hr = S_OK;
-    IMFMediaSource* mediaSource = m_sourceResolver->mediaSource();
+    ComPtr<IMFMediaSource> mediaSource = m_sourceResolver->mediaSource();
 
     DWORD dwCharacteristics = 0;
     mediaSource->GetCharacteristics(&dwCharacteristics);
@@ -214,12 +214,12 @@ void MFPlayerSession::handleMediaSourceReady()
     hr = mediaSource->CreatePresentationDescriptor(&sourcePD);
     if (SUCCEEDED(hr)) {
         m_duration = 0;
-        m_metaData = MFMetaData::fromNative(mediaSource);
+        m_metaData = MFMetaData::fromNative(mediaSource.Get());
         metaDataChanged();
         sourcePD->GetUINT64(MF_PD_DURATION, &m_duration);
         //convert from 100 nanosecond to milisecond
         durationUpdate(qint64(m_duration / 10000));
-        setupPlaybackTopology(mediaSource, sourcePD.Get());
+        setupPlaybackTopology(mediaSource.Get(), sourcePD.Get());
         tracksChanged();
     } else {
         changeStatus(QMediaPlayer::InvalidMedia);
@@ -1672,7 +1672,7 @@ void MFPlayerSession::setActiveTrack(QPlatformMediaPlayer::TrackType type, int i
             }
         }
 
-        IMFMediaSource *mediaSource = m_sourceResolver->mediaSource();
+        ComPtr<IMFMediaSource> mediaSource = m_sourceResolver->mediaSource();
 
         ComPtr<IMFPresentationDescriptor> sourcePD;
         if (SUCCEEDED(mediaSource->CreatePresentationDescriptor(&sourcePD))) {
@@ -1693,7 +1693,7 @@ void MFPlayerSession::setActiveTrack(QPlatformMediaPlayer::TrackType type, int i
 
                 if (SUCCEEDED(sourcePD->GetStreamDescriptorByIndex(nativeIndex, &selected, &streamDesc))) {
                     ComPtr<IMFTopologyNode> sourceNode = addSourceNode(
-                            topology.Get(), mediaSource, sourcePD.Get(), streamDesc.Get());
+                            topology.Get(), mediaSource.Get(), sourcePD.Get(), streamDesc.Get());
                     if (sourceNode) {
                         ComPtr<IMFTopologyNode> outputNode =
                                 addOutputNode(MFPlayerSession::Audio, topology.Get(), 0);

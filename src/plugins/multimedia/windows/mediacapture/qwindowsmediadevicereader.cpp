@@ -34,15 +34,12 @@ QWindowsMediaDeviceReader::~QWindowsMediaDeviceReader()
 }
 
 // Creates a video or audio media source specified by deviceId (symbolic link)
-HRESULT QWindowsMediaDeviceReader::createSource(const QString &deviceId, bool video, IMFMediaSource **source)
+HRESULT QWindowsMediaDeviceReader::createSource(const QString &deviceId, bool video, ComPtr<IMFMediaSource> &source)
 {
-    if (!source)
-        return E_INVALIDARG;
+    source = nullptr;
+    ComPtr<IMFAttributes> sourceAttributes;
 
-    *source = nullptr;
-    IMFAttributes *sourceAttributes = nullptr;
-
-    HRESULT hr = MFCreateAttributes(&sourceAttributes, 2);
+    HRESULT hr = MFCreateAttributes(sourceAttributes.GetAddressOf(), 2);
     if (SUCCEEDED(hr)) {
 
         hr = sourceAttributes->SetGUID(MF_DEVSOURCE_ATTRIBUTE_SOURCE_TYPE,
@@ -55,10 +52,9 @@ HRESULT QWindowsMediaDeviceReader::createSource(const QString &deviceId, bool vi
                                              reinterpret_cast<LPCWSTR>(deviceId.utf16()));
             if (SUCCEEDED(hr)) {
 
-                hr = MFCreateDeviceSource(sourceAttributes, source);
+                hr = MFCreateDeviceSource(sourceAttributes.Get(), &source);
             }
         }
-        sourceAttributes->Release();
     }
 
     return hr;
@@ -66,34 +62,34 @@ HRESULT QWindowsMediaDeviceReader::createSource(const QString &deviceId, bool vi
 
 // Creates a source/reader aggregating two other sources (video/audio).
 // If one of the sources is null the result will be video-only or audio-only.
-HRESULT QWindowsMediaDeviceReader::createAggregateReader(IMFMediaSource *firstSource,
-                                                         IMFMediaSource *secondSource,
-                                                         IMFMediaSource **aggregateSource,
-                                                         IMFSourceReader **sourceReader)
+HRESULT QWindowsMediaDeviceReader::createAggregateReader(const ComPtr<IMFMediaSource> &firstSource,
+                                                         const ComPtr<IMFMediaSource> &secondSource,
+                                                         ComPtr<IMFMediaSource> &aggregateSource,
+                                                         ComPtr<IMFSourceReader> &sourceReader)
 {
-    if ((!firstSource && !secondSource) || !aggregateSource || !sourceReader)
+    if (!firstSource && !secondSource)
         return E_INVALIDARG;
 
-    *aggregateSource = nullptr;
-    *sourceReader = nullptr;
+    aggregateSource = nullptr;
+    sourceReader = nullptr;
 
-    IMFCollection *sourceCollection = nullptr;
+    ComPtr<IMFCollection> sourceCollection;
 
-    HRESULT hr = MFCreateCollection(&sourceCollection);
+    HRESULT hr = MFCreateCollection(sourceCollection.GetAddressOf());
     if (SUCCEEDED(hr)) {
 
         if (firstSource)
-            sourceCollection->AddElement(firstSource);
+            sourceCollection->AddElement(firstSource.Get());
 
         if (secondSource)
-            sourceCollection->AddElement(secondSource);
+            sourceCollection->AddElement(secondSource.Get());
 
-        hr = MFCreateAggregateSource(sourceCollection, aggregateSource);
+        hr = MFCreateAggregateSource(sourceCollection.Get(), &aggregateSource);
         if (SUCCEEDED(hr)) {
 
-            IMFAttributes *readerAttributes = nullptr;
+            ComPtr<IMFAttributes> readerAttributes;
 
-            hr = MFCreateAttributes(&readerAttributes, 1);
+            hr = MFCreateAttributes(readerAttributes.GetAddressOf(), 1);
             if (SUCCEEDED(hr)) {
 
                 // Set callback so OnReadSample() is called for each new video frame or audio sample.
@@ -101,12 +97,10 @@ HRESULT QWindowsMediaDeviceReader::createAggregateReader(IMFMediaSource *firstSo
                                                   static_cast<IMFSourceReaderCallback*>(this));
                 if (SUCCEEDED(hr)) {
 
-                    hr = MFCreateSourceReaderFromMediaSource(*aggregateSource, readerAttributes, sourceReader);
+                    hr = MFCreateSourceReaderFromMediaSource(aggregateSource.Get(), readerAttributes.Get(), &sourceReader);
                 }
-                readerAttributes->Release();
             }
         }
-        sourceCollection->Release();
     }
     return hr;
 }
@@ -120,13 +114,13 @@ DWORD QWindowsMediaDeviceReader::findMediaTypeIndex(const QCameraFormat &reqForm
     if (m_sourceReader && m_videoSource) {
 
         DWORD index = 0;
-        IMFMediaType *mediaType = nullptr;
+        ComPtr<IMFMediaType> mediaType;
 
         UINT32 currArea = 0;
         float currFrameRate = 0.0f;
 
         while (SUCCEEDED(m_sourceReader->GetNativeMediaType(DWORD(MF_SOURCE_READER_FIRST_VIDEO_STREAM),
-                                                            index, &mediaType))) {
+                                                            index, mediaType.ReleaseAndGetAddressOf()))) {
 
             GUID subtype = GUID_NULL;
             if (SUCCEEDED(mediaType->GetGUID(MF_MT_SUBTYPE, &subtype))) {
@@ -135,10 +129,10 @@ DWORD QWindowsMediaDeviceReader::findMediaTypeIndex(const QCameraFormat &reqForm
                 if (pixelFormat != QVideoFrameFormat::Format_Invalid) {
 
                     UINT32 width, height;
-                    if (SUCCEEDED(MFGetAttributeSize(mediaType, MF_MT_FRAME_SIZE, &width, &height))) {
+                    if (SUCCEEDED(MFGetAttributeSize(mediaType.Get(), MF_MT_FRAME_SIZE, &width, &height))) {
 
                         UINT32 num, den;
-                        if (SUCCEEDED(MFGetAttributeRatio(mediaType, MF_MT_FRAME_RATE, &num, &den))) {
+                        if (SUCCEEDED(MFGetAttributeRatio(mediaType.Get(), MF_MT_FRAME_RATE, &num, &den))) {
 
                             UINT32 area = width * height;
                             float frameRate = float(num) / den;
@@ -148,7 +142,6 @@ DWORD QWindowsMediaDeviceReader::findMediaTypeIndex(const QCameraFormat &reqForm
                                     && UINT32(reqFormat.resolution().height()) == height
                                     && QtPrivate::fuzzyCompare(reqFormat.maxFrameRate(), frameRate)
                                     && reqFormat.pixelFormat() == pixelFormat) {
-                                mediaType->Release();
                                 return index;
                             }
 
@@ -162,7 +155,6 @@ DWORD QWindowsMediaDeviceReader::findMediaTypeIndex(const QCameraFormat &reqForm
                     }
                 }
             }
-            mediaType->Release();
             ++index;
         }
     }
@@ -190,7 +182,7 @@ HRESULT QWindowsMediaDeviceReader::prepareVideoStream(DWORD mediaTypeIndex)
                                                 mediaTypeIndex, &m_videoMediaType);
         if (SUCCEEDED(hr))
             hr = m_sourceReader->SetCurrentMediaType(DWORD(MF_SOURCE_READER_FIRST_VIDEO_STREAM),
-                                                     nullptr, m_videoMediaType);
+                                                     nullptr, m_videoMediaType.Get());
     }
 
     if (SUCCEEDED(hr)) {
@@ -206,7 +198,7 @@ HRESULT QWindowsMediaDeviceReader::prepareVideoStream(DWORD mediaTypeIndex)
             } else {
 
                 // get the frame dimensions
-                hr = MFGetAttributeSize(m_videoMediaType, MF_MT_FRAME_SIZE, &m_frameWidth, &m_frameHeight);
+                hr = MFGetAttributeSize(m_videoMediaType.Get(), MF_MT_FRAME_SIZE, &m_frameWidth, &m_frameHeight);
                 if (SUCCEEDED(hr)) {
 
                     // and the stride, which we need to convert the frame later
@@ -214,7 +206,7 @@ HRESULT QWindowsMediaDeviceReader::prepareVideoStream(DWORD mediaTypeIndex)
                     if (SUCCEEDED(hr)) {
                         m_stride = qAbs(m_stride);
                         UINT32 frameRateNum, frameRateDen;
-                        hr = MFGetAttributeRatio(m_videoMediaType, MF_MT_FRAME_RATE, &frameRateNum, &frameRateDen);
+                        hr = MFGetAttributeRatio(m_videoMediaType.Get(), MF_MT_FRAME_RATE, &frameRateNum, &frameRateDen);
                         if (SUCCEEDED(hr)) {
 
                             m_frameRate = qreal(frameRateNum) / frameRateDen;
@@ -241,7 +233,7 @@ HRESULT QWindowsMediaDeviceReader::prepareVideoStream(DWORD mediaTypeIndex)
     return hr;
 }
 
-HRESULT QWindowsMediaDeviceReader::initAudioType(IMFMediaType *mediaType, UINT32 channels, UINT32 samplesPerSec, bool flt)
+HRESULT QWindowsMediaDeviceReader::initAudioType(const ComPtr<IMFMediaType> &mediaType, UINT32 channels, UINT32 samplesPerSec, bool flt)
 {
     if (!mediaType)
         return E_INVALIDARG;
@@ -290,7 +282,7 @@ HRESULT QWindowsMediaDeviceReader::prepareAudioStream()
         hr = initAudioType(m_audioMediaType, 2, 48000, true);
         if (SUCCEEDED(hr)) {
             hr = m_sourceReader->SetCurrentMediaType(DWORD(MF_SOURCE_READER_FIRST_AUDIO_STREAM),
-                                                     nullptr, m_audioMediaType);
+                                                     nullptr, m_audioMediaType.Get());
             if (SUCCEEDED(hr)) {
                 hr = m_sourceReader->SetStreamSelection(DWORD(MF_SOURCE_READER_FIRST_AUDIO_STREAM), TRUE);
             }
@@ -311,10 +303,10 @@ HRESULT QWindowsMediaDeviceReader::initSourceIndexes()
     DWORD index = 0;
     BOOL selected = FALSE;
 
+    ComPtr<IMFMediaType> mediaType;
     while (m_sourceReader->GetStreamSelection(index, &selected) == S_OK) {
         if (selected) {
-            IMFMediaType *mediaType = nullptr;
-            if (SUCCEEDED(m_sourceReader->GetCurrentMediaType(index, &mediaType))) {
+            if (SUCCEEDED(m_sourceReader->GetCurrentMediaType(index, mediaType.ReleaseAndGetAddressOf()))) {
                 GUID majorType = GUID_NULL;
                 if (SUCCEEDED(mediaType->GetGUID(MF_MT_MAJOR_TYPE, &majorType))) {
                     if (majorType == MFMediaType_Video)
@@ -322,7 +314,6 @@ HRESULT QWindowsMediaDeviceReader::initSourceIndexes()
                     else if (majorType == MFMediaType_Audio)
                         m_sourceAudioStreamIndex = index;
                 }
-                mediaType->Release();
             }
         }
         ++index;
@@ -354,81 +345,72 @@ HRESULT QWindowsMediaDeviceReader::startMonitoring()
     if (m_audioOutputId.isEmpty())
         return E_FAIL;
 
-    IMFAttributes *sinkAttributes = nullptr;
+    ComPtr<IMFAttributes> sinkAttributes;
 
-    HRESULT hr = MFCreateAttributes(&sinkAttributes, 1);
+    HRESULT hr = MFCreateAttributes(sinkAttributes.GetAddressOf(), 1);
     if (SUCCEEDED(hr)) {
 
         hr = sinkAttributes->SetString(MF_AUDIO_RENDERER_ATTRIBUTE_ENDPOINT_ID,
                                        reinterpret_cast<LPCWSTR>(m_audioOutputId.utf16()));
         if (SUCCEEDED(hr)) {
 
-            IMFMediaSink *mediaSink = nullptr;
-            hr = MFCreateAudioRenderer(sinkAttributes, &mediaSink);
+            ComPtr<IMFMediaSink> mediaSink;
+            hr = MFCreateAudioRenderer(sinkAttributes.Get(), mediaSink.GetAddressOf());
             if (SUCCEEDED(hr)) {
 
-                IMFStreamSink *streamSink = nullptr;
-                hr = mediaSink->GetStreamSinkByIndex(0, &streamSink);
+                ComPtr<IMFStreamSink> streamSink;
+                hr = mediaSink->GetStreamSinkByIndex(0, streamSink.GetAddressOf());
                 if (SUCCEEDED(hr)) {
 
-                    IMFMediaTypeHandler *typeHandler = nullptr;
-                    hr = streamSink->GetMediaTypeHandler(&typeHandler);
+                    ComPtr<IMFMediaTypeHandler> typeHandler;
+                    hr = streamSink->GetMediaTypeHandler(typeHandler.GetAddressOf());
                     if (SUCCEEDED(hr)) {
 
-                        hr = typeHandler->IsMediaTypeSupported(m_audioMediaType, nullptr);
+                        hr = typeHandler->IsMediaTypeSupported(m_audioMediaType.Get(), nullptr);
                         if (SUCCEEDED(hr)) {
 
-                            hr = typeHandler->SetCurrentMediaType(m_audioMediaType);
+                            hr = typeHandler->SetCurrentMediaType(m_audioMediaType.Get());
                             if (SUCCEEDED(hr)) {
 
-                                IMFAttributes *writerAttributes = nullptr;
+                                ComPtr<IMFAttributes> writerAttributes;
 
-                                HRESULT hr = MFCreateAttributes(&writerAttributes, 1);
+                                HRESULT hr = MFCreateAttributes(writerAttributes.GetAddressOf(), 1);
                                 if (SUCCEEDED(hr)) {
 
                                     hr = writerAttributes->SetUINT32(MF_SINK_WRITER_DISABLE_THROTTLING, TRUE);
                                     if (SUCCEEDED(hr)) {
 
-                                        IMFSinkWriter *sinkWriter = nullptr;
-                                        hr = MFCreateSinkWriterFromMediaSink(mediaSink, writerAttributes, &sinkWriter);
+                                        ComPtr<IMFSinkWriter> sinkWriter;
+                                        hr = MFCreateSinkWriterFromMediaSink(mediaSink.Get(), writerAttributes.Get(), sinkWriter.GetAddressOf());
                                         if (SUCCEEDED(hr)) {
 
-                                            hr = sinkWriter->SetInputMediaType(0, m_audioMediaType, nullptr);
+                                            hr = sinkWriter->SetInputMediaType(0, m_audioMediaType.Get(), nullptr);
                                             if (SUCCEEDED(hr)) {
 
-                                                IMFSimpleAudioVolume *audioVolume = nullptr;
+                                                ComPtr<IMFSimpleAudioVolume> audioVolume;
 
                                                 if (SUCCEEDED(MFGetService(
-                                                            mediaSink, MR_POLICY_VOLUME_SERVICE,
+                                                            mediaSink.Get(), MR_POLICY_VOLUME_SERVICE,
                                                             IID_PPV_ARGS(&audioVolume)))) {
                                                     audioVolume->SetMasterVolume(float(m_outputVolume));
                                                     audioVolume->SetMute(m_outputMuted);
-                                                    audioVolume->Release();
                                                 }
 
                                                 hr = sinkWriter->BeginWriting();
                                                 if (SUCCEEDED(hr)) {
                                                     m_monitorSink = mediaSink;
-                                                    m_monitorSink->AddRef();
                                                     m_monitorWriter = sinkWriter;
-                                                    m_monitorWriter->AddRef();
                                                 }
                                             }
-                                            sinkWriter->Release();
                                         }
                                     }
-                                    writerAttributes->Release();
                                 }
                             }
                         }
-                        typeHandler->Release();
                     }
-                    streamSink->Release();
                 }
-                mediaSink->Release();
             }
         }
-        sinkAttributes->Release();
     }
 
     return hr;
@@ -436,13 +418,9 @@ HRESULT QWindowsMediaDeviceReader::startMonitoring()
 
 void QWindowsMediaDeviceReader::stopMonitoring()
 {
-    if (m_monitorWriter) {
-        m_monitorWriter->Release();
-        m_monitorWriter = nullptr;
-    }
+    m_monitorWriter = nullptr;
     if (m_monitorSink) {
         m_monitorSink->Shutdown();
-        m_monitorSink->Release();
         m_monitorSink = nullptr;
     }
 }
@@ -465,20 +443,20 @@ bool QWindowsMediaDeviceReader::activate(const QString &cameraId,
     m_streaming = false;
 
     if (!cameraId.isEmpty()) {
-        if (!SUCCEEDED(createSource(cameraId, true, &m_videoSource))) {
+        if (!SUCCEEDED(createSource(cameraId, true, m_videoSource))) {
             releaseResources();
             return false;
         }
     }
 
     if (!microphoneId.isEmpty()) {
-        if (!SUCCEEDED(createSource(microphoneId, false, &m_audioSource))) {
+        if (!SUCCEEDED(createSource(microphoneId, false, m_audioSource))) {
             releaseResources();
             return false;
         }
     }
 
-    if (!SUCCEEDED(createAggregateReader(m_videoSource, m_audioSource, &m_aggregateSource, &m_sourceReader))) {
+    if (!SUCCEEDED(createAggregateReader(m_videoSource, m_audioSource, m_aggregateSource, m_sourceReader))) {
         releaseResources();
         return false;
     }
@@ -530,42 +508,21 @@ void QWindowsMediaDeviceReader::stopStreaming()
 // Releases allocated streaming stuff.
 void QWindowsMediaDeviceReader::releaseResources()
 {
-    if (m_videoMediaType) {
-        m_videoMediaType->Release();
-        m_videoMediaType = nullptr;
-    }
-    if (m_audioMediaType) {
-        m_audioMediaType->Release();
-        m_audioMediaType = nullptr;
-    }
-    if (m_sourceReader) {
-        m_sourceReader->Release();
-        m_sourceReader = nullptr;
-    }
-    if (m_aggregateSource) {
-        m_aggregateSource->Release();
-        m_aggregateSource = nullptr;
-    }
-    if (m_videoSource) {
-        m_videoSource->Release();
-        m_videoSource = nullptr;
-    }
-    if (m_audioSource) {
-        m_audioSource->Release();
-        m_audioSource = nullptr;
-    }
+    m_videoMediaType = nullptr;
+    m_audioMediaType = nullptr;
+    m_sourceReader = nullptr;
+    m_aggregateSource = nullptr;
+    m_videoSource = nullptr;
+    m_audioSource = nullptr;
 }
 
 HRESULT QWindowsMediaDeviceReader::createVideoMediaType(const GUID &format, UINT32 bitRate, UINT32 width,
-                                                        UINT32 height, qreal frameRate, IMFMediaType **mediaType)
+                                                        UINT32 height, qreal frameRate, ComPtr<IMFMediaType> &mediaType)
 {
-    if (!mediaType)
-        return E_INVALIDARG;
+    mediaType = nullptr;
+    ComPtr<IMFMediaType> targetMediaType;
 
-    *mediaType = nullptr;
-    IMFMediaType *targetMediaType = nullptr;
-
-    if (SUCCEEDED(MFCreateMediaType(&targetMediaType))) {
+    if (SUCCEEDED(MFCreateMediaType(targetMediaType.GetAddressOf()))) {
 
         if (SUCCEEDED(targetMediaType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Video))) {
 
@@ -573,20 +530,20 @@ HRESULT QWindowsMediaDeviceReader::createVideoMediaType(const GUID &format, UINT
 
                 if (SUCCEEDED(targetMediaType->SetUINT32(MF_MT_AVG_BITRATE, bitRate))) {
 
-                    if (SUCCEEDED(MFSetAttributeSize(targetMediaType, MF_MT_FRAME_SIZE, width, height))) {
+                    if (SUCCEEDED(MFSetAttributeSize(targetMediaType.Get(), MF_MT_FRAME_SIZE, width, height))) {
 
-                        if (SUCCEEDED(MFSetAttributeRatio(targetMediaType, MF_MT_FRAME_RATE,
+                        if (SUCCEEDED(MFSetAttributeRatio(targetMediaType.Get(), MF_MT_FRAME_RATE,
                                                           UINT32(frameRate * 1000), 1000))) {
                             UINT32 t1, t2;
-                            if (SUCCEEDED(MFGetAttributeRatio(m_videoMediaType, MF_MT_PIXEL_ASPECT_RATIO, &t1, &t2))) {
+                            if (SUCCEEDED(MFGetAttributeRatio(m_videoMediaType.Get(), MF_MT_PIXEL_ASPECT_RATIO, &t1, &t2))) {
 
-                                if (SUCCEEDED(MFSetAttributeRatio(targetMediaType, MF_MT_PIXEL_ASPECT_RATIO, t1, t2))) {
+                                if (SUCCEEDED(MFSetAttributeRatio(targetMediaType.Get(), MF_MT_PIXEL_ASPECT_RATIO, t1, t2))) {
 
                                     if (SUCCEEDED(m_videoMediaType->GetUINT32(MF_MT_INTERLACE_MODE, &t1))) {
 
                                         if (SUCCEEDED(targetMediaType->SetUINT32(MF_MT_INTERLACE_MODE, t1))) {
 
-                                            *mediaType =  targetMediaType;
+                                            mediaType = targetMediaType;
                                             return S_OK;
                                         }
                                     }
@@ -597,20 +554,16 @@ HRESULT QWindowsMediaDeviceReader::createVideoMediaType(const GUID &format, UINT
                 }
             }
         }
-        targetMediaType->Release();
     }
     return E_FAIL;
 }
 
-HRESULT QWindowsMediaDeviceReader::createAudioMediaType(const GUID &format, UINT32 bitRate, IMFMediaType **mediaType)
+HRESULT QWindowsMediaDeviceReader::createAudioMediaType(const GUID &format, UINT32 bitRate, ComPtr<IMFMediaType> &mediaType)
 {
-    if (!mediaType)
-        return E_INVALIDARG;
+    mediaType = nullptr;
+    ComPtr<IMFMediaType> targetMediaType;
 
-    *mediaType = nullptr;
-    IMFMediaType *targetMediaType = nullptr;
-
-    if (SUCCEEDED(MFCreateMediaType(&targetMediaType))) {
+    if (SUCCEEDED(MFCreateMediaType(targetMediaType.GetAddressOf()))) {
 
         if (SUCCEEDED(targetMediaType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio))) {
 
@@ -618,12 +571,11 @@ HRESULT QWindowsMediaDeviceReader::createAudioMediaType(const GUID &format, UINT
 
                 if (bitRate == 0 || SUCCEEDED(targetMediaType->SetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, bitRate / 8))) {
 
-                    *mediaType =  targetMediaType;
+                    mediaType = targetMediaType;
                     return S_OK;
                 }
             }
         }
-        targetMediaType->Release();
     }
     return E_FAIL;
 }
@@ -633,11 +585,11 @@ HRESULT QWindowsMediaDeviceReader::updateSinkInputMediaTypes()
     HRESULT hr = S_OK;
     if (m_sinkWriter) {
         if (m_videoSource && m_videoMediaType && m_sinkVideoStreamIndex != MF_SINK_WRITER_INVALID_STREAM_INDEX) {
-            hr = m_sinkWriter->SetInputMediaType(m_sinkVideoStreamIndex, m_videoMediaType, nullptr);
+            hr = m_sinkWriter->SetInputMediaType(m_sinkVideoStreamIndex, m_videoMediaType.Get(), nullptr);
         }
         if (SUCCEEDED(hr)) {
             if (m_audioSource && m_audioMediaType && m_sinkAudioStreamIndex != MF_SINK_WRITER_INVALID_STREAM_INDEX) {
-                hr = m_sinkWriter->SetInputMediaType(m_sinkAudioStreamIndex, m_audioMediaType, nullptr);
+                hr = m_sinkWriter->SetInputMediaType(m_sinkAudioStreamIndex, m_audioMediaType.Get(), nullptr);
             }
         }
     }
@@ -679,33 +631,31 @@ QMediaRecorder::Error QWindowsMediaDeviceReader::startRecording(
     m_sinkAudioStreamIndex = MF_SINK_WRITER_INVALID_STREAM_INDEX;
 
     if (m_videoSource && videoFormat != GUID_NULL) {
-        IMFMediaType *targetMediaType = nullptr;
+        ComPtr<IMFMediaType> targetMediaType;
 
-        hr = createVideoMediaType(videoFormat, videoBitRate, width, height, frameRate, &targetMediaType);
+        hr = createVideoMediaType(videoFormat, videoBitRate, width, height, frameRate, targetMediaType);
         if (SUCCEEDED(hr)) {
 
-            hr = sinkWriter->AddStream(targetMediaType, &m_sinkVideoStreamIndex);
+            hr = sinkWriter->AddStream(targetMediaType.Get(), &m_sinkVideoStreamIndex);
             if (SUCCEEDED(hr)) {
 
-                hr = sinkWriter->SetInputMediaType(m_sinkVideoStreamIndex, m_videoMediaType, nullptr);
+                hr = sinkWriter->SetInputMediaType(m_sinkVideoStreamIndex, m_videoMediaType.Get(), nullptr);
             }
-            targetMediaType->Release();
         }
     }
 
     if (SUCCEEDED(hr)) {
         if (m_audioSource && audioFormat != GUID_NULL) {
-            IMFMediaType *targetMediaType = nullptr;
+            ComPtr<IMFMediaType> targetMediaType;
 
-            hr = createAudioMediaType(audioFormat, audioBitRate, &targetMediaType);
+            hr = createAudioMediaType(audioFormat, audioBitRate, targetMediaType);
             if (SUCCEEDED(hr)) {
 
-                hr = sinkWriter->AddStream(targetMediaType, &m_sinkAudioStreamIndex);
+                hr = sinkWriter->AddStream(targetMediaType.Get(), &m_sinkAudioStreamIndex);
                 if (SUCCEEDED(hr)) {
 
-                    hr = sinkWriter->SetInputMediaType(m_sinkAudioStreamIndex, m_audioMediaType, nullptr);
+                    hr = sinkWriter->SetInputMediaType(m_sinkAudioStreamIndex, m_audioMediaType.Get(), nullptr);
                 }
-                targetMediaType->Release();
             }
         }
     }
@@ -717,7 +667,7 @@ QMediaRecorder::Error QWindowsMediaDeviceReader::startRecording(
     if (FAILED(hr))
         return QMediaRecorder::ResourceError;
 
-    m_sinkWriter = sinkWriter.Detach();
+    m_sinkWriter = std::move(sinkWriter);
     m_lastDuration = -1;
     m_currentDuration = 0;
     updateDuration();
@@ -741,7 +691,6 @@ void QWindowsMediaDeviceReader::stopRecording()
         if (SUCCEEDED(hr)) {
             m_hasFinalized.wait(&m_mutex);
         } else {
-            m_sinkWriter->Release();
             m_sinkWriter = nullptr;
 
             QMetaObject::invokeMethod(this, "recordingError",
@@ -809,11 +758,10 @@ void QWindowsMediaDeviceReader::setOutputMuted(bool muted)
     m_outputMuted = muted;
 
     if (m_active && m_monitorSink) {
-        IMFSimpleAudioVolume *audioVolume = nullptr;
-        if (SUCCEEDED(MFGetService(m_monitorSink, MR_POLICY_VOLUME_SERVICE,
+        ComPtr<IMFSimpleAudioVolume> audioVolume;
+        if (SUCCEEDED(MFGetService(m_monitorSink.Get(), MR_POLICY_VOLUME_SERVICE,
                                    IID_PPV_ARGS(&audioVolume)))) {
             audioVolume->SetMute(m_outputMuted);
-            audioVolume->Release();
         }
     }
 }
@@ -825,11 +773,10 @@ void QWindowsMediaDeviceReader::setOutputVolume(qreal volume)
     m_outputVolume = qBound(0.0, volume, 1.0);
 
     if (m_active && m_monitorSink) {
-        IMFSimpleAudioVolume *audioVolume = nullptr;
-        if (SUCCEEDED(MFGetService(m_monitorSink, MR_POLICY_VOLUME_SERVICE,
+        ComPtr<IMFSimpleAudioVolume> audioVolume;
+        if (SUCCEEDED(MFGetService(m_monitorSink.Get(), MR_POLICY_VOLUME_SERVICE,
                                    IID_PPV_ARGS(&audioVolume)))) {
             audioVolume->SetMasterVolume(float(m_outputVolume));
-            audioVolume->Release();
         }
     }
 }
@@ -902,8 +849,8 @@ STDMETHODIMP QWindowsMediaDeviceReader::OnReadSample(HRESULT hrStatus, DWORD dwS
 
                         // Change the volume of the audio sample, if needed.
                         if (volume != 1.0f) {
-                            IMFMediaBuffer *mediaBuffer = nullptr;
-                            if (SUCCEEDED(pSample->ConvertToContiguousBuffer(&mediaBuffer))) {
+                            ComPtr<IMFMediaBuffer> mediaBuffer;
+                            if (SUCCEEDED(pSample->ConvertToContiguousBuffer(mediaBuffer.GetAddressOf()))) {
 
                                 DWORD bufLen = 0;
                                 BYTE *buffer = nullptr;
@@ -917,7 +864,6 @@ STDMETHODIMP QWindowsMediaDeviceReader::OnReadSample(HRESULT hrStatus, DWORD dwS
 
                                     mediaBuffer->Unlock();
                                 }
-                                mediaBuffer->Release();
                             }
                         }
 
@@ -929,8 +875,8 @@ STDMETHODIMP QWindowsMediaDeviceReader::OnReadSample(HRESULT hrStatus, DWORD dwS
 
             // Generate a new QVideoFrame from IMFSample.
             if (dwStreamIndex == m_sourceVideoStreamIndex) {
-                IMFMediaBuffer *mediaBuffer = nullptr;
-                if (SUCCEEDED(pSample->ConvertToContiguousBuffer(&mediaBuffer))) {
+                ComPtr<IMFMediaBuffer> mediaBuffer;
+                if (SUCCEEDED(pSample->ConvertToContiguousBuffer(mediaBuffer.GetAddressOf()))) {
 
                     DWORD bufLen = 0;
                     BYTE *buffer = nullptr;
@@ -956,7 +902,6 @@ STDMETHODIMP QWindowsMediaDeviceReader::OnReadSample(HRESULT hrStatus, DWORD dwS
 
                         mediaBuffer->Unlock();
                     }
-                    mediaBuffer->Release();
                 }
             }
         }
@@ -983,10 +928,7 @@ STDMETHODIMP QWindowsMediaDeviceReader::OnEvent(DWORD, IMFMediaEvent*)
 STDMETHODIMP QWindowsMediaDeviceReader::OnFinalize(HRESULT)
 {
     QMutexLocker locker(&m_mutex);
-    if (m_sinkWriter) {
-        m_sinkWriter->Release();
-        m_sinkWriter = nullptr;
-    }
+    m_sinkWriter = nullptr;
     emit recordingStopped();
     m_hasFinalized.notify_one();
     return S_OK;

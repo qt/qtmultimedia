@@ -24,6 +24,7 @@
 #include <QtCore/qwaitcondition.h>
 
 #include <QtCore/private/qcomobject_p.h>
+#include <QtCore/private/qcomptr_p.h>
 
 #include <mfapi.h>
 #include <mferror.h>
@@ -90,13 +91,15 @@ private slots:
     void updateDuration();
 
 private:
-    HRESULT createSource(const QString &deviceId, bool video, IMFMediaSource **source);
-    HRESULT createAggregateReader(IMFMediaSource *firstSource, IMFMediaSource *secondSource,
-                                  IMFMediaSource **aggregateSource, IMFSourceReader **sourceReader);
+    HRESULT createSource(const QString &deviceId, bool video, ComPtr<IMFMediaSource> &source);
+    HRESULT createAggregateReader(const ComPtr<IMFMediaSource> &firstSource,
+                                  const ComPtr<IMFMediaSource> &secondSource,
+                                  ComPtr<IMFMediaSource> &aggregateSource,
+                                  ComPtr<IMFSourceReader> &sourceReader);
     HRESULT createVideoMediaType(const GUID &format, UINT32 bitRate, UINT32 width, UINT32 height,
-                                 qreal frameRate, IMFMediaType **mediaType);
-    HRESULT createAudioMediaType(const GUID &format, UINT32 bitRate, IMFMediaType **mediaType);
-    HRESULT initAudioType(IMFMediaType *mediaType, UINT32 channels, UINT32 samplesPerSec, bool flt);
+                                 qreal frameRate, ComPtr<IMFMediaType> &mediaType);
+    HRESULT createAudioMediaType(const GUID &format, UINT32 bitRate, ComPtr<IMFMediaType> &mediaType);
+    HRESULT initAudioType(const ComPtr<IMFMediaType> &mediaType, UINT32 channels, UINT32 samplesPerSec, bool flt);
     HRESULT prepareVideoStream(DWORD mediaTypeIndex);
     HRESULT prepareAudioStream();
     HRESULT initSourceIndexes();
@@ -109,15 +112,15 @@ private:
 
     QMutex             m_mutex;
     QWaitCondition     m_hasFinalized;
-    IMFMediaSource     *m_videoSource = nullptr;
-    IMFMediaType       *m_videoMediaType = nullptr;
-    IMFMediaSource     *m_audioSource = nullptr;
-    IMFMediaType       *m_audioMediaType = nullptr;
-    IMFMediaSource     *m_aggregateSource = nullptr;
-    IMFSourceReader    *m_sourceReader = nullptr;
-    IMFSinkWriter      *m_sinkWriter = nullptr;
-    IMFMediaSink       *m_monitorSink = nullptr;
-    IMFSinkWriter      *m_monitorWriter = nullptr;
+    ComPtr<IMFMediaSource>  m_videoSource;
+    ComPtr<IMFMediaType>    m_videoMediaType;
+    ComPtr<IMFMediaSource>  m_audioSource;
+    ComPtr<IMFMediaType>    m_audioMediaType;
+    ComPtr<IMFMediaSource>  m_aggregateSource;
+    ComPtr<IMFSourceReader> m_sourceReader;
+    ComPtr<IMFSinkWriter>   m_sinkWriter;
+    ComPtr<IMFMediaSink>    m_monitorSink;
+    ComPtr<IMFSinkWriter>   m_monitorWriter;
     QString            m_audioOutputId;
     DWORD              m_sourceVideoStreamIndex = MF_SOURCE_READER_INVALID_STREAM_INDEX;
     DWORD              m_sourceAudioStreamIndex = MF_SOURCE_READER_INVALID_STREAM_INDEX;

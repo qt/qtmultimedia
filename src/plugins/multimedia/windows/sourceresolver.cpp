@@ -26,15 +26,6 @@ SourceResolver::SourceResolver() = default;
 SourceResolver::~SourceResolver()
 {
     shutdown();
-    if (m_mediaSource) {
-        m_mediaSource->Release();
-        m_mediaSource = NULL;
-    }
-
-    if (m_cancelCookie)
-        m_cancelCookie->Release();
-    if (m_sourceResolver)
-        m_sourceResolver->Release();
 }
 
 
@@ -46,7 +37,7 @@ HRESULT STDMETHODCALLTYPE SourceResolver::Invoke(IMFAsyncResult *pAsyncResult)
         return S_OK;
 
     MF_OBJECT_TYPE ObjectType = MF_OBJECT_INVALID;
-    IUnknown* pSource = NULL;
+    ComPtr<IUnknown> pSource;
     State *state = static_cast<State*>(pAsyncResult->GetStateNoAddRef());
 
     HRESULT hr = S_OK;
@@ -60,23 +51,14 @@ HRESULT STDMETHODCALLTYPE SourceResolver::Invoke(IMFAsyncResult *pAsyncResult)
         return S_OK;
     }
 
-    if (m_cancelCookie) {
-        m_cancelCookie->Release();
-        m_cancelCookie = NULL;
-    }
+    m_cancelCookie = nullptr;
 
     if (FAILED(hr)) {
         emit error(hr);
         return S_OK;
     }
 
-    if (m_mediaSource) {
-        m_mediaSource->Release();
-        m_mediaSource = NULL;
-    }
-
-    hr = pSource->QueryInterface(IID_PPV_ARGS(&m_mediaSource));
-    pSource->Release();
+    hr = pSource.As(&m_mediaSource);
     if (FAILED(hr)) {
         emit error(hr);
         return S_OK;
@@ -99,21 +81,18 @@ void SourceResolver::load(const QUrl &url, QIODevice* stream)
     if (!m_sourceResolver)
         hr = MFCreateSourceResolver(&m_sourceResolver);
 
-    if (m_stream) {
-        m_stream->Release();
-        m_stream = NULL;
-    }
+    m_stream = nullptr;
 
     if (FAILED(hr)) {
         qWarning() << "Failed to create Source Resolver!";
         emit error(hr);
     } else if (stream) {
         QString urlString = url.toString();
-        m_stream = new MFStream(stream, false);
+        m_stream = makeComObject<MFStream>(stream, false);
         hr = m_sourceResolver->BeginCreateObjectFromByteStream(
-                    m_stream, urlString.isEmpty() ? 0 : reinterpret_cast<LPCWSTR>(urlString.utf16()),
+                    m_stream.Get(), urlString.isEmpty() ? 0 : reinterpret_cast<LPCWSTR>(urlString.utf16()),
                     MF_RESOLUTION_MEDIASOURCE | MF_RESOLUTION_CONTENT_DOES_NOT_HAVE_TO_MATCH_EXTENSION_OR_MIME_TYPE
-                    , NULL, &m_cancelCookie, this, new State(m_sourceResolver, true));
+                    , NULL, &m_cancelCookie, this, makeComObject<State>(m_sourceResolver, true).Get());
         if (FAILED(hr)) {
             qWarning() << "Unsupported stream!";
             emit error(hr);
@@ -128,11 +107,11 @@ void SourceResolver::load(const QUrl &url, QIODevice* stream)
         if (url.scheme() == QLatin1String("file")) {
             stream = new QFile(url.path().mid(1));
             if (stream->open(QIODevice::ReadOnly)) {
-                m_stream = new MFStream(stream, true);
+                m_stream = makeComObject<MFStream>(stream, true);
                 hr = m_sourceResolver->BeginCreateObjectFromByteStream(
-                            m_stream, reinterpret_cast<const OLECHAR *>(url.toString().utf16()),
+                            m_stream.Get(), reinterpret_cast<const OLECHAR *>(url.toString().utf16()),
                             MF_RESOLUTION_MEDIASOURCE | MF_RESOLUTION_CONTENT_DOES_NOT_HAVE_TO_MATCH_EXTENSION_OR_MIME_TYPE,
-                            NULL, &m_cancelCookie, this, new State(m_sourceResolver, true));
+                            NULL, &m_cancelCookie, this, makeComObject<State>(m_sourceResolver, true).Get());
                 if (FAILED(hr)) {
                     qWarning() << "Unsupported stream!";
                     emit error(hr);
@@ -148,11 +127,11 @@ void SourceResolver::load(const QUrl &url, QIODevice* stream)
             // the stream playback capability to play.
             stream = new QFile(QLatin1Char(':') + url.path());
             if (stream->open(QIODevice::ReadOnly)) {
-                m_stream = new MFStream(stream, true);
+                m_stream = makeComObject<MFStream>(stream, true);
                 hr = m_sourceResolver->BeginCreateObjectFromByteStream(
-                            m_stream, reinterpret_cast<const OLECHAR *>(url.toString().utf16()),
+                            m_stream.Get(), reinterpret_cast<const OLECHAR *>(url.toString().utf16()),
                             MF_RESOLUTION_MEDIASOURCE | MF_RESOLUTION_CONTENT_DOES_NOT_HAVE_TO_MATCH_EXTENSION_OR_MIME_TYPE,
-                            NULL, &m_cancelCookie, this, new State(m_sourceResolver, true));
+                            NULL, &m_cancelCookie, this, makeComObject<State>(m_sourceResolver, true).Get());
                 if (FAILED(hr)) {
                     qWarning() << "Unsupported stream!";
                     emit error(hr);
@@ -165,7 +144,7 @@ void SourceResolver::load(const QUrl &url, QIODevice* stream)
             hr = m_sourceResolver->BeginCreateObjectFromURL(
                         reinterpret_cast<const OLECHAR *>(url.toString().utf16()),
                         MF_RESOLUTION_MEDIASOURCE | MF_RESOLUTION_CONTENT_DOES_NOT_HAVE_TO_MATCH_EXTENSION_OR_MIME_TYPE,
-                        NULL, &m_cancelCookie, this, new State(m_sourceResolver, false));
+                        NULL, &m_cancelCookie, this, makeComObject<State>(m_sourceResolver, false).Get());
             if (FAILED(hr)) {
                 qWarning() << "Unsupported url scheme!";
                 emit error(hr);
@@ -178,11 +157,9 @@ void SourceResolver::cancel()
 {
     QMutexLocker locker(&m_mutex);
     if (m_cancelCookie) {
-        m_sourceResolver->CancelObjectCreation(m_cancelCookie);
-        m_cancelCookie->Release();
-        m_cancelCookie = NULL;
-        m_sourceResolver->Release();
-        m_sourceResolver = NULL;
+        m_sourceResolver->CancelObjectCreation(m_cancelCookie.Get());
+        m_cancelCookie = nullptr;
+        m_sourceResolver = nullptr;
     }
 }
 
@@ -190,35 +167,26 @@ void SourceResolver::shutdown()
 {
     if (m_mediaSource) {
         m_mediaSource->Shutdown();
-        m_mediaSource->Release();
-        m_mediaSource = NULL;
+        m_mediaSource = nullptr;
     }
 
-    if (m_stream) {
-        m_stream->Release();
-        m_stream = NULL;
-    }
+    m_stream = nullptr;
 }
 
-IMFMediaSource* SourceResolver::mediaSource() const
+ComPtr<IMFMediaSource> SourceResolver::mediaSource() const
 {
     return m_mediaSource;
 }
 
 /////////////////////////////////////////////////////////////////////////////////
-SourceResolver::State::State(IMFSourceResolver *sourceResolver, bool fromStream)
-    : m_sourceResolver(sourceResolver), m_fromStream(fromStream)
+SourceResolver::State::State(ComPtr<IMFSourceResolver> sourceResolver, bool fromStream)
+    : m_sourceResolver(std::move(sourceResolver)), m_fromStream(fromStream)
 {
-    sourceResolver->AddRef();
 }
 
-SourceResolver::State::~State()
-{
-    m_sourceResolver->Release();
-}
+SourceResolver::State::~State() = default;
 
-
-IMFSourceResolver* SourceResolver::State::sourceResolver() const
+ComPtr<IMFSourceResolver> SourceResolver::State::sourceResolver() const
 {
     return m_sourceResolver;
 }

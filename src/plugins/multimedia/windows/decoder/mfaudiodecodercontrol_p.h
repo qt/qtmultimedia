@@ -57,10 +57,10 @@ private Q_SLOTS:
     void handleSourceFinished();
 
 private:
-    void startReadingSource(IMFMediaSource *source);
+    void startReadingSource(const ComPtr<IMFMediaSource> &source);
 
     std::unique_ptr<MFDecoderSourceReader> m_decoderSourceReader;
-    SourceResolver         *m_sourceResolver;
+    ComPtr<SourceResolver>  m_sourceResolver;
     QWindowsResampler       m_resampler;
     QUrl                    m_source;
     QIODevice              *m_device = nullptr;

@@ -15,7 +15,7 @@
 
 QT_BEGIN_NAMESPACE
 
-ComPtr<IMFMediaType> MFDecoderSourceReader::setSource(IMFMediaSource *source, QAudioFormat::SampleFormat sampleFormat)
+ComPtr<IMFMediaType> MFDecoderSourceReader::setSource(const ComPtr<IMFMediaSource> &source, QAudioFormat::SampleFormat sampleFormat)
 {
     ComPtr<IMFMediaType> mediaType;
     m_sourceReader.Reset();
@@ -43,7 +43,7 @@ ComPtr<IMFMediaType> MFDecoderSourceReader::setSource(IMFMediaSource *source, QA
     if (FAILED(attr->SetUINT32(MF_SOURCE_READER_DISCONNECT_MEDIASOURCE_ON_SHUTDOWN, TRUE)))
         return mediaType;
 
-    HRESULT hr = MFCreateSourceReaderFromMediaSource(source, attr.Get(), m_sourceReader.GetAddressOf());
+    HRESULT hr = MFCreateSourceReaderFromMediaSource(source.Get(), attr.Get(), m_sourceReader.GetAddressOf());
     if (FAILED(hr)) {
         qWarning() << "MFDecoderSourceReader: failed to set up source reader: "
                    << std::system_category().message(hr).c_str();

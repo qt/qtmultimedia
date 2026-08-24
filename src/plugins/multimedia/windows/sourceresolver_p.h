@@ -19,6 +19,7 @@
 
 #include <QtCore/qurl.h>
 #include <QtCore/private/qcomobject_p.h>
+#include <QtCore/private/qcomptr_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -40,7 +41,7 @@ public:
 
     void shutdown();
 
-    IMFMediaSource* mediaSource() const;
+    ComPtr<IMFMediaSource> mediaSource() const;
 
 Q_SIGNALS:
     void error(long hr);
@@ -50,21 +51,21 @@ private:
     class State : public QComObject<IUnknown>
     {
     public:
-        State(IMFSourceResolver *sourceResolver, bool fromStream);
+        State(ComPtr<IMFSourceResolver> sourceResolver, bool fromStream);
         virtual ~State();
 
-        IMFSourceResolver* sourceResolver() const;
+        ComPtr<IMFSourceResolver> sourceResolver() const;
         bool fromStream() const;
 
     private:
-        IMFSourceResolver *m_sourceResolver;
+        ComPtr<IMFSourceResolver> m_sourceResolver;
         bool m_fromStream;
     };
 
-    IUnknown *m_cancelCookie{};
-    IMFSourceResolver *m_sourceResolver{};
-    IMFMediaSource *m_mediaSource{};
-    MFStream *m_stream{};
+    ComPtr<IUnknown> m_cancelCookie;
+    ComPtr<IMFSourceResolver> m_sourceResolver;
+    ComPtr<IMFMediaSource> m_mediaSource;
+    ComPtr<MFStream> m_stream;
     QMutex m_mutex;
 };
 

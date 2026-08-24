@@ -12,7 +12,6 @@ QT_BEGIN_NAMESPACE
 MFStream::MFStream(QIODevice *stream, bool ownStream)
     : m_stream(stream)
     , m_ownStream(ownStream)
-    , m_currentReadResult(0)
 {
     //Move to the thread of the stream object
     //to make sure invocations on stream
@@ -22,8 +21,6 @@ MFStream::MFStream(QIODevice *stream, bool ownStream)
 
 MFStream::~MFStream()
 {
-    if (m_currentReadResult)
-        m_currentReadResult->Release();
     if (m_ownStream)
         m_stream->deleteLater();
 }
@@ -102,14 +99,11 @@ STDMETHODIMP MFStream::BeginRead(BYTE *pb, ULONG cb, IMFAsyncCallback *pCallback
     if (!pCallback || !pb)
         return E_INVALIDARG;
 
-    Q_ASSERT(m_currentReadResult == NULL);
+    Q_ASSERT(m_currentReadResult == nullptr);
 
-    AsyncReadState *state = new (std::nothrow) AsyncReadState(pb, cb);
-    if (state == NULL)
-        return E_OUTOFMEMORY;
+    ComPtr<AsyncReadState> state = makeComObject<AsyncReadState>(pb, cb);
 
-    HRESULT hr = MFCreateAsyncResult(state, pCallback, punkState, &m_currentReadResult);
-    state->Release();
+    HRESULT hr = MFCreateAsyncResult(state.Get(), pCallback, punkState, &m_currentReadResult);
     if (FAILED(hr))
         return hr;
 
@@ -121,14 +115,13 @@ STDMETHODIMP MFStream::EndRead(IMFAsyncResult* pResult, ULONG *pcbRead)
 {
     if (!pcbRead)
         return E_INVALIDARG;
-    IUnknown *pUnk;
-    pResult->GetObject(&pUnk);
-    AsyncReadState *state = static_cast<AsyncReadState*>(pUnk);
-    *pcbRead = state->bytesRead();
-    pUnk->Release();
 
-    m_currentReadResult->Release();
-    m_currentReadResult = NULL;
+    ComPtr<IUnknown> pUnk;
+    pResult->GetObject(&pUnk);
+    auto *state = static_cast<AsyncReadState *>(pUnk.Get());
+    *pcbRead = state->bytesRead();
+
+    m_currentReadResult = nullptr;
 
     return S_OK;
 }
@@ -197,14 +190,13 @@ void MFStream::doRead()
         return;
 
     bool readDone = true;
-    IUnknown *pUnk = NULL;
-    HRESULT    hr = m_currentReadResult->GetObject(&pUnk);
+    ComPtr<IUnknown> pUnk;
+    HRESULT hr = m_currentReadResult->GetObject(&pUnk);
     if (SUCCEEDED(hr)) {
         //do actual read
-        AsyncReadState *state =  static_cast<AsyncReadState*>(pUnk);
+        auto *state = static_cast<AsyncReadState *>(pUnk.Get());
         ULONG cbRead;
         Read(state->pb(), state->cb() - state->bytesRead(), &cbRead);
-        pUnk->Release();
 
         state->setBytesRead(cbRead + state->bytesRead());
         if (state->cb() > state->bytesRead() && !m_stream->atEnd()) {
@@ -215,7 +207,7 @@ void MFStream::doRead()
     if (readDone) {
         //now inform the original caller
         m_currentReadResult->SetStatus(hr);
-        MFInvokeCallback(m_currentReadResult);
+        MFInvokeCallback(m_currentReadResult.Get());
     }
 }
 
