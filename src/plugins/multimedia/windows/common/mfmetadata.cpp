@@ -26,6 +26,8 @@
 
 //#define DEBUG_MEDIAFOUNDATION
 
+using namespace Qt::StringLiterals;
+
 static const PROPERTYKEY PROP_KEY_NULL = {GUID_NULL, 0};
 
 static QVariant convertValue(const PROPVARIANT& var)
@@ -97,14 +99,14 @@ static QVariant metaDataValue(IPropertyStore *content, const PROPERTYKEY &key)
     // some metadata needs to be reformatted
     if (key == PKEY_Media_ClassPrimaryID /*QMediaMetaData::MediaType*/) {
         QString v = value.toString();
-        if (v == QLatin1String("{D1607DBC-E323-4BE2-86A1-48A42A28441E}"))
-            value = QStringLiteral("Music");
-        else if (v == QLatin1String("{DB9830BD-3AB3-4FAB-8A37-1A995F7FF74B}"))
-            value = QStringLiteral("Video");
-        else if (v == QLatin1String("{01CD0F29-DA4E-4157-897B-6275D50C4F11}"))
-            value = QStringLiteral("Audio");
-        else if (v == QLatin1String("{FCF24A76-9A57-4036-990D-E35DD8B244E1}"))
-            value = QStringLiteral("Other");
+        if (v == u"{D1607DBC-E323-4BE2-86A1-48A42A28441E}")
+            value = u"Music"_s;
+        else if (v == u"{DB9830BD-3AB3-4FAB-8A37-1A995F7FF74B}")
+            value = u"Video"_s;
+        else if (v == u"{01CD0F29-DA4E-4157-897B-6275D50C4F11}")
+            value = u"Audio"_s;
+        else if (v == u"{FCF24A76-9A57-4036-990D-E35DD8B244E1}")
+            value = u"Other"_s;
     } else if (key == PKEY_Media_Duration) {
         // duration is provided in 100-nanosecond units, convert to milliseconds
         value = (value.toLongLong() + 10000) / 10000;
@@ -463,86 +465,85 @@ static void setFileTimeProperty(IPropertyStore *content, REFPROPERTYKEY key, con
 
 void MFMetaData::toNative(const QMediaMetaData &metaData, IPropertyStore *content)
 {
-    if (content) {
+    Q_ASSERT(content);
 
-        for (const auto &key : metaData.keys()) {
+    for (const auto &key : metaData.keys()) {
 
-            QVariant value = metaData.value(key);
+        QVariant value = metaData.value(key);
 
-            if (key == QMediaMetaData::Key::MediaType) {
+        if (key == QMediaMetaData::Key::MediaType) {
 
+            QString strValue = metaData.stringValue(key);
+            QString v;
+
+            // Sets property to one of the MediaClassPrimaryID values defined by Microsoft:
+            // https://docs.microsoft.com/en-us/windows/win32/wmformat/wm-mediaprimaryid
+            if (strValue == u"Music")
+                v = u"{D1607DBC-E323-4BE2-86A1-48A42A28441E}"_s;
+            else if (strValue == u"Video")
+                v = u"{DB9830BD-3AB3-4FAB-8A37-1A995F7FF74B}"_s;
+            else if (strValue == u"Audio")
+                v = u"{01CD0F29-DA4E-4157-897B-6275D50C4F11}"_s;
+            else
+                v = u"{FCF24A76-9A57-4036-990D-E35DD8B244E1}"_s;
+
+            setStringProperty(content, PKEY_Media_ClassPrimaryID, v);
+
+        } else if (key == QMediaMetaData::Key::Duration) {
+
+            setUInt64Property(content, PKEY_Media_Duration, value.toULongLong() * 10000);
+
+        } else if (key == QMediaMetaData::Key::Resolution) {
+
+            QSize res = value.toSize();
+            setUInt32Property(content, PKEY_Video_FrameWidth, quint32(res.width()));
+            setUInt32Property(content, PKEY_Video_FrameHeight, quint32(res.height()));
+
+        } else if (key == QMediaMetaData::Key::Orientation) {
+
+            setUInt32Property(content, PKEY_Video_Orientation, value.toUInt());
+
+        } else if (key == QMediaMetaData::Key::VideoFrameRate) {
+
+            qreal fps = value.toReal();
+            setUInt32Property(content, PKEY_Video_FrameRate, quint32(fps * 1000));
+
+        } else if (key == QMediaMetaData::Key::TrackNumber) {
+
+            setUInt32Property(content, PKEY_Music_TrackNumber, value.toUInt());
+
+        } else if (key == QMediaMetaData::Key::AudioBitRate) {
+
+            setUInt32Property(content, PKEY_Audio_EncodingBitrate, value.toUInt());
+
+        } else if (key == QMediaMetaData::Key::VideoBitRate) {
+
+            setUInt32Property(content, PKEY_Video_EncodingBitrate, value.toUInt());
+
+        } else if (key == QMediaMetaData::Key::Date) {
+
+            // Convert QDateTime to FILETIME by converting to 100-nsecs since
+            // 01/01/1970 UTC and adding the difference from 1601 to 1970.
+            ULARGE_INTEGER t = {};
+            t.QuadPart = ULONGLONG(value.toDateTime().toUTC().toMSecsSinceEpoch() * 10000
+                                   + 116444736000000000LL);
+
+            FILETIME ft = {};
+            ft.dwHighDateTime = t.HighPart;
+            ft.dwLowDateTime = t.LowPart;
+
+            setFileTimeProperty(content, PKEY_Media_DateEncoded, &ft);
+
+        } else {
+
+            // By default use as string and let PSCoerceToCanonicalValue()
+            // do validation and type conversion.
+            REFPROPERTYKEY propKey = propertyKeyForMetaDataKey(key);
+
+            if (propKey != PROP_KEY_NULL) {
                 QString strValue = metaData.stringValue(key);
-                QString v;
-
-                // Sets property to one of the MediaClassPrimaryID values defined by Microsoft:
-                // https://docs.microsoft.com/en-us/windows/win32/wmformat/wm-mediaprimaryid
-                if (strValue == QLatin1String("Music"))
-                    v = QLatin1String("{D1607DBC-E323-4BE2-86A1-48A42A28441E}");
-                else if (strValue == QLatin1String("Video"))
-                    v = QLatin1String("{DB9830BD-3AB3-4FAB-8A37-1A995F7FF74B}");
-                else if (strValue == QLatin1String("Audio"))
-                    v = QLatin1String("{01CD0F29-DA4E-4157-897B-6275D50C4F11}");
-                else
-                    v = QLatin1String("{FCF24A76-9A57-4036-990D-E35DD8B244E1}");
-
-                setStringProperty(content, PKEY_Media_ClassPrimaryID, v);
-
-            } else if (key == QMediaMetaData::Key::Duration) {
-
-                setUInt64Property(content, PKEY_Media_Duration, value.toULongLong() * 10000);
-
-            } else if (key == QMediaMetaData::Key::Resolution) {
-
-                QSize res = value.toSize();
-                setUInt32Property(content, PKEY_Video_FrameWidth, quint32(res.width()));
-                setUInt32Property(content, PKEY_Video_FrameHeight, quint32(res.height()));
-
-            } else if (key == QMediaMetaData::Key::Orientation) {
-
-                setUInt32Property(content, PKEY_Video_Orientation, value.toUInt());
-
-            } else if (key == QMediaMetaData::Key::VideoFrameRate) {
-
-                qreal fps = value.toReal();
-                setUInt32Property(content, PKEY_Video_FrameRate, quint32(fps * 1000));
-
-            } else if (key == QMediaMetaData::Key::TrackNumber) {
-
-                setUInt32Property(content, PKEY_Music_TrackNumber, value.toUInt());
-
-            } else if (key == QMediaMetaData::Key::AudioBitRate) {
-
-                setUInt32Property(content, PKEY_Audio_EncodingBitrate, value.toUInt());
-
-            } else if (key == QMediaMetaData::Key::VideoBitRate) {
-
-                setUInt32Property(content, PKEY_Video_EncodingBitrate, value.toUInt());
-
-            } else if (key == QMediaMetaData::Key::Date) {
-
-                // Convert QDateTime to FILETIME by converting to 100-nsecs since
-                // 01/01/1970 UTC and adding the difference from 1601 to 1970.
-                ULARGE_INTEGER t = {};
-                t.QuadPart = ULONGLONG(value.toDateTime().toUTC().toMSecsSinceEpoch() * 10000
-                                       + 116444736000000000LL);
-
-                FILETIME ft = {};
-                ft.dwHighDateTime = t.HighPart;
-                ft.dwLowDateTime = t.LowPart;
-
-                setFileTimeProperty(content, PKEY_Media_DateEncoded, &ft);
-
-            } else {
-
-                // By default use as string and let PSCoerceToCanonicalValue()
-                // do validation and type conversion.
-                REFPROPERTYKEY propKey = propertyKeyForMetaDataKey(key);
-
-                if (propKey != PROP_KEY_NULL) {
-                    QString strValue = metaData.stringValue(key);
-                    if (!strValue.isEmpty())
-                        setStringProperty(content, propKey, strValue);
-                }
+                if (!strValue.isEmpty())
+                    setStringProperty(content, propKey, strValue);
             }
         }
     }

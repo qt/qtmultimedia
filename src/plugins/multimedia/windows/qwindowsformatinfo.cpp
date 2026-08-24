@@ -16,6 +16,8 @@
 
 QT_BEGIN_NAMESPACE
 
+using namespace Qt::StringLiterals;
+
 namespace {
 
 template<typename T>
@@ -86,13 +88,13 @@ static QList<QImageCapture::FileFormat> getImageFormatList()
 
     for (const auto &f : formats) {
         auto format = QString::fromUtf8(f);
-        if (format.compare(QLatin1String("jpg"), Qt::CaseInsensitive) == 0)
+        if (format.compare(u"jpg", Qt::CaseInsensitive) == 0)
             list.append(QImageCapture::FileFormat::JPEG);
-        else if (format.compare(QLatin1String("png"), Qt::CaseInsensitive) == 0)
+        else if (format.compare(u"png", Qt::CaseInsensitive) == 0)
             list.append(QImageCapture::FileFormat::PNG);
-        else if (format.compare(QLatin1String("webp"), Qt::CaseInsensitive) == 0)
+        else if (format.compare(u"webp", Qt::CaseInsensitive) == 0)
             list.append(QImageCapture::FileFormat::WebP);
-        else if (format.compare(QLatin1String("tiff"), Qt::CaseInsensitive) == 0)
+        else if (format.compare(u"tiff", Qt::CaseInsensitive) == 0)
             list.append(QImageCapture::FileFormat::Tiff);
     }
 

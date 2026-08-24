@@ -17,6 +17,8 @@
 
 QT_BEGIN_NAMESPACE
 
+using namespace Qt::StringLiterals;
+
 class QWindowsMediaPlugin : public QPlatformMediaPlugin
 {
     Q_OBJECT
@@ -36,7 +38,7 @@ public:
 };
 
 QWindowsMediaIntegration::QWindowsMediaIntegration()
-    : QPlatformMediaIntegration(QLatin1String("windows"))
+    : QPlatformMediaIntegration("windows"_L1)
 {
     qt_win_ensureComInitializedOnThisThread();
     MFStartup(MF_VERSION);
