@@ -103,7 +103,7 @@ void SourceResolver::load(const QUrl &url, QIODevice* stream)
 #endif
 #ifdef TEST_STREAMING
         //Testing stream function
-        if (url.scheme() == QLatin1String("file")) {
+        if (url.scheme() == u"file") {
             stream = new QFile(url.path().mid(1));
             if (stream->open(QIODevice::ReadOnly)) {
                 m_stream = makeComObject<MFStream>(stream, true);
@@ -121,7 +121,7 @@ void SourceResolver::load(const QUrl &url, QIODevice* stream)
             }
         } else
 #endif
-        if (url.scheme() == QLatin1String("qrc")) {
+        if (url.scheme() == u"qrc") {
             // If the canonical URL refers to a Qt resource, open with QFile and use
             // the stream playback capability to play.
             stream = new QFile(QLatin1Char(':') + url.path());

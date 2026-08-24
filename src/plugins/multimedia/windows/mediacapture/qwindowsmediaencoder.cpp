@@ -25,7 +25,7 @@ QWindowsMediaEncoder::QWindowsMediaEncoder(QMediaRecorder *parent)
 
 bool QWindowsMediaEncoder::isLocationWritable(const QUrl &location) const
 {
-    return location.scheme() == QLatin1String("file") || location.scheme().isEmpty();
+    return location.scheme() == u"file" || location.scheme().isEmpty();
 }
 
 QMediaRecorder::RecorderState QWindowsMediaEncoder::state() const
