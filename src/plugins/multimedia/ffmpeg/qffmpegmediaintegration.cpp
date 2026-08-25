@@ -121,6 +121,13 @@ static QPlatformSurfaceCapture *createScreenCaptureByBackend(const QString& back
         return new QEglfsScreenCapture;
 #endif
 
+#if QT_CONFIG(pipewire_screencapture)
+    if (backend == u"pipewire" && QtPipeWire::QPipeWireCapture::isSupported()) {
+        if (auto capture = QtPipeWire::QPipeWireCapture::create())
+            return capture.release();
+    }
+#endif
+
 #if QT_CONFIG(xlib)
     if (backend == u"x11")
         return new QX11SurfaceCapture(QPlatformSurfaceCapture::ScreenSource{});
