@@ -17,11 +17,16 @@
 
 #include <QtMultimedia/private/qplatformcamera_p.h>
 
+#include <QtCore/qspan.h>
+
 QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
 
 class ActiveCamera;
+
+qsizetype indexOfClosestCameraFormat(QSpan<const QCameraFormat> candidates,
+                                     const QCameraFormat &requested);
 
 class QWindowsCamera : public QPlatformCamera
 {
