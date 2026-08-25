@@ -347,9 +347,9 @@ if (ANDROID)
     set_property(TARGET QFFmpegMediaPlugin APPEND PROPERTY QT_ANDROID_LIB_DEPENDENCIES ${lib_deps})
 
     if(FFMPEG_USES_OPENSSL)
-        set_property(TARGET QFFmpegMediaPlugin PROPERTY QT_ANDROID_OPENSSL_NEEDED TRUE)
+        set_property(TARGET QFFmpegMediaPlugin PROPERTY _qt_internal_android_openssl_needed TRUE)
         set_property(TARGET QFFmpegMediaPlugin APPEND PROPERTY
-            EXPORT_PROPERTIES QT_ANDROID_OPENSSL_NEEDED)
+            EXPORT_PROPERTIES _qt_internal_android_openssl_needed)
     endif()
 
     qt_internal_add_android_permission(QFFmpegMediaPlugin
