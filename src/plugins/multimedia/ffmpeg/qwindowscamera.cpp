@@ -20,12 +20,35 @@
 #include <mfreadwrite.h>
 
 #include <system_error>
+#include <utility>
 
 QT_BEGIN_NAMESPACE
 
-using namespace QWindowsMultimediaUtils;
-
 namespace QFFmpeg {
+
+qsizetype indexOfClosestCameraFormat(QSpan<const QCameraFormat> candidates,
+                                     const QCameraFormat &requested)
+{
+    qsizetype closest = -1;
+    std::pair<float, float> closestDistance{};
+
+    for (qsizetype i = 0; i != candidates.size(); ++i) {
+        const QCameraFormat &candidate = candidates[i];
+        if (candidate.pixelFormat() != requested.pixelFormat()
+            || candidate.resolution() != requested.resolution()) {
+            continue;
+        }
+
+        const std::pair distance{ qAbs(candidate.maxFrameRate() - requested.maxFrameRate()),
+                                  qAbs(candidate.minFrameRate() - requested.minFrameRate()) };
+        if (closest < 0 || distance < closestDistance) {
+            closest = i;
+            closestDistance = distance;
+        }
+    }
+
+    return closest;
+}
 
 namespace {
 
@@ -124,31 +147,30 @@ bool setCameraReaderFormat(IMFSourceReader *sourceReader, IMFMediaType *videoTyp
 
 ComPtr<IMFMediaType> findVideoType(IMFSourceReader *reader, const QCameraFormat &format)
 {
+    std::vector<ComPtr<IMFMediaType>> mediaTypes;
+    std::vector<QCameraFormat> candidates;
+
     for (DWORD i = 0;; ++i) {
-        ComPtr<IMFMediaType> candidate;
+        ComPtr<IMFMediaType> mediaType;
         HRESULT hr = reader->GetNativeMediaType(MF_SOURCE_READER_FIRST_VIDEO_STREAM, i,
-                                                candidate.GetAddressOf());
+                                                mediaType.GetAddressOf());
         if (FAILED(hr))
             break;
 
-        GUID subtype = GUID_NULL;
-        if (FAILED(candidate->GetGUID(MF_MT_SUBTYPE, &subtype)))
+        const std::optional<QCameraFormat> candidate =
+                QWMF::cameraFormatFromMediaType(mediaType.Get());
+        if (!candidate)
             continue;
 
-        if (format.pixelFormat() != pixelFormatFromMediaSubtype(subtype))
-            continue;
-
-        UINT32 width = 0u;
-        UINT32 height = 0u;
-        if (FAILED(MFGetAttributeSize(candidate.Get(), MF_MT_FRAME_SIZE, &width, &height)))
-            continue;
-
-        if (format.resolution() != QSize{ int(width), int(height) })
-            continue;
-
-        return candidate;
+        mediaTypes.push_back(std::move(mediaType));
+        candidates.push_back(std::move(*candidate));
     }
-    return {};
+
+    const qsizetype index = indexOfClosestCameraFormat(candidates, format);
+    if (index < 0)
+        return {};
+
+    return mediaTypes.at(index);
 }
 
 } // namespace

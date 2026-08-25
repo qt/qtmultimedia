@@ -4,6 +4,7 @@
 
 #include "qwindowsmultimediautils_p.h"
 
+#include <QtMultimedia/private/qcameradevice_p.h>
 #include <QtCore/qt_windows.h>
 #include <QtCore/qvarlengtharray.h>
 #include <QtCore/private/qflatmap_p.h>
@@ -218,6 +219,55 @@ std::optional<GUID> containerForAudioFileFormat(QMediaFormat::FileFormat format)
     default:
         return std::nullopt;
     }
+}
+
+std::optional<QCameraFormat> cameraFormatFromMediaType(IMFMediaType *mediaFormat)
+{
+    GUID subtype = GUID_NULL;
+    if (FAILED(mediaFormat->GetGUID(MF_MT_SUBTYPE, &subtype)))
+        return std::nullopt;
+
+    auto pixelFormat = pixelFormatFromMediaSubtype(subtype);
+    if (pixelFormat == QVideoFrameFormat::Format_Invalid)
+        return std::nullopt;
+
+    UINT32 nominalRange = 0;
+    auto colorRange = QVideoFrameFormat::ColorRange_Unknown;
+
+    if (SUCCEEDED(mediaFormat->GetUINT32(MF_MT_VIDEO_NOMINAL_RANGE, &nominalRange)))
+        colorRange = colorRangeFromNominalRange(nominalRange);
+
+    UINT32 yuvMatrix = 0;
+    auto colorSpace = QVideoFrameFormat::ColorSpace_Undefined;
+
+    if (SUCCEEDED(mediaFormat->GetUINT32(MF_MT_YUV_MATRIX , &yuvMatrix)))
+        colorSpace = colorSpaceFromMatrix(yuvMatrix);
+
+    UINT32 width = 0u;
+    UINT32 height = 0u;
+    if (FAILED(MFGetAttributeSize(mediaFormat, MF_MT_FRAME_SIZE, &width, &height)))
+        return std::nullopt;
+    QSize resolution{ int(width), int(height) };
+
+    UINT32 num = 0u;
+    UINT32 den = 0u;
+    float minFr = 0.f;
+    float maxFr = 0.f;
+
+    if (SUCCEEDED(MFGetAttributeRatio(mediaFormat, MF_MT_FRAME_RATE_RANGE_MIN, &num, &den)))
+        minFr = float(num) / float(den);
+    else
+        return std::nullopt;
+
+    if (SUCCEEDED(MFGetAttributeRatio(mediaFormat, MF_MT_FRAME_RATE_RANGE_MAX, &num, &den)))
+        maxFr = float(num) / float(den);
+    else
+        return std::nullopt;
+
+    auto *f = new QCameraFormatPrivate{
+        QSharedData(), pixelFormat, resolution, minFr, maxFr, colorRange, colorSpace,
+    };
+    return f->create();
 }
 
 } // namespace QWMF

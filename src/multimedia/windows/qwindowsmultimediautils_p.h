@@ -23,11 +23,18 @@
 
 #include <optional>
 
+struct IMFMediaType;
+
 QT_BEGIN_NAMESPACE
+
+class QCameraFormat;
 
 namespace QWMF {
 
 Q_MULTIMEDIA_EXPORT QVideoFrameFormat::PixelFormat pixelFormatFromMediaSubtype(const GUID &subtype);
+
+[[nodiscard]] Q_MULTIMEDIA_EXPORT std::optional<QCameraFormat>
+cameraFormatFromMediaType(IMFMediaType *mediaFormat);
 
 [[nodiscard]] Q_MULTIMEDIA_EXPORT QVideoFrameFormat::ColorRange
 colorRangeFromNominalRange(uint32_t nominalRange);
