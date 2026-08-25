@@ -8,6 +8,7 @@
 # for Android/iOS tests, since default QML QtTest will
 # scan the root qrc for .qml files.
 set(QML_SOURCE_FILES
+    tst_capturesession.qml
     tst_screencapture.qml
     tst_windowcapture.qml)
 
