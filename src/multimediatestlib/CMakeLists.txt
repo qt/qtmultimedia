@@ -22,6 +22,7 @@ qt_internal_add_module(MultimediaTestLibPrivate
         qfileutil_p.h qfileutil.cpp
         qvideoframetestutils_p.h qvideoframetestutils.cpp
         qscopedenvironmentvariable_p.h
+        qsyntheticvideoscene_p.h qsyntheticvideoscene.cpp
         qsequentialfileadaptor_p.h
         qsinewavevalidator_p.h qsinewavevalidator.cpp
         qmockiodevice_p.h
@@ -51,4 +52,18 @@ qt_internal_extend_target(MultimediaTestLibPrivate CONDITION WIN32
         windows/qwindowsd3d11testdevicecontext_p.h windows/qwindowsd3d11testdevicecontext.cpp
     LIBRARIES
         d3d11
+)
+
+# TODO: widen to "OR QT_FEATURE_pipewire_camera" once that feature lands, since
+# the fixture also fakes org.freedesktop.portal.Camera.
+qt_internal_extend_target(MultimediaTestLibPrivate
+    CONDITION
+        QT_FEATURE_pipewire_screencapture
+    SOURCES
+        qfakexdgportalfixture_p.h qfakexdgportalfixture.cpp
+        qfakexdgportal_p.h qfakexdgportal.cpp
+        qsyntheticpipewirevideosource_p.h qsyntheticpipewirevideosource.cpp
+    PUBLIC_LIBRARIES
+        Qt::DBus
+        PipeWire::PipeWire
 )

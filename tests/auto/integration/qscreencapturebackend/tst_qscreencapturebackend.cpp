@@ -3,8 +3,12 @@
 
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
 #include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
+#include <QtMultimediaTestLib/private/qsyntheticvideoscene_p.h>
 #include <QtMultimediaTestLib/private/surfacecapturetestutils_p.h>
 #include <QtMultimediaTestLib/private/testvideosink_p.h>
+#ifdef QT_MM_HAVE_FAKE_XDG_PORTAL
+#  include <QtMultimediaTestLib/private/qfakexdgportalfixture_p.h>
+#endif
 #include <QtTest/qsignalspy.h>
 #include <QtTest/qtest.h>
 #include <QtMultimedia/qmediacapturesession.h>
@@ -57,7 +61,8 @@ public:
     static std::unique_ptr<QTestWidget> createAndShow(Qt::WindowFlags flags, const QRect &geometry,
                                                       QScreen *screen = nullptr,
                                                       QColor firstColor = QColor(0xFF, 0, 0),
-                                                      QColor secondColor = QColor(0, 0, 0xFF))
+                                                      QColor secondColor = QColor(0, 0, 0xFF),
+                                                      bool show = true)
     {
         auto widget = std::make_unique<QTestWidget>(firstColor, secondColor);
 
@@ -65,6 +70,10 @@ public:
         widget->setScreen(screen ? screen : QApplication::primaryScreen());
         widget->setWindowFlags(flags);
         widget->setGeometry(geometry);
+        // Remembered for sceneOnScreen(): on Wayland a client cannot know its own
+        // position on the screen, so geometry() cannot be trusted afterwards. The
+        // assertions in capture() assume the requested position anyway.
+        widget->m_requestedGeometry = geometry;
 #ifdef Q_OS_ANDROID
     // Android is not a Window System. When calling setGeometry() on the main widget, it will
     // be displayed at the beginning of the screen. The x,y coordinates are ignored and lost.
@@ -72,7 +81,8 @@ public:
     // it later in the paintEvent
         widget->m_paintPosition = geometry;
 #endif
-        widget->show();
+        if (show)
+            widget->show();
 
         return widget;
     }
@@ -112,22 +122,10 @@ protected:
         rect = m_paintPosition;
 #endif
 
-        QColor firstColor = m_firstColor;
-        QColor secondColor = m_secondColor;
-
-        // While animating, swap the colors on odd ticks so that consecutive
-        // frames differ from each other.
-        if (m_animated && (m_animationTick % 2))
-            std::swap(firstColor, secondColor);
-
-        p.setBrush(firstColor);
-        p.drawRect(rect);
-
-        if (firstColor != secondColor) {
-            rect.adjust(40, 50, -60, -70);
-            p.setBrush(secondColor);
-            p.drawRect(rect);
-        }
+        // Painted through the shared routine, so that the synthetic PipeWire
+        // source used by QFakeXdgPortalFixture provably renders the very same
+        // thing this widget does.
+        paintSyntheticVideoScene(p, sceneForRect(rect), m_animationTick);
 
         if (m_animated) {
             ++m_animationTick;
@@ -136,7 +134,41 @@ protected:
         }
     }
 
+public:
+    /*!
+        The scene describing this widget's own content, with \a patternRect
+        expressed in whatever coordinate space the caller cares about: the
+        widget's local rect when painting, or its position on a virtual screen
+        when handing the scene to QFakeXdgPortalFixture.
+    */
+    SyntheticVideoScene sceneForRect(const QRect &patternRect, QSize frameSize = {}) const
+    {
+        SyntheticVideoScene scene;
+        scene.frameSize = frameSize.isEmpty() ? patternRect.size() : frameSize;
+        scene.patternRect = patternRect;
+        scene.backgroundColor = Qt::black;
+        scene.firstColor = m_firstColor;
+        scene.secondColor = m_secondColor;
+        scene.animated = m_animated;
+        return scene;
+    }
+
+    //! The scene as it appears on \a screen, in device pixels.
+    SyntheticVideoScene sceneOnScreen(const QScreen &screen) const
+    {
+        const qreal ratio = devicePixelRatio();
+        const QRect geometry =
+                m_requestedGeometry.isValid() ? m_requestedGeometry : this->geometry();
+        const QRect patternRect(geometry.topLeft() * ratio, geometry.size() * ratio);
+        SyntheticVideoScene scene = sceneForRect(patternRect, screen.size() * ratio);
+        // The scene is rendered directly into device pixels here, unlike in
+        // paintEvent() where QPainter scales for us.
+        scene.scale = ratio;
+        return scene;
+    }
+
 private:
+    QRect m_requestedGeometry;
     QColor m_firstColor;
     QColor m_secondColor;
     bool m_animated = false;
@@ -154,8 +186,29 @@ private:
     void capture(QTestWidget &widget, const QPoint &drawingOffset, const QSize &expectedSize,
                  std::function<void(QScreenCapture &)> scModifier);
 
+    // Publishes what \a widget shows to the synthetic PipeWire source, so that a
+    // capture of the fake "screen" contains exactly the widget's own content.
+    void publishScene(const QTestWidget &widget);
+    [[nodiscard]] bool usingFakePortal() const;
+
+    // With the fake portal active, captured content comes entirely from the
+    // published SyntheticVideoScene rather than from what is actually on screen,
+    // so the widget never needs to become a real, visible window.
+    [[nodiscard]] std::unique_ptr<QTestWidget>
+    createWidget(Qt::WindowFlags flags, const QRect &geometry, QScreen *screen = nullptr,
+                 QColor firstColor = QColor(0xFF, 0, 0), QColor secondColor = QColor(0, 0, 0xFF))
+    {
+        return QTestWidget::createAndShow(flags, geometry, screen, firstColor, secondColor,
+                                          !usingFakePortal());
+    }
+
+#ifdef QT_MM_HAVE_FAKE_XDG_PORTAL
+    QFakeXdgPortalFixture m_fakePortal;
+#endif
+
 private slots:
     void initTestCase();
+    void cleanupTestCase();
 
     void isActive_returnsFalse_whenNotStarted();
     void screen_isNull_whenNotSet();
@@ -183,10 +236,43 @@ private slots:
                                      // application screens.
 };
 
+void tst_QScreenCaptureBackend::cleanupTestCase()
+{
+#ifdef QT_MM_HAVE_FAKE_XDG_PORTAL
+    m_fakePortal.stop();
+#endif
+}
+
+bool tst_QScreenCaptureBackend::usingFakePortal() const
+{
+#ifdef QT_MM_HAVE_FAKE_XDG_PORTAL
+    return m_fakePortal.isActive();
+#else
+    return false;
+#endif
+}
+
+void tst_QScreenCaptureBackend::publishScene(const QTestWidget &widget)
+{
+#ifdef QT_MM_HAVE_FAKE_XDG_PORTAL
+    if (!m_fakePortal.isActive())
+        return;
+    const QScreen *screen = widget.screen() ? widget.screen() : QApplication::primaryScreen();
+    if (auto result = m_fakePortal.setScene(widget.sceneOnScreen(*screen)); !result)
+        qWarning() << "Could not publish the scene to the fake portal:" << result.error();
+#else
+    Q_UNUSED(widget);
+#endif
+}
+
 void tst_QScreenCaptureBackend::capture(QTestWidget &widget, const QPoint &drawingOffset,
                                         const QSize &expectedSize,
                                         std::function<void(QScreenCapture &)> scModifier)
 {
+    // With the fake portal the captured "screen" is synthesised, so the widget's
+    // content has to be handed over explicitly.
+    publishScene(widget);
+
     TestVideoSink sink;
     const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTestLib::makeScreenCapture();
     QScreenCapture &sc = *screenCapture;
@@ -211,7 +297,10 @@ void tst_QScreenCaptureBackend::capture(QTestWidget &widget, const QPoint &drawi
     // In some cases, on Linux the window seems to be of a wrong color after appearance,
     // the delay helps.
     // TODO: remove the delay
-    QTest::qWait(2000);
+    // The synthetic source has no compositor to wait for: its very first frame is
+    // already correct, so the delay is pure cost there.
+    if (!usingFakePortal())
+        QTest::qWait(2000);
 #endif
     // Let's wait for the first frame to address a potential initialization delay.
     // In practice, the delay varies between the platform and may randomly get increased.
@@ -347,10 +436,6 @@ void tst_QScreenCaptureBackend::initTestCase()
     // Need to find a way to call it by androidtestrunner after installation and before running the test
     QSKIP("Skip on Android; There is a security popup that need to be accepted");
 #endif
-#if defined(Q_OS_LINUX)
-    if (isCI() && qEnvironmentVariable("XDG_SESSION_TYPE").toLower() != "x11")
-        QSKIP("Skip on wayland; to be fixed");
-#endif
 
     // The offscreen platform plugin never shows windows on the native desktop, so the
     // capture backends cannot capture any of the test content.
@@ -359,6 +444,32 @@ void tst_QScreenCaptureBackend::initTestCase()
 
     if (!QApplication::primaryScreen())
         QSKIP("No screens found");
+
+#ifdef QT_MM_HAVE_FAKE_XDG_PORTAL
+    // On Wayland the PipeWire backend goes through xdg-desktop-portal, whose real
+    // implementation puts up an interactive consent dialog. Stand in for it, so
+    // that the very same assertions can run unattended.
+    if (QFakeXdgPortalFixture::isRequested()) {
+        QString unavailableReason;
+        if (!QFakeXdgPortalFixture::prerequisitesAvailable(&unavailableReason))
+            QSKIP(qPrintable(u"Fake ScreenCast portal unavailable: "_s + unavailableReason));
+
+        SyntheticVideoScene scene;
+        const QScreen &screen = *QApplication::primaryScreen();
+        scene.frameSize = screen.size() * screen.devicePixelRatio();
+
+        auto result = m_fakePortal.start(scene);
+        QVERIFY2(result,
+                 qPrintable(u"Could not start the fake ScreenCast portal: "_s
+                            + (result ? QString() : result.error())));
+    }
+#endif
+
+#if defined(Q_OS_LINUX)
+    if (!usingFakePortal() && isCI()
+        && qEnvironmentVariable("XDG_SESSION_TYPE").toLower() != u"x11"_s)
+        QSKIP("Skip on wayland; to be fixed");
+#endif
 
 #ifdef Q_OS_MACOS
     if (isCI()) {
@@ -693,14 +804,15 @@ void tst_QScreenCaptureBackend::setFrameRate_emitsFramesAtCorrectRate()
     QSKIP("Framerate setting not implemented on Android");
 #endif
 
-    // Some backends will stop transmitting frames
-    // if the content is unchanged. We spawn an animated
-    // window to make sure we keep getting more frames.
-    auto widget = QTestWidget::createAndShow(
-        Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint,
-        QRect{ 200, 100, 430, 351 });
+    // Some backends will stop transmitting frames if the content is unchanged.
+    // Keep it changing: an animated window for a real screen capture, or (under
+    // the fake portal) an animated published scene.
+    auto widget = createWidget(Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint,
+                               QRect{ 200, 100, 430, 351 });
     widget->setAnimated(true);
-    QVERIFY(QTest::qWaitForWindowExposed(widget.get()));
+    publishScene(*widget);
+    if (!usingFakePortal())
+        QVERIFY(QTest::qWaitForWindowExposed(widget.get()));
 
     TestVideoSink sink;
     const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTestLib::makeScreenCapture();
@@ -732,10 +844,10 @@ void tst_QScreenCaptureBackend::setFrameRate_emitsFramesAtCorrectRate()
 
 void tst_QScreenCaptureBackend::setScreen_selectsScreen_whenCalledWithWidgetsScreen()
 {
-    auto widget = QTestWidget::createAndShow(
-            Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint,
-            QRect{ 200, 100, 430, 351 });
-    QVERIFY(QTest::qWaitForWindowExposed(widget.get()));
+    auto widget = createWidget(Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint,
+                               QRect{ 200, 100, 430, 351 });
+    if (!usingFakePortal())
+        QVERIFY(QTest::qWaitForWindowExposed(widget.get()));
 
     const QPoint drawingOffset(200, 100 + getStatusBarHeight(widget->devicePixelRatio()));
     capture(*widget, drawingOffset, widget->screen()->size(),
@@ -744,10 +856,10 @@ void tst_QScreenCaptureBackend::setScreen_selectsScreen_whenCalledWithWidgetsScr
 
 void tst_QScreenCaptureBackend::constructor_selectsPrimaryScreenAsDefault()
 {
-    auto widget = QTestWidget::createAndShow(
-            Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint,
-            QRect{ 200, 100, 430, 351 });
-    QVERIFY(QTest::qWaitForWindowExposed(widget.get()));
+    auto widget = createWidget(Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint,
+                               QRect{ 200, 100, 430, 351 });
+    if (!usingFakePortal())
+        QVERIFY(QTest::qWaitForWindowExposed(widget.get()));
 
     const QPoint drawingOffset(200, 100 + getStatusBarHeight(widget->devicePixelRatio()));
     capture(*widget, drawingOffset, QApplication::primaryScreen()->size(), nullptr);
@@ -761,15 +873,17 @@ void tst_QScreenCaptureBackend::setScreen_selectsSecondaryScreen_whenCalledWithS
 
     auto topLeft = screens.back()->geometry().topLeft().x();
 
-    auto widgetOnSecondaryScreen = QTestWidget::createAndShow(
-            Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint,
-            QRect{ topLeft + 200, 100, 430, 351 }, screens.back());
-    QVERIFY(QTest::qWaitForWindowExposed(widgetOnSecondaryScreen.get()));
+    auto widgetOnSecondaryScreen =
+            createWidget(Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint,
+                         QRect{ topLeft + 200, 100, 430, 351 }, screens.back());
+    if (!usingFakePortal())
+        QVERIFY(QTest::qWaitForWindowExposed(widgetOnSecondaryScreen.get()));
 
-    auto widgetOnPrimaryScreen = QTestWidget::createAndShow(
+    auto widgetOnPrimaryScreen = createWidget(
             Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint,
             QRect{ 200, 100, 430, 351 }, screens.front(), QColor(0, 0, 0), QColor(0, 0, 0));
-    QVERIFY(QTest::qWaitForWindowExposed(widgetOnPrimaryScreen.get()));
+    if (!usingFakePortal())
+        QVERIFY(QTest::qWaitForWindowExposed(widgetOnPrimaryScreen.get()));
     const QPoint drawingOffset(200, 100 + getStatusBarHeight(widgetOnSecondaryScreen->devicePixelRatio()));
     capture(*widgetOnSecondaryScreen, drawingOffset, screens.back()->size(),
             [&screens](QScreenCapture &sc) { sc.setScreen(screens.back()); });
@@ -783,10 +897,10 @@ void tst_QScreenCaptureBackend::capture_capturesToFile_whenConnectedToMediaRecor
 #endif
 
     // Create widget with blue color
-    auto widget = QTestWidget::createAndShow(
-            Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint,
-            QRect{ 200, 100, 430, 351 });
+    auto widget = createWidget(Qt::Window | Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint,
+                               QRect{ 200, 100, 430, 351 });
     widget->setColors(QColor(0, 0, 0xFF), QColor(0, 0, 0xFF));
+    publishScene(*widget);
 
     const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTestLib::makeScreenCapture();
     QScreenCapture &sc = *screenCapture;
@@ -827,6 +941,7 @@ void tst_QScreenCaptureBackend::capture_capturesToFile_whenConnectedToMediaRecor
 
     QTest::qWait(1000);
     widget->setColors(QColor(0, 0xFF, 0), QColor(0, 0xFF, 0)); // Change widget color
+    publishScene(*widget);
     QTest::qWait(1000);
 
     {
@@ -907,6 +1022,27 @@ void tst_QScreenCaptureBackend::removeScreenWhileCapture()
                        });
 }
 
+#ifdef QT_MM_HAVE_FAKE_XDG_PORTAL
+
+// QTEST_MAIN's main() is renamed so that the fake portal can get in first. Both
+// steps have to happen before QApplication exists: the helper process must not
+// build one at all, and the re-exec has to precede the first use of the session
+// bus, which QDBusConnection caches for the lifetime of the process.
+#  define main testlib_main
 QTEST_MAIN(tst_QScreenCaptureBackend)
+#  undef main
+
+int main(int argc, char *argv[])
+{
+    if (QFakeXdgPortalFixture::isHelperProcess(argc, argv))
+        return QFakeXdgPortalFixture::runHelperProcess(argc, argv);
+
+    QFakeXdgPortalFixture::reexecUnderPrivateBusIfRequested(argc, argv);
+    return testlib_main(argc, argv);
+}
+
+#else
+QTEST_MAIN(tst_QScreenCaptureBackend)
+#endif
 
 #include "tst_qscreencapturebackend.moc"

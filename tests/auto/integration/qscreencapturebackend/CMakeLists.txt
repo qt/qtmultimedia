@@ -19,6 +19,11 @@ qt_internal_multimedia_add_test(tst_qscreencapturebackend
         Qt::MultimediaTestLibPrivate
 )
 
+if(QT_FEATURE_pipewire_screencapture)
+    target_compile_definitions(tst_qscreencapturebackend
+        PRIVATE QT_MM_HAVE_FAKE_XDG_PORTAL)
+endif()
+
 if(ANDROID)
     set_property(TARGET tst_qscreencapturebackend
         PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")

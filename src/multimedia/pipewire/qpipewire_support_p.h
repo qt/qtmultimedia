@@ -15,6 +15,7 @@
 // We mean it.
 //
 
+#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qglobal.h>
 
@@ -69,6 +70,7 @@ using PwStreamHandle = MakeUniquePtr<pw_stream, pw_stream_destroy>::type;
 using PwRegistryHandle = MakeUniquePtr<pw_proxy, pw_proxy_destroy, pw_registry>::type;
 using PwNodeHandle = MakeUniquePtr<pw_proxy, pw_proxy_destroy, pw_node>::type;
 using PwMetadataHandle = MakeUniquePtr<pw_proxy, pw_proxy_destroy, pw_metadata>::type;
+using PwProxyHandle = MakeUniquePtr<pw_proxy, pw_proxy_destroy>::type;
 
 struct PwCoreConnectionDeleter
 {
@@ -94,7 +96,7 @@ struct SpaHandleDeleter
 
 using SpaHandleHandle = std::unique_ptr<spa_handle, SpaHandleDeleter>;
 
-class PWThreadedEventLoop
+class Q_MULTIMEDIA_EXPORT PWThreadedEventLoop
 {
 public:
     explicit PWThreadedEventLoop(const char *name);
