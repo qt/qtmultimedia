@@ -127,7 +127,7 @@ void QWindowsMediaDeviceSession::handleStreamingStopped()
     emit readyForCaptureChanged(m_active);
 }
 
-void QWindowsMediaDeviceSession::handleStreamingError(int errorCode)
+void QWindowsMediaDeviceSession::handleStreamingError(HRESULT errorCode)
 {
     if (m_surface)
         m_surface->platformVideoSink()->setVideoFrame(QVideoFrame());

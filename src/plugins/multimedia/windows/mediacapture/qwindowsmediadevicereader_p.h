@@ -80,10 +80,10 @@ public:
 Q_SIGNALS:
     void streamingStarted();
     void streamingStopped();
-    void streamingError(int errorCode);
+    void streamingError(HRESULT errorCode);
     void recordingStarted();
     void recordingStopped();
-    void recordingError(int errorCode);
+    void recordingError(HRESULT errorCode);
     void durationChanged(qint64 duration);
     void videoFrameChanged(const QVideoFrame &frame);
 
