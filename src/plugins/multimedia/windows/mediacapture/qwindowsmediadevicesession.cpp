@@ -210,10 +210,14 @@ void QWindowsMediaDeviceSession::setAudioOutput(QAudioOutput *output)
 
 QMediaRecorder::Error QWindowsMediaDeviceSession::startRecording(QMediaEncoderSettings &settings, const QString &fileName, bool audioOnly)
 {
-    GUID container = audioOnly ? QWindowsMultimediaUtils::containerForAudioFileFormat(settings.mediaFormat().fileFormat())
-                               : QWindowsMultimediaUtils::containerForVideoFileFormat(settings.mediaFormat().fileFormat());
-    GUID videoFormat = QWindowsMultimediaUtils::videoFormatForCodec(settings.videoCodec());
-    GUID audioFormat = QWindowsMultimediaUtils::audioFormatForCodec(settings.audioCodec());
+    std::optional<GUID> container = audioOnly
+            ? QWMF::containerForAudioFileFormat(settings.mediaFormat().fileFormat())
+            : QWMF::containerForVideoFileFormat(settings.mediaFormat().fileFormat());
+    if (!container)
+        return QMediaRecorder::FormatError;
+
+    GUID videoFormat = QWMF::videoFormatForCodec(settings.videoCodec());
+    GUID audioFormat = QWMF::audioFormatForCodec(settings.audioCodec());
 
     QSize res = settings.videoResolution();
     UINT32 width, height;
@@ -250,7 +254,7 @@ QMediaRecorder::Error QWindowsMediaDeviceSession::startRecording(QMediaEncoderSe
         settings.setAudioBitRate(int(audioBitRate));
     }
 
-    return m_mediaDeviceReader->startRecording(fileName, container, audioOnly ? GUID_NULL : videoFormat,
+    return m_mediaDeviceReader->startRecording(fileName, *container, audioOnly ? GUID_NULL : videoFormat,
                                                videoBitRate, width, height, frameRate,
                                                audioFormat, audioBitRate);
 }

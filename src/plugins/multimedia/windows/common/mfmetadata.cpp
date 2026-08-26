@@ -111,9 +111,9 @@ static QVariant metaDataValue(IPropertyStore *content, const PROPERTYKEY &key)
         // duration is provided in 100-nanosecond units, convert to milliseconds
         value = (value.toLongLong() + 10000) / 10000;
     } else if (key == PKEY_Video_Compression) {
-        value = int(QWindowsMultimediaUtils::codecForVideoFormat(value.toUuid()));
+        value = int(QWMF::codecForVideoFormat(value.toUuid()));
     } else if (key == PKEY_Audio_Format) {
-        value = int(QWindowsMultimediaUtils::codecForAudioFormat(value.toUuid()));
+        value = int(QWMF::codecForAudioFormat(value.toUuid()));
     } else if (key == PKEY_Video_FrameHeight /*Resolution*/) {
         QSize res;
         res.setHeight(value.toUInt());
