@@ -259,6 +259,11 @@ function(__ffmpeg_internal_set_dependencies _component)
             endif()
         endforeach()
 
+        foreach(dependency IN LISTS libs_dependency_lib)
+            string(STRIP "${dependency}" dependency)
+            target_link_libraries(FFmpeg::${lib} INTERFACE ${dependency})
+        endforeach()
+
         # we don't link private dependencies, but just populate the FFMPEG_STUBS
         string(REGEX REPLACE ".*Libs.private:([^\n\r]+).*" "\\1" out "${pcfile}")
         string(REGEX MATCHALL "${prefix_l}[^ ]+" libs_private_dependency ${out})
