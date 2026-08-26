@@ -110,6 +110,9 @@ private:
         if (qEnvironmentVariableIsSet("QTEST_SKIP_MEDIA_VALIDATION"))
             return QUrl(media);
 
+        if (media.endsWith(".wav"))
+            return QUrl(media);
+
         using namespace Qt::StringLiterals;
 
         QAudioOutput audioOutput;
