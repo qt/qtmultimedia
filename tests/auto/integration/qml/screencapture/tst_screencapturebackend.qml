@@ -14,6 +14,9 @@ TestCase {
         verify(
             TestHelper.isMediaBackendPluginLoaded,
             "No media backend plugin was loaded; the fallback integration was used.")
+
+        if (TestHelper.isWMFPlatform)
+            skip("Screen capture is not supported on Windows Media Foundations")
     }
 
     Component {

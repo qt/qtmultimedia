@@ -405,6 +405,8 @@ void tst_QMediaPlayerBackend::initTestCase()
     if (qEnvironmentVariable("COIN_PLATFORM_ID") == "macos-15-x86_64-tests")
         QSKIP("Skipping test on macOS 15 x86_64, as it's flaky on CI");
 
+    QSKIP_WMF("Skipping Windows media foundations backend");
+
     QMediaPlayer player;
     if (!player.isAvailable())
         QSKIP("Media player service is not available");
@@ -2094,7 +2096,7 @@ void tst_QMediaPlayerBackend::setPlaybackRate_changesPlaybackRateAndEmitsSignal_
     QTest::addRow("Keep") << 0.5f << 0.5f << 0.5f << false;
 
     bool backendSupportsNegativePlayback =
-            isWindowsPlatform() || isDarwinPlatform() || isGStreamerPlatform();
+            isWMFPlatform() || isDarwinPlatform() || isGStreamerPlatform();
 
     if (backendSupportsNegativePlayback) {
         QTest::addRow("DecreaseBelowZero") << 0.5f << -0.5f << -0.5f << true;
