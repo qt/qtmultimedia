@@ -18,6 +18,7 @@
 #include <QtMultimedia/private/qplatformmediarecorder_p.h>
 #include <QtCore/qglobal.h>
 #include <QtCore/qurl.h>
+#include <QtCore/qt_windows.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -50,8 +51,8 @@ private Q_SLOTS:
     void onRecordingStarted();
     void onRecordingStopped();
     void onDurationChanged(qint64 duration);
-    void onStreamingError(int errorCode);
-    void onRecordingError(int errorCode);
+    void onStreamingError(HRESULT errorCode);
+    void onRecordingError(HRESULT errorCode);
 
 private:
     void saveMetadata();

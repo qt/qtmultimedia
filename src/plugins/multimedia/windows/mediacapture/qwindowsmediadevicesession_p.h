@@ -21,6 +21,7 @@
 #include <QtMultimedia/private/qplatformmediarecorder_p.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtMultimedia/private/qwindowsmultimediautils_p.h>
+#include <QtCore/qt_windows.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -71,14 +72,14 @@ Q_SIGNALS:
     void durationChanged(qint64 duration);
     void recordingStarted();
     void recordingStopped();
-    void streamingError(int errorCode);
-    void recordingError(int errorCode);
+    void streamingError(HRESULT errorCode);
+    void recordingError(HRESULT errorCode);
     void videoFrameChanged(const QVideoFrame &frame);
 
 private Q_SLOTS:
     void handleStreamingStarted();
     void handleStreamingStopped();
-    void handleStreamingError(int errorCode);
+    void handleStreamingError(HRESULT errorCode);
     void handleVideoFrameChanged(const QVideoFrame &frame);
 
 private:

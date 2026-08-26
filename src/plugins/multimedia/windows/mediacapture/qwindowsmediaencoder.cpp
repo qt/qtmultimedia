@@ -176,7 +176,7 @@ void QWindowsMediaEncoder::onDurationChanged(qint64 duration)
     durationChanged(m_duration);
 }
 
-void QWindowsMediaEncoder::onStreamingError(int errorCode)
+void QWindowsMediaEncoder::onStreamingError(HRESULT errorCode)
 {
     if (errorCode == MF_E_VIDEO_RECORDING_DEVICE_INVALIDATED)
         updateError(QMediaRecorder::ResourceError, tr("Camera is no longer present"));
@@ -192,7 +192,7 @@ void QWindowsMediaEncoder::onStreamingError(int errorCode)
     }
 }
 
-void QWindowsMediaEncoder::onRecordingError(int errorCode)
+void QWindowsMediaEncoder::onRecordingError(HRESULT errorCode)
 {
     Q_UNUSED(errorCode);
     updateError(QMediaRecorder::ResourceError, tr("Recording error"));

@@ -693,8 +693,9 @@ void QWindowsMediaDeviceReader::stopRecording()
         } else {
             m_sinkWriter = nullptr;
 
-            QMetaObject::invokeMethod(this, "recordingError",
-                                      Qt::QueuedConnection, Q_ARG(int, hr));
+            QMetaObject::invokeMethod(this, [this, hr] {
+                emit recordingError(hr);
+            }, Qt::QueuedConnection);
         }
     }
 
@@ -797,7 +798,7 @@ STDMETHODIMP QWindowsMediaDeviceReader::OnReadSample(HRESULT hrStatus, DWORD dwS
     QMutexLocker locker(&m_mutex);
 
     if (FAILED(hrStatus)) {
-        emit streamingError(int(hrStatus));
+        emit streamingError(hrStatus);
         return hrStatus;
     }
 

@@ -147,8 +147,9 @@ void QWindowsImageCapture::saveImage(int captureId, const QString &fileName,
 
     imageWriter.write(image);
 
-    QMetaObject::invokeMethod(this, "imageSaved", Qt::QueuedConnection,
-                              Q_ARG(int, captureId), Q_ARG(QString, fileName));
+    QMetaObject::invokeMethod(this, [this, captureId, fileName] {
+        emit imageSaved(captureId, fileName);
+    }, Qt::QueuedConnection);
 }
 
 QString QWindowsImageCapture::writerFormat(QImageCapture::FileFormat reqFormat)
