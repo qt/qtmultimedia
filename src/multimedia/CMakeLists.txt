@@ -104,19 +104,20 @@ qt_internal_add_module(Multimedia
         support/qtmm_rtsan_support_p.h
         video/qabstractvideobuffer.cpp video/qabstractvideobuffer.h
         video/qhwvideobuffer.cpp video/qhwvideobuffer_p.h
-        video/qmemoryvideobuffer.cpp video/qmemoryvideobuffer_p.h
         video/qimagevideobuffer.cpp video/qimagevideobuffer_p.h
+        video/qmemoryvideobuffer.cpp video/qmemoryvideobuffer_p.h
+        video/qmultimedia_drm_support_p.h
+        video/qtvideo.cpp video/qtvideo.h
         video/qvideoframe.cpp video/qvideoframe.h video/qvideoframe_p.h
-        video/qvideosink.cpp video/qvideosink.h
-        video/qvideotexturehelper.cpp video/qvideotexturehelper_p.h
-        video/qvideoframetexturefromsource.cpp video/qvideoframetexturefromsource_p.h
-        video/qvideoframetexturepool.cpp video/qvideoframetexturepool_p.h
         video/qvideoframeconversionhelper.cpp video/qvideoframeconversionhelper_p.h
-        video/qvideooutputorientationhandler.cpp video/qvideooutputorientationhandler_p.h
         video/qvideoframeconverter.cpp video/qvideoframeconverter_p.h
         video/qvideoframeformat.cpp video/qvideoframeformat.h
+        video/qvideoframetexturefromsource.cpp video/qvideoframetexturefromsource_p.h
+        video/qvideoframetexturepool.cpp video/qvideoframetexturepool_p.h
+        video/qvideooutputorientationhandler.cpp video/qvideooutputorientationhandler_p.h
+        video/qvideosink.cpp video/qvideosink.h
+        video/qvideotexturehelper.cpp video/qvideotexturehelper_p.h
         video/qvideowindow.cpp video/qvideowindow_p.h
-        video/qtvideo.cpp video/qtvideo.h
         shaders/qrhitextureformats_p.h
     PRECOMPILED_HEADER
         qtmultimedia_pch_p.h
@@ -479,12 +480,6 @@ if(WASM AND QT_FEATURE_thread)
     target_link_options(Multimedia PUBLIC -sAUDIO_WORKLET=1 -sWASM_WORKERS=1)
     target_compile_options(Multimedia PUBLIC -sWASM_WORKERS=1)
 endif()
-
-qt_internal_extend_target(Multimedia CONDITION LINUX
-    SOURCES
-        video/qmultimedia_drm_support_p.h
-)
-
 
 set(VIDEO_VERTEX_SHADERS
     "shaders/vertex.vert"
