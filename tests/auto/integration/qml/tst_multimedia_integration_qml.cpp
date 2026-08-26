@@ -11,10 +11,16 @@ class TestHelper : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(bool isMediaBackendPluginLoaded READ isMediaBackendPluginLoaded CONSTANT FINAL)
+    Q_PROPERTY(bool isWMFPlatform READ isWMFPlatform CONSTANT FINAL)
 public:
     [[nodiscard]] static bool isMediaBackendPluginLoaded()
     {
         return BackendUtilsImpl::isMediaBackendPluginLoaded();
+    }
+
+    [[nodiscard]] static bool isWMFPlatform()
+    {
+        return BackendUtilsImpl::isWMFPlatform();
     }
 };
 

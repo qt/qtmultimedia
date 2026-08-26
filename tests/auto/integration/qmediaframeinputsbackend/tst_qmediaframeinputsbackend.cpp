@@ -151,6 +151,7 @@ void tst_QMediaFrameInputsBackend::initTestCase()
     if (!initIntegrationTestCase())
         return;
 
+    QSKIP_WMF("QVideoFrameInput/QAudioBufferInput not supported");
     QSKIP_GSTREAMER("Not implemented in the gstreamer backend");
     QSKIP_OHOS("OHOS backend does not yet wire QPlatformAudioBufferInput/QPlatformVideoFrameInput into a muxer-based recorder");
 }

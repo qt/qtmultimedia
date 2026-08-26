@@ -54,7 +54,7 @@ inline bool isFFMPEGPlatform()
     return QPlatformMediaIntegration::instance()->name() == "ffmpeg"_L1;
 }
 
-inline bool isWindowsPlatform()
+inline bool isWMFPlatform()
 {
     return QPlatformMediaIntegration::instance()->name() == "windows"_L1;
 }
@@ -126,6 +126,9 @@ using namespace BackendUtilsImpl;
 
 #define QSKIP_OHOS(/*messageOpt*/...) \
     QSKIP_IF(isOhosPlatform(), "The feature is not supported on HarmonyOS", __VA_ARGS__)
+
+#define QSKIP_WMF(/*messageOpt*/...) \
+    QSKIP_IF(isWMFPlatform(), "The feature is not supported on Windows MediaEngine", __VA_ARGS__)
 
 #define QEXPECT_FAIL_GSTREAMER(dataIndex, comment, mode) \
   do {                                                   \

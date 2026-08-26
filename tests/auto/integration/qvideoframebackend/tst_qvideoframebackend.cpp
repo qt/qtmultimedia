@@ -202,6 +202,10 @@ void tst_QVideoFrameBackend::toImage_rendersUpdatedFrame_afterMappingInWriteMode
     QFETCH(const FrameCreator, frameCreator);
     QFETCH(const QVideoFrame::MapMode, mapMode);
 
+    if (isWMFPlatform())
+        // TODO: WMF backend only supports WriteOnly mapping
+        QSKIP("WMF backend does not support WriteOnly mapping");
+
     // Arrange
 
     QVideoFrame frame = std::invoke(frameCreator, this);
