@@ -1849,7 +1849,7 @@ static QVideoFrameFormat::PixelFormat pixelFormatFromMediaType(IMFMediaType *typ
     if (FAILED(type->GetGUID(MF_MT_SUBTYPE, &subtype)))
         return QVideoFrameFormat::Format_Invalid;
 
-    return QWindowsMultimediaUtils::pixelFormatFromMediaSubtype(subtype);
+    return QWMF::pixelFormatFromMediaSubtype(subtype);
 }
 
 QT_END_NAMESPACE

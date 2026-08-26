@@ -56,14 +56,14 @@ bool isSupportedMFT(const GUID &category, const MFT_REGISTER_TYPE_INFO &type, QM
 bool isSupportedCodec(QMediaFormat::AudioCodec codec, QMediaFormat::ConversionMode mode)
 {
     return isSupportedMFT((mode == QMediaFormat::Encode) ? MFT_CATEGORY_AUDIO_ENCODER : MFT_CATEGORY_AUDIO_DECODER,
-                          { MFMediaType_Audio, QWindowsMultimediaUtils::audioFormatForCodec(codec) },
+                          { MFMediaType_Audio, QWMF::audioFormatForCodec(codec) },
                           mode);
 }
 
 bool isSupportedCodec(QMediaFormat::VideoCodec codec, QMediaFormat::ConversionMode mode)
 {
     return isSupportedMFT((mode == QMediaFormat::Encode) ? MFT_CATEGORY_VIDEO_ENCODER : MFT_CATEGORY_VIDEO_DECODER,
-                          { MFMediaType_Video, QWindowsMultimediaUtils::videoFormatForCodec(codec) },
+                          { MFMediaType_Video, QWMF::videoFormatForCodec(codec) },
                           mode);
 }
 

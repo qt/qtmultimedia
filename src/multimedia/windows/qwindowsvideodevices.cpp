@@ -129,7 +129,7 @@ static std::optional<QCameraFormat> createCameraFormat(IMFMediaType *mediaFormat
     if (FAILED(mediaFormat->GetGUID(MF_MT_SUBTYPE, &subtype)))
         return {};
 
-    auto pixelFormat = QWindowsMultimediaUtils::pixelFormatFromMediaSubtype(subtype);
+    auto pixelFormat = QWMF::pixelFormatFromMediaSubtype(subtype);
     if (pixelFormat == QVideoFrameFormat::Format_Invalid)
         return {};
 
@@ -137,13 +137,13 @@ static std::optional<QCameraFormat> createCameraFormat(IMFMediaType *mediaFormat
     auto colorRange = QVideoFrameFormat::ColorRange_Unknown;
 
     if (SUCCEEDED(mediaFormat->GetUINT32(MF_MT_VIDEO_NOMINAL_RANGE, &nominalRange)))
-         colorRange = QWindowsMultimediaUtils::colorRangeFromNominalRange(nominalRange);
+         colorRange = QWMF::colorRangeFromNominalRange(nominalRange);
 
     UINT32 yuvMatrix = 0;
     auto colorSpace = QVideoFrameFormat::ColorSpace_Undefined;
 
     if (SUCCEEDED(mediaFormat->GetUINT32(MF_MT_YUV_MATRIX , &yuvMatrix)))
-         colorSpace = QWindowsMultimediaUtils::colorSpaceFromMatrix(yuvMatrix);
+         colorSpace = QWMF::colorSpaceFromMatrix(yuvMatrix);
 
     UINT32 width = 0u;
     UINT32 height = 0u;

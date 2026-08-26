@@ -125,7 +125,7 @@ DWORD QWindowsMediaDeviceReader::findMediaTypeIndex(const QCameraFormat &reqForm
             GUID subtype = GUID_NULL;
             if (SUCCEEDED(mediaType->GetGUID(MF_MT_SUBTYPE, &subtype))) {
 
-                auto pixelFormat = QWindowsMultimediaUtils::pixelFormatFromMediaSubtype(subtype);
+                auto pixelFormat = QWMF::pixelFormatFromMediaSubtype(subtype);
                 if (pixelFormat != QVideoFrameFormat::Format_Invalid) {
 
                     UINT32 width, height;
@@ -191,7 +191,7 @@ HRESULT QWindowsMediaDeviceReader::prepareVideoStream(DWORD mediaTypeIndex)
         hr = m_videoMediaType->GetGUID(MF_MT_SUBTYPE, &subtype);
         if (SUCCEEDED(hr)) {
 
-            m_pixelFormat = QWindowsMultimediaUtils::pixelFormatFromMediaSubtype(subtype);
+            m_pixelFormat = QWMF::pixelFormatFromMediaSubtype(subtype);
 
             if (m_pixelFormat == QVideoFrameFormat::Format_Invalid) {
                 hr = E_FAIL;
@@ -216,12 +216,12 @@ HRESULT QWindowsMediaDeviceReader::prepareVideoStream(DWORD mediaTypeIndex)
                             UINT32 nominalRange = 0;
 
                             if (SUCCEEDED(m_videoMediaType->GetUINT32(MF_MT_VIDEO_NOMINAL_RANGE, &nominalRange)))
-                                m_colorRange = QWindowsMultimediaUtils::colorRangeFromNominalRange(nominalRange);
+                                m_colorRange = QWMF::colorRangeFromNominalRange(nominalRange);
 
                             UINT32 yuvMatrix = 0;
 
                             if (SUCCEEDED(m_videoMediaType->GetUINT32(MF_MT_YUV_MATRIX, &yuvMatrix))) {
-                                m_colorSpace = QWindowsMultimediaUtils::colorSpaceFromMatrix(yuvMatrix);
+                                m_colorSpace = QWMF::colorSpaceFromMatrix(yuvMatrix);
                             }
                         }
                     }
