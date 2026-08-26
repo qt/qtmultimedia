@@ -166,14 +166,12 @@ void MFAudioDecoderControl::stop()
     }
     setIsDecoding(false);
 
-    if (m_position != -1) {
-        m_position = -1;
-        positionChanged(m_position);
-    }
     if (m_duration != -1) {
         m_duration = -1;
         durationChanged(m_duration);
     }
+
+    finished();
 }
 
 void MFAudioDecoderControl::handleNewSample(ComPtr<IMFSample> sample)
@@ -197,7 +195,6 @@ void MFAudioDecoderControl::handleNewSample(ComPtr<IMFSample> sample)
 void MFAudioDecoderControl::handleSourceFinished()
 {
     stop();
-    finished();
 }
 
 void MFAudioDecoderControl::setAudioFormat(const QAudioFormat &format)
