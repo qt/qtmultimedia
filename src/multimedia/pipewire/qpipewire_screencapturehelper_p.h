@@ -67,9 +67,6 @@ private:
 
     void signalLoop(bool onProcessDone, bool err);
 
-    static QVideoFrameFormat::PixelFormat toQtPixelFormat(spa_video_format spaVideoFormat);
-    static spa_video_format toSpaVideoFormat(QVideoFrameFormat::PixelFormat pixelFormat);
-
     QString getRequestToken();
     void createInterface();
     void createSession();
