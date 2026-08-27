@@ -90,11 +90,6 @@ qt_find_package(VAAPI COMPONENTS VA DRM PROVIDED_TARGETS VAAPI::VAAPI MODULE_NAM
 
 #### Tests
 
-qt_config_compile_test("gpu_vivante"
-                   LABEL "Vivante GPU"
-                   PROJECT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../config.tests/gpu_vivante"
-)
-
 qt_config_compile_test("linux_v4l"
                    LABEL "Video for Linux"
                    PROJECT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../config.tests/linux_v4l"
@@ -206,10 +201,6 @@ qt_feature("gstreamer_gl_x11" PRIVATE
     LABEL "GStreamer X11"
     CONDITION QT_FEATURE_xcb AND QT_FEATURE_gstreamer_gl AND TARGET GStreamer::GlX11
 )
-qt_feature("gpu_vivante" PRIVATE
-    LABEL "Vivante GPU"
-    CONDITION QT_FEATURE_gui AND QT_FEATURE_opengles2 AND TEST_gpu_vivante
-)
 qt_feature("gstreamer_qt_api" PUBLIC PRIVATE
     LABEL "GStreamer-specific Qt API"
     AUTODETECT false
@@ -222,6 +213,11 @@ qt_feature("linux_v4l" PRIVATE
 qt_feature("linux_dmabuf" PRIVATE
     LABEL "Linux DMA buffer support"
     CONDITION UNIX AND TEST_egl_has_image AND QT_FEATURE_egl
+)
+qt_feature("gpu_vivante" PRIVATE
+    LABEL "Vivante GPU direct-texture zero-copy video import (glTexDirectVIV)"
+    CONDITION LINUX AND QT_FEATURE_gui AND QT_FEATURE_egl AND QT_FEATURE_opengles2
+              AND QT_FEATURE_linux_dmabuf
 )
 qt_feature("vaapi" PRIVATE
     LABEL "VAAPI support"
@@ -348,6 +344,7 @@ qt_configure_add_summary_section(NAME "Hardware acceleration and features")
 qt_configure_add_summary_entry(ARGS "linux_v4l")
 qt_configure_add_summary_entry(ARGS "vaapi")
 qt_configure_add_summary_entry(ARGS "linux_dmabuf")
+qt_configure_add_summary_entry(ARGS "gpu_vivante")
 qt_configure_add_summary_entry(ARGS "videotoolbox")
 qt_configure_end_summary_section()
 qt_configure_end_summary_section() # end of "Qt Multimedia" section
