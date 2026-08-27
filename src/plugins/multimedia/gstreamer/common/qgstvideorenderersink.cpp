@@ -250,10 +250,26 @@ GstFlowReturn QGstVideoRenderer::render(GstBuffer *buffer)
 
     QVideoFrameFormat bufferVideoFrameFormat = m_format;
 
-    // When rendering DMAbuf frames with OpenGLES, EGL seems to do implicit YUV->RGB conversion for
-    // UYVY and YUYV (YUY2), so we need to change the pixel format to Format_RGBA8888 to select the
-    // correct shader.
+    // When rendering DMAbuf frames with OpenGLES, EGL seems to do implicit
+    // YUV->RGB conversion for UYVY and YUYV (YUY2), so we need to change the
+    // pixel format to Format_RGBA8888 to select the correct shader. Likewise,
+    // glTexDirectVIVMap converts all Vivante phys-mem frames to a single RGB
+    // texture. That texture also covers the decoder's padding, so the frame
+    // size is set to the padded size, with the viewport cropping the padding
+    // away.
+    [[maybe_unused]] std::optional<QSize> vivantePaddedSize;
     const bool setFormat_RGBA8888 = [&] {
+#if QT_CONFIG(gpu_vivante)
+        if (bufferMemoryFormat == QGstCaps::VivantePhysMemory) {
+            QRhi *rhi = m_sink ? m_sink->rhi() : nullptr;
+            const GstVideoInfo &videoInfo = m_videoInfo.gstVideoInfo;
+            if (!rhi || rhi->backend() != QRhi::OpenGLES2
+                || !qGstVivFormatTokenFromGstVideoFormat(GST_VIDEO_INFO_FORMAT(&videoInfo)))
+                return false;
+            vivantePaddedSize = qGstVivantePaddedFrameSize(buffer, videoInfo);
+            return vivantePaddedSize.has_value();
+        }
+#endif
 #if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
         QRhi *rhi = m_sink ? m_sink->rhi() : nullptr;
         if ((m_format.pixelFormat() == QVideoFrameFormat::Format_UYVY
@@ -279,6 +295,13 @@ GstFlowReturn QGstVideoRenderer::render(GstBuffer *buffer)
         bufferVideoFrameFormat.setColorRange(m_format.colorRange());
         bufferVideoFrameFormat.setColorTransfer(m_format.colorTransfer());
         bufferVideoFrameFormat.setColorSpace(m_format.colorSpace());
+
+        if (vivantePaddedSize && *vivantePaddedSize != m_format.frameSize()) {
+            qCDebug(qLcGstVideoRenderer) << "Cropping padded Vivante frame" << *vivantePaddedSize
+                                         << "to" << m_format.viewport();
+            bufferVideoFrameFormat.setFrameSize(*vivantePaddedSize);
+            bufferVideoFrameFormat.setViewport(m_format.viewport());
+        }
     }
 
     RenderBufferState state{

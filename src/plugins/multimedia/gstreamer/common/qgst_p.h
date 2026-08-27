@@ -391,7 +391,7 @@ public:
     QGstCaps &operator=(const QGstCaps &) = default;
     QGstCaps &operator=(QGstCaps &&) noexcept = default;
 
-    enum MemoryFormat { CpuMemory, GLTexture, DMABuf };
+    enum MemoryFormat { CpuMemory, GLTexture, DMABuf, VivantePhysMemory };
 
     int size() const;
     QGstStructureView at(int index) const;

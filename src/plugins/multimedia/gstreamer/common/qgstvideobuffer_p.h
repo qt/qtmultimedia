@@ -22,8 +22,19 @@
 #include <common/qgstbufferprovider_p.h>
 #include <gst/video/video.h>
 
+#if QT_CONFIG(gpu_vivante)
+#  include <QtMultimedia/private/qvivantevideobuffer_p.h>
+#  include <memory>
+#  include <optional>
+#endif
+
 QT_BEGIN_NAMESPACE
 class QVideoFrameFormat;
+
+#if QT_CONFIG(gpu_vivante)
+std::optional<GLenum> qGstVivFormatTokenFromGstVideoFormat(GstVideoFormat format);
+std::optional<QSize> qGstVivantePaddedFrameSize(GstBuffer *buffer, const GstVideoInfo &videoInfo);
+#endif
 
 class QGstVideoBuffer final : public QHwVideoBuffer, public QGstBufferProvider
 {
@@ -39,6 +50,15 @@ public:
     GstBuffer *gstBuffer() const override { return m_buffer.get(); }
 
 private:
+#if QT_CONFIG(gpu_vivante)
+    // Lazily built on first mapTextures() call: retrieving the physical
+    // address requires peeking the GstBuffer, a cost only phys-mem buffers
+    // should pay.
+    QtMultimediaPrivate::QVivanteVideoBuffer *vivanteVideoBuffer();
+
+    std::unique_ptr<QtMultimediaPrivate::QVivanteVideoBuffer> m_vivanteVideoBuffer;
+#endif
+
     const QGstCaps::MemoryFormat m_memoryFormat = QGstCaps::CpuMemory;
     const QVideoFrameFormat m_frameFormat;
     QGstVideoInfo m_videoInfo;

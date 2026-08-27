@@ -29,6 +29,12 @@
 #  include <gst/allocators/gstdmabuf.h>
 #endif
 
+// gstphysmemory.h ships with NXP/Freescale's imx-gst1.0-plugin allocator
+// package, not upstream gst-plugins-base, hence the guard.
+#if QT_CONFIG(gpu_vivante)
+#  include <gst/allocators/gstphysmemory.h>
+#endif
+
 QT_BEGIN_NAMESPACE
 
 namespace {
@@ -1709,19 +1715,23 @@ QGstCaps::MemoryFormat qMemoryFormatFromGstBuffer(GstBuffer *buffer)
 {
     Q_ASSERT(buffer);
 
-    QGstCaps::MemoryFormat memoryFormat = QGstCaps::CpuMemory;
-
     [[maybe_unused]] GstMemory *mem = gst_buffer_peek_memory(buffer, 0);
 
 #if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
     if (gst_is_dmabuf_memory(mem))
-        memoryFormat = QGstCaps::DMABuf;
+        return QGstCaps::DMABuf;
 #endif
 #if QT_CONFIG(gstreamer_gl)
     if (gst_is_gl_memory(mem))
-        memoryFormat = QGstCaps::GLTexture;
+        return QGstCaps::GLTexture;
 #endif
-    return memoryFormat;
+    // Checked last: some phys-mem allocators (e.g. the i.MX8 VPU one) are also
+    // dmabuf backed, and those should take the dmabuf path.
+#if QT_CONFIG(gpu_vivante)
+    if (gst_is_phys_memory(mem))
+        return QGstCaps::VivantePhysMemory;
+#endif
+    return QGstCaps::CpuMemory;
 }
 
 QVideoFrame qCreateFrameFromGstBuffer(QGstBufferHandle buffer, const QGstVideoInfo &videoInfo,
