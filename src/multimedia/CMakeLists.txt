@@ -208,6 +208,14 @@ qt_internal_extend_target(Multimedia
         video/qmultimedia_gl_support.cpp video/qmultimedia_gl_support_p.h
 )
 
+qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_gpu_vivante
+    SOURCES
+        video/qvivantetextureimporter.cpp video/qvivantetextureimporter_p.h
+        video/qvivantevideobuffer.cpp video/qvivantevideobuffer_p.h
+    LIBRARIES
+        EGL::EGL
+)
+
 qt_internal_extend_target(Multimedia
     CONDITION (LINUX OR ANDROID) AND QT_FEATURE_library
     SOURCES qsymbolsresolveutils.cpp qsymbolsresolveutils_p.h)
