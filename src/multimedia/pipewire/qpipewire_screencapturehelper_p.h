@@ -67,7 +67,9 @@ private:
 
     void signalLoop(bool onProcessDone, bool err);
 
-    QString getRequestToken();
+    QString allocateToken();
+    bool subscribeToRequestResponse(const QString &handleToken);
+    void unsubscribeFromRequestResponse();
     void createInterface();
     void createSession();
     void selectSources(const QDBusObjectPath &sessionHandle);
@@ -102,8 +104,9 @@ private:
     pw_stream_state m_streamState{}; // guarded by pw event loop lock
     bool m_processed = false;
 
-    int m_requestToken = -1;
-    QString m_requestTokenPrefix;
+    const QString m_requestTokenPrefix;
+    quint64 m_tokenCounter = 0;
+    QString m_pendingRequestPath;
     QDBusObjectPath m_sessionHandle;
     std::unique_ptr<QDBusInterface> m_sessionInterface;
 
