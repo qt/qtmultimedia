@@ -607,7 +607,7 @@ void QPipeWireCaptureHelper::destroyStream(bool forceDrain)
 
     if (forceDrain) {
         std::unique_lock locker(m_pwInstance->eventLoopLock());
-        while (!m_streamPaused && !m_silence && !m_err) {
+        while (!m_streamPaused && !m_err) {
             if (m_pwInstance->pwEventLoop().wait_for(1s) != 0)
                 break;
         }

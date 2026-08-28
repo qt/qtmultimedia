@@ -107,7 +107,6 @@ private:
     bool m_initDone = false;
     bool m_ignoreStateChange = false;
     bool m_streamPaused = false;
-    bool m_silence = false;
     bool m_processed = false;
 
     int m_coreInitSeq = 0;
