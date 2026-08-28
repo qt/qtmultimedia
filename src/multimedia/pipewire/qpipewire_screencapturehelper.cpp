@@ -5,6 +5,7 @@
 
 #include <QtMultimedia/private/qpipewire_instance_p.h>
 #include <QtMultimedia/private/qmemoryvideobuffer_p.h>
+#include <QtMultimedia/private/qpipewire_async_support_p.h>
 #include <QtMultimedia/private/qvideoframe_p.h>
 #include <QtGui/private/qdesktopunixservices_p.h>
 #include <QtGui/private/qguiapplication_p.h>
@@ -34,6 +35,7 @@ QT_BEGIN_NAMESPACE
 
 using namespace Qt::StringLiterals;
 using namespace std::chrono_literals;
+using namespace std::string_view_literals;
 
 Q_STATIC_LOGGING_CATEGORY(qLcPipeWireCapture, "qt.multimedia.pipewire.capture");
 Q_STATIC_LOGGING_CATEGORY(qLcPipeWireCaptureMore, "qt.multimedia.pipewire.capture.more");
@@ -302,68 +304,6 @@ bool QPipeWireCaptureHelper::open(QDBusUnixFileDescriptor portalFd)
 
     Q_ASSERT(m_pwInstance->hasScreenCastPortal());
 
-    static const pw_core_events coreEvents = {
-        .version = PW_VERSION_CORE_EVENTS,
-        .info = [](void *data, const struct pw_core_info *info) {
-            Q_UNUSED(data)
-            Q_UNUSED(info)
-        },
-        .done = [](void *object, uint32_t id, int seq) {
-            reinterpret_cast<QPipeWireCaptureHelper *>(object)->onCoreEventDone(id, seq);
-        },
-        .ping = [](void *data, uint32_t id, int seq) {
-            Q_UNUSED(data)
-            Q_UNUSED(id)
-            Q_UNUSED(seq)
-        },
-        .error = [](void *data, uint32_t id, int seq, int res, const char *message) {
-            Q_UNUSED(data)
-            Q_UNUSED(id)
-            Q_UNUSED(seq)
-            Q_UNUSED(res)
-            Q_UNUSED(message)
-        },
-        .remove_id = [](void *data, uint32_t id) {
-            Q_UNUSED(data)
-            Q_UNUSED(id)
-        },
-        .bound_id = [](void *data, uint32_t id, uint32_t global_id) {
-            Q_UNUSED(data)
-            Q_UNUSED(id)
-            Q_UNUSED(global_id)
-        },
-        .add_mem = [](void *data, uint32_t id, uint32_t type, int fd, uint32_t flags) {
-            Q_UNUSED(data)
-            Q_UNUSED(id)
-            Q_UNUSED(type)
-            Q_UNUSED(fd)
-            Q_UNUSED(flags)
-        },
-        .remove_mem = [](void *data, uint32_t id) {
-            Q_UNUSED(data)
-            Q_UNUSED(id)
-        },
-#if defined(PW_CORE_EVENT_BOUND_PROPS)
-        .bound_props = [](void *data, uint32_t id, uint32_t global_id, const struct spa_dict *props) {
-            Q_UNUSED(data)
-            Q_UNUSED(id)
-            Q_UNUSED(global_id)
-            Q_UNUSED(props)
-        },
-#endif // PW_CORE_EVENT_BOUND_PROPS
-    };
-
-    static const pw_registry_events registryEvents = {
-        .version = PW_VERSION_REGISTRY_EVENTS,
-        .global = [](void *object, uint32_t id, uint32_t permissions, const char *type, uint32_t version, const spa_dict *props) {
-            reinterpret_cast<QPipeWireCaptureHelper *>(object)->onRegistryEventGlobal(id, permissions, type, version, props);
-        },
-        .global_remove = [](void *data, uint32_t id) {
-            Q_UNUSED(data)
-            Q_UNUSED(id)
-        },
-    };
-
     std::unique_lock pwLock = m_pwInstance->eventLoopLock();
     auto connection = m_pwInstance->connectToPortal(portalFd.takeFileDescriptor());
     if (!connection) {
@@ -374,7 +314,6 @@ bool QPipeWireCaptureHelper::open(QDBusUnixFileDescriptor portalFd)
         return false;
     }
     m_core = std::move(*connection);
-    pw_core_add_listener(m_core.get(), &m_coreListener, &coreEvents, this);
 
     m_registry = PwRegistryHandle{
         pw_core_get_registry(m_core.get(), PW_VERSION_REGISTRY, 0),
@@ -386,56 +325,55 @@ bool QPipeWireCaptureHelper::open(QDBusUnixFileDescriptor portalFd)
                     u"QPipeWireCaptureHelper failed at pw_core_get_registry()."_s);
         return false;
     }
-    pw_registry_add_listener(m_registry.get(), &m_registryListener, &registryEvents, this);
 
-    updateCoreInitSeq();
+    struct RegistryCallbackContext
+    {
+        bool hasSource{};
+    };
 
-    while (!m_initDone) {
+    spa_hook registryListener = {};
+    const pw_registry_events registryEvents{
+        .version = PW_VERSION_REGISTRY_EVENTS,
+        .global =
+                [](void *data, uint32_t /*id*/, uint32_t /*permissions*/, const char *type,
+                   uint32_t /*version*/, const spa_dict *props) {
+        if (type != std::string_view(PW_TYPE_INTERFACE_Node))
+            return;
+
+        const char *media_class = spa_dict_lookup(props, PW_KEY_MEDIA_CLASS);
+        if (!media_class)
+            return;
+
+        if (media_class != "Stream/Output/Video"sv && media_class != "Video/Source"sv)
+            return;
+        auto *registryContext = reinterpret_cast<RegistryCallbackContext *>(data);
+        registryContext->hasSource = true;
+    },
+        .global_remove = nullptr,
+    };
+
+    RegistryCallbackContext registryContext;
+    pw_registry_add_listener(m_registry.get(), &registryListener, &registryEvents,
+                             &registryContext);
+
+    CoreEventDoneListener doneListener;
+    bool initDone = false;
+    doneListener.asyncWait(m_core.get(), [&] {
+        initDone = true;
+        m_pwInstance->pwEventLoop().signal(false);
+    });
+
+    while (!initDone) {
         if (m_pwInstance->pwEventLoop().wait_for(2s) != 0)
             break;
     }
 
-    return m_initDone && m_hasSource;
-}
+    spa_hook_remove(&registryListener);
 
-void QPipeWireCaptureHelper::updateCoreInitSeq()
-{
-    m_coreInitSeq = pw_core_sync(m_core.get(), PW_ID_CORE, m_coreInitSeq);
-}
+    if (registryContext.hasSource)
+        recreateStream();
 
-void QPipeWireCaptureHelper::onCoreEventDone(uint32_t id, int seq)
-{
-    if (id == PW_ID_CORE && seq == m_coreInitSeq) {
-        spa_hook_remove(&m_registryListener);
-        spa_hook_remove(&m_coreListener);
-
-        m_initDone = true;
-        m_pwInstance->pwEventLoop().signal(false);
-    }
-}
-
-void QPipeWireCaptureHelper::onRegistryEventGlobal(uint32_t id, uint32_t permissions, const char *type, uint32_t version, const spa_dict *props)
-{
-    Q_UNUSED(id)
-    Q_UNUSED(permissions)
-    Q_UNUSED(version)
-
-    if (qstrcmp(type, PW_TYPE_INTERFACE_Node) != 0)
-        return;
-
-    const auto* media_class = spa_dict_lookup(props, PW_KEY_MEDIA_CLASS);
-    if (!media_class)
-        return;
-
-    if (qstrcmp(media_class, "Stream/Output/Video") != 0
-        && qstrcmp(media_class, "Video/Source") != 0)
-        return;
-
-    m_hasSource = true;
-
-    updateCoreInitSeq();
-
-    recreateStream();
+    return initDone && registryContext.hasSource;
 }
 
 namespace {
