@@ -57,13 +57,9 @@ protected:
 private:
     void destroy();
 
-    void onCoreEventDone(uint32_t id, int seq);
-    void onRegistryEventGlobal(uint32_t id, uint32_t permissions, const char *type, uint32_t version, const spa_dict *props);
     void onStateChanged(pw_stream_state old, pw_stream_state state, const char *error);
     void onProcess();
     void onParamChanged(uint32_t id, const struct spa_pod *param);
-
-    void updateCoreInitSeq();
 
     void recreateStream();
     void destroyStream(bool waitForStreamEnd);
@@ -93,10 +89,8 @@ private:
     QSize m_size;
 
     PwCoreConnectionHandle m_core;
-    spa_hook m_coreListener = {};
 
     PwRegistryHandle m_registry = nullptr;
-    spa_hook m_registryListener = {};
 
     PwStreamHandle m_stream = nullptr;
     spa_hook m_streamListener = {};
@@ -104,13 +98,9 @@ private:
     spa_video_info m_format{};
 
     bool m_err = false;
-    bool m_hasSource = false;
-    bool m_initDone = false;
     bool m_ignoreStateChange = false;
     pw_stream_state m_streamState{}; // guarded by pw event loop lock
     bool m_processed = false;
-
-    int m_coreInitSeq = 0;
 
     int m_requestToken = -1;
     QString m_requestTokenPrefix;
