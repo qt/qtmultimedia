@@ -22,18 +22,13 @@ QPipeWireCapture::QPipeWireCapture(Source initialSource, std::shared_ptr<QPipeWi
 
 QPipeWireCapture::~QPipeWireCapture() = default;
 
-bool QPipeWireCapture::isSupported()
-{
-    if (!QPipeWireInstance::isLoaded())
-        return false;
-
-    return QPipeWireCaptureHelper::isSupported();
-}
-
 std::unique_ptr<QPipeWireCapture> QPipeWireCapture::create(Source initialSource)
 {
     auto instance = QPipeWireInstance::instance();
     if (!instance)
+        return nullptr;
+
+    if (!instance->hasScreenCastPortal())
         return nullptr;
 
     return std::make_unique<QPipeWireCapture>(std::move(initialSource), std::move(instance));
@@ -53,11 +48,7 @@ bool QPipeWireCapture::setActiveInternal(bool active)
     if (!m_helper)
         m_helper = std::make_unique<QPipeWireCaptureHelper>(*this, m_instance);
 
-    if (!QPipeWireCaptureHelper::isSupported()) {
-        updateError(QPlatformSurfaceCapture::Error::InternalError,
-                    u"There is no ScreenCast service available in org.freedesktop.portal!"_s);
-        return false;
-    }
+    Q_ASSERT(m_instance->hasScreenCastPortal());
 
     m_helper->setFrameRate(frameRate().value_or(DefaultCaptureFrameRate));
 

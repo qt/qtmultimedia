@@ -36,8 +36,6 @@ public:
 
     QVideoFrameFormat frameFormat() const override;
 
-    static bool isSupported();
-
     static std::unique_ptr<QPipeWireCapture> create(Source initialSource = {});
 
 protected:

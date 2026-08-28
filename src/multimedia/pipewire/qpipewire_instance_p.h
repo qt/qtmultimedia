@@ -24,6 +24,7 @@
 
 #include <pipewire/pipewire.h>
 
+#include <optional>
 #include <system_error>
 
 QT_BEGIN_NAMESPACE
@@ -57,6 +58,9 @@ public:
     pw_loop *eventLoop() const;
     PWThreadedEventLoop &pwEventLoop() { return m_eventLoop; };
 
+    // portal
+    bool hasScreenCastPortal();
+
     // connection factories
     q23::expected<PwCoreConnectionHandle, std::error_code> connectToDaemon();
     q23::expected<PwCoreConnectionHandle, std::error_code> connectToPortal(int fd);
@@ -69,6 +73,8 @@ private:
 
     PWThreadedEventLoop m_eventLoop{ "PwEventLoop" };
     PwContextHandle m_context;
+
+    std::optional<bool> m_hasScreenCastPortal;
 };
 
 } // namespace QtPipeWire

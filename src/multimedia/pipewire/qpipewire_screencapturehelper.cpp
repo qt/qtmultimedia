@@ -41,35 +41,6 @@ Q_STATIC_LOGGING_CATEGORY(qLcPipeWireCaptureMore, "qt.multimedia.pipewire.captur
 
 namespace QtPipeWire {
 
-struct PipeWireCaptureGlobalState
-{
-    PipeWireCaptureGlobalState() {
-        QDBusConnection bus = QDBusConnection::sessionBus();
-        auto *interface = new QDBusInterface(u"org.freedesktop.portal.Desktop"_s,
-                                             u"/org/freedesktop/portal/desktop"_s,
-                                             u"org.freedesktop.DBus.Properties"_s, bus, qGuiApp);
-
-        QList<QVariant> args;
-        args << u"org.freedesktop.portal.ScreenCast"_s << u"version"_s;
-
-        QDBusMessage reply = interface->callWithArgumentList(QDBus::Block, u"Get"_s, args);
-        qCDebug(qLcPipeWireCapture) << "v1=" << reply.type()
-                                    << "v2=" << reply.arguments().size()
-                                    << "v3=" << reply.arguments().at(0).toUInt();
-        if (reply.type() == QDBusMessage::ReplyMessage
-            && reply.arguments().size() == 1
-            // && reply.arguments().at(0).toUInt() >= 2
-            ) {
-            hasScreenCastPortal = true;
-        }
-        qCDebug(qLcPipeWireCapture) << Q_FUNC_INFO << "hasScreenCastPortal=" << hasScreenCastPortal;
-    }
-
-    bool hasScreenCastPortal = false;
-};
-
-Q_GLOBAL_STATIC(PipeWireCaptureGlobalState, globalState)
-
 QPipeWireCaptureHelper::QPipeWireCaptureHelper(QPipeWireCapture &capture,
                                                std::shared_ptr<QPipeWireInstance> instance)
     : QSurfaceCaptureGrabber(CreateGrabbingThread),
@@ -109,14 +80,6 @@ void QPipeWireCaptureHelper::finalizeGrabbingContext()
 QVideoFrameFormat QPipeWireCaptureHelper::frameFormat() const
 {
     return m_videoFrameFormat;
-}
-
-bool QPipeWireCaptureHelper::isSupported()
-{
-    if (!globalState)
-        return false;
-
-    return globalState->hasScreenCastPortal;
 }
 
 void QPipeWireCaptureHelper::gotRequestResponse(uint result, const QVariantMap &map)
@@ -165,10 +128,7 @@ QString QPipeWireCaptureHelper::getRequestToken()
 
 void QPipeWireCaptureHelper::createInterface()
 {
-    if (!globalState)
-        return;
-    if (!globalState->hasScreenCastPortal)
-        return;
+    Q_ASSERT(m_pwInstance->hasScreenCastPortal());
 
     m_operationState = NoOperation;
 
@@ -342,8 +302,7 @@ bool QPipeWireCaptureHelper::open(int pipewireFd)
     if (m_streams.isEmpty())
         return false;
 
-    if (!globalState)
-        return false;
+    Q_ASSERT(m_pwInstance->hasScreenCastPortal());
 
     static const pw_core_events coreEvents = {
         .version = PW_VERSION_CORE_EVENTS,
@@ -732,8 +691,8 @@ void QPipeWireCaptureHelper::onProcess()
 
 void QPipeWireCaptureHelper::destroy()
 {
-    if (!globalState)
-        return;
+    Q_ASSERT(m_pwInstance->hasScreenCastPortal());
+
     m_state = Stopping;
     destroyStream(false);
 

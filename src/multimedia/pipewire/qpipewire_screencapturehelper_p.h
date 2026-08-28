@@ -46,8 +46,6 @@ public:
 
     bool open(int fd);
 
-    static bool isSupported();
-
     QVideoFrameFormat frameFormat() const;
 
 protected:

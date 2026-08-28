@@ -122,7 +122,7 @@ static QPlatformSurfaceCapture *createScreenCaptureByBackend(const QString& back
 #endif
 
 #if QT_CONFIG(pipewire_screencapture)
-    if (backend == u"pipewire" && QtPipeWire::QPipeWireCapture::isSupported()) {
+    if (backend == u"pipewire") {
         if (auto capture = QtPipeWire::QPipeWireCapture::create())
             return capture.release();
     }
@@ -250,10 +250,8 @@ QPlatformSurfaceCapture *QFFmpegMediaIntegration::createScreenCapture(QScreenCap
 #endif
 
 #if QT_CONFIG(pipewire_screencapture)
-    if (QtPipeWire::QPipeWireCapture::isSupported()) {
-        if (auto capture = QtPipeWire::QPipeWireCapture::create())
-            return capture.release();
-    }
+    if (auto capture = QtPipeWire::QPipeWireCapture::create())
+        return capture.release();
 #endif
 
 #if QT_CONFIG(eglfs)
