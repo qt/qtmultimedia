@@ -13,7 +13,6 @@
 #include <QtGui/qguiapplication.h>
 #include <QtGui/qpa/qplatformintegration.h>
 #include <QtCore/qloggingcategory.h>
-#include <QtCore/qrandom.h>
 #include <QtCore/quuid.h>
 #include <QtCore/qvariantmap.h>
 #include <QtDBus/qdbusconnection.h>
@@ -47,7 +46,7 @@ QPipeWireCaptureHelper::QPipeWireCaptureHelper(QPipeWireCapture &capture,
                                                std::shared_ptr<QPipeWireInstance> instance)
     : QSurfaceCaptureGrabber(CreateGrabbingThread),
       m_pwInstance(std::move(instance)),
-      m_requestTokenPrefix(QUuid::createUuid().toString(QUuid::WithoutBraces).left(8))
+      m_requestTokenPrefix(QUuid::createUuid().toString(QUuid::Id128))
 {
     Q_ASSERT(m_pwInstance);
 
@@ -74,6 +73,9 @@ void QPipeWireCaptureHelper::initializeGrabbingContext()
 
 void QPipeWireCaptureHelper::finalizeGrabbingContext()
 {
+    unsubscribeFromRequestResponse();
+    m_operationState = NoOperation;
+
     if (m_state != NoState)
         destroy();
     QSurfaceCaptureGrabber::finalizeGrabbingContext();
@@ -86,12 +88,15 @@ QVideoFrameFormat QPipeWireCaptureHelper::frameFormat() const
 
 void QPipeWireCaptureHelper::gotRequestResponse(uint result, const QVariantMap &map)
 {
-    Q_UNUSED(map);
     qCDebug(qLcPipeWireCapture) << Q_FUNC_INFO << "result=" << result << "map=" << map;
+
+    // this is the response to the request we subscribed to, it will not be emitted again
+    unsubscribeFromRequestResponse();
+
     if (result != 0) {
         m_operationState = NoOperation;
-        qWarning() << "Failed to capture screen via pipewire, perhaps because user cancelled the operation.";
-        m_requestToken = -1;
+        qWarning() << "Failed to capture screen via pipewire, perhaps because user cancelled the "
+                      "operation.";
         return;
     }
 
@@ -116,16 +121,49 @@ void QPipeWireCaptureHelper::gotRequestResponse(uint result, const QVariantMap &
     }
 }
 
-static int generateRequestToken()
+QString QPipeWireCaptureHelper::allocateToken()
 {
-    return QRandomGenerator::global()->bounded(1, 25600);
+    return u"qtmm_%1_%2"_s.arg(m_requestTokenPrefix).arg(++m_tokenCounter);
 }
 
-QString QPipeWireCaptureHelper::getRequestToken()
+bool QPipeWireCaptureHelper::subscribeToRequestResponse(const QString &handleToken)
 {
-    if (m_requestToken <= 0)
-        m_requestToken = generateRequestToken();
-    return u"u%1%2"_s.arg(m_requestTokenPrefix).arg(m_requestToken);
+    Q_ASSERT(m_pendingRequestPath.isEmpty());
+
+    QDBusConnection bus = QDBusConnection::sessionBus();
+
+    QString sender = bus.baseService(); // ":1.23"
+    if (sender.startsWith(u':'))
+        sender.remove(0, 1);
+    sender.replace(u'.', u'_');
+
+    QString path = u"/org/freedesktop/portal/desktop/request/%1/%2"_s.arg(sender, handleToken);
+
+    const bool ok = bus.connect(u"org.freedesktop.portal.Desktop"_s, path,
+                                u"org.freedesktop.portal.Request"_s, u"Response"_s, this,
+                                SLOT(gotRequestResponse(uint, QVariantMap)));
+    if (!ok) {
+        updateError(QPlatformSurfaceCapture::Error::InternalError,
+                    u"Failed to subscribe to org.freedesktop.portal.Request response for "_s
+                            + path);
+        return false;
+    }
+
+    m_pendingRequestPath = std::move(path);
+    return true;
+}
+
+void QPipeWireCaptureHelper::unsubscribeFromRequestResponse()
+{
+    if (m_pendingRequestPath.isEmpty())
+        return;
+
+    QDBusConnection::sessionBus().disconnect(u"org.freedesktop.portal.Desktop"_s,
+                                             m_pendingRequestPath,
+                                             u"org.freedesktop.portal.Request"_s, u"Response"_s,
+                                             this, SLOT(gotRequestResponse(uint, QVariantMap)));
+
+    m_pendingRequestPath.clear();
 }
 
 void QPipeWireCaptureHelper::createInterface()
@@ -138,16 +176,6 @@ void QPipeWireCaptureHelper::createInterface()
         m_screenCastInterface = std::make_unique<QDBusInterface>(
                 u"org.freedesktop.portal.Desktop"_s, u"/org/freedesktop/portal/desktop"_s,
                 u"org.freedesktop.portal.ScreenCast"_s, QDBusConnection::sessionBus());
-        bool ok = m_screenCastInterface->connection().connect(
-                u"org.freedesktop.portal.Desktop"_s, u""_s, u"org.freedesktop.portal.Request"_s,
-                u"Response"_s, this, SLOT(gotRequestResponse(uint,QVariantMap)));
-
-        if (!ok) {
-            updateError(
-                    QPlatformSurfaceCapture::Error::InternalError,
-                    u"Failed to connect to org.freedesktop.portal.ScreenCast dbus interface."_s);
-            return;
-        }
     }
     createSession();
 }
@@ -157,12 +185,17 @@ void QPipeWireCaptureHelper::createSession()
     if (!m_screenCastInterface)
         return;
 
+    const QString handleToken = allocateToken();
+    if (!subscribeToRequestResponse(handleToken))
+        return;
+
     QVariantMap options{
-        //{u"handle_token"_s        , getRequestToken()},
-        { u"session_handle_token"_s, getRequestToken() },
+        { u"handle_token"_s, handleToken },
+        { u"session_handle_token"_s, allocateToken() },
     };
     QDBusMessage reply = m_screenCastInterface->call(u"CreateSession"_s, options);
     if (!reply.errorMessage().isEmpty()) {
+        unsubscribeFromRequestResponse();
         updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"Failed to create session for org.freedesktop.portal.ScreenCast. Error: "_s
                             + reply.errorName() + u": "_s + reply.errorMessage());
@@ -185,8 +218,12 @@ void QPipeWireCaptureHelper::selectSources(const QDBusObjectPath &sessionHandle)
             u"org.freedesktop.portal.Desktop"_s, sessionHandle.path(),
             u"org.freedesktop.portal.Session"_s, u"Closed"_s, this, SLOT(sessionClosed()));
 
+    const QString handleToken = allocateToken();
+    if (!subscribeToRequestResponse(handleToken))
+        return;
+
     QVariantMap options{
-        { u"handle_token"_s, getRequestToken() },
+        { u"handle_token"_s, handleToken },
         { u"types"_s, (uint)1 },
         { u"multiple"_s, false },
         { u"cursor_mode"_s, (uint)1 },
@@ -194,6 +231,7 @@ void QPipeWireCaptureHelper::selectSources(const QDBusObjectPath &sessionHandle)
     };
     QDBusMessage reply = m_screenCastInterface->call(u"SelectSources"_s, sessionHandle, options);
     if (!reply.errorMessage().isEmpty()) {
+        unsubscribeFromRequestResponse();
         updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"Failed to select sources for org.freedesktop.portal.ScreenCast. Error: "_s
                             + reply.errorName() + u": "_s + reply.errorMessage());
@@ -208,8 +246,12 @@ void QPipeWireCaptureHelper::startStream()
     if (!m_screenCastInterface)
         return;
 
+    const QString handleToken = allocateToken();
+    if (!subscribeToRequestResponse(handleToken))
+        return;
+
     QVariantMap options{
-        { u"handle_token"_s, getRequestToken() },
+        { u"handle_token"_s, handleToken },
     };
 
     auto *unixServices = dynamic_cast<QDesktopUnixServices *>(QGuiApplicationPrivate::platformIntegration()->services());
@@ -219,6 +261,7 @@ void QPipeWireCaptureHelper::startStream()
     QDBusMessage reply = m_screenCastInterface->call("Start"_L1, QDBusObjectPath(m_sessionHandle),
                                                      parentWindow, options);
     if (!reply.errorMessage().isEmpty()) {
+        unsubscribeFromRequestResponse();
         updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"Failed to start stream for org.freedesktop.portal.ScreenCast. Error: "_s
                             + reply.errorName() + u": "_s + reply.errorMessage());
@@ -520,8 +563,6 @@ void QPipeWireCaptureHelper::destroyStream(bool waitForStreamEnd)
     m_stream = {};
     m_ignoreStateChange = false;
 
-    m_requestToken = -1;
-
     if (waitForStreamEnd) {
         while (m_streamState > PW_STREAM_STATE_UNCONNECTED && !m_err) {
             if (m_pwInstance->pwEventLoop().wait_for(1s) != 0)
@@ -604,6 +645,7 @@ void QPipeWireCaptureHelper::destroy()
         m_core = {};
     });
 
+    unsubscribeFromRequestResponse();
     closeSession();
 
     m_state = NoState;
