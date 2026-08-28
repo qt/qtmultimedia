@@ -17,10 +17,16 @@ qt_internal_multimedia_add_test(tst_qaudiodecoderbackend
         Qt::MultimediaPrivate
         Qt::MultimediaTestLibPrivate
     TESTDATA
-        testdata/test.wav
+        testdata/nokia-tune.mp3
+        testdata/test-24bit.wav
         testdata/test-corrupted.wav
+        testdata/test-float32.wav
         testdata/test-no-audio-track.mp4
         testdata/test-unsupported.avi
+        testdata/test.aac
+        testdata/test.flac
+        testdata/test.ogg
+        testdata/test.wav
 )
 
 qt_internal_add_resource(tst_qaudiodecoderbackend "qrc_testdata"
