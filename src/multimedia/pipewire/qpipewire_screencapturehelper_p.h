@@ -65,7 +65,7 @@ private:
     void updateCoreInitSeq();
 
     void recreateStream();
-    void destroyStream(bool forceDrain);
+    void destroyStream(bool waitForStreamEnd);
 
     void signalLoop(bool onProcessDone, bool err);
 
@@ -106,7 +106,7 @@ private:
     bool m_hasSource = false;
     bool m_initDone = false;
     bool m_ignoreStateChange = false;
-    bool m_streamPaused = false;
+    pw_stream_state m_streamState{}; // guarded by pw event loop lock
     bool m_processed = false;
 
     int m_coreInitSeq = 0;

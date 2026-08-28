@@ -600,18 +600,10 @@ void QPipeWireCaptureHelper::recreateStream()
         return;
     }
 }
-void QPipeWireCaptureHelper::destroyStream(bool forceDrain)
+void QPipeWireCaptureHelper::destroyStream(bool waitForStreamEnd)
 {
     if (!m_stream)
         return;
-
-    if (forceDrain) {
-        std::unique_lock locker(m_pwInstance->eventLoopLock());
-        while (!m_streamPaused && !m_err) {
-            if (m_pwInstance->pwEventLoop().wait_for(1s) != 0)
-                break;
-        }
-    }
 
     std::unique_lock locker(m_pwInstance->eventLoopLock());
     m_ignoreStateChange = true;
@@ -619,8 +611,14 @@ void QPipeWireCaptureHelper::destroyStream(bool forceDrain)
     m_stream = {};
     m_ignoreStateChange = false;
 
-    m_stream = nullptr;
     m_requestToken = -1;
+
+    if (waitForStreamEnd) {
+        while (m_streamState > PW_STREAM_STATE_UNCONNECTED && !m_err) {
+            if (m_pwInstance->pwEventLoop().wait_for(1s) != 0)
+                break;
+        }
+    }
 }
 
 void QPipeWireCaptureHelper::signalLoop(bool onProcessDone, bool err)
@@ -637,20 +635,16 @@ void QPipeWireCaptureHelper::onStateChanged(pw_stream_state old, pw_stream_state
     Q_UNUSED(old)
     Q_UNUSED(error)
 
-    if (m_ignoreStateChange)
-        return;
+    m_streamState = state;
 
-    switch (state)
-    {
+    switch (state) {
     case PW_STREAM_STATE_UNCONNECTED:
         signalLoop(false, true);
         break;
     case PW_STREAM_STATE_PAUSED:
-        m_streamPaused = true;
         signalLoop(false, false);
         break;
     case PW_STREAM_STATE_STREAMING:
-        m_streamPaused = false;
         signalLoop(false, false);
         break;
     default:
