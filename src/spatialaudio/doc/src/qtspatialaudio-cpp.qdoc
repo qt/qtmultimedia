@@ -12,10 +12,7 @@
 
     \include module-use.qdocinc using qt module
 
-    \code
-        find_package(Qt6 REQUIRED COMPONENTS SpatialAudio)
-        target_link_libraries(my_project PRIVATE Qt6::SpatialAudio)
-    \endcode
+    \include cmake-find-package-multimedia.qdocinc {find-and-link} {SpatialAudio} {PRIVATE} {Qt6::SpatialAudio}
 */
 
 /*!

@@ -58,7 +58,8 @@ headerdirs += .. \
 imagedirs += src/images \
 
 sourcedirs += .. \
-              ../../spatialaudioquick3d
+              ../../spatialaudioquick3d \
+              ../../multimedia/doc/src/includes
 
 depends = qtcore qtdoc qtgui qtquick qtqml qtnetwork qmake qtcmake qtquickcontrols qtquick3d qtmultimedia
 
