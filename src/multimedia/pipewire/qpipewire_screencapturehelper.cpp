@@ -96,7 +96,7 @@ void QPipeWireCaptureHelper::gotRequestResponse(uint result, const QVariantMap &
 
     switch (m_operationState) {
     case CreateSession:
-        selectSources(map[u"session_handle"_s].toString());
+        selectSources(QDBusObjectPath{ map[u"session_handle"_s].toString() });
         break;
     case SelectSources:
         startStream();
@@ -171,12 +171,13 @@ void QPipeWireCaptureHelper::createSession()
     m_operationState = CreateSession;
 }
 
-void QPipeWireCaptureHelper::selectSources(const QString &sessionHandle)
+void QPipeWireCaptureHelper::selectSources(const QDBusObjectPath &sessionHandle)
 {
     if (!m_screenCastInterface)
         return;
 
     m_sessionHandle = sessionHandle;
+
     QVariantMap options{
         { u"handle_token"_s, getRequestToken() },
         { u"types"_s, (uint)1 },
@@ -184,8 +185,7 @@ void QPipeWireCaptureHelper::selectSources(const QString &sessionHandle)
         { u"cursor_mode"_s, (uint)1 },
         { u"persist_mode"_s, (uint)0 },
     };
-    QDBusMessage reply = m_screenCastInterface->call(u"SelectSources"_s,
-                                                     QDBusObjectPath(sessionHandle), options);
+    QDBusMessage reply = m_screenCastInterface->call(u"SelectSources"_s, sessionHandle, options);
     if (!reply.errorMessage().isEmpty()) {
         updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"Failed to select sources for org.freedesktop.portal.ScreenCast. Error: "_s
@@ -276,8 +276,8 @@ void QPipeWireCaptureHelper::openPipeWireRemote()
         return;
 
     QVariantMap options;
-    QDBusReply<QDBusUnixFileDescriptor> reply = m_screenCastInterface->call(
-            u"OpenPipeWireRemote"_s, QDBusObjectPath(m_sessionHandle), options);
+    QDBusReply<QDBusUnixFileDescriptor> reply =
+            m_screenCastInterface->call(u"OpenPipeWireRemote"_s, m_sessionHandle, options);
     if (!reply.isValid()) {
         updateError(
                 QPlatformSurfaceCapture::Error::InternalError,
