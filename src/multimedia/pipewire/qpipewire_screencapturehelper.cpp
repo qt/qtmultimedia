@@ -24,7 +24,6 @@
 #include <spa/param/video/format-utils.h>
 #include <spa/param/video/type-info.h>
 
-#include <fcntl.h>
 #include <mutex>
 
 // pipewire's macros tend to emit unused value warnings
@@ -285,9 +284,8 @@ void QPipeWireCaptureHelper::openPipeWireRemote()
         return;
     }
 
-    m_pipewireFd = reply.value().fileDescriptor();
-    bool ok = open(m_pipewireFd);
-    qCDebug(qLcPipeWireCapture) << "open(" << m_pipewireFd << ") result=" << ok;
+    bool ok = open(reply.value());
+    qCDebug(qLcPipeWireCapture) << "open() result=" << ok;
     if (!ok) {
         updateError(QPlatformSurfaceCapture::Error::InternalError,
                     u"Failed to open pipewire remote file descriptor"_s);
@@ -297,7 +295,7 @@ void QPipeWireCaptureHelper::openPipeWireRemote()
     m_operationState = OpenPipeWireRemote;
 }
 
-bool QPipeWireCaptureHelper::open(int pipewireFd)
+bool QPipeWireCaptureHelper::open(QDBusUnixFileDescriptor portalFd)
 {
     if (m_streams.isEmpty())
         return false;
@@ -367,9 +365,7 @@ bool QPipeWireCaptureHelper::open(int pipewireFd)
     };
 
     std::unique_lock pwLock = m_pwInstance->eventLoopLock();
-    int fd = fcntl(pipewireFd, F_DUPFD_CLOEXEC, 5);
-
-    auto connection = m_pwInstance->connectToPortal(fd);
+    auto connection = m_pwInstance->connectToPortal(portalFd.takeFileDescriptor());
     if (!connection) {
         m_err = true;
         pwLock.unlock();
