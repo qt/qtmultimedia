@@ -1,6 +1,31 @@
+//! [find-package-only]
 The command is defined in the \c Multimedia component of the \c Qt6 package, which
 can be loaded like so:
 
 \badcode
 find_package(Qt6 REQUIRED COMPONENTS Multimedia)
 \endcode
+//! [find-package-only]
+
+// \1 is the component name passed to find_package, e.g. "Multimedia",
+// "MultimediaWidgets", "SpatialAudio".
+// \2 is the target_link_libraries keyword, e.g. "PUBLIC" or "PRIVATE".
+// \3 is the CMake target to link against, e.g. "Qt6::Multimedia", "Qt::MultimediaWidgets".
+//! [find-and-link]
+\code
+find_package(Qt6 REQUIRED COMPONENTS \1)
+target_link_libraries(mytarget \2 \3)
+\endcode
+//! [find-and-link]
+
+// \1 is the module display name, e.g. "Qt Multimedia", "Qt Spatial Audio".
+// \2 is the QML import statement, e.g. "import QtMultimedia", "import QtQuick3D.SpatialAudio".
+//! [qml-import-intro]
+If you are new to \1, the QML types can be
+\l{qtqml import syntax}{imported} into an application using the following
+statement in your \c {.qml} file.
+
+\qml
+\2
+\endqml
+//! [qml-import-intro]

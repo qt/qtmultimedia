@@ -10,7 +10,7 @@
 
 \summary {Auxiliary function which embeds FFmpeg binaries in iOS app bundle.}
 
-\include cmake-find-package-multimedia.qdocinc
+\include cmake-find-package-multimedia.qdocinc {find-package-only}
 
 \cmakecommandsince 6.8
 \preliminarycmakecommand

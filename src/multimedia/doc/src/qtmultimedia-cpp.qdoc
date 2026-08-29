@@ -12,10 +12,7 @@
     functionality.
 
     \include module-use.qdocinc using qt module
-    \code
-        find_package(Qt6 REQUIRED COMPONENTS Multimedia)
-        target_link_libraries(mytarget PRIVATE Qt6::Multimedia)
-    \endcode
+    \include cmake-find-package-multimedia.qdocinc {find-and-link} {Multimedia} {PRIVATE} {Qt6::Multimedia}
 */
 
 /*!
