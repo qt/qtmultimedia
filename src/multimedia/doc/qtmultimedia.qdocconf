@@ -56,8 +56,7 @@ tagfile = qtmultimedia.tags
 
 exampledirs += ../../../examples/multimedia \
                ../../../examples/multimediawidgets \
-               snippets \
-               ../../multimediawidgets/doc/snippets
+               snippets
 
 headerdirs += .. \
               ../../multimediawidgets \

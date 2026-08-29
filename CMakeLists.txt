@@ -47,7 +47,6 @@ set(QT_BUILD_EXTRA_IDE_FILE_PATTERNS
     src/multimedia/doc/qtmultimedia.qdocconf
     src/multimedia/doc/snippets/CMakeLists.txt
     src/multimedia/doc/snippets/multimedia-snippets/audio.cpp
-    src/multimedia/doc/snippets/multimedia-snippets/camera.cpp
     src/multimedia/doc/snippets/multimedia-snippets/devices.cpp
     src/multimedia/doc/snippets/multimedia-snippets/images/qt-logo.png
     src/multimedia/doc/snippets/multimedia-snippets/media.cpp
@@ -57,13 +56,11 @@ set(QT_BUILD_EXTRA_IDE_FILE_PATTERNS
     src/multimedia/doc/snippets/multimedia-snippets/soundeffect.qml
     src/multimedia/doc/snippets/multimedia-snippets/video.cpp
     src/multimedia/doc/src/audiooverview.qdoc
-    src/multimedia/doc/src/backend-notes-apple.qdoc
     src/multimedia/doc/src/cameraoverview.qdoc
     src/multimedia/doc/src/classic.css
     src/multimedia/doc/src/multimedia-overview.qdoc
     src/multimedia/doc/src/platform-notes-apple.qdoc
     src/multimedia/doc/src/platform-notes-wasm.qdoc
-    src/multimedia/doc/src/platform-notes-wayland.qdoc
     src/multimedia/doc/src/platform-notes-linux.qdoc
     src/multimedia/doc/src/backend-notes-gstreamer.qdoc
     src/multimedia/doc/src/qm-external-pages.qdoc
