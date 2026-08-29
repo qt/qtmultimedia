@@ -19,9 +19,11 @@ using namespace Qt::StringLiterals;
 
     QCameraFormat represents a certain video format supported by a camera device.
 
+    //! [format-description]
     The format is a combination of a
     \l{QVideoFrameFormat::PixelFormat}{pixel format}, resolution and a range of frame
     rates.
+    //! [format-description]
 
     QCameraFormat objects can be queried from QCameraDevice to inspect the set of
     supported video formats.
@@ -41,9 +43,7 @@ using namespace Qt::StringLiterals;
 
     cameraFormat represents a certain video format supported by a camera device.
 
-    The format is a combination of a
-    \l{QVideoFrameFormat::PixelFormat}{pixel format}, resolution, and a range
-    of frame frates.
+    \include qcameradevice.cpp format-description
 
     cameraFormat objects can be queried from \l cameraDevice to inspect the set of
     supported video formats.
