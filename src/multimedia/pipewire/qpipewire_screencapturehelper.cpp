@@ -3,34 +3,26 @@
 
 #include "qpipewire_screencapturehelper_p.h"
 
-#include <QtMultimedia/private/qcapturablewindow_p.h>
-#include <QtMultimedia/private/qmemoryvideobuffer_p.h>
 #include <QtMultimedia/private/qpipewire_instance_p.h>
+#include <QtMultimedia/private/qmemoryvideobuffer_p.h>
 #include <QtMultimedia/private/qvideoframe_p.h>
-#include <QtMultimedia/private/qvideoframeconversionhelper_p.h>
-#include <QtMultimedia/qabstractvideobuffer.h>
 #include <QtGui/private/qdesktopunixservices_p.h>
 #include <QtGui/private/qguiapplication_p.h>
 #include <QtGui/qguiapplication.h>
 #include <QtGui/qpa/qplatformintegration.h>
-#include <QtGui/qscreen.h>
-#include <QtGui/qwindow.h>
-#include <QtCore/private/qcore_unix_p.h>
-#include <QtCore/qdebug.h>
-#include <QtCore/qfileinfo.h>
 #include <QtCore/qloggingcategory.h>
-#include <QtCore/qmutex.h>
 #include <QtCore/qrandom.h>
-#include <QtCore/qurlquery.h>
 #include <QtCore/quuid.h>
 #include <QtCore/qvariantmap.h>
 #include <QtDBus/qdbusconnection.h>
 #include <QtDBus/qdbusinterface.h>
 #include <QtDBus/qdbusmessage.h>
-#include <QtDBus/qdbuspendingcall.h>
-#include <QtDBus/qdbuspendingreply.h>
 #include <QtDBus/qdbusreply.h>
 #include <QtDBus/qdbusunixfiledescriptor.h>
+
+#include <spa/debug/types.h>
+#include <spa/param/video/format-utils.h>
+#include <spa/param/video/type-info.h>
 
 #include <fcntl.h>
 #include <mutex>

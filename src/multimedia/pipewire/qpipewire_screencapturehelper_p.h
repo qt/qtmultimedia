@@ -15,16 +15,14 @@
 // We mean it.
 //
 
+#include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/private/qpipewire_screencapture_p.h>
 #include <QtMultimedia/private/qsurfacecapturegrabber_p.h>
 #include <QtMultimedia/private/qpipewire_support_p.h>
-#include <QtMultimedia/qvideoframe.h>
 
 #include <pipewire/pipewire.h>
-#include <spa/debug/types.h>
+#include <spa/param/video/format.h>
 #include <spa/utils/dict.h>
-#include <spa/param/video/format-utils.h>
-#include <spa/param/video/type-info.h>
 
 #include <memory>
 
