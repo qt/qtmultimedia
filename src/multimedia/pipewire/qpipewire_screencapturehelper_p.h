@@ -30,6 +30,7 @@ QT_BEGIN_NAMESPACE
 
 class QDBusArgument;
 class QDBusInterface;
+class QDBusUnixFileDescriptor;
 
 namespace QtPipeWire {
 
@@ -44,7 +45,7 @@ public:
     explicit QPipeWireCaptureHelper(QPipeWireCapture &, std::shared_ptr<QPipeWireInstance>);
     ~QPipeWireCaptureHelper() override;
 
-    bool open(int fd);
+    bool open(QDBusUnixFileDescriptor);
 
     QVideoFrameFormat frameFormat() const;
 
@@ -122,8 +123,6 @@ private:
         QRect rect;
     };
     QVector<StreamInfo> m_streams;
-
-    int m_pipewireFd = -1;
 
     std::unique_ptr<QDBusInterface> m_screenCastInterface;
 
