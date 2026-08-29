@@ -1,0 +1,11 @@
+// Copyright (C) 2026 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    //! [retains-properties]
+    The \1 instance retains its properties throughout its lifetime,
+    even if the corresponding physical device is disconnected or its settings are
+    modified. To keep track of updated properties, the user should load new instances
+    of \1 from \l{\2} when the relevant signals are fired.
+    //! [retains-properties]
+*/

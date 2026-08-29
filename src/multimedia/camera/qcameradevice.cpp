@@ -200,10 +200,7 @@ bool QCameraFormat::operator==(const QCameraFormat &other) const
     availableCameras() and defaultCamera() functions. These are contained within
     QtMultimedia::MediaDevices.
 
-    The QCameraDevice instance retains its properties throughout its lifetime,
-    even if the corresponding physical device is disconnected or its settings are
-    modified. To keep track of updated properties, the user should load new instances
-    of QCameraDevice from \l{QMediaDevices} when the relevant signals are fired.
+    \include qdevice-retains-properties.qdocinc {retains-properties} {QCameraDevice} {QMediaDevices}
 
     This example prints the name of all available cameras:
 
@@ -235,10 +232,7 @@ bool QCameraFormat::operator==(const QCameraFormat &other) const
     The cameraDevice value type describes the properties of a camera device that
     is connected to the system.
 
-    The cameraDevice instance retains its properties throughout its lifetime,
-    even if the corresponding physical device is disconnected or its settings are
-    modified. To keep track of updated properties, the user should load new instances
-    of cameraDevice from \l{MediaDevices} when the relevant signals are fired.
+    \include qdevice-retains-properties.qdocinc {retains-properties} {cameraDevice} {MediaDevices}
 
     Two cameraDevice instances can be compared for equality. They are
     considered equal if they represent the same physical device,
