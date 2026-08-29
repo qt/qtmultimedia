@@ -1,0 +1,12 @@
+// Copyright (C) 2026 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+    //! [pull-mode]
+    Custom \2s can be recorded by connecting a \l \1 and a \l QMediaRecorder to a
+    \l QMediaCaptureSession. For a pull mode implementation, call \l \3() in
+    response to the \l \4() signal. In the snippet below this is done by
+    connecting the signal to a slot in a custom media generator class. The slot
+    function emits another signal with a new \2, which is connected to \l \3():
+    //! [pull-mode]
+*/
