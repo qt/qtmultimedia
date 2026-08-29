@@ -19,6 +19,7 @@
 #include <QtMultimedia/private/qpipewire_screencapture_p.h>
 #include <QtMultimedia/private/qsurfacecapturegrabber_p.h>
 #include <QtMultimedia/private/qpipewire_support_p.h>
+#include <QtDBus/qdbusextratypes.h>
 
 #include <pipewire/pipewire.h>
 #include <spa/param/video/format.h>
@@ -75,7 +76,7 @@ private:
     QString getRequestToken();
     void createInterface();
     void createSession();
-    void selectSources(const QString &sessionHandle);
+    void selectSources(const QDBusObjectPath &sessionHandle);
     void startStream();
     void updateStreams(const QDBusArgument &streamsInfo);
     void openPipeWireRemote();
@@ -113,7 +114,7 @@ private:
 
     int m_requestToken = -1;
     QString m_requestTokenPrefix;
-    QString m_sessionHandle;
+    QDBusObjectPath m_sessionHandle;
 
     struct StreamInfo
     {
