@@ -1496,7 +1496,6 @@ QT_END_NAMESPACE
 QT_BEGIN_NAMESPACE
 namespace QtPrivate {
 
-
 DRWAV_API void drwav_version(drwav_uint32* pMajor, drwav_uint32* pMinor, drwav_uint32* pRevision)
 {
     if (pMajor) {
@@ -3633,7 +3632,7 @@ DRWAV_PRIVATE drwav_bool32 drwav_init__internal(drwav* pWav, drwav_chunk_proc on
             fmt.channels       = channels;
             fmt.sampleRate     = (drwav_uint32)sampleRate;
             fmt.bitsPerSample  = sampleSizeInBits;
-            fmt.blockAlign     = (drwav_uint16)(fmt.channels * fmt.bitsPerSample / 8);
+            fmt.blockAlign     = (drwav_uint16)((drwav_uint32)fmt.channels * fmt.bitsPerSample / 8);
             fmt.avgBytesPerSec = fmt.blockAlign * fmt.sampleRate;
 
             if (fmt.blockAlign == 0 && compressionFormat == DR_WAVE_FORMAT_DVI_ADPCM) {
@@ -3653,6 +3652,19 @@ DRWAV_PRIVATE drwav_bool32 drwav_init__internal(drwav* pWav, drwav_chunk_proc on
 
             /* In AIFF, samples are padded to 8 byte boundaries. We need to round up our bits per sample here. */
             fmt.bitsPerSample += (fmt.bitsPerSample & 7);
+
+            /*
+            Only specific byte widths per sample are supported by the decoding backend (1, 2, 3, 4 and 8 bytes). A
+            COMM chunk can declare a bits-per-sample value that doesn't map to one of these (e.g. 40 bits = 5 bytes)
+            which would otherwise be discovered much later as an unsupported format. Reject it here instead.
+            */
+            if (fmt.bitsPerSample == 0 || (fmt.bitsPerSample % 8) != 0) {
+                return DRWAV_FALSE; /* Invalid bits per sample. */
+            }
+            switch (fmt.bitsPerSample / 8) {
+                case 1: case 2: case 3: case 4: case 8: break;
+                default: return DRWAV_FALSE; /* Unsupported bytes per sample. */
+            }
 
 
             /* If the form type is AIFC there will be some additional data in the chunk. We need to seek past it. */
@@ -7203,6 +7215,9 @@ DRWAV_API void drwav_f32_to_s16(drwav_int16* pOut, const float* pIn, size_t samp
     for (i = 0; i < sampleCount; ++i) {
         float x = pIn[i];
         float c;
+        if (x != x) { /* NaN check. Comparisons against NaN are always false, so this is safe even without <math.h>. */
+            x = 0;
+        }
         c = ((x < -1) ? -1 : ((x > 1) ? 1 : x));
         c = c + 1;
         r = (int)(c * 32767.5f);
@@ -7218,6 +7233,9 @@ DRWAV_API void drwav_f64_to_s16(drwav_int16* pOut, const double* pIn, size_t sam
     for (i = 0; i < sampleCount; ++i) {
         double x = pIn[i];
         double c;
+        if (x != x) { /* NaN check. Comparisons against NaN are always false, so this is safe even without <math.h>. */
+            x = 0;
+        }
         c = ((x < -1) ? -1 : ((x > 1) ? 1 : x));
         c = c + 1;
         r = (int)(c * 32767.5);
@@ -8107,7 +8125,7 @@ DRWAV_API void drwav_u8_to_s32(drwav_int32* pOut, const drwav_uint8* pIn, size_t
     }
 
     for (i = 0; i < sampleCount; ++i) {
-        *pOut++ = ((int)pIn[i] - 128) << 24;
+        *pOut++ = ((int)pIn[i] - 128) * 16777216;
     }
 }
 
@@ -8120,7 +8138,7 @@ DRWAV_API void drwav_s16_to_s32(drwav_int32* pOut, const drwav_int16* pIn, size_
     }
 
     for (i = 0; i < sampleCount; ++i) {
-        *pOut++ = pIn[i] << 16;
+        *pOut++ = (drwav_int32)pIn[i] * 65536;
     }
 }
 
@@ -8177,7 +8195,7 @@ DRWAV_API void drwav_alaw_to_s32(drwav_int32* pOut, const drwav_uint8* pIn, size
     }
 
     for (i = 0; i < sampleCount; ++i) {
-        *pOut++ = ((drwav_int32)drwav__alaw_to_s16(pIn[i])) << 16;
+        *pOut++ = (drwav_int32)drwav__alaw_to_s16(pIn[i]) * 65536;
     }
 }
 
@@ -8190,7 +8208,7 @@ DRWAV_API void drwav_mulaw_to_s32(drwav_int32* pOut, const drwav_uint8* pIn, siz
     }
 
     for (i= 0; i < sampleCount; ++i) {
-        *pOut++ = ((drwav_int32)drwav__mulaw_to_s16(pIn[i])) << 16;
+        *pOut++ = (drwav_int32)drwav__mulaw_to_s16(pIn[i]) * 65536;
     }
 }
 
@@ -8698,6 +8716,7 @@ v0.14.6 - TBD
   - Fix an underflow error with badly formed ADPCM encoded files.
   - Fix an underflow error with badly formed W64 files.
   - Fix an error when converting from >32 bit samples to s16/f32/s32 on big-endian architectures.
+  - Fix an error with conversion from u8, 16, alaw and mulaw to s32.
   - Add some bound checking when processing metadata chunks.
 
 v0.14.5 - 2026-03-03
