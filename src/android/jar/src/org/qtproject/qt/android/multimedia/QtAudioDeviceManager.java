@@ -250,6 +250,8 @@ class QtAudioDeviceManager
                 return "TV tuner";
             case AudioDeviceInfo.TYPE_USB_ACCESSORY:
                 return "USB accessory";
+            case AudioDeviceInfo.TYPE_USB_DEVICE:
+                return "USB device";
             case AudioDeviceInfo.TYPE_WIRED_HEADPHONES:
                 return "Wired headphones";
             case AudioDeviceInfo.TYPE_WIRED_HEADSET:
@@ -269,6 +271,8 @@ class QtAudioDeviceManager
     private static final HashMap<Integer, Integer> priorityMap = new HashMap<Integer, Integer>() {{
         put(AudioDeviceInfo.TYPE_WIRED_HEADSET, 1);
         put(AudioDeviceInfo.TYPE_WIRED_HEADPHONES, 1);
+        put(AudioDeviceInfo.TYPE_USB_DEVICE, 1);
+        // NOTE: Should TYPE_USB_ACCESSORY also have priority level 1?
         put(AudioDeviceInfo.TYPE_BLUETOOTH_A2DP, 2);
         put(AudioDeviceInfo.TYPE_BLUETOOTH_SCO, 2);
         put(AudioDeviceInfo.TYPE_BUILTIN_SPEAKER, 3);
