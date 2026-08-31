@@ -393,7 +393,7 @@ qt_internal_extend_target(Multimedia CONDITION MACOS
 
 qt_internal_extend_target(Multimedia CONDITION IOS OR TVOS OR VISIONOS
     SOURCES
-        coreaudio/qcoreaudiosessionmanager.mm coreaudio/qcoreaudiosessionmanager_p.h
+        coreaudio/qavaudiosessionmanager.mm coreaudio/qavaudiosessionmanager_p.h
     LIBRARIES
         ${FWAVFoundation}
         ${FWFoundation}
