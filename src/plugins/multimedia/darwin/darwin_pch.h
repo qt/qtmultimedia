@@ -15,10 +15,4 @@
 #ifdef Q_OS_MACOS
 #import <AppKit/AppKit.h>
 #import <VideoToolbox/VideoToolbox.h>
-#import <ApplicationServices/ApplicationServices.h>
-#import <AudioUnit/AudioUnit.h>
-#endif
-
-#ifdef Q_OS_IOS
-#import <CoreGraphics/CoreGraphics.h>
 #endif

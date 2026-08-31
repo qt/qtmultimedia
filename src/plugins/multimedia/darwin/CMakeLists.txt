@@ -23,13 +23,14 @@ qt_internal_add_plugin(QDarwinMediaPlugin
         Qt::MultimediaPrivate
         Qt::CorePrivate
         Qt::Concurrent
-        ${FWAudioToolbox}
         ${FWAVFoundation}
+        ${FWAudioToolbox}
         ${FWCoreMedia}
         ${FWCoreVideo}
         ${FWFoundation}
         ${FWMetal}
         ${FWQuartzCore}
+        ${FWVideoToolbox}
     COMPILE_OPTIONS
         -Wno-c++20-extensions
     PRECOMPILED_HEADER
@@ -51,13 +52,4 @@ qt_internal_extend_target(QDarwinMediaPlugin CONDITION NOT TVOS AND NOT VISIONOS
 qt_internal_extend_target(QDarwinMediaPlugin CONDITION MACOS
     LIBRARIES
         ${FWAppKit}
-        ${FWAudioUnit}
-        ${FWVideoToolbox}
-        ${FWApplicationServices}
-)
-
-qt_internal_extend_target(QDarwinMediaPlugin CONDITION IOS OR VISIONOS
-    LIBRARIES
-        ${FWCoreGraphics}
-        ${FWCoreVideo}
 )
