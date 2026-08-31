@@ -9,6 +9,9 @@
 
 #include <QtMultimedia/qaudiooutput.h>
 #include <QtMultimedia/private/qplatformaudiooutput_p.h>
+#if defined(Q_OS_IOS) || defined(Q_OS_VISIONOS) || defined(Q_OS_TVOS)
+#  include <QtMultimedia/private/qavaudiosessionmanager_p.h>
+#endif
 
 #include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
@@ -147,7 +150,7 @@ struct GuardedPlatformPlayer
 
 @synthesize m_player, m_playerItem, m_playerLayer;
 
-#ifdef Q_OS_IOS
+#if defined(Q_OS_IOS) || defined(Q_OS_VISIONOS) || defined(Q_OS_TVOS)
 - (void)setSessionActive:(BOOL)active
 {
     const QMutexLocker lock(&sessionMutex);
@@ -171,7 +174,7 @@ struct GuardedPlatformPlayer
             [AVAudioSession.sharedInstance setActive:NO error:nil];
     }
 }
-#endif // Q_OS_IOS
+#endif // defined(Q_OS_IOS) || defined(Q_OS_VISIONOS) || defined(Q_OS_TVOS)
 
 - (AVFMediaPlayerObserver *) initWithMediaPlayerSession:(AVFMediaPlayer *)session
 {
@@ -257,7 +260,7 @@ struct GuardedPlatformPlayer
     }
     if (m_playerLayer)
         m_playerLayer.player = nil;
-#if defined(Q_OS_IOS)
+#if defined(Q_OS_IOS) || defined(Q_OS_VISIONOS) || defined(Q_OS_TVOS)
     [self setSessionActive:NO];
 #endif
 }
@@ -379,8 +382,9 @@ struct GuardedPlatformPlayer
                           forKeyPath:AVF_CURRENT_ITEM_DURATION_KEY
                           options:0
                           context:AVFMediaPlayerObserverCurrentItemDurationObservationContext];
-#if defined(Q_OS_IOS)
+#if defined(Q_OS_IOS) || defined(Q_OS_VISIONOS) || defined(Q_OS_TVOS)
     [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback withOptions:AVAudioSessionCategoryOptionMixWithOthers error:nil];
+    QtMultimediaPrivate::QAVAudioSessionManager::instance()->updateConfiguration();
     [self setSessionActive:YES];
 #endif
 }

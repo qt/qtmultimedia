@@ -23,7 +23,6 @@
 #  include <QtMultimedia/private/qmacosaudiodatautils_p.h>
 #else
 #  import <AVFoundation/AVAudioSession.h>
-#  include <QtMultimedia/private/qcoreaudiosessionmanager_p.h>
 #endif
 
 QT_BEGIN_NAMESPACE

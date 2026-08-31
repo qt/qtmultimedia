@@ -14,10 +14,8 @@
 #include <QtCore/qdebug.h>
 
 #if defined(QT_PLATFORM_UIKIT)
-#  include <QtMultimedia/private/qcoreaudiosessionmanager_p.h>
 #  import <AVFoundation/AVFoundation.h>
 #else
-
 #  include <QtMultimedia/private/qmacosaudiodatautils_p.h>
 #endif
 

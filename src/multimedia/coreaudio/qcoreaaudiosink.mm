@@ -21,8 +21,6 @@
 #ifdef Q_OS_MACOS
 #  include <AudioUnit/AudioComponent.h>
 #  include <QtMultimedia/private/qmacosaudiodatautils_p.h>
-#else
-#  include <QtMultimedia/private/qcoreaudiosessionmanager_p.h>
 #endif
 
 #include <variant>

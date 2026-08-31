@@ -21,8 +21,6 @@
 #include <QtMultimedia/private/qcoreaudiodevices_p.h>
 #ifdef Q_OS_MACOS
 #  include <QtMultimedia/private/qmacosaudiodatautils_p.h>
-#else
-#  include <QtMultimedia/private/qcoreaudiosessionmanager_p.h>
 #endif
 
 QT_BEGIN_NAMESPACE
