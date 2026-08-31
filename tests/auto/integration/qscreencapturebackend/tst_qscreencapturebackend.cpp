@@ -16,6 +16,7 @@
 
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
 #include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
+#include <QtMultimediaTestLib/private/testvideosink_p.h>
 
 #include <QtTest/qsignalspy.h>
 #include <QtTest/qtest.h>
@@ -142,73 +143,6 @@ private:
     QColor m_secondColor;
     bool m_animated = false;
     unsigned m_animationTick = 0;
-};
-
-class TestVideoSink : public QVideoSink
-{
-    Q_OBJECT
-public:
-    TestVideoSink()
-    {
-        connect(this, &QVideoSink::videoFrameChanged, this, &TestVideoSink::videoFrameChangedSync);
-
-#ifdef Q_OS_ANDROID
-        // Repaint to force the Screen Grabber to work
-        connect(this, &QVideoSink::videoFrameChanged, this, []() {
-            for (QWidget* widget : QApplication::topLevelWidgets()) { widget->update(); }});
-#endif
-    }
-
-    void setStoreImagesEnabled(bool storeImages = true) {
-        if (storeImages)
-            connect(this, &QVideoSink::videoFrameChanged, this, &TestVideoSink::storeImage, Qt::UniqueConnection);
-        else
-            disconnect(this, &QVideoSink::videoFrameChanged, this, &TestVideoSink::storeImage);
-    }
-
-    const std::vector<QImage> &images() const { return m_images; }
-
-    QVideoFrame waitForFrame()
-    {
-        QSignalSpy spy(this, &TestVideoSink::videoFrameChangedSync);
-        return spy.wait() ? spy.at(0).at(0).value<QVideoFrame>() : QVideoFrame{};
-    }
-
-    std::chrono::milliseconds durationBetweenFrames(qsizetype frameCount)
-    {
-        Q_ASSERT(frameCount > 0);
-
-        QElapsedTimer timer;
-        qsizetype framesReceived = 0;
-
-        QObject context;
-        connect(this, &QVideoSink::videoFrameChanged, &context, [&] {
-            if (framesReceived++ == 0)
-                timer.start();
-        });
-
-        auto allFramesAreReceived = [&]() {
-            return framesReceived > frameCount;
-        };
-
-        using namespace std::chrono;
-        return QTest::qWaitFor(allFramesAreReceived, seconds(10))
-                ? milliseconds(timer.elapsed() / frameCount)
-                : milliseconds(0);
-    }
-
-signals:
-    void videoFrameChangedSync(QVideoFrame frame);
-
-private:
-    void storeImage(const QVideoFrame &frame) {
-        auto image = frame.toImage();
-        image.detach();
-        m_images.push_back(std::move(image));
-    }
-
-private:
-    std::vector<QImage> m_images;
 };
 
 class tst_QScreenCaptureBackend : public QIntegrationTestBase
