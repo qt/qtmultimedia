@@ -6,6 +6,8 @@
 
 #include <QtSpatialAudio/qtspatialaudioglobal.h>
 #include <QtCore/qobject.h>
+
+#include <QtGui/qquaternion.h>
 #include <QtGui/qvector3d.h>
 
 QT_BEGIN_NAMESPACE

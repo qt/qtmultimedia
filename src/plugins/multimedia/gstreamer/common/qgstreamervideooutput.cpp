@@ -98,6 +98,7 @@ void QGstreamerVideoOutput::setVideoSink(QVideoSink *sink)
         videoSink = QGstElement::createFromFactory("fakesink", "fakevideosink");
         Q_ASSERT(videoSink);
         videoSink.set("sync", true);
+        videoSink.set("async", false);
     }
 
     QObject::disconnect(m_subtitleConnection);

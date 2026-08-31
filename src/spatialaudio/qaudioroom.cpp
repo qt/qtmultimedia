@@ -10,7 +10,7 @@ inline QVector3D toVector(const float *f)
     return QVector3D(f[0], f[1], f[2]);
 }
 
-inline void toFloats(const QVector3D &v, float *f)
+inline void toFloats(QVector3D v, float *f)
 {
     f[0] = v.x();
     f[1] = v.y();
@@ -23,7 +23,7 @@ inline QQuaternion toQuaternion(const float *f)
     return QQuaternion(f[3], f[0], f[1], f[2]);
 }
 
-inline void toFloats(const QQuaternion &q, float *f)
+inline void toFloats(QQuaternion q, float *f)
 {
     f[0] = q.x();
     f[1] = q.y();
@@ -37,7 +37,7 @@ inline void toFloats(const QQuaternion &q, float *f)
 // We define both occlusion and dampening constants to be able to tune the
 // sound. Dampening only reduces the level of the sound without affecting its
 // tone, while occlusion will dampen higher frequencies more than lower ones
-struct {
+constexpr struct {
     float occlusion;
     float dampening;
 } occlusionAndDampening[] = {
