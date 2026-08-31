@@ -18,7 +18,9 @@
 #include <qvideosink.h>
 #include <qvideoframe.h>
 #include <qelapsedtimer.h>
+#include <qimage.h>
 #include <chrono>
+#include <vector>
 
 QT_BEGIN_NAMESPACE
 
@@ -35,8 +37,14 @@ public:
 
     void setStoreFrames(bool storeFrames = true) { m_storeFrames = storeFrames; }
 
+    void setStoreImagesEnabled(bool storeImages = true);
+    const std::vector<QImage> &images() const { return m_images; }
+
+    std::chrono::milliseconds durationBetweenFrames(qsizetype frameCount);
+
 private Q_SLOTS:
     void addVideoFrame(const QVideoFrame &frame);
+    void storeImage(const QVideoFrame &frame);
 
 signals:
     void videoFrameChangedSync(const QVideoFrame &frame);
@@ -50,6 +58,7 @@ public:
 
 private:
     bool m_storeFrames;
+    std::vector<QImage> m_images;
 };
 
 QT_END_NAMESPACE
