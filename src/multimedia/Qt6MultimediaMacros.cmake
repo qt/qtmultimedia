@@ -13,7 +13,7 @@ if(NOT QT_NO_CREATE_VERSIONLESS_FUNCTIONS)
 endif()
 
 function(qt6_add_ios_ffmpeg_libraries target)
-    if(NOT IOS)
+    if(NOT IOS OR NOT TARGET Qt6::QFFmpegMediaPlugin)
         return()
     endif()
 
