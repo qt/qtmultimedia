@@ -7,13 +7,13 @@
     "SecurityCritical": true,
 
     "Homepage": "https://github.com/mackron/dr_libs",
-    "Version": "0.14.6-snapshot-955edd32",
-    "DownloadLocation": "https://github.com/mackron/dr_libs/commit/955edd32b4b9206448c2ee6eed0b289c47d49ed3",
+    "Version": "0.14.6-snapshot-ee937527",
+    "DownloadLocation": "https://github.com/mackron/dr_libs/commit/ee93752fec1274be42dda95baabcd9d9fb8efc29",
 
     "License": "The Unlicense or MIT No Attribution",
     "LicenseId": "Unlicense OR MIT-0",
     "LicenseFiles": [
         "LICENSE"
     ],
-    "PURL": "pkg:github/mackron/dr_libs@955edd32b4b9206448c2ee6eed0b289c47d49ed3"
+    "PURL": "pkg:github/mackron/dr_libs@ee93752fec1274be42dda95baabcd9d9fb8efc29"
 }
