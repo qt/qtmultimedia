@@ -62,9 +62,11 @@ QAudioContextManager::~QAudioContextManager()
         stopActiveStreams();
     }
 
-    m_deviceMonitor.reset();
-    m_registry.reset();
-    m_coreConnection.reset();
+    m_pwInstance->runWithEventLoopLock([&] {
+        m_deviceMonitor.reset();
+        m_registry.reset();
+        m_coreConnection.reset();
+    });
 }
 
 bool QAudioContextManager::minimumRequirementMet()
