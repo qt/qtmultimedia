@@ -268,6 +268,12 @@ class QtAudioDeviceManager
 
     }
 
+    private static boolean isDeviceTypeSupported(int type)
+    {
+        return audioDeviceTypeToString(type)
+                   != audioDeviceTypeToString(AudioDeviceInfo.TYPE_UNKNOWN);
+    }
+
     private static final HashMap<Integer, Integer> priorityMap = new HashMap<Integer, Integer>() {{
         put(AudioDeviceInfo.TYPE_WIRED_HEADSET, 1);
         put(AudioDeviceInfo.TYPE_WIRED_HEADPHONES, 1);
@@ -305,12 +311,11 @@ class QtAudioDeviceManager
             sortAudioDevices(audioDevices);
 
             for (AudioDeviceInfo deviceInfo : audioDevices) {
-                String deviceType = audioDeviceTypeToString(deviceInfo.getType());
-
-                if (deviceType.equals(audioDeviceTypeToString(AudioDeviceInfo.TYPE_UNKNOWN))) {
-                    // Not supported device type
+                if (!isDeviceTypeSupported(deviceInfo.getType()))
                     continue;
-                } else if (deviceType.equals(audioDeviceTypeToString(AudioDeviceInfo.TYPE_BUILTIN_MIC))) {
+
+                String deviceType = audioDeviceTypeToString(deviceInfo.getType());
+                if (deviceType.equals(audioDeviceTypeToString(AudioDeviceInfo.TYPE_BUILTIN_MIC))) {
                     if (builtInMicAdded) {
                         // Built in mic already added. Second built in mic is CAMCORDER, but there
                         // is no reliable way of selecting it. AudioSource.MIC usually means the
