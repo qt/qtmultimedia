@@ -473,8 +473,6 @@ qt_internal_extend_target(Multimedia CONDITION WASM
         wasm/qwasmjs.cpp wasm/qwasmjs_p.h
     INCLUDE_DIRECTORIES
         wasm
-    PUBLIC_LIBRARIES
-        openal
 )
 
 if(WASM AND QT_FEATURE_thread)
