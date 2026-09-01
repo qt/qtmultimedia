@@ -39,9 +39,9 @@ bool supportsLowLatency()
     return lowLatencyIsSupported;
 }
 
-bool isDefaultBluetoothDevice(const QAudioDevice &device)
+bool isBluetoothDevice(const QAudioDevice &device)
 {
-    return device.isDefault() && QAudioDevicePrivate::handle<QAndroidAudioDevice>(device)->isBluetoothDevice();
+    return QAudioDevicePrivate::handle<QAndroidAudioDevice>(device)->isBluetoothDevice();
 }
 
 } // namespace QAndroidAudioUtil

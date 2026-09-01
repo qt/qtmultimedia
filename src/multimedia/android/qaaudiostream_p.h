@@ -62,6 +62,7 @@ struct StreamParameterSet
     aaudio_usage_t outputUsage = AAUDIO_USAGE_MEDIA;
     aaudio_content_type_t outputContentType = AAUDIO_CONTENT_TYPE_MUSIC;
     aaudio_input_preset_t inputPreset = AAUDIO_INPUT_PRESET_VOICE_RECOGNITION;
+    aaudio_performance_mode_t performanceMode = AAUDIO_PERFORMANCE_MODE_NONE;
 };
 
 struct StreamBuilder
