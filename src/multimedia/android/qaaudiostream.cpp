@@ -93,10 +93,10 @@ void StreamBuilder::setupBuilder()
     StreamParameterSet defaultParams;
     if (params.sharingMode != defaultParams.sharingMode)
         AAudioStreamBuilder_setSharingMode(m_builder, params.sharingMode);
-    // Set performance mode to low latency if mmap policy cannot be set
     if (params.direction == AAUDIO_DIRECTION_OUTPUT) {
-        AAudioStreamBuilder_setPerformanceMode(m_builder, AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
-        setMMapPolicy(2); // Also set MMap policy to AUTO
+        if (params.performanceMode != defaultParams.performanceMode)
+            AAudioStreamBuilder_setPerformanceMode(m_builder, params.performanceMode);
+        setMMapPolicy(2); // Ensure MMap policy is set to AUTO
         if (params.outputUsage != defaultParams.outputUsage)
             AAudioStreamBuilder_setUsage(m_builder, params.outputUsage);
         if (params.outputContentType != defaultParams.outputContentType)

@@ -28,9 +28,7 @@ QAndroidAudioSinkStream::QAndroidAudioSinkStream(QAudioDevice device, const QAud
     qCDebug(qLcAndroidAudioSink) << "Creating sink for device id:" << m_audioDevice.id()
                                  << ", description:" << m_audioDevice.description();
 
-    // NOTE: Don't set device when creating a stream for the default bluetooth device
-    if (!QAndroidAudioUtil::isDefaultBluetoothDevice(m_audioDevice))
-        builder.deviceId = m_audioDevice.id().toInt();
+    builder.deviceId = m_audioDevice.id().toInt();
 
     // Set buffer parameters
     builder.bufferCapacity = m_hardwareBufferFrames ? *m_hardwareBufferFrames : 1024;
@@ -59,6 +57,9 @@ QAndroidAudioSinkStream::QAndroidAudioSinkStream(QAudioDevice device, const QAud
         builder.params.outputContentType = AAUDIO_CONTENT_TYPE_MUSIC;
         break;
     }
+
+    if (QAndroidAudioUtil::supportsLowLatency() && !QAndroidAudioUtil::isBluetoothDevice(m_audioDevice))
+        builder.params.performanceMode = AAUDIO_PERFORMANCE_MODE_LOW_LATENCY;
 
     builder.userData = this;
     builder.callback = [](AAudioStream *, void *userData, void *audioData,
