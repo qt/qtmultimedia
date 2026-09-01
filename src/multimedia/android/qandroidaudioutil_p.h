@@ -23,7 +23,7 @@ QT_BEGIN_NAMESPACE
 namespace QAndroidAudioUtil {
 
 Q_MULTIMEDIA_EXPORT bool supportsLowLatency();
-Q_MULTIMEDIA_EXPORT bool isDefaultBluetoothDevice(const QAudioDevice &device);
+Q_MULTIMEDIA_EXPORT bool isBluetoothDevice(const QAudioDevice &device);
 
 } // namespace QAndroidAudioUtil
 
