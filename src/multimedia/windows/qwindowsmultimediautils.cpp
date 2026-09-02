@@ -256,13 +256,20 @@ std::optional<QCameraFormat> cameraFormatFromMediaType(IMFMediaType *mediaFormat
 
     if (SUCCEEDED(MFGetAttributeRatio(mediaFormat, MF_MT_FRAME_RATE_RANGE_MIN, &num, &den)))
         minFr = float(num) / float(den);
-    else
-        return std::nullopt;
 
     if (SUCCEEDED(MFGetAttributeRatio(mediaFormat, MF_MT_FRAME_RATE_RANGE_MAX, &num, &den)))
         maxFr = float(num) / float(den);
-    else
-        return std::nullopt;
+
+    // The range attributes are optional: a source enumerating one media type per
+    // discrete frame rate states only MF_MT_FRAME_RATE.
+    if ((minFr == 0.f || maxFr == 0.f)
+        && SUCCEEDED(MFGetAttributeRatio(mediaFormat, MF_MT_FRAME_RATE, &num, &den))) {
+        const float frameRate = float(num) / float(den);
+        if (minFr == 0.f)
+            minFr = frameRate;
+        if (maxFr == 0.f)
+            maxFr = frameRate;
+    }
 
     auto *f = new QCameraFormatPrivate{
         QSharedData(), pixelFormat, resolution, minFr, maxFr, colorRange, colorSpace,

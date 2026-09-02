@@ -58,5 +58,6 @@ add_subdirectory(ranges)
 add_subdirectory(iteratorfacade)
 
 if(WIN32)
+    add_subdirectory(qwindowsmultimediautils)
     add_subdirectory(qwindowsresampler)
 endif()
