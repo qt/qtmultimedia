@@ -957,9 +957,6 @@ void QVideoFrame::paint(QPainter *painter, const QRectF &rect, const PaintOption
         return;
 
     // draw subtitles
-    auto text = d->subtitleText;
-    text.replace(QLatin1Char('\n'), QChar::LineSeparator);
-
     QVideoTextureHelper::SubtitleLayout layout;
     layout.update(targetRect.size().toSize(), this->subtitleText());
     layout.draw(painter, targetRect.topLeft());
