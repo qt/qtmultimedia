@@ -154,7 +154,6 @@ qsizetype QSoundEffectVoice::playVoice(QSpan<float> outputBuffer) noexcept Q_DEC
     const qsizetype outputSamples = outputBuffer.size();
     const qsizetype maxFrames = std::min(sampleSamples / sampleCh, outputSamples / engineCh);
     const qsizetype framesToPlay = maxFrames;
-    const qsizetype outputSamplesPlayed = framesToPlay * engineCh;
 
     enum ConversionType : uint8_t { SameChannels, MonoToStereo, StereoToMono };
     const ConversionType conversion = [&] {
@@ -167,10 +166,8 @@ qsizetype QSoundEffectVoice::playVoice(QSpan<float> outputBuffer) noexcept Q_DEC
         Q_UNREACHABLE_RETURN(SameChannels);
     }();
 
-    if (m_muted || m_volume == 0.f) {
-        std::fill_n(outputBuffer.begin(), outputSamplesPlayed, 0.f);
+    if (m_muted || m_volume == 0.f)
         return framesToPlay;
-    }
 
     // later: (auto)vectorize?
     switch (conversion) {

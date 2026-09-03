@@ -56,7 +56,8 @@ private slots:
     void testQSoundEffectVoiceStereoToMono();
     void testQSoundEffectVoiceSameChannels();
     void testQSoundEffectVoiceWithVolume();
-    void testQSoundEffectVoiceMuted();
+    void testQSoundEffectVoiceSilentLeavesMixIntact_data();
+    void testQSoundEffectVoiceSilentLeavesMixIntact();
     void testQSoundEffectVoiceLooping();
 
     void testSourceResolver();
@@ -631,8 +632,20 @@ void tst_QSoundEffect::testQSoundEffectVoiceWithVolume()
     QCOMPARE(buffer[3], 0.25f);
 }
 
-void tst_QSoundEffect::testQSoundEffectVoiceMuted()
+void tst_QSoundEffect::testQSoundEffectVoiceSilentLeavesMixIntact_data()
 {
+    QTest::addColumn<float>("volume");
+    QTest::addColumn<bool>("muted");
+
+    QTest::newRow("muted") << 1.0f << true;
+    QTest::newRow("zeroVolume") << 0.0f << false;
+}
+
+void tst_QSoundEffect::testQSoundEffectVoiceSilentLeavesMixIntact()
+{
+    QFETCH(float, volume);
+    QFETCH(bool, muted);
+
     std::array<float, 2> sampleData = { 1.0f, 0.5f };
     QAudioFormat sampleFormat;
     sampleFormat.setSampleFormat(QAudioFormat::Float);
@@ -643,16 +656,16 @@ void tst_QSoundEffect::testQSoundEffectVoiceMuted()
     QAudioFormat engineFormat = sampleFormat;
     engineFormat.setChannelCount(2);
 
-    QSoundEffectVoice voice(VoiceId{ 0 }, sample, 1.0f, true, 1, engineFormat);
+    QSoundEffectVoice voice(VoiceId{ 0 }, sample, volume, muted, 1, engineFormat);
 
-    std::array<float, 4> buffer = { 1.0f, 1.0f, 1.0f, 1.0f }; // Non-zero to check muting
+    std::array<float, 4> buffer = { 0.25f, -0.5f, 0.75f, -0.125f };
     qsizetype played = voice.playVoice(buffer);
 
     QCOMPARE(played, 2);
-    QCOMPARE(buffer[0], 0.0f);
-    QCOMPARE(buffer[1], 0.0f);
-    QCOMPARE(buffer[2], 0.0f);
-    QCOMPARE(buffer[3], 0.0f);
+    QCOMPARE(buffer[0], 0.25f);
+    QCOMPARE(buffer[1], -0.5f);
+    QCOMPARE(buffer[2], 0.75f);
+    QCOMPARE(buffer[3], -0.125f);
 }
 
 void tst_QSoundEffect::testQSoundEffectVoiceLooping()
