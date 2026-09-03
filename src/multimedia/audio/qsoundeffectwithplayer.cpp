@@ -291,10 +291,6 @@ void QSoundEffectPrivateWithPlayer::setResolvedAudioDevice(QAudioDevice device)
             play(voice->clone(m_player->audioSink().format()));
 
         setStatus(QSoundEffect::Ready);
-
-        for (const auto &voice : voices)
-            // we re-allocate a new voice ID and play on the new player
-            play(voice->clone());
     } else {
         setStatus(m_sampleLoadFuture ? QSoundEffect::Loading : QSoundEffect::Null);
     }
