@@ -39,14 +39,15 @@ QImage::Format fixImageFormat(QImage::Format format)
 
 QImage fixImage(QImage image)
 {
-    if (image.format() == QImage::Format_Invalid)
+    const auto imageFormat = image.format();
+    if (imageFormat == QImage::Format_Invalid)
         return image;
 
-    const auto frameFormat = QVideoFrameFormat::pixelFormatFromImageFormat(image.format());
+    const auto frameFormat = QVideoFrameFormat::pixelFormatFromImageFormat(imageFormat);
     if (frameFormat != QVideoFrameFormat::Format_Invalid)
         return image;
 
-    return image.convertToFormat(fixImageFormat(image.format()));
+    return std::move(image).convertToFormat(fixImageFormat(imageFormat));
 }
 
 } // namespace
