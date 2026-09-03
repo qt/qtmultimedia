@@ -6,6 +6,7 @@ package org.qtproject.qt.android.multimedia.qffmpeg;
 import android.app.Activity;
 import android.hardware.camera2.CameraManager;
 import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
 
 import org.qtproject.qt.android.UsedFromNativeCode;
@@ -25,6 +26,7 @@ class QtCameraAvailabilityListener extends CameraManager.AvailabilityCallback {
     // Should only ever be accessed from mAvailabilityCallbackHandler thread.
     long mVideoDevicesNativePtr = 0;
 
+    HandlerThread mHandlerThread = null;
     Handler mAvailabilityCallbackHandler = null;
 
     // Called from any native C++ thread.
@@ -33,8 +35,10 @@ class QtCameraAvailabilityListener extends CameraManager.AvailabilityCallback {
         mCameraManager = (CameraManager)activity.getSystemService(Activity.CAMERA_SERVICE);
         mVideoDevicesNativePtr = videoDevicesNativePtr;
 
-        // We use the Android main UI thread for receiving callbacks.
-        mAvailabilityCallbackHandler = new Handler(activity.getMainLooper());
+        assert(mHandlerThread == null);
+        mHandlerThread = new HandlerThread("QtCameraAvailabilityCallbacks");
+        mHandlerThread.start();
+        mAvailabilityCallbackHandler = new Handler(mHandlerThread.getLooper());
 
         // TODO: This will call C++ updateNativeVideoDevices() for each currently available
         // camera when registered, possibly leading to us enumerating video-devices unncessarily
@@ -83,7 +87,9 @@ class QtCameraAvailabilityListener extends CameraManager.AvailabilityCallback {
                 "QAndroidVideoDevices cleanup.");
         }
 
-        // After waiting, QAndroidVideoDevices can now be safely destroyed.
+        mHandlerThread.quitSafely();
+        mHandlerThread = null;
+        mAvailabilityCallbackHandler = null;
     }
 
     native void onCameraAvailableNative(long videoDevicesNativePtr);
