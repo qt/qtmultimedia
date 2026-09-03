@@ -201,8 +201,7 @@ void RecordingEngine::EncodingFinalizer::run()
 
     qCDebug(qLcFFmpegEncoder) << "Media recording finalized";
     emit m_recordingEngine.finalizationDone();
-    auto recordingEnginePtr = &m_recordingEngine;
-    delete recordingEnginePtr;
+    m_recordingEngine.deleteLater(); // defer destruction to m_recordingEngine's thread
 }
 
 void RecordingEngine::finalize()
