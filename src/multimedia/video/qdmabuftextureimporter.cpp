@@ -6,8 +6,7 @@
 #include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtMultimedia/private/qvideotexturehelper_p.h>
 
-#include <QtGui/qguiapplication.h>
-#include <QtGui/qpa/qplatformnativeinterface.h>
+#include <QtGui/qopenglcontext.h>
 #include <QtGui/rhi/qrhi.h>
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qscopeguard.h>
@@ -52,20 +51,24 @@ DmaBufEglContext::DmaBufEglContext(QRhi *rhi)
         return;
     }
 
-    auto *nativeHandles = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles());
-    m_glContext = nativeHandles->context;
+    m_glContext = static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles())->context;
     if (!m_glContext) {
         qCDebug(qLDmaBuf) << "    no GL context, disabling";
         return;
     }
-    QPlatformNativeInterface *pni = QGuiApplication::platformNativeInterface();
-    m_eglDisplay = pni->nativeResourceForIntegration(QByteArrayLiteral("egldisplay"));
-    qCDebug(qLDmaBuf) << "     platform is" << QGuiApplication::platformName() << m_eglDisplay;
 
+    auto *eglContext = m_glContext->nativeInterface<QNativeInterface::QEGLContext>();
+    if (!eglContext) {
+        qCDebug(qLDmaBuf) << "    no EGL context, disabling";
+        return;
+    }
+
+    m_eglDisplay = eglContext->display();
     if (!m_eglDisplay) {
         qCDebug(qLDmaBuf) << "    no egl display, disabling";
         return;
     }
+
     if (!QEglImageFunctions::instance().isValid()) {
         qCDebug(qLDmaBuf) << "    no eglImageTargetTexture2D, disabling";
         return;
