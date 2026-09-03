@@ -63,6 +63,7 @@ private slots:
     void testSourceResolver();
 
     void changeDeviceBetweenPlay();
+    void setAudioDevice_restoresOneVoicePerPlayingVoice();
 
     void getPlaybackEngine();
     void getPlaybackEngine_nullDevice();
@@ -751,6 +752,38 @@ void tst_QSoundEffect::changeDeviceBetweenPlay()
 
 using QRtAudioEngine = QtMultimediaPrivate::QRtAudioEngine;
 using QSoundEffectPrivateWithPlayer = QtMultimediaPrivate::QSoundEffectPrivateWithPlayer;
+
+void tst_QSoundEffect::setAudioDevice_restoresOneVoicePerPlayingVoice()
+{
+    QList outputs = QMediaDevices::audioOutputs();
+    if (outputs.size() < 2)
+        QSKIP("Needs at least 2 audioOuputs");
+
+    auto *effect = dynamic_cast<QSoundEffectPrivateWithPlayer *>(QSoundEffectPrivate::get(sound));
+    if (!effect)
+        QSKIP("Needs the QRtAudioEngine backed QSoundEffect");
+
+    sound->setAudioDevice(outputs[0]);
+    sound->setVolume(0.1f);
+    sound->setLoopCount(QSoundEffect::Infinite);
+    sound->setSource(url2);
+    QTRY_COMPARE(sound->status(), QSoundEffect::Ready);
+    sound->play();
+    QTRY_VERIFY(sound->isPlaying());
+
+    QCOMPARE(effect->voices().size(), size_t(1));
+    QCOMPARE((*effect->voices().begin())->m_engineFormat, effect->player()->audioSink().format());
+
+    sound->setAudioDevice(outputs[1]);
+    QCOMPARE(effect->voices().size(), size_t(1));
+    QCOMPARE((*effect->voices().begin())->m_engineFormat, effect->player()->audioSink().format());
+
+    sound->setAudioDevice(outputs[0]);
+    QCOMPARE(effect->voices().size(), size_t(1));
+    QCOMPARE((*effect->voices().begin())->m_engineFormat, effect->player()->audioSink().format());
+
+    sound->stop();
+}
 
 void tst_QSoundEffect::getPlaybackEngine()
 {
