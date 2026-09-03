@@ -71,10 +71,10 @@ public:
 // * the most recently created voice can be obtained via `activeVoice()`
 // * mute/volume will affect all voices
 // * loopCount/loopRemaining will be obtained from most recently created voice
-class QSoundEffectPrivateWithPlayer final : public QObject, public QSoundEffectPrivate
+class Q_MULTIMEDIA_EXPORT QSoundEffectPrivateWithPlayer final : public QObject,
+                                                                public QSoundEffectPrivate
 {
 public:
-    Q_MULTIMEDIA_EXPORT
     static std::shared_ptr<QRtAudioEngine> getEngineFor(const QAudioDevice &, const QAudioFormat &);
 
     QSoundEffectPrivateWithPlayer(QSoundEffect *q, QAudioDevice audioDevice);
@@ -97,6 +97,10 @@ public:
     void play() override;
     void stop() override;
     bool playing() const override;
+
+    // testing
+    const std::shared_ptr<QRtAudioEngine> &player() const { return m_player; }
+    const auto &voices() const { return m_voices; }
 
 private:
     void play(std::shared_ptr<QSoundEffectVoice>);
