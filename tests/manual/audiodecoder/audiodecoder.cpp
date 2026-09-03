@@ -71,7 +71,10 @@ void AudioDecoder::bufferReady()
             m_decoder.stop();
             return;
         }
+        QT_WARNING_PUSH
+        QT_WARNING_DISABLE_DEPRECATED
         m_waveDecoder = new QWaveDecoder(target, buffer.format());
+        QT_WARNING_POP
     }
 
     if (!m_waveDecoder
