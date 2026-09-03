@@ -70,11 +70,11 @@ public:
     void invalidate() { m_valid = false; }
 
     QOpenGLContext *glContext() const { return m_glContext; }
-    Qt::HANDLE eglDisplay() const { return m_eglDisplay; }
+    EGLDisplay eglDisplay() const { return m_eglDisplay; }
 
 private:
     QOpenGLContext *m_glContext = nullptr;
-    Qt::HANDLE m_eglDisplay = nullptr;
+    EGLDisplay m_eglDisplay = nullptr;
     bool m_valid = false;
 };
 
