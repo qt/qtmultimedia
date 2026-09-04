@@ -314,7 +314,7 @@ static GlTextures mapFromGlTexture(const QGstBufferHandle &bufferHandle, GstVide
 
 #  if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
 static GlTextures mapFromDmaBuffer(QRhi *rhi, const QGstBufferHandle &bufferHandle,
-                                   const QGstVideoInfo &videoInfo, Qt::HANDLE eglDisplay)
+                                   const QGstVideoInfo &videoInfo, EGLDisplay eglDisplay)
 {
     qCDebug(qLcGstVideoBuffer) << "Importing textures from DMA buffer";
     logGlAndEglErrors("mapFromDmaBuffer");
@@ -517,9 +517,9 @@ QVideoFrameTexturesUPtr QGstVideoBuffer::mapTextures(QRhi &rhi, QVideoFrameTextu
         textures = mapFromGlTexture(m_buffer, m_frame, m_videoInfo.gstVideoInfo);
 
 #  if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
-    else if (m_memoryFormat == QGstCaps::DMABuf && qGstEglCanMapDmaBuf()
+    else if (m_memoryFormat == QGstCaps::DMABuf && qGstEglCanMapDmaBuf(&rhi)
              && rhi.backend() == QRhi::OpenGLES2)
-        textures = mapFromDmaBuffer(&rhi, m_buffer, m_videoInfo, qGstEglDisplay());
+        textures = mapFromDmaBuffer(&rhi, m_buffer, m_videoInfo, qGstEglDisplay(&rhi));
 #  endif
     if (textures.count > 0)
         return std::make_unique<QGstQVideoFrameTextures>(

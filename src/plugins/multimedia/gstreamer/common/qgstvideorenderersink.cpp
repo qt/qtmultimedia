@@ -87,7 +87,7 @@ QGstCaps QGstVideoRenderer::createSurfaceCaps([[maybe_unused]] QGstreamerRelayVi
     if (rhi && rhi->backend() == QRhi::OpenGLES2) {
         caps.addPixelFormats(formats, GST_CAPS_FEATURE_MEMORY_GL_MEMORY);
 #  if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
-        if (qGstEglCanMapDmaBuf()) {
+        if (qGstEglCanMapDmaBuf(rhi)) {
             caps.addPixelFormats(formats, GST_CAPS_FEATURE_MEMORY_DMABUF);
         }
 #  endif
@@ -256,11 +256,11 @@ GstFlowReturn QGstVideoRenderer::render(GstBuffer *buffer)
     // correct shader.
     const bool setFormat_RGBA8888 = [&] {
 #if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
+        QRhi *rhi = m_sink ? m_sink->rhi() : nullptr;
         if ((m_format.pixelFormat() == QVideoFrameFormat::Format_UYVY
              || m_format.pixelFormat() == QVideoFrameFormat::Format_YUYV)
-            && bufferMemoryFormat == QGstCaps::DMABuf && m_sink && qGstEglCanMapDmaBuf()) {
+            && bufferMemoryFormat == QGstCaps::DMABuf && qGstEglCanMapDmaBuf(rhi)) {
 
-            QRhi *rhi = m_sink->rhi();
             if (!rhi || rhi->backend() != QRhi::OpenGLES2)
                 return false;
 
