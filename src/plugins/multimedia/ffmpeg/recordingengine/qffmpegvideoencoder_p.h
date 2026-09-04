@@ -42,8 +42,12 @@ protected:
     bool checkIfCanPushFrame() const override;
 
 private:
-    FrameInfo takeFrame();
+    FrameInfo dequeueAdaptedFrame();
     void retrievePackets();
+
+    [[nodiscard]] bool tryPushToInputQueue(const QVideoFrame &frame);
+    void saturateEncoderQueue();
+    void flushAdapter();
 
     bool init() override;
     void cleanup() override;
@@ -54,8 +58,17 @@ private:
 
     QMediaEncoderSettings m_settings;
     VideoFrameEncoder::SourceParams m_sourceParams;
-    std::queue<FrameInfo> m_videoFrameQueue;
-    const size_t m_maxQueueSize = 10; // Arbitrarily chosen to limit memory usage (332 MB @ 4K)
+
+    struct InputFrame
+    {
+        QVideoFrame frame;
+        bool restartTimeBase = false;
+    };
+    std::queue<InputFrame> m_inputQueue;
+    // Max queue size arbitrarily chosen to limit memory usage (332 MB @ 4K when including one
+    // adapted frame in encoder queue)
+    const size_t m_maxQueueSize = 9;
+    std::queue<FrameInfo> m_encoderQueue;
 
     VideoFrameEncoderUPtr m_frameEncoder;
     qint64 m_baseTime = 0;
@@ -64,11 +77,6 @@ private:
 
     std::optional<qreal> m_fixedSourceFrameRate; // nullopt = variable-rate source
     FrameRateAdapter m_frameRateAdapter;
-
-    // Frames that arrive via addFrame() before init() has configured m_frameRateAdapter
-    // with the negotiated codec frame rate. Adapted once init() runs.
-    std::queue<QVideoFrame> m_framesBeforeInit;
-    const size_t m_maxFramesBeforeInit = 10; // Arbitrarily chosen, same rationale as m_maxQueueSize
 };
 
 } // namespace QFFmpeg

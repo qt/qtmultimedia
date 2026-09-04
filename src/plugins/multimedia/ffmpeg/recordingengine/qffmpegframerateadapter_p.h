@@ -45,6 +45,7 @@ public:
     std::vector<FrameInfo> adapt(const QVideoFrame &frame, bool adjustTimeBase = false);
 
     std::optional<FrameInfo> flush();
+    [[nodiscard]] bool hasPendingFlush() const { return m_pendingNeedsFlush; }
 
     // Clear all internal state (call on pause/seek).
     void reset();

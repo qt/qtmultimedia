@@ -56,22 +56,8 @@ VideoEncoder::~VideoEncoder() = default;
 void VideoEncoder::addFrame(const QVideoFrame &frame)
 {
     if (!frame.isValid()) {
-        bool hasFlushed = false;
-        {
-            auto guard = lockLoopData();
-            if (isInitialized()) {
-                // Don't flush if not initialized, since frame rate used in adapter is only provisional
-                // Will be flushed in init()
-                std::optional<FrameInfo> flushed = m_frameRateAdapter.flush();
-                if (flushed && m_videoFrameQueue.size() < m_maxQueueSize) {
-                    m_videoFrameQueue.push(*flushed);
-                    hasFlushed = true;
-                }
-            }
-        }
-        if (hasFlushed)
-            dataReady();
         setEndOfSourceStream();
+        dataReady();
         return;
     }
 
@@ -81,50 +67,30 @@ void VideoEncoder::addFrame(const QVideoFrame &frame)
 
         if (m_paused) {
             m_shouldAdjustTimeBaseForNextFrame = true;
-            m_frameRateAdapter.reset();
-            m_framesBeforeInit = {};
             return;
         }
 
-        if (!isInitialized()) {
-            // m_frameRateAdapter isn't configured with the real codec frame rate yet, so
-            // buffer the frame and adapt it once init() has set the real rates. Bounded by
-            // m_maxFramesBeforeInit. Sources should use checkIfCanPushFrame.
-            if (m_framesBeforeInit.size() >= m_maxFramesBeforeInit) {
+        if (!tryPushToInputQueue(frame)) {
+            if (!isInitialized())
                 qCWarning(qLcFFmpegVideoEncoder) << "Too many frames received before encoder "
                                                     "initialization. Buffer full, dropping "
                                                     "frame.";
-                return;
-            }
-            m_framesBeforeInit.push(frame);
+            else
+                qCDebug(qLcFFmpegVideoEncoder) << "RecordingEngine frame queue full. Frame lost. "
+                                                  "This might mean we're trying "
+                                                  "to encode at too high of a frame rate.";
             return;
         }
-
-        const bool adjustTimeBase = m_shouldAdjustTimeBaseForNextFrame;
-        m_shouldAdjustTimeBaseForNextFrame = false;
-
-        if (m_videoFrameQueue.size() >= m_maxQueueSize) {
-            qCDebug(qLcFFmpegVideoEncoder)
-                    << "RecordingEngine frame queue full. Frame lost. This might mean we're trying "
-                       "to encode at too high of a frame rate.";
-            return;
-        }
-
-        std::vector<FrameInfo> adapted = m_frameRateAdapter.adapt(frame, adjustTimeBase);
-        if (adapted.empty())
-            return; // Adapter can return no frames if converting to a lower frame rate
-
-        for (FrameInfo &adaptedFrame : adapted)
-            m_videoFrameQueue.push(std::move(adaptedFrame));
     }
 
     dataReady();
 }
 
-FrameInfo VideoEncoder::takeFrame()
+FrameInfo VideoEncoder::dequeueAdaptedFrame()
 {
     auto guard = lockLoopData();
-    return dequeueIfPossible(m_videoFrameQueue);
+    saturateEncoderQueue();
+    return dequeueIfPossible(m_encoderQueue);
 }
 
 void VideoEncoder::retrievePackets()
@@ -132,6 +98,44 @@ void VideoEncoder::retrievePackets()
     Q_ASSERT(m_frameEncoder);
     while (auto packet = m_frameEncoder->retrievePacket())
         m_recordingEngine.getMuxer()->addPacket(std::move(packet));
+}
+
+bool VideoEncoder::tryPushToInputQueue(const QVideoFrame &frame)
+{
+    if (m_inputQueue.size() >= m_maxQueueSize)
+        return false;
+
+    m_inputQueue.push({ frame, std::exchange(m_shouldAdjustTimeBaseForNextFrame, false) });
+    return true;
+}
+
+void VideoEncoder::saturateEncoderQueue()
+{
+    // Caller must hold lockLoopData() guard
+    while (m_encoderQueue.empty() && !m_inputQueue.empty()) {
+        const InputFrame input = std::move(m_inputQueue.front());
+        m_inputQueue.pop();
+
+        if (input.restartTimeBase) {
+            flushAdapter();
+            m_frameRateAdapter.reset();
+        }
+
+        std::vector<FrameInfo> adapted =
+                m_frameRateAdapter.adapt(input.frame, input.restartTimeBase);
+        for (FrameInfo &adaptedFrame : adapted)
+            m_encoderQueue.push(std::move(adaptedFrame));
+    }
+
+    if (m_inputQueue.empty() && isEndOfSourceStream() && m_frameRateAdapter.hasPendingFlush())
+        flushAdapter();
+}
+
+void VideoEncoder::flushAdapter()
+{
+    std::optional<FrameInfo> flushed = m_frameRateAdapter.flush();
+    if (flushed)
+        m_encoderQueue.push(std::move(*flushed));
 }
 
 bool VideoEncoder::init()
@@ -150,24 +154,7 @@ bool VideoEncoder::init()
     {
         auto guard = lockLoopData();
         m_frameRateAdapter.setRates(m_fixedSourceFrameRate, m_frameEncoder->codecFrameRate());
-
-        while (!m_framesBeforeInit.empty()) {
-            const QVideoFrame bufferedFrame = std::move(m_framesBeforeInit.front());
-            m_framesBeforeInit.pop();
-
-            std::vector<FrameInfo> adapted = m_frameRateAdapter.adapt(
-                    bufferedFrame, std::exchange(m_shouldAdjustTimeBaseForNextFrame, false));
-            for (FrameInfo &adaptedFrame : adapted)
-                m_videoFrameQueue.push(std::move(adaptedFrame));
-        }
-
-        // EOS may have arrived before initialization. Flush now that the buffered
-        // frames above have been adapted.
-        if (isEndOfSourceStream()) {
-            std::optional<FrameInfo> flushed = m_frameRateAdapter.flush();
-            if (flushed && m_videoFrameQueue.size() < m_maxQueueSize)
-                m_videoFrameQueue.push(std::move(*flushed));
-        }
+        saturateEncoderQueue();
     }
 
     return EncoderThread::init();
@@ -177,7 +164,7 @@ void VideoEncoder::cleanup()
 {
     Q_ASSERT(m_frameEncoder);
 
-    while (!m_videoFrameQueue.empty())
+    while (hasData())
         processOne();
 
     while (m_frameEncoder->sendFrame(nullptr) == AVERROR(EAGAIN))
@@ -187,7 +174,8 @@ void VideoEncoder::cleanup()
 
 bool VideoEncoder::hasData() const
 {
-    return !m_videoFrameQueue.empty();
+    return !m_encoderQueue.empty() || !m_inputQueue.empty()
+            || (isEndOfSourceStream() && m_frameRateAdapter.hasPendingFlush());
 }
 
 struct QVideoFrameHolder
@@ -207,9 +195,10 @@ void VideoEncoder::processOne()
 
     retrievePackets();
 
-    FrameInfo frameInfo = takeFrame();
+    FrameInfo frameInfo = dequeueAdaptedFrame();
     QVideoFrame &frame = frameInfo.frame;
-    Q_ASSERT(frame.isValid());
+    if (!frame.isValid())
+        return; // Nothing to encode
 
     //    qCDebug(qLcFFmpegEncoder) << "new video buffer" << frame.startTime();
 
@@ -291,14 +280,7 @@ void VideoEncoder::processOne()
 
 bool VideoEncoder::checkIfCanPushFrame() const
 {
-    if (!isInitialized())
-        return m_framesBeforeInit.size() < m_maxFramesBeforeInit;
-    if (m_encodingStarted)
-        return m_videoFrameQueue.size() < m_maxQueueSize;
-    if (!isFinished())
-        return m_videoFrameQueue.empty();
-
-    return false;
+    return isFinished() ? false : m_inputQueue.size() < m_maxQueueSize;
 }
 
 std::pair<qint64, qint64> VideoEncoder::frameTimeStamps(const QVideoFrame &frame) const
