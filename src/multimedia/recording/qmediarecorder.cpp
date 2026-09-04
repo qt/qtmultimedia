@@ -568,7 +568,7 @@ void QMediaRecorder::stop()
 
     The state property represents the user request and is changed synchronously
     during record(), pause() or stop() calls.
-    RecorderSstate may also change asynchronously when recording fails.
+    Recorder state may also change asynchronously when recording fails.
 
     \value MediaRecorder.StoppedState The recorder is not active.
     \value MediaRecorder.RecordingState The recording is requested.
