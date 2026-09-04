@@ -18,13 +18,19 @@
 #include <QtCore/qnamespace.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 
+#if QT_CONFIG(gstreamer_gl) && QT_CONFIG(gstreamer_gl_egl)
+#  include <EGL/egl.h>
+#endif
+
 QT_BEGIN_NAMESPACE
 
+class QRhi;
+
 #if QT_CONFIG(gstreamer_gl) && QT_CONFIG(gstreamer_gl_egl)
-Qt::HANDLE qGstEglDisplay();
+EGLDisplay qGstEglDisplay(QRhi *rhi);
 
 #  if QT_CONFIG(linux_dmabuf)
-bool qGstEglCanMapDmaBuf();
+bool qGstEglCanMapDmaBuf(QRhi *rhi);
 #  endif
 #endif
 
