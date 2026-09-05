@@ -29,8 +29,6 @@ EncodingFormatContext::EncodingFormatContext(QMediaFormat::FileFormat fileFormat
 EncodingFormatContext::~EncodingFormatContext()
 {
     closeAVIO();
-
-    avformat_free_context(m_avFormatContext);
 }
 
 void EncodingFormatContext::openAVIO(const QString &filePath)

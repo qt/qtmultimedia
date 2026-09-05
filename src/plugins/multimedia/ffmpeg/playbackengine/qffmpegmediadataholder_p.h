@@ -36,8 +36,6 @@ struct ICancelToken
     virtual bool isCancelled() const = 0;
 };
 
-using AVFormatContextUPtr = std::unique_ptr<AVFormatContext, AVDeleter<avformat_close_input>>;
-
 class MediaDataHolder
 {
 public:
@@ -58,7 +56,7 @@ public:
     using StreamIndexes = std::array<int, QPlatformMediaPlayer::NTrackTypes>;
 
     MediaDataHolder() = default;
-    MediaDataHolder(AVFormatContextUPtr context, const std::shared_ptr<ICancelToken> &cancelToken);
+    MediaDataHolder(AVDemuxerContextUPtr context, const std::shared_ptr<ICancelToken> &cancelToken);
 
     static QPlatformMediaPlayer::TrackType trackTypeFromMediaType(int mediaType);
 
@@ -90,7 +88,7 @@ private:
     std::shared_ptr<ICancelToken> m_cancelToken; // NOTE: Cancel token may be accessed by
                                                  // AVFormatContext during destruction and
                                                  // must outlive the context object
-    AVFormatContextUPtr m_context;
+    AVDemuxerContextUPtr m_context;
 
     bool m_isSeekable = false;
 
