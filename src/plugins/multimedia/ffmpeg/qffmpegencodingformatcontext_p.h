@@ -4,6 +4,7 @@
 #ifndef QFFMPEGENCODINGFORMATCONTEXT_P_H
 #define QFFMPEGENCODINGFORMATCONTEXT_P_H
 
+#include <QtFFmpegMediaPluginImpl/private/qffmpeg_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegdefs_p.h>
 #include "qmediaformat.h"
 
@@ -39,9 +40,9 @@ public:
 
     void closeAVIO();
 
-    AVFormatContext *avFormatContext() { return m_avFormatContext; }
+    AVFormatContext *avFormatContext() { return m_avFormatContext.get(); }
 
-    const AVFormatContext *avFormatContext() const { return m_avFormatContext; }
+    const AVFormatContext *avFormatContext() const { return m_avFormatContext.get(); }
 
 private:
     Q_DISABLE_COPY_MOVE(EncodingFormatContext)
@@ -49,7 +50,7 @@ private:
     void openAVIOWithQFile(const QString &filePath);
 
 private:
-    AVFormatContext *m_avFormatContext;
+    AVMuxerContextUPtr m_avFormatContext;
     std::unique_ptr<QFile> m_outputFile;
 };
 

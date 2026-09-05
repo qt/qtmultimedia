@@ -44,7 +44,7 @@ static std::optional<TrackDuration> streamDuration(const AVStream &stream)
 }
 
 static std::optional<TrackPosition> streamStart(const AVStream &stream,
-                                                const AVFormatContextUPtr &context)
+                                                const AVDemuxerContextUPtr &context)
 {
     if (stream.start_time != AV_NOPTS_VALUE)
         return toTrackPosition(AVStreamPosition(stream.start_time), &stream, context.get());
@@ -189,7 +189,7 @@ QPlatformMediaPlayer::TrackType MediaDataHolder::trackTypeFromMediaType(int medi
 }
 
 namespace {
-q23::expected<AVFormatContextUPtr, MediaDataHolder::ContextError>
+q23::expected<AVDemuxerContextUPtr, MediaDataHolder::ContextError>
 loadMedia(const QUrl &mediaUrl, QIODevice *stream, const QPlaybackOptions &playbackOptions,
           const std::shared_ptr<ICancelToken> &cancelToken)
 {
@@ -199,7 +199,7 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const QPlaybackOptions &playb
 
     const QByteArray url = mediaUrl.toString(QUrl::PreferLocalFile).toUtf8();
 
-    AVFormatContextUPtr context{ avformat_alloc_context() };
+    AVDemuxerContextUPtr context{ avformat_alloc_context() };
 
     if (stream) {
         if (!stream->isOpen()) {
@@ -344,7 +344,7 @@ MediaDataHolder::Maybe MediaDataHolder::create(const QUrl &url, QIODevice *strea
     return q23::unexpected{ context.error() };
 }
 
-MediaDataHolder::MediaDataHolder(AVFormatContextUPtr context,
+MediaDataHolder::MediaDataHolder(AVDemuxerContextUPtr context,
                                  const std::shared_ptr<ICancelToken> &cancelToken)
     : m_cancelToken{ cancelToken }
 {
