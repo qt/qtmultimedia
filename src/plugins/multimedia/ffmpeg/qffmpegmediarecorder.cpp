@@ -63,11 +63,12 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
     QString actualLocation;
     auto formatContext = std::make_unique<QFFmpeg::EncodingFormatContext>(settings.fileFormat());
 
+    bool isAVIOOpen = false;
     if (outputDevice() && outputDevice()->isWritable()) {
-        formatContext->openAVIO(outputDevice());
+        isAVIOOpen = formatContext->openAVIO(outputDevice());
     } else {
         actualLocation = findActualLocation(settings);
-        formatContext->openAVIO(actualLocation);
+        isAVIOOpen = formatContext->openAVIO(actualLocation);
     }
 
     qCInfo(qLcMediaEncoder).nospace()
@@ -77,7 +78,7 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
             << " with format: " << settings.fileFormat() << ", " << settings.audioCodec() << ", "
             << settings.videoCodec();
 
-    if (!formatContext->isAVIOOpen()) {
+    if (!isAVIOOpen) {
         updateError(QMediaRecorder::LocationNotWritable,
                     QMediaRecorder::tr("Cannot open the output location for writing"));
         return;

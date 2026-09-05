@@ -2,10 +2,11 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qffmpegencodingformatcontext_p.h"
-#include "qffmpegmediaformatinfo_p.h"
-#include "qffmpegioutils_p.h"
-#include "qfile.h"
-#include "QtCore/qloggingcategory.h"
+
+#include <QtFFmpegMediaPluginImpl/private/qffmpegmediaformatinfo_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegioutils_p.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -31,7 +32,7 @@ EncodingFormatContext::~EncodingFormatContext()
     closeAVIO();
 }
 
-void EncodingFormatContext::openAVIO(const QString &filePath)
+bool EncodingFormatContext::openAVIO(const QString &filePath)
 {
     Q_ASSERT(!isAVIOOpen());
     Q_ASSERT(!filePath.isEmpty());
@@ -49,13 +50,15 @@ void EncodingFormatContext::openAVIO(const QString &filePath)
             << "opened by file path:" << url.get() << ", result:" << result;
 
     Q_ASSERT(m_avFormatContext->url == nullptr);
-    if (isAVIOOpen())
+    if (isAVIOOpen()) {
         m_avFormatContext->url = url.release();
-    else
-        openAVIOWithQFile(filePath);
+        return true;
+    } else {
+        return openAVIOWithQFile(filePath);
+    }
 }
 
-void EncodingFormatContext::openAVIOWithQFile(const QString &filePath)
+bool EncodingFormatContext::openAVIOWithQFile(const QString &filePath)
 {
     // QTBUG-123082, To be investigated:
     // - should we use the logic with QFile for all file paths?
@@ -66,26 +69,27 @@ void EncodingFormatContext::openAVIOWithQFile(const QString &filePath)
 
     if (!file->open(QFile::WriteOnly)) {
         qCDebug(qLcEncodingFormatContext) << "Cannot open QFile" << filePath;
-        return;
+        return false;
     }
 
-    openAVIO(file.get());
-
-    if (isAVIOOpen())
+    bool success = openAVIO(file.get());
+    if (success)
         m_outputFile = std::move(file);
+    return success;
 }
 
-void EncodingFormatContext::openAVIO(QIODevice *device)
+bool EncodingFormatContext::openAVIO(QIODevice *device)
 {
     Q_ASSERT(!isAVIOOpen());
     Q_ASSERT(device);
 
     if (!device->isWritable())
-        return;
+        return false;
 
     auto buffer = static_cast<uint8_t *>(av_malloc(DefaultBufferSize));
     m_avFormatContext->pb = avio_alloc_context(buffer, DefaultBufferSize, 1, device, nullptr,
                                                &writeQIODevice, &seekQIODevice);
+    return bool(m_avFormatContext->pb);
 }
 
 void EncodingFormatContext::closeAVIO()

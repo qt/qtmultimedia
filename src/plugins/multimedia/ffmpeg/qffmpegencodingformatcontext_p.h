@@ -6,7 +6,8 @@
 
 #include <QtFFmpegMediaPluginImpl/private/qffmpeg_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegdefs_p.h>
-#include "qmediaformat.h"
+
+#include <QtMultimedia/qmediaformat.h>
 
 //
 //  W A R N I N G
@@ -32,12 +33,9 @@ public:
     explicit EncodingFormatContext(QMediaFormat::FileFormat fileFormat);
     ~EncodingFormatContext();
 
-    void openAVIO(const QString &filePath);
-
-    void openAVIO(QIODevice *device);
-
+    [[nodiscard]] bool openAVIO(const QString &filePath);
+    [[nodiscard]] bool openAVIO(QIODevice *device);
     bool isAVIOOpen() const { return m_avFormatContext->pb != nullptr; }
-
     void closeAVIO();
 
     AVFormatContext *avFormatContext() { return m_avFormatContext.get(); }
@@ -47,7 +45,7 @@ public:
 private:
     Q_DISABLE_COPY_MOVE(EncodingFormatContext)
 
-    void openAVIOWithQFile(const QString &filePath);
+    [[nodiscard]] bool openAVIOWithQFile(const QString &filePath);
 
 private:
     AVMuxerContextUPtr m_avFormatContext;
