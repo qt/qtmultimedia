@@ -107,6 +107,11 @@ bool QCoreAudioSinkStream::start(QIODevice *device)
     setQIODevice(device);
     pullFromQIODevice();
 
+#ifndef Q_OS_MACOS
+    m_sessionActivation = QtMultimediaPrivate::QAVAudioSessionManager::instance()->activate(
+            { /* needsRecord = */ false });
+#endif
+
     if (!startAudioUnit())
         return false;
 
@@ -142,6 +147,11 @@ bool QCoreAudioSinkStream::start(AudioCallback cb)
     };
     if (!audioUnitSetRenderCallback(m_audioUnit, callback))
         return false;
+
+#ifndef Q_OS_MACOS
+    m_sessionActivation = QtMultimediaPrivate::QAVAudioSessionManager::instance()->activate(
+            { /* needsRecord = */ false });
+#endif
 
     return startAudioUnit();
 }
@@ -201,6 +211,10 @@ void QCoreAudioSinkStream::stopStream()
 #endif
     requestStop();
     stopAudioUnit();
+
+#ifndef Q_OS_MACOS
+    m_sessionActivation.reset();
+#endif
 }
 
 void QCoreAudioSinkStream::suspend()

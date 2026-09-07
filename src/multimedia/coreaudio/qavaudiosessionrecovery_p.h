@@ -134,7 +134,7 @@ private:
     static bool activateSession()
     {
         QAVAudioSessionManager *monitor = QAVAudioSessionManager::instance();
-        return monitor && monitor->activateSession();
+        return monitor && monitor->reassertActivation();
     }
 
     EndpointType& m_endpoint;

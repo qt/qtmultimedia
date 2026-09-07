@@ -1,7 +1,9 @@
 // Copyright (C) 2026 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <QtMultimedia/private/qavaudiosessionmanager_p.h>
+#include "qavaudiosessionmanager_p.h"
+
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 
 #include <QtCore/qapplicationstatic.h>
 #include <QtCore/qcoreapplication.h>
@@ -16,32 +18,7 @@ Q_STATIC_LOGGING_CATEGORY(qLcAudioSession, "qt.multimedia.darwin.audiosession");
 
 namespace QtMultimediaPrivate {
 
-struct QAVAudioSessionManager::SessionConfiguration
-{
-    static SessionConfiguration fromSession()
-    {
-        return fromSession([AVAudioSession sharedInstance]);
-    }
-
-    static SessionConfiguration fromSession(AVAudioSession *session)
-    {
-        return SessionConfiguration{ session.category, session.categoryOptions, session.mode };
-    }
-
-    AVAudioSessionCategory category;
-    AVAudioSessionCategoryOptions options;
-    AVAudioSessionMode mode;
-
-    friend bool operator==(const SessionConfiguration &lhs, const SessionConfiguration &rhs)
-    {
-        return [lhs.category isEqualToString:rhs.category] && lhs.options == rhs.options &&
-                [lhs.mode isEqualToString:rhs.mode];
-    }
-    friend bool operator!=(const SessionConfiguration &lhs, const SessionConfiguration &rhs)
-    {
-        return !(lhs == rhs);
-    }
-};
+using TokenId = QAVAudioSessionManager::TokenId;
 
 namespace {
 
@@ -71,6 +48,28 @@ InterruptionInfo parseInterruption(NSNotification *notification)
     return { false, shouldResume };
 }
 
+// Merges the requirements of all currently live ActivationTokens into a single category/options
+// pair. The manager never chooses a category of its own beyond this merge: if any live client
+// needs recording, the session must support it; options requested by any client (e.g. "mix with
+// others") are unioned in.
+AVAudioSessionCategory
+mergedCategory(const std::vector<std::pair<TokenId, SessionRequirement>> &requirements)
+{
+    const bool needsRecord = ranges::any_of(requirements, [](const auto &entry) {
+        return entry.second.needsRecord;
+    });
+    return needsRecord ? AVAudioSessionCategoryPlayAndRecord : AVAudioSessionCategoryPlayback;
+}
+
+AVAudioSessionCategoryOptions
+mergedOptions(const std::vector<std::pair<TokenId, SessionRequirement>> &requirements)
+{
+    AVAudioSessionCategoryOptions options = 0;
+    for (const auto &entry : requirements)
+        options |= entry.second.options;
+    return options;
+}
+
 } // namespace
 
 Q_APPLICATION_STATIC(QAVAudioSessionManager, s_avAudioSessionManager)
@@ -81,7 +80,6 @@ QAVAudioSessionManager *QAVAudioSessionManager::instance()
 }
 
 QAVAudioSessionManager::QAVAudioSessionManager()
-    : m_configuration{ std::make_unique<SessionConfiguration>(SessionConfiguration::fromSession()) }
 {
     if (qApp && !QThread::isMainThread())
         moveToThread(qApp->thread());
@@ -129,32 +127,17 @@ QAVAudioSessionManager::~QAVAudioSessionManager()
     *m_destroyed = true;
 }
 
-void QAVAudioSessionManager::updateConfiguration()
-{
-    *m_configuration = SessionConfiguration::fromSession();
-}
-
-bool QAVAudioSessionManager::activateSession()
+// Must be called with m_activationMutex held.
+bool QAVAudioSessionManager::applyRequirementsLocked()
 {
     AVAudioSession *session = [AVAudioSession sharedInstance];
-    SessionConfiguration currentConfig = SessionConfiguration::fromSession(session);
+    const AVAudioSessionCategory category = mergedCategory(m_requirements);
+    const AVAudioSessionCategoryOptions options = mergedOptions(m_requirements);
 
-    // The audio session is process-wide and the application owns the category policy: e.g.
-    // avfmediaplayer.mm calls updateConfiguration() after it sets a category for media
-    // playback. We never choose a category of our own; we only ever restore the last
-    // configuration the application itself put in place, so we don't fight app-driven
-    // category changes or change ring/silent-switch behavior for existing iOS Qt apps.
-    if (currentConfig != *m_configuration) {
+    if (![session.category isEqualToString:category] || session.categoryOptions != options) {
         NSError *error = nil;
-        if (![session setCategory:m_configuration->category
-                      withOptions:m_configuration->options
-                            error:&error]) {
-            qCWarning(qLcAudioSession) << "failed to restore audio session category:"
-                                       << QString::fromNSString(error.localizedDescription);
-            return false;
-        }
-        if (![session setMode:m_configuration->mode error:&error]) {
-            qCWarning(qLcAudioSession) << "failed to restore audio session mode:"
+        if (![session setCategory:category withOptions:options error:&error]) {
+            qCWarning(qLcAudioSession) << "failed to set audio session category:"
                                        << QString::fromNSString(error.localizedDescription);
             return false;
         }
@@ -169,6 +152,91 @@ bool QAVAudioSessionManager::activateSession()
         qCDebug(qLcAudioSession) << "audio session activated";
 
     return success;
+}
+
+QAVAudioSessionManager::ActivationToken
+QAVAudioSessionManager::activate(SessionRequirement requirement)
+{
+    const std::lock_guard guard(m_activationMutex);
+    const TokenId tokenId{ ++m_tokenIdAllocator };
+    m_requirements.emplace_back(tokenId, requirement);
+    applyRequirementsLocked();
+    return ActivationToken(this, m_destroyed, tokenId);
+}
+
+void QAVAudioSessionManager::releaseActivation(TokenId tokenId)
+{
+    const std::lock_guard guard(m_activationMutex);
+    const auto it = ranges::find_if(m_requirements, [&](const auto &entry) {
+        return entry.first == tokenId;
+    });
+    if (it != m_requirements.end())
+        m_requirements.erase(it);
+
+    if (m_requirements.empty()) {
+        NSError *error = nil;
+        if (![[AVAudioSession sharedInstance] setActive:NO error:&error])
+            qCWarning(qLcAudioSession) << "failed to deactivate audio session:"
+                                       << QString::fromNSString(error.localizedDescription);
+        else
+            qCDebug(qLcAudioSession) << "audio session deactivated";
+        return;
+    }
+
+    applyRequirementsLocked();
+}
+
+bool QAVAudioSessionManager::reassertActivation()
+{
+    const std::lock_guard guard(m_activationMutex);
+    if (m_requirements.empty()) {
+        NSError *error = nil;
+        const BOOL success = [[AVAudioSession sharedInstance] setActive:YES error:&error];
+        if (!success)
+            qCWarning(qLcAudioSession) << "failed to activate audio session:"
+                                       << QString::fromNSString(error.localizedDescription);
+        return success;
+    }
+
+    return applyRequirementsLocked();
+}
+
+QAVAudioSessionManager::ActivationToken::ActivationToken(QAVAudioSessionManager *manager,
+                                                         std::shared_ptr<bool> destroyed,
+                                                         TokenId tokenId)
+    : m_manager(manager), m_destroyed(std::move(destroyed)), m_tokenId(tokenId)
+{
+}
+
+QAVAudioSessionManager::ActivationToken::ActivationToken(ActivationToken &&other) noexcept
+    : m_manager(std::exchange(other.m_manager, nullptr)),
+      m_destroyed(std::move(other.m_destroyed)),
+      m_tokenId(other.m_tokenId)
+{
+}
+
+QAVAudioSessionManager::ActivationToken &
+QAVAudioSessionManager::ActivationToken::operator=(ActivationToken &&other) noexcept
+{
+    if (this != &other) {
+        release();
+        m_manager = std::exchange(other.m_manager, nullptr);
+        m_destroyed = std::move(other.m_destroyed);
+        m_tokenId = other.m_tokenId;
+    }
+    return *this;
+}
+
+QAVAudioSessionManager::ActivationToken::~ActivationToken()
+{
+    release();
+}
+
+void QAVAudioSessionManager::ActivationToken::release()
+{
+    if (m_manager && m_destroyed && !*m_destroyed)
+        m_manager->releaseActivation(m_tokenId);
+    m_manager = nullptr;
 }
 
 } // namespace QtMultimediaPrivate

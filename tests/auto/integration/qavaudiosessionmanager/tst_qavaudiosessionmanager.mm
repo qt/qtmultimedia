@@ -12,6 +12,8 @@
 #import <Foundation/Foundation.h>
 
 using QtMultimediaPrivate::QAVAudioSessionManager;
+using QtMultimediaPrivate::SessionRequirement;
+using ActivationToken = QAVAudioSessionManager::ActivationToken;
 
 namespace {
 
@@ -45,7 +47,8 @@ void postMediaServicesNotification(NSNotificationName name)
 }
 
 // Sets the shared AVAudioSession's category directly, bypassing QAVAudioSessionManager, so tests
-// can simulate a category drift that the manager was never told about via updateConfiguration().
+// can simulate a drift the manager was never told about (e.g. what the OS leaves behind after an
+// interruption or media services reset).
 void applyCategoryDirectly(AVAudioSessionCategory category)
 {
     NSError *error = nil;
@@ -71,9 +74,13 @@ private slots:
     void mediaServicesWereLostEmitsSignal();
     void mediaServicesWereResetEmitsSignal();
 
-    void activateSessionRestoresDriftedConfiguration();
-    void activateSessionDoesNotClobberUpdatedConfiguration();
-    void activateSessionIsNoopWhenConfigurationUnchanged();
+    void activateAppliesPlaybackCategoryByDefault();
+    void activateAppliesPlayAndRecordCategoryWhenRecordingRequested();
+    void activateUnionsOptionsAcrossConcurrentTokens();
+    void releasingTokenRecomputesMergedCategory();
+    void moveAssigningTokenReleasesPreviousRequirement();
+    void reassertActivationRestoresCategoryFromLiveTokens();
+    void reassertActivationWithNoLiveTokensJustActivates();
 
 private:
     AVAudioSessionCategory m_initialCategory;
@@ -87,7 +94,6 @@ void tst_QAVAudioSessionManager::init()
 void tst_QAVAudioSessionManager::cleanup()
 {
     applyCategoryDirectly(m_initialCategory);
-    QAVAudioSessionManager::instance()->updateConfiguration();
 }
 
 void tst_QAVAudioSessionManager::instanceIsStableSingleton()
@@ -155,39 +161,90 @@ void tst_QAVAudioSessionManager::mediaServicesWereResetEmitsSignal()
     QTRY_COMPARE_EQ(spy.size(), 1);
 }
 
-void tst_QAVAudioSessionManager::activateSessionRestoresDriftedConfiguration()
+// setActive:NO on last-token-release has no public AVAudioSession getter to observe directly.
+// It's exercised indirectly by every test below starting from a deactivated session (all tokens
+// from the previous test having gone out of scope) and successfully reactivating.
+
+void tst_QAVAudioSessionManager::activateAppliesPlaybackCategoryByDefault()
 {
-    applyCategoryDirectly(AVAudioSessionCategoryAmbient);
-    QAVAudioSessionManager::instance()->updateConfiguration();
+    ActivationToken token = QAVAudioSessionManager::instance()->activate(
+            { /* needsRecord = */ false, AVAudioSessionCategoryOptionMixWithOthers });
 
-    // Simulate a category drift the manager was never told about.
-    applyCategoryDirectly(AVAudioSessionCategoryPlayback);
-
-    QVERIFY(QAVAudioSessionManager::instance()->activateSession());
-    QVERIFY(categoryEquals(AVAudioSession.sharedInstance.category, AVAudioSessionCategoryAmbient));
+    QVERIFY(categoryEquals(AVAudioSession.sharedInstance.category, AVAudioSessionCategoryPlayback));
+    QVERIFY(AVAudioSession.sharedInstance.categoryOptions
+            & AVAudioSessionCategoryOptionMixWithOthers);
 }
 
-void tst_QAVAudioSessionManager::activateSessionDoesNotClobberUpdatedConfiguration()
+void tst_QAVAudioSessionManager::activateAppliesPlayAndRecordCategoryWhenRecordingRequested()
 {
-    applyCategoryDirectly(AVAudioSessionCategoryAmbient);
-    QAVAudioSessionManager::instance()->updateConfiguration();
+    ActivationToken token =
+            QAVAudioSessionManager::instance()->activate({ /* needsRecord = */ true });
 
-    // Unlike activateSessionRestoresDriftedConfiguration(), this later change is reported via
-    // updateConfiguration(), the same way avfmediaplayer.mm reports its own category changes.
-    applyCategoryDirectly(AVAudioSessionCategoryPlayback);
-    QAVAudioSessionManager::instance()->updateConfiguration();
+    QVERIFY(categoryEquals(AVAudioSession.sharedInstance.category,
+                           AVAudioSessionCategoryPlayAndRecord));
+}
 
-    QVERIFY(QAVAudioSessionManager::instance()->activateSession());
+void tst_QAVAudioSessionManager::activateUnionsOptionsAcrossConcurrentTokens()
+{
+    ActivationToken mixToken = QAVAudioSessionManager::instance()->activate(
+            { /* needsRecord = */ false, AVAudioSessionCategoryOptionMixWithOthers });
+    ActivationToken duckToken = QAVAudioSessionManager::instance()->activate(
+            { /* needsRecord = */ false, AVAudioSessionCategoryOptionDuckOthers });
+
+    const AVAudioSessionCategoryOptions options = AVAudioSession.sharedInstance.categoryOptions;
+    QVERIFY(options & AVAudioSessionCategoryOptionMixWithOthers);
+    QVERIFY(options & AVAudioSessionCategoryOptionDuckOthers);
+}
+
+void tst_QAVAudioSessionManager::releasingTokenRecomputesMergedCategory()
+{
+    ActivationToken playbackToken =
+            QAVAudioSessionManager::instance()->activate({ /* needsRecord = */ false });
+
+    {
+        ActivationToken recordToken =
+                QAVAudioSessionManager::instance()->activate({ /* needsRecord = */ true });
+        QVERIFY(categoryEquals(AVAudioSession.sharedInstance.category,
+                               AVAudioSessionCategoryPlayAndRecord));
+    }
+
     QVERIFY(categoryEquals(AVAudioSession.sharedInstance.category, AVAudioSessionCategoryPlayback));
 }
 
-void tst_QAVAudioSessionManager::activateSessionIsNoopWhenConfigurationUnchanged()
+void tst_QAVAudioSessionManager::moveAssigningTokenReleasesPreviousRequirement()
 {
-    applyCategoryDirectly(AVAudioSessionCategoryAmbient);
-    QAVAudioSessionManager::instance()->updateConfiguration();
+    ActivationToken token =
+            QAVAudioSessionManager::instance()->activate({ /* needsRecord = */ true });
+    QVERIFY(categoryEquals(AVAudioSession.sharedInstance.category,
+                           AVAudioSessionCategoryPlayAndRecord));
 
-    QVERIFY(QAVAudioSessionManager::instance()->activateSession());
-    QVERIFY(categoryEquals(AVAudioSession.sharedInstance.category, AVAudioSessionCategoryAmbient));
+    // Move-assigning a newly-activated token over `token` must release the first requirement
+    // before installing the second, otherwise the category would stay merged as PlayAndRecord.
+    token = QAVAudioSessionManager::instance()->activate({ /* needsRecord = */ false });
+
+    QVERIFY(categoryEquals(AVAudioSession.sharedInstance.category, AVAudioSessionCategoryPlayback));
+}
+
+void tst_QAVAudioSessionManager::reassertActivationRestoresCategoryFromLiveTokens()
+{
+    ActivationToken token =
+            QAVAudioSessionManager::instance()->activate({ /* needsRecord = */ true });
+
+    // Simulate what the OS leaves behind after an interruption/media services reset.
+    applyCategoryDirectly(AVAudioSessionCategoryAmbient);
+
+    QVERIFY(QAVAudioSessionManager::instance()->reassertActivation());
+    QVERIFY(categoryEquals(AVAudioSession.sharedInstance.category,
+                           AVAudioSessionCategoryPlayAndRecord));
+}
+
+void tst_QAVAudioSessionManager::reassertActivationWithNoLiveTokensJustActivates()
+{
+    const AVAudioSessionCategory categoryBefore = AVAudioSession.sharedInstance.category;
+
+    QVERIFY(QAVAudioSessionManager::instance()->reassertActivation());
+
+    QVERIFY(categoryEquals(AVAudioSession.sharedInstance.category, categoryBefore));
 }
 
 QTEST_MAIN(tst_QAVAudioSessionManager)
