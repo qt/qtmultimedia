@@ -65,10 +65,8 @@ void VideoEncoder::addFrame(const QVideoFrame &frame)
         auto guard = lockLoopData();
         resetEndOfSourceStream();
 
-        if (m_paused) {
-            m_shouldAdjustTimeBaseForNextFrame = true;
-            return;
-        }
+        if (m_paused)
+            return; // Frames are dropped while paused
 
         if (!tryPushToInputQueue(frame)) {
             if (!isInitialized())
@@ -136,6 +134,12 @@ void VideoEncoder::flushAdapter()
     std::optional<FrameInfo> flushed = m_frameRateAdapter.flush();
     if (flushed)
         m_encoderQueue.push(std::move(*flushed));
+}
+
+void VideoEncoder::handlePausedChanged(bool paused)
+{
+    if (paused)
+        m_shouldAdjustTimeBaseForNextFrame = true;
 }
 
 bool VideoEncoder::init()

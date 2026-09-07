@@ -11,6 +11,8 @@
 #include <QtMultimedia/qmediaformat.h>
 #include <QtMultimedia/qmediarecorder.h>
 #include <QtMultimedia/qwavedecoder.h>
+#include <QtMultimedia/private/qplatformmediacapture_p.h>
+#include <QtMultimedia/private/qplatformvideosource_p.h>
 
 #include <QtMultimediaTestLib/private/audiogenerationutils_p.h>
 #include <QtMultimediaTestLib/private/capturesessionfixture_p.h>
@@ -147,6 +149,9 @@ private slots:
 
     void record_encodesFrames_whenSourceTimestampsAreIrregular_data();
     void record_encodesFrames_whenSourceTimestampsAreIrregular();
+
+    void record_dropsPausedFramesAndPauseGap_whenRecordingIsResumed_data();
+    void record_dropsPausedFramesAndPauseGap_whenRecordingIsResumed();
 
 private:
     QTemporaryDir m_tempDir;
@@ -1078,6 +1083,113 @@ void tst_QMediaRecorderBackend::record_encodesFrames_whenSourceTimestampsAreIrre
     QVERIFY(info);
 
     verifyEncodedFrames(*info, expectedColors);
+}
+
+void tst_QMediaRecorderBackend::record_dropsPausedFramesAndPauseGap_whenRecordingIsResumed_data()
+{
+    QTest::addColumn<bool>("bypassFrameInput");
+
+    // A source that follows the readyToSendVideoFrame protocol is refused by QVideoFrameInput
+    // while paused, and the frame never reaches the encoder
+    QTest::addRow("Frame sent through the video frame input") << false;
+
+    // A source that pushes frames regardless of the permission, like a camera or a screen
+    // capture, reaches the encoder while paused and is dropped there
+    QTest::addRow("Frame pushed directly to the encoder") << true;
+}
+
+void tst_QMediaRecorderBackend::record_dropsPausedFramesAndPauseGap_whenRecordingIsResumed()
+{
+    QSKIP_IF_NOT_FFMPEG();
+
+    QFETCH(const bool, bypassFrameInput);
+
+    // Arrange
+    using namespace std::chrono;
+
+    CaptureSessionFixture f{ StreamType::Video };
+    f.m_videoGenerator.setSize({ 256, 256 });
+    f.m_videoGenerator.setColors({ Qt::red, Qt::green, Qt::blue, Qt::yellow, Qt::magenta });
+
+    // Pin the codec to avoid reordering
+    QMediaFormat format;
+    format.setVideoCodec(QMediaFormat::VideoCodec::MPEG4);
+    f.m_recorder.setMediaFormat(format);
+
+    QSignalSpy frameCreated{ &f.m_videoGenerator, &VideoGenerator::frameCreated };
+
+    // Act
+    f.start(RunMode::Push, AutoStop::EmitEmpty);
+
+    // Disconnect frameCreated from video input so the test can override each frame's timestamp
+    // before pushing it manually.
+    QObject::disconnect(&f.m_videoGenerator, &VideoGenerator::frameCreated, &f.m_videoInput,
+                        &QVideoFrameInput::sendVideoFrame);
+
+    f.readyToSendVideoFrame.wait();
+
+    // Advances the source frame index/color and timestamps the created frame
+    constexpr microseconds frameDuration = 200ms;
+    const auto nextFrame = [&](microseconds startTime) {
+        f.m_videoGenerator.nextFrame();
+        QVideoFrame frame = frameCreated.takeFirst().at(0).value<QVideoFrame>();
+        frame.setStartTime(startTime.count());
+        frame.setEndTime((startTime + frameDuration).count());
+        return frame;
+    };
+
+    // Red at t=0 and green at t=200ms are recorded
+    QVERIFY(f.m_videoInput.sendVideoFrame(nextFrame(0ms)));
+    f.readyToSendVideoFrame.wait();
+    QVERIFY(f.m_videoInput.sendVideoFrame(nextFrame(200ms)));
+    f.readyToSendVideoFrame.wait();
+
+    f.m_recorder.pause();
+    QTRY_COMPARE(f.m_recorder.recorderState(), QMediaRecorder::PausedState);
+
+    // Blue is not recorded, either because the frame input refuses it or because the encoder
+    // drops it
+    if (bypassFrameInput) {
+        // HACK: Reach the encoder the way a camera or a screen capture does, without asking the
+        // frame input for permission first
+        QPlatformMediaCaptureSession *platformSession = f.m_session.platformSession();
+        QVERIFY(platformSession);
+        const std::vector<QPlatformVideoSource *> sources = platformSession->activeVideoSources();
+        if (sources.size() < 1)
+            QSKIP("No video sources active");
+        emit sources.front()->newVideoFrame(nextFrame(400ms));
+    } else {
+        QVERIFY(!f.m_videoInput.sendVideoFrame(nextFrame(400ms)));
+    }
+
+    f.readyToSendVideoFrame.clear();
+    f.m_recorder.record(); // Resumes recording
+    QTRY_COMPARE(f.m_recorder.recorderState(), QMediaRecorder::RecordingState);
+    QTRY_VERIFY(!f.readyToSendVideoFrame.isEmpty());
+
+    // Yellow at t=5000 and magenta at t=5200 are recorded
+    QVERIFY(f.m_videoInput.sendVideoFrame(nextFrame(5000ms)));
+    f.readyToSendVideoFrame.wait();
+    QVERIFY(f.m_videoInput.sendVideoFrame(nextFrame(5200ms)));
+    f.readyToSendVideoFrame.wait();
+
+    f.m_videoInput.sendVideoFrame({}); // EOS
+
+    // Assert
+    QVERIFY(f.waitForRecorderStopped(60s));
+    QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError,
+             f.m_recorder.errorString().toLatin1().constData());
+
+    const auto info = MediaInfo::create(f.m_recorder.actualLocation());
+    QVERIFY(info);
+
+    // Blue is missing because it was sent while paused
+    verifyEncodedFrames(*info, { Qt::red, Qt::green, Qt::yellow, Qt::magenta });
+
+    // The 4.6s pause is not part of the recording: the four frames are 200ms apart
+    QVERIFY2(info->m_duration < 2s,
+             qPrintable(QString("Recording duration %1ms includes the pause")
+                                .arg(info->m_duration.count())));
 }
 
 QTEST_MAIN(tst_QMediaRecorderBackend)

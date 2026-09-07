@@ -53,6 +53,7 @@ private:
     void cleanup() override;
     bool hasData() const override;
     void processOne() override;
+    void handlePausedChanged(bool paused) override;
 
     std::pair<qint64, qint64> frameTimeStamps(const QVideoFrame &frame) const;
 
