@@ -6,7 +6,6 @@
 #include <QtCore/qdatastream.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qloggingcategory.h>
-#include <QtGui/qguiapplication.h>
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/private/qaudio_qiodevice_support_p.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
@@ -165,13 +164,9 @@ bool QCoreAudioSourceStream::start(QIODevice *device)
 {
     setQIODevice(device);
 
-    const OSStatus status = AudioOutputUnitStart(m_audioUnit.get());
-    if (status != noErr) {
-        qDebug() << "AudioOutputUnitStart failed:" << QtMultimediaPrivate::QOSStatus(status);
+    if (!startAudioUnit())
         return false;
-    }
 
-    m_audioUnitRunning = true;
     createQIODeviceConnections(device);
 
     return true;
@@ -191,19 +186,16 @@ bool QCoreAudioSourceStream::start(AudioCallback &&cb)
 {
     m_audioCallback = std::move(cb);
 
-    const OSStatus status = AudioOutputUnitStart(m_audioUnit.get());
-    if (status != noErr) {
-        qDebug() << "AudioOutputUnitStart failed:" << QtMultimediaPrivate::QOSStatus(status);
-        return false;
-    }
-
-    m_audioUnitRunning = true;
-
-    return true;
+    return startAudioUnit();
 }
 
 void QCoreAudioSourceStream::stop(ShutdownPolicy shutdownPolicy)
 {
+#ifndef Q_OS_MACOS
+    if (m_parent)
+        m_parent->notifyStreamStopped();
+#endif
+
     requestStop();
 
     stopAudioUnit();
@@ -224,19 +216,23 @@ void QCoreAudioSourceStream::suspend()
         qDebug() << "AudioOutputUnitStop failed:" << QtMultimediaPrivate::QOSStatus(status);
 }
 
-void QCoreAudioSourceStream::resume()
+bool QCoreAudioSourceStream::resume()
 {
-    const auto status = AudioOutputUnitStart(m_audioUnit.get());
-    if (status == noErr)
-        return;
-    else
-        qDebug() << "AudioOutputUnitStart failed:" << QtMultimediaPrivate::QOSStatus(status);
+    return startAudioUnit();
 }
 
-void QCoreAudioSourceStream::resumeIfNecessary()
+bool QCoreAudioSourceStream::resumeIfNecessary()
 {
-    if (!audioUnitIsRunning(m_audioUnit))
-        resume();
+    if (audioUnitIsRunning(m_audioUnit))
+        return true;
+
+    return resume();
+}
+
+void QCoreAudioSourceStream::reportIOError()
+{
+    requestStop();
+    handleIOError(m_parent);
 }
 
 void QCoreAudioSourceStream::updateStreamIdle(bool idle)
@@ -245,17 +241,40 @@ void QCoreAudioSourceStream::updateStreamIdle(bool idle)
         m_parent->updateStreamIdle(idle);
 }
 
+bool QCoreAudioSourceStream::startAudioUnit()
+{
+    if (!m_audioUnit) {
+        // the audio unit has been disposed, e.g. after the operating system invalidated it
+        return false;
+    }
+
+    const OSStatus status = AudioOutputUnitStart(m_audioUnit.get());
+    if (status != noErr) {
+        qDebug() << "AudioOutputUnitStart failed:" << QtMultimediaPrivate::QOSStatus(status);
+        return false;
+    }
+
+    return true;
+}
+
 void QCoreAudioSourceStream::stopAudioUnit()
 {
-    const auto status = AudioOutputUnitStop(m_audioUnit.get());
-    if (status != noErr)
-        qDebug() << "AudioOutputUnitStop failed:" << QtMultimediaPrivate::QOSStatus(status);
-
-    m_audioUnitRunning = false;
+    invalidateAudioUnit();
 
 #ifdef Q_OS_MACOS
     m_stopOnDisconnected.cancelChain();
 #endif
+}
+
+void QCoreAudioSourceStream::invalidateAudioUnit()
+{
+    if (!m_audioUnit)
+        return;
+
+    const auto status = AudioOutputUnitStop(m_audioUnit.get());
+    if (status != noErr)
+        qDebug() << "AudioOutputUnitStop failed:" << QtMultimediaPrivate::QOSStatus(status);
+
     m_audioUnit = {};
 }
 
@@ -385,14 +404,6 @@ QCoreAudioSource::QCoreAudioSource(QAudioDevice device, const QAudioFormat &form
                                        QObject *parent)
     : BaseClass(std::move(device), format, parent)
 {
-#ifndef Q_OS_MACOS
-    if (qGuiApp)
-        QObject::connect(qGuiApp, &QGuiApplication::applicationStateChanged, this,
-                         [this](Qt::ApplicationState state) {
-            if (state == Qt::ApplicationState::ApplicationActive)
-                resumeStreamIfNecessary();
-        });
-#endif
 }
 
 QCoreAudioSource::~QCoreAudioSource()
@@ -400,8 +411,21 @@ QCoreAudioSource::~QCoreAudioSource()
 
 void QCoreAudioSource::resumeStreamIfNecessary()
 {
-    if (m_stream)
-        m_stream->resumeIfNecessary();
+    // An application-requested suspend must survive backgrounding: only an OS-initiated stop
+    // of the audio unit may be undone here.
+    if (!m_stream || state() == QAudio::SuspendedState)
+        return;
+    if (!m_stream->resumeIfNecessary())
+        qWarning() << "QCoreAudioSource: failed to resume audio unit";
 }
+
+#ifndef Q_OS_MACOS
+void QCoreAudioSource::resume()
+{
+    // An explicit application resume() takes precedence over a pending automatic one.
+    m_recovery.userResumeRequested();
+    BaseClass::resume();
+}
+#endif
 
 QT_END_NAMESPACE

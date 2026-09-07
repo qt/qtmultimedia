@@ -17,6 +17,9 @@
 #include <QtMultimedia/private/qaudio_platform_implementation_support_p.h>
 #include <QtMultimedia/private/qcoreaudioutils_p.h>
 #include <QtMultimedia/private/qcoreaudiodevices_p.h>
+#ifndef Q_OS_MACOS
+#  include <QtMultimedia/private/qavaudiosessionrecovery_p.h>
+#endif
 
 #include <AudioUnit/AudioUnit.h>
 #include <vector>
@@ -48,7 +51,7 @@ public:
     void stop(ShutdownPolicy);
 
     void suspend();
-    void resume();
+    bool resume();
 
     using QPlatformAudioSourceStream::bytesReady;
     using QPlatformAudioSourceStream::deviceIsRingbufferReader;
@@ -56,10 +59,15 @@ public:
     using QPlatformAudioSourceStream::ringbufferSizeInBytes;
     using QPlatformAudioSourceStream::setVolume;
 
-    void resumeIfNecessary();
+    bool resumeIfNecessary();
+
+    void reportIOError();
+    void invalidateAudioUnit();
 
 private:
     void updateStreamIdle(bool idle) override;
+
+    bool startAudioUnit();
     void stopAudioUnit();
 
     OSStatus processInput(AudioUnitRenderActionFlags *ioActionFlags,
@@ -79,7 +87,6 @@ private:
 #endif
 
     QCoreAudioUtils::AudioUnitHandle m_audioUnit;
-    bool m_audioUnitRunning{};
 
     std::optional<AudioCallback> m_audioCallback;
     QCoreAudioSource *m_parent;
@@ -105,6 +112,19 @@ public:
     ~QCoreAudioSource() override;
 
     void resumeStreamIfNecessary();
+
+#ifndef Q_OS_MACOS
+    void resume() override;
+
+    // Interface required by QAVAudioSessionRecovery.
+    QCoreAudioSourceStream *currentStream() const { return m_stream.get(); }
+    using BaseClass::updateStreamState;
+
+    void notifyStreamStopped() { m_recovery.streamStopped(); }
+
+private:
+    QtMultimediaPrivate::QAVAudioSessionRecovery<QCoreAudioSource> m_recovery{ *this };
+#endif
 };
 
 QT_END_NAMESPACE

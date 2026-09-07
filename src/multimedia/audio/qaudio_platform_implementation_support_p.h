@@ -50,7 +50,7 @@ concept QPlatformSinkStream = requires(T t, QIODevice *device,
     { t.start(std::move(callback)) } -> std::same_as<bool>;
 
     { t.suspend() } -> std::same_as<void>;
-    { t.resume() } -> std::same_as<void>;
+    { t.resume() };
     { t.stop(shutdownPolicy) } -> std::same_as<void>;
 
     { t.setVolume(0.0f) } -> std::same_as<void>;
@@ -354,7 +354,7 @@ concept QPlatformSourceStream = requires(T t, QIODevice *device,
     { t.start(device) } -> std::same_as<bool>;
 
     { t.suspend() } -> std::same_as<void>;
-    { t.resume() } -> std::same_as<void>;
+    { t.resume() };
     { t.stop(shutdownPolicy) } -> std::same_as<void>;
 
     { t.setVolume(0.0f) } -> std::same_as<void>;
