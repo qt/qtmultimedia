@@ -17,6 +17,10 @@
 #include "qffmpegmuxer_p.h"
 #include "qloggingcategory.h"
 
+extern "C" {
+#include "libavutil/opt.h"
+}
+
 QT_BEGIN_NAMESPACE
 namespace ranges = QtMultimediaPrivate::ranges;
 
@@ -24,6 +28,37 @@ Q_STATIC_LOGGING_CATEGORY(qLcFFmpegEncoder, "qt.multimedia.ffmpeg.encoder");
 
 namespace QFFmpeg
 {
+
+namespace {
+
+bool supportsNegativeCtsOffsets(const AVOutputFormat *format)
+{
+    if (!format || !format->priv_class)
+        return false;
+
+    // Check if muxer can store negative composition offsets in a version 1
+    // ctts box, exposed as the negative_cts_offsets movflag
+    const AVClass *avClass = format->priv_class;
+    return av_opt_find(static_cast<void *>(&avClass), "negative_cts_offsets", "movflags", 0, 0)
+            != nullptr;
+}
+
+AVDictionaryHolder muxerOptions(const AVFormatContext *formatContext)
+{
+    AVDictionaryHolder options;
+
+    if (supportsNegativeCtsOffsets(formatContext->oformat)) {
+        // Codecs that reorder frames (H264, H265) emit packets with dts starting negative (frame
+        // reorder delay). Muxer can store that delay as negative composition offsets
+        av_dict_set(options, "movflags", "+negative_cts_offsets", 0);
+        // Disable avformat shifting to keep packets unmodified for muxer
+        av_dict_set(options, "avoid_negative_ts", "disabled", 0);
+    }
+
+    return options;
+}
+
+} // namespace
 
 RecordingEngine::RecordingEngine(const QMediaEncoderSettings &settings,
                  std::unique_ptr<EncodingFormatContext> context)
@@ -279,7 +314,8 @@ void RecordingEngine::handleEncodersResolved(const QList<QFuture<bool>> &resolut
 
         avFormatContext()->metadata = QFFmpegMetaData::toAVMetaData(m_metaData);
 
-        const int res = avformat_write_header(avFormatContext(), nullptr);
+        AVDictionaryHolder options = muxerOptions(avFormatContext());
+        const int res = avformat_write_header(avFormatContext(), options);
         if (res < 0) {
             qWarning() << "could not write header, error:" << res << AVError(res);
             allEncodersSucceeded = false;
