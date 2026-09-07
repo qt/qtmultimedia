@@ -16,8 +16,9 @@
 // We mean it.
 //
 
-#include <QAudioFormat>
-#include <QAudioBuffer>
+#include <QtMultimedia/qaudioformat.h>
+#include <QtMultimedia/qaudiobuffer.h>
+#include <QtCore/qiodevice.h>
 #include <QtCore/qmath.h>
 
 #include <chrono>
@@ -35,6 +36,26 @@ public:
     SineWaveGenerator(std::uint32_t phase, std::uint32_t increment)
         : m_phase(phase), m_increment(increment)
     {
+    }
+
+    SineWaveGenerator(double frequency, double sampleRate, double phase = 0.0)
+        : SineWaveGenerator(phaseToFixedPoint(phase), incrementFromFrequency(frequency, sampleRate))
+    {
+    }
+
+    static std::uint32_t phaseToFixedPoint(double phase)
+    {
+        constexpr double scale = static_cast<double>(std::numeric_limits<std::uint32_t>::max());
+        double normalizedPhase = std::fmod(phase, tau);
+        if (normalizedPhase < 0.0)
+            normalizedPhase += tau;
+        return std::uint32_t((normalizedPhase / tau) * scale);
+    }
+
+    static std::uint32_t incrementFromFrequency(double frequency, double sampleRate)
+    {
+        constexpr double scale = static_cast<double>(std::numeric_limits<std::uint32_t>::max());
+        return std::uint32_t((frequency / sampleRate) * scale);
     }
 
     double getSample() const
@@ -92,13 +113,9 @@ class SineWaveSignal
 
 public:
     SineWaveSignal(double frequency, double sample_rate, double phase = 0.0)
+        : m_phase(SineWaveGenerator::phaseToFixedPoint(phase)),
+          m_increment(SineWaveGenerator::incrementFromFrequency(frequency, sample_rate))
     {
-        constexpr auto scale = double(std::numeric_limits<std::uint32_t>::max());
-        double normalizedPhase = std::fmod(phase, SineWaveGenerator::tau);
-        if (normalizedPhase < 0.0)
-            normalizedPhase += SineWaveGenerator::tau;
-        m_phase = std::uint32_t((normalizedPhase / SineWaveGenerator::tau) * scale);
-        m_increment = std::uint32_t((frequency / sample_rate) * scale);
     }
 
     iterator begin() const
@@ -115,6 +132,30 @@ private:
     std::uint32_t m_increment;
 };
 
+inline unsigned char *writeSineSample(unsigned char *ptr, QAudioFormat::SampleFormat sampleFormat,
+                                      qreal x)
+{
+    auto writeNextFrame = [&](auto value) {
+        *reinterpret_cast<decltype(value) *>(ptr) = value;
+        return ptr + sizeof(value);
+    };
+
+    switch (sampleFormat) {
+    case QAudioFormat::UInt8:
+        return writeNextFrame(quint8(std::round((1.0 + x) / 2 * 255)));
+    case QAudioFormat::Int16:
+        return writeNextFrame(qint16(std::round(x * std::numeric_limits<qint16>::max())));
+    case QAudioFormat::Int32:
+        return writeNextFrame(qint32(std::round(x * std::numeric_limits<qint32>::max())));
+    case QAudioFormat::Float:
+        return writeNextFrame(float(x));
+    case QAudioFormat::Unknown:
+    case QAudioFormat::NSampleFormats:
+        break;
+    }
+    return ptr;
+}
+
 inline QByteArray createSineWaveData(const QAudioFormat &format, std::chrono::microseconds duration,
                                      qint32 sampleIndex = 0, qreal frequency = 500,
                                      qreal volume = 0.8)
@@ -128,45 +169,53 @@ inline QByteArray createSineWaveData(const QAudioFormat &format, std::chrono::mi
     unsigned char *ptr = reinterpret_cast<unsigned char *>(data.data());
     const auto end = ptr + length;
 
-    auto writeNextFrame = [&](auto value) {
-        Q_ASSERT(sizeof(value) == format.bytesPerSample());
-        *reinterpret_cast<decltype(value) *>(ptr) = value;
-        ptr += sizeof(value);
-    };
-
     const double initialPhase = 2.0 * M_PI * frequency * sampleIndex / format.sampleRate();
     SineWaveSignal generator(frequency, format.sampleRate(), initialPhase);
     for (double rawSample : generator) {
         if (ptr >= end)
             break;
         const qreal x = rawSample * volume;
-        for (int ch = 0; ch < format.channelCount(); ++ch) {
-            switch (format.sampleFormat()) {
-            case QAudioFormat::UInt8:
-                writeNextFrame(static_cast<quint8>(std::round((1.0 + x) / 2 * 255)));
-                break;
-            case QAudioFormat::Int16:
-                writeNextFrame(
-                        static_cast<qint16>(std::round(x * std::numeric_limits<qint16>::max())));
-                break;
-            case QAudioFormat::Int32:
-                writeNextFrame(
-                        static_cast<qint32>(std::round(x * std::numeric_limits<qint32>::max())));
-                break;
-            case QAudioFormat::Float:
-                writeNextFrame(static_cast<float>(x));
-                break;
-            case QAudioFormat::Unknown:
-            case QAudioFormat::NSampleFormats:
-                break;
-            }
-        }
+        for (int ch = 0; ch < format.channelCount(); ++ch)
+            ptr = writeSineSample(ptr, format.sampleFormat(), x);
     }
 
     Q_ASSERT(ptr == end);
 
     return data;
 }
+
+class SineWaveIODevice : public QIODevice
+{
+public:
+    explicit SineWaveIODevice(const QAudioFormat &format, qreal frequency = 500, qreal volume = 0.8)
+        : m_format(format), m_generator(frequency, format.sampleRate()), m_volume(volume)
+    {
+        open(QIODeviceBase::ReadOnly);
+    }
+
+    qint64 readData(char *data, qint64 len) override
+    {
+        unsigned char *ptr = reinterpret_cast<unsigned char *>(data);
+        const unsigned char *const end = ptr + len - (len % m_format.bytesPerFrame());
+
+        while (ptr < end) {
+            const qreal x = m_generator() * m_volume;
+            for (int ch = 0; ch < m_format.channelCount(); ++ch)
+                ptr = writeSineSample(ptr, m_format.sampleFormat(), x);
+        }
+
+        return ptr - reinterpret_cast<unsigned char *>(data);
+    }
+
+    qint64 writeData(const char *, qint64) override { return 0; }
+    bool isSequential() const override { return true; }
+    qint64 bytesAvailable() const override { return std::numeric_limits<qint64>::max(); }
+
+private:
+    QAudioFormat m_format;
+    SineWaveGenerator m_generator;
+    qreal m_volume;
+};
 
 class AudioGenerator : public QObject
 {
@@ -220,7 +269,7 @@ signals:
 
 public slots:
     void nextBuffer()
-{
+    {
         if (m_bufferIndex == m_maxBufferCount) {
             emit done();
             if (m_emitEmptyBufferOnStop)
