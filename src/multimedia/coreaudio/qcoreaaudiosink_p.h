@@ -21,6 +21,8 @@
 #include <QtMultimedia/private/qcoreaudiodevices_p.h>
 #ifdef Q_OS_MACOS
 #  include <QtMultimedia/private/qmacosaudiodatautils_p.h>
+#else
+#  include <QtMultimedia/private/qavaudiosessionrecovery_p.h>
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -52,14 +54,17 @@ public:
     void stopStream();
 
     void suspend();
-    void resume();
+    bool resume();
 
     using QPlatformAudioSinkStream::bytesFree;
     using QPlatformAudioSinkStream::processedDuration;
     using QPlatformAudioSinkStream::ringbufferSizeInBytes;
     using QPlatformAudioSinkStream::setVolume;
 
-    void resumeIfNecessary();
+    bool resumeIfNecessary();
+
+    void reportIOError();
+    void invalidateAudioUnit();
 
 private:
     OSStatus processRingbuffer(uint32_t numberOfFrames,
@@ -68,7 +73,10 @@ private:
                                   AudioBufferList *ioData) noexcept Q_DECL_NONBLOCKING_FUNCTION;
 
     void updateStreamIdle(bool arg) override;
+
+    bool startAudioUnit();
     void stopAudioUnit();
+
 
 #ifdef Q_OS_MACOS
     bool setDisconnectListener(AudioObjectID id);
@@ -79,7 +87,6 @@ private:
 
     std::unique_ptr<QIODevice> m_reader;
     QCoreAudioUtils::AudioUnitHandle m_audioUnit;
-    bool m_audioUnitRunning{};
 
     QCoreAudioSink *m_parent;
 
@@ -98,6 +105,19 @@ public:
     ~QCoreAudioSink() override;
 
     void resumeStreamIfNecessary();
+
+#ifndef Q_OS_MACOS
+    void resume() override;
+
+    // Interface required by QAVAudioSessionRecovery.
+    QCoreAudioSinkStream *currentStream() const { return m_stream.get(); }
+    using BaseClass::updateStreamState;
+
+    void notifyStreamStopped() { m_recovery.streamStopped(); }
+
+private:
+    QtMultimediaPrivate::QAVAudioSessionRecovery<QCoreAudioSink> m_recovery{ *this };
+#endif
 };
 
 QT_END_NAMESPACE

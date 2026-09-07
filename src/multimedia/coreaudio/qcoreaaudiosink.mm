@@ -5,7 +5,6 @@
 
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qdebug.h>
-#include <QtGui/qguiapplication.h>
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/private/qaudio_qiodevice_support_p.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
@@ -108,13 +107,8 @@ bool QCoreAudioSinkStream::start(QIODevice *device)
     setQIODevice(device);
     pullFromQIODevice();
 
-    const OSStatus status = AudioOutputUnitStart(m_audioUnit.get());
-    if (status != noErr) {
-        qDebug() << "AudioOutputUnitStart failed:" << QtMultimediaPrivate::QOSStatus(status);
+    if (!startAudioUnit())
         return false;
-    }
-
-    m_audioUnitRunning = true;
 
     createQIODeviceConnections(device);
 
@@ -149,16 +143,16 @@ bool QCoreAudioSinkStream::start(AudioCallback cb)
     if (!audioUnitSetRenderCallback(m_audioUnit, callback))
         return false;
 
-    const OSStatus status = AudioOutputUnitStart(m_audioUnit.get());
-    if (status != noErr) {
-        qDebug() << "AudioOutputUnitStart failed:" << QtMultimediaPrivate::QOSStatus(status);
-        return false;
-    }
-    return true;
+    return startAudioUnit();
 }
 
 void QCoreAudioSinkStream::stop(ShutdownPolicy policy)
 {
+#ifndef Q_OS_MACOS
+    if (m_parent)
+        m_parent->notifyStreamStopped();
+#endif
+
     m_parent = nullptr;
 
     if (m_audioCallback) {
@@ -218,19 +212,23 @@ void QCoreAudioSinkStream::suspend()
         qDebug() << "AudioOutputUnitStop failed:" << QtMultimediaPrivate::QOSStatus(status);
 }
 
-void QCoreAudioSinkStream::resume()
+bool QCoreAudioSinkStream::resume()
 {
-    const auto status = AudioOutputUnitStart(m_audioUnit.get());
-    if (status == noErr)
-        return;
-    else
-        qDebug() << "AudioOutputUnitStart failed:" << QtMultimediaPrivate::QOSStatus(status);
+    return startAudioUnit();
 }
 
-void QCoreAudioSinkStream::resumeIfNecessary()
+bool QCoreAudioSinkStream::resumeIfNecessary()
 {
-    if (!QCoreAudioUtils::audioUnitIsRunning(m_audioUnit))
-        resume();
+    if (QCoreAudioUtils::audioUnitIsRunning(m_audioUnit))
+        return true;
+
+    return resume();
+}
+
+void QCoreAudioSinkStream::reportIOError()
+{
+    requestStop();
+    handleIOError(m_parent);
 }
 
 OSStatus QCoreAudioSinkStream::processRingbuffer(uint32_t numberOfFrames,
@@ -268,20 +266,44 @@ OSStatus QCoreAudioSinkStream::processAudioCallback(uint32_t numberOfFrames,
 
 void QCoreAudioSinkStream::updateStreamIdle(bool arg)
 {
-    m_parent->updateStreamIdle(arg);
+    if (m_parent)
+        m_parent->updateStreamIdle(arg);
+}
+
+bool QCoreAudioSinkStream::startAudioUnit()
+{
+    if (!m_audioUnit) {
+        // the audio unit has been disposed, e.g. after the operating system invalidated it
+        return false;
+    }
+
+    const OSStatus status = AudioOutputUnitStart(m_audioUnit.get());
+    if (status != noErr) {
+        qDebug() << "AudioOutputUnitStart failed:" << QtMultimediaPrivate::QOSStatus(status);
+        return false;
+    }
+
+    return true;
 }
 
 void QCoreAudioSinkStream::stopAudioUnit()
 {
-    const auto status = AudioOutputUnitStop(m_audioUnit.get());
-    if (status != noErr)
-        qDebug() << "AudioOutputUnitStop failed:" << QtMultimediaPrivate::QOSStatus(status);
-
-    m_audioUnitRunning = false;
+    invalidateAudioUnit();
 
 #ifdef Q_OS_MACOS
     m_stopOnDisconnected.cancelChain();
 #endif
+}
+
+void QCoreAudioSinkStream::invalidateAudioUnit()
+{
+    if (!m_audioUnit)
+        return;
+
+    const auto status = AudioOutputUnitStop(m_audioUnit.get());
+    if (status != noErr)
+        qDebug() << "AudioOutputUnitStop failed:" << QtMultimediaPrivate::QOSStatus(status);
+
     m_audioUnit = {};
 }
 
@@ -301,8 +323,7 @@ bool QCoreAudioSinkStream::setDisconnectListener(AudioObjectID id)
         // a way to re-synchronize the audio stream. so we explicitly stop the audio unit
 
         stopAudioUnit();
-        requestStop();
-        handleIOError(m_parent);
+        reportIOError();
     });
 
     return true;
@@ -314,14 +335,6 @@ bool QCoreAudioSinkStream::setDisconnectListener(AudioObjectID id)
 QCoreAudioSink::QCoreAudioSink(QAudioDevice device, const QAudioFormat &format, QObject *parent)
     : BaseClass(std::move(device), format, parent)
 {
-#ifndef Q_OS_MACOS
-    if (qGuiApp)
-        QObject::connect(qGuiApp, &QGuiApplication::applicationStateChanged, this,
-                         [this](Qt::ApplicationState state) {
-            if (state == Qt::ApplicationState::ApplicationActive)
-                resumeStreamIfNecessary();
-        });
-#endif
 }
 
 QCoreAudioSink::~QCoreAudioSink()
@@ -329,8 +342,21 @@ QCoreAudioSink::~QCoreAudioSink()
 
 void QCoreAudioSink::resumeStreamIfNecessary()
 {
-    if (m_stream)
-        m_stream->resumeIfNecessary();
+    // An application-requested suspend must survive backgrounding: only an OS-initiated stop
+    // of the audio unit may be undone here.
+    if (!m_stream || state() == QAudio::SuspendedState)
+        return;
+    if (!m_stream->resumeIfNecessary())
+        qWarning() << "QCoreAudioSink: failed to resume audio unit";
 }
+
+#ifndef Q_OS_MACOS
+void QCoreAudioSink::resume()
+{
+    // An explicit application resume() takes precedence over a pending automatic one.
+    m_recovery.userResumeRequested();
+    BaseClass::resume();
+}
+#endif
 
 QT_END_NAMESPACE
