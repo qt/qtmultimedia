@@ -22,6 +22,8 @@
 #include <QtCore/qthread.h>
 #include <QtCore/private/qexpected_p.h>
 
+#include <optional>
+
 #import <AVFoundation/AVFoundation.h>
 
 QT_USE_NAMESPACE
@@ -68,12 +70,6 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
 - (void) dealloc;
 - (BOOL) resourceLoader:(AVAssetResourceLoader *)resourceLoader shouldWaitForLoadingOfRequestedResource:(AVAssetResourceLoadingRequest *)loadingRequest;
 @end
-
-#ifdef Q_OS_IOS
-// Alas, no such thing as 'class variable', hence globals:
-static unsigned sessionActivationCount;
-static QMutex sessionMutex;
-#endif // Q_OS_IOS
 
 namespace {
 
@@ -133,6 +129,10 @@ struct GuardedPlatformPlayer
 };
 } // namespace
 
+#if defined(Q_OS_IOS) || defined(Q_OS_VISIONOS) || defined(Q_OS_TVOS)
+using ActivationToken = QtMultimediaPrivate::QAVAudioSessionManager::ActivationToken;
+#endif
+
 @implementation AVFMediaPlayerObserver {
 @private
     GuardedPlatformPlayer m_platformPlayer;
@@ -143,38 +143,12 @@ struct GuardedPlatformPlayer
     BOOL m_bufferIsLikelyToKeepUp;
     NSData *m_data;
     NSString *m_mimeType;
-#ifdef Q_OS_IOS
-    BOOL m_activated;
+#if defined(Q_OS_IOS) || defined(Q_OS_VISIONOS) || defined(Q_OS_TVOS)
+    std::optional<ActivationToken> m_sessionActivation;
 #endif
 }
 
 @synthesize m_player, m_playerItem, m_playerLayer;
-
-#if defined(Q_OS_IOS) || defined(Q_OS_VISIONOS) || defined(Q_OS_TVOS)
-- (void)setSessionActive:(BOOL)active
-{
-    const QMutexLocker lock(&sessionMutex);
-    if (active) {
-        // Don't count the same player twice if already activated,
-        // unless it tried to deactivate first:
-        if (m_activated)
-            return;
-        if (!sessionActivationCount)
-            [AVAudioSession.sharedInstance setActive:YES error:nil];
-        ++sessionActivationCount;
-        m_activated = YES;
-    } else {
-        if (!sessionActivationCount || !m_activated) {
-            qWarning("Unbalanced audio session deactivation, ignoring.");
-            return;
-        }
-        --sessionActivationCount;
-        m_activated = NO;
-        if (!sessionActivationCount)
-            [AVAudioSession.sharedInstance setActive:NO error:nil];
-    }
-}
-#endif // defined(Q_OS_IOS) || defined(Q_OS_VISIONOS) || defined(Q_OS_TVOS)
 
 - (AVFMediaPlayerObserver *) initWithMediaPlayerSession:(AVFMediaPlayer *)session
 {
@@ -261,7 +235,7 @@ struct GuardedPlatformPlayer
     if (m_playerLayer)
         m_playerLayer.player = nil;
 #if defined(Q_OS_IOS) || defined(Q_OS_VISIONOS) || defined(Q_OS_TVOS)
-    [self setSessionActive:NO];
+    m_sessionActivation.reset();
 #endif
 }
 
@@ -270,6 +244,13 @@ struct GuardedPlatformPlayer
 {
     if (!m_platformPlayer)
         return;
+
+#if defined(Q_OS_IOS) || defined(Q_OS_VISIONOS) || defined(Q_OS_TVOS)
+    auto sessionActivation = QtMultimediaPrivate::QAVAudioSessionManager::instance()->activate({
+            false,
+            AVAudioSessionCategoryOptionMixWithOthers,
+    });
+#endif
 
     //Make sure that the value of each key has loaded successfully.
     for (NSString *thisKey in requestedKeys)
@@ -383,9 +364,7 @@ struct GuardedPlatformPlayer
                           options:0
                           context:AVFMediaPlayerObserverCurrentItemDurationObservationContext];
 #if defined(Q_OS_IOS) || defined(Q_OS_VISIONOS) || defined(Q_OS_TVOS)
-    [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback withOptions:AVAudioSessionCategoryOptionMixWithOthers error:nil];
-    QtMultimediaPrivate::QAVAudioSessionManager::instance()->updateConfiguration();
-    [self setSessionActive:YES];
+    m_sessionActivation = std::move(sessionActivation);
 #endif
 }
 
