@@ -18,6 +18,7 @@ void EncoderThread::setPaused(bool paused)
 {
     auto guard = lockLoopData();
     m_paused = paused;
+    handlePausedChanged(paused);
 }
 
 void EncoderThread::setAutoStop(bool autoStop)

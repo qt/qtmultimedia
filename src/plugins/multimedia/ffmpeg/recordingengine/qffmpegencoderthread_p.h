@@ -75,6 +75,8 @@ protected:
 
     void markResolved(bool succeeded);
 
+    virtual void handlePausedChanged(bool /*paused*/) { }
+
 Q_SIGNALS:
     void canPushFrameChanged();
     void endOfSourceStream();
