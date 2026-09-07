@@ -98,6 +98,14 @@ private:
     AudioConverterRef m_audioConverter{ nullptr };
     std::vector<uint8_t> m_outputBuffer;
     AudioBufferList m_outputBufferList{};
+
+#ifndef Q_OS_MACOS
+    // Held for as long as this stream wants the shared AVAudioSession active; acquired in
+    // start(), released in stop(). suspend()/resume() (interruption handling) must not touch
+    // it: the stream still wants the session active across a suspend/resume cycle, only the
+    // OS-level session state changed.
+    std::optional<QtMultimediaPrivate::QAVAudioSessionManager::ActivationToken> m_sessionActivation;
+#endif
 };
 
 class QCoreAudioSource final

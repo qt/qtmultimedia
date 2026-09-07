@@ -18,14 +18,26 @@
 #include <QtMultimedia/qtmultimediaexports.h>
 
 #include <QtCore/qobject.h>
+#include <QtCore/qmutex.h>
 #include <QtCore/private/qcore_mac_p.h>
 
 #include <array>
+#include <cstdint>
 #include <memory>
+#include <utility>
+#include <vector>
+
+#import <AVFoundation/AVAudioSession.h>
 
 QT_BEGIN_NAMESPACE
 
 namespace QtMultimediaPrivate {
+
+struct SessionRequirement
+{
+    bool needsRecord = false;
+    AVAudioSessionCategoryOptions options = 0;
+};
 
 class Q_MULTIMEDIA_EXPORT QAVAudioSessionManager final : public QObject
 {
@@ -36,13 +48,37 @@ public:
     QAVAudioSessionManager();
     ~QAVAudioSessionManager() override;
 
-    bool activateSession();
+    enum class TokenId : std::uint64_t {};
 
-    // Must be called by any code that intentionally changes the shared AVAudioSession's
-    // category, options or mode (e.g. avfmediaplayer.mm), so that activateSession() treats
-    // this as the configuration to restore after an interruption or media services reset,
-    // instead of reverting to whatever was in effect when the monitor was constructed.
-    void updateConfiguration();
+    class Q_MULTIMEDIA_EXPORT ActivationToken
+    {
+    public:
+        ActivationToken() = default;
+        ActivationToken(ActivationToken &&other) noexcept;
+        ActivationToken &operator=(ActivationToken &&other) noexcept;
+        ~ActivationToken();
+
+        Q_DISABLE_COPY(ActivationToken)
+
+    private:
+        friend class QAVAudioSessionManager;
+        ActivationToken(QAVAudioSessionManager *manager, std::shared_ptr<bool> destroyed,
+                        TokenId tokenId);
+
+        void release();
+
+        QAVAudioSessionManager *m_manager = nullptr;
+        std::shared_ptr<bool> m_destroyed;
+        TokenId m_tokenId{};
+    };
+
+    ActivationToken activate(SessionRequirement requirement);
+
+    // Reasserts activation of the shared AVAudioSession using the configuration derived from
+    // currently live ActivationTokens, without changing which tokens are live. Intended for use
+    // by QAVAudioSessionRecovery only, after the OS itself deactivated the session (e.g. an
+    // interruption or media services reset) while our own set of clients hasn't changed.
+    bool reassertActivation();
 
 Q_SIGNALS:
     void interruptionBegan();
@@ -51,9 +87,15 @@ Q_SIGNALS:
     void mediaServicesWereReset();
 
 private:
-    struct SessionConfiguration;
+    friend class ActivationToken;
 
-    const std::unique_ptr<SessionConfiguration> m_configuration;
+    void releaseActivation(TokenId tokenId);
+    bool applyRequirementsLocked();
+
+    QMutex m_activationMutex;
+    std::vector<std::pair<TokenId, SessionRequirement>> m_requirements;
+    std::uint64_t m_tokenIdAllocator = 0;
+
     std::array<QMacNotificationObserver, 3> m_observers;
 
     const std::shared_ptr<bool> m_destroyed = std::make_shared<bool>(false);
