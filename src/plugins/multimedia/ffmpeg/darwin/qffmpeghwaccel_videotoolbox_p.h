@@ -47,10 +47,14 @@ namespace QFFmpeg {
 class VideoToolBoxTextureConverter : public TextureConverterBackend
 {
 public:
-    VideoToolBoxTextureConverter(QRhi *rhi);
+    static std::shared_ptr<VideoToolBoxTextureConverter> create(QRhi *rhi);
+
     ~VideoToolBoxTextureConverter();
     QVideoFrameTexturesHandlesUPtr
     createTextureHandles(AVFrame *frame, QVideoFrameTexturesHandlesUPtr oldHandles) override;
+
+protected:
+    explicit VideoToolBoxTextureConverter(QRhi *rhi);
 
 private:
     void freeTextureCaches();

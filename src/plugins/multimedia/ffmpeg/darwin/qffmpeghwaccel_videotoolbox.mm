@@ -59,6 +59,11 @@ public:
 };
 }
 
+std::shared_ptr<VideoToolBoxTextureConverter> VideoToolBoxTextureConverter::create(QRhi *rhi)
+{
+    return std::shared_ptr<VideoToolBoxTextureConverter>(new VideoToolBoxTextureConverter(rhi));
+}
+
 VideoToolBoxTextureConverter::VideoToolBoxTextureConverter(QRhi *targetRhi)
     : TextureConverterBackend(targetRhi)
 {

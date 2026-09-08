@@ -33,13 +33,17 @@ using QtMultimediaPrivate::importDmaBufTextures;
 class VAAPITextureConverter : public TextureConverterBackend
 {
 public:
-    VAAPITextureConverter(QRhi *rhi);
+    static std::shared_ptr<VAAPITextureConverter> create(QRhi *rhi);
+
     ~VAAPITextureConverter() override;
 
     QVideoFrameTexturesHandlesUPtr
     createTextureHandles(AVFrame *frame, QVideoFrameTexturesHandlesUPtr oldHandles) override;
 
     DmaBufEglContext eglContext;
+
+protected:
+    explicit VAAPITextureConverter(QRhi *rhi);
 };
 } // namespace QFFmpeg
 
