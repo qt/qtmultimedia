@@ -44,9 +44,9 @@ struct ScoredPixelFormat
     AVScore score = NotSuitableAVScore;
 };
 
-// sorted by score
+// sorted by score. accel == nullptr for pure software encoders
 std::vector<ScoredPixelFormat> findAndScoreTargetSWFormats(AVPixelFormat sourceSWFormat,
-                                                           const Codec &, const HWAccel &,
+                                                           const Codec &, const HWAccel *,
                                                            QSize resolution);
 
 std::optional<AVPixelFormat> findTargetFormat(AVPixelFormat sourceSWFormat, const Codec &codec,

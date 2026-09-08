@@ -105,7 +105,7 @@ private:
     SwsContextUPtr m_scaleContext;
     AVPixelFormat m_sourceFormat = AV_PIX_FMT_NONE;
     AVPixelFormat m_sourceSWFormat = AV_PIX_FMT_NONE;
-    const AVPixelFormat m_targetFormat;
+    AVPixelFormat m_targetFormat;
     AVPixelFormat m_targetSWFormat = AV_PIX_FMT_NONE;
     bool m_downloadFromHW = false;
     bool m_uploadToHW = false;
