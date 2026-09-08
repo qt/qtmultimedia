@@ -69,6 +69,8 @@ bool isGreyFormat(const AVPixFmtDescriptor *desc)
 
 AVScore scoreTargetSwFormat(const AVPixFmtDescriptor *sourceSwFormatDesc, AVPixelFormat fmt)
 {
+    constexpr int AlphaMismatchPenalty = 50;
+
     // determine the format used by the encoder.
     // We prefer YUV420 based formats such as NV12 or P010. Selection trues to find the best
     // matching format for the encoder depending on the bit depth of the source format
@@ -88,7 +90,16 @@ AVScore scoreTargetSwFormat(const AVPixFmtDescriptor *sourceSwFormatDesc, AVPixe
         score += 10;
 
     const int sourceBpp = av_get_bits_per_pixel(sourceSwFormatDesc);
-    const int bpp = av_get_bits_per_pixel(desc);
+    int bpp = av_get_bits_per_pixel(desc);
+
+    const bool sourceHasAlpha = sourceSwFormatDesc->flags & AV_PIX_FMT_FLAG_ALPHA;
+    if ((desc->flags & AV_PIX_FMT_FLAG_ALPHA) && !sourceHasAlpha) {
+        // The source has no real alpha to preserve -- don't credit the target's alpha bits
+        // toward a bpp match, and penalize picking an alpha target over an equally-good
+        // non-alpha one.
+        bpp -= desc->comp[desc->nb_components - 1].depth; // alpha is always the last component
+        score -= AlphaMismatchPenalty;
+    }
 
     // we want formats with the same bpp
     if (bpp == sourceBpp)

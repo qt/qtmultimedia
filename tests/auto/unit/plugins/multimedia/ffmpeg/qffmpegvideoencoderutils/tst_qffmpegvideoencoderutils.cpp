@@ -68,6 +68,11 @@ private slots:
     void scoreTargetSwFormat_matchesExpectedScore_whenSourceIsNV12();
     void scoreTargetSwFormat_matchesExpectedScore_whenSourceIsNV12_data();
 
+    void scoreTargetSwFormat_matchesExpectedScore_whenSourceIsBgr0();
+    void scoreTargetSwFormat_matchesExpectedScore_whenSourceIsBgr0_data();
+
+    void scoreTargetSwFormat_prefersNonAlphaFormat_whenSourceIsOpaque();
+
     void encoderPixelFormats_returnsDeclaredFormats_whenCodecDeclaresThem();
     void encoderPixelFormats_returnsDeclaredFormats_whenCodecDeclaresThem_data();
 
@@ -223,7 +228,9 @@ void tst_QFFmpegVideoEncoderUtils::scoreTargetSwFormat_matchesExpectedScore_when
     QTest::addColumn<AVPixelFormat>("targetFormat");
     QTest::addColumn<AVScore>("expectedScore");
 
+    QTest::newRow("yuva444p") << AV_PIX_FMT_YUVA444P << 99_avscore;
     QTest::newRow("yuv444p") << AV_PIX_FMT_YUV444P << -109_avscore;
+    QTest::newRow("yuva420p") << AV_PIX_FMT_YUVA420P << -110_avscore;
     if constexpr (QOperatingSystemVersion::currentType() == QOperatingSystemVersion::Android)
         QTest::newRow("nv12") << AV_PIX_FMT_NV12 << -117_avscore;
     else
@@ -250,7 +257,7 @@ void tst_QFFmpegVideoEncoderUtils::scoreTargetSwFormat_matchesExpectedScore_when
     QFETCH(AVScore, expectedScore);
 
     // Act
-    const AVScore actualScore = QFFmpeg::scoreTargetSwFormat(AV_PIX_FMT_BGRA, targetFormat);
+    const AVScore actualScore = scoreTargetSwFormat(AV_PIX_FMT_BGRA, targetFormat);
 
     // Assert
     QCOMPARE(actualScore, expectedScore);
@@ -268,11 +275,12 @@ void tst_QFFmpegVideoEncoderUtils::scoreTargetSwFormat_matchesExpectedScore_when
     else
         QTest::newRow("nv12") << AV_PIX_FMT_NV12 << 112_avscore;
     QTest::newRow("yuv420p") << AV_PIX_FMT_YUV420P << 102_avscore;
+    QTest::newRow("yuva420p") << AV_PIX_FMT_YUVA420P << 52_avscore;
 #if LIBAVUTIL_VERSION_MAJOR >= 60 // requires FFmpeg 8
-    QTest::newRow("ayuv") << AV_PIX_FMT_AYUV << -1_avscore;
+    QTest::newRow("ayuv") << AV_PIX_FMT_AYUV << -51_avscore;
 #endif
     QTest::newRow("p010le") << AV_PIX_FMT_P010LE << -98_avscore;
-    QTest::newRow("rgba") << AV_PIX_FMT_RGBA << -1001_avscore;
+    QTest::newRow("rgba") << AV_PIX_FMT_RGBA << -1051_avscore;
     QTest::newRow("gray0") << AV_PIX_FMT_GRAY8 << AVScore::NotSuitableAVScore;
     QTest::newRow("monowhite") << AV_PIX_FMT_MONOWHITE << AVScore::NotSuitableAVScore;
 }
@@ -284,10 +292,61 @@ void tst_QFFmpegVideoEncoderUtils::scoreTargetSwFormat_matchesExpectedScore_when
     QFETCH(AVScore, expectedScore);
 
     // Act
-    const AVScore actualScore = QFFmpeg::scoreTargetSwFormat(AV_PIX_FMT_NV12, targetFormat);
+    const AVScore actualScore = scoreTargetSwFormat(AV_PIX_FMT_NV12, targetFormat);
 
     // Assert
     QCOMPARE(actualScore, expectedScore);
+}
+
+void tst_QFFmpegVideoEncoderUtils::scoreTargetSwFormat_matchesExpectedScore_whenSourceIsBgr0_data()
+{
+    using namespace QFFmpeg::Literals;
+
+    QTest::addColumn<AVPixelFormat>("targetFormat");
+    QTest::addColumn<AVScore>("expectedScore");
+
+    QTest::newRow("yuv444p") << AV_PIX_FMT_YUV444P << 99_avscore;
+    QTest::newRow("yuva444p") << AV_PIX_FMT_YUVA444P << 49_avscore;
+    QTest::newRow("yuv422p") << AV_PIX_FMT_YUV422P << -108_avscore;
+    if constexpr (QOperatingSystemVersion::currentType() == QOperatingSystemVersion::Android)
+        QTest::newRow("nv12") << AV_PIX_FMT_NV12 << -109_avscore;
+    else
+        QTest::newRow("nv12") << AV_PIX_FMT_NV12 << -110_avscore;
+    QTest::newRow("yuv420p") << AV_PIX_FMT_YUV420P << -110_avscore;
+    QTest::newRow("yuva422p") << AV_PIX_FMT_YUVA422P << -158_avscore;
+    QTest::newRow("yuva420p") << AV_PIX_FMT_YUVA420P << -160_avscore;
+    QTest::newRow("yuv444p16le") << AV_PIX_FMT_YUV444P16LE << -201_avscore;
+#if LIBAVUTIL_VERSION_MAJOR >= 60 // requires FFmpeg 8
+    QTest::newRow("yuv444p10msble") << AV_PIX_FMT_YUV444P10MSBLE << -101_avscore;
+#endif
+    QTest::newRow("p010le") << AV_PIX_FMT_P010LE << -207_avscore;
+    QTest::newRow("p016le") << AV_PIX_FMT_P016LE << -98_avscore;
+    QTest::newRow("bgr0") << AV_PIX_FMT_BGR0 << -891_avscore;
+    QTest::newRow("rgb0") << AV_PIX_FMT_RGB0 << -901_avscore;
+    QTest::newRow("bgra") << AV_PIX_FMT_BGRA << -951_avscore;
+    QTest::newRow("rgba") << AV_PIX_FMT_RGBA << -951_avscore;
+    QTest::newRow("gray0") << AV_PIX_FMT_GRAY8 << AVScore::NotSuitableAVScore;
+    QTest::newRow("monowhite") << AV_PIX_FMT_MONOWHITE << AVScore::NotSuitableAVScore;
+}
+
+void tst_QFFmpegVideoEncoderUtils::scoreTargetSwFormat_matchesExpectedScore_whenSourceIsBgr0()
+{
+    // Arrange
+    QFETCH(AVPixelFormat, targetFormat);
+    QFETCH(AVScore, expectedScore);
+
+    // Act
+    const AVScore actualScore = scoreTargetSwFormat(AV_PIX_FMT_BGR0, targetFormat);
+
+    // Assert
+    QCOMPARE(actualScore, expectedScore);
+}
+
+void tst_QFFmpegVideoEncoderUtils::scoreTargetSwFormat_prefersNonAlphaFormat_whenSourceIsOpaque()
+{
+    const AVScore yuv444p = scoreTargetSwFormat(AV_PIX_FMT_BGR0, AV_PIX_FMT_YUV444P);
+    const AVScore yuva422p = scoreTargetSwFormat(AV_PIX_FMT_BGR0, AV_PIX_FMT_YUVA422P);
+    QVERIFY(yuv444p > yuva422p);
 }
 
 void tst_QFFmpegVideoEncoderUtils::encoderPixelFormats_returnsDeclaredFormats_whenCodecDeclaresThem_data()
