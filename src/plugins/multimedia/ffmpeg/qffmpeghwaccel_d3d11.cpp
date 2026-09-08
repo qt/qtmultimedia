@@ -268,6 +268,11 @@ private:
 };
 }
 
+std::shared_ptr<D3D11TextureConverter> D3D11TextureConverter::create(QRhi *rhi)
+{
+    return std::shared_ptr<D3D11TextureConverter>(new D3D11TextureConverter(rhi));
+}
+
 D3D11TextureConverter::D3D11TextureConverter(QRhi *rhi)
     : TextureConverterBackend(rhi), m_rhiDevice{ GetD3DDevice(rhi) }
 {

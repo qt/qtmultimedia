@@ -28,7 +28,10 @@ struct Frame;
 class MediaCodecTextureConverter : public TextureConverterBackend
 {
 public:
-    MediaCodecTextureConverter(QRhi *rhi) : TextureConverterBackend(rhi){};
+    static std::shared_ptr<MediaCodecTextureConverter> create(QRhi *rhi)
+    {
+        return std::shared_ptr<MediaCodecTextureConverter>(new MediaCodecTextureConverter(rhi));
+    }
 
     QVideoFrameTexturesUPtr createTextures(AVFrame *frame,
                                            QVideoFrameTexturesUPtr &oldTextures) override;
@@ -37,6 +40,11 @@ public:
     createTextureHandles(AVFrame *frame, QVideoFrameTexturesHandlesUPtr oldHandles) override;
 
     static void setupDecoderSurface(AVCodecContext *s);
+
+protected:
+    MediaCodecTextureConverter(QRhi *rhi) : TextureConverterBackend(rhi)
+    {}
+
 private:
     std::unique_ptr<QRhiTexture> externalTexture;
     quint64 m_currentSurfaceIndex = 0;

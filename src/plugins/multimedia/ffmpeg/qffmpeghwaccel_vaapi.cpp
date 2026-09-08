@@ -35,6 +35,11 @@ using QtMultimediaPrivate::DRMFormat;
 
 constexpr bool VAExportUseLayers = false;
 
+std::shared_ptr<VAAPITextureConverter> VAAPITextureConverter::create(QRhi *rhi)
+{
+    return std::shared_ptr<VAAPITextureConverter>(new VAAPITextureConverter(rhi));
+}
+
 VAAPITextureConverter::VAAPITextureConverter(QRhi *rhi)
     : TextureConverterBackend(nullptr), eglContext(rhi)
 {

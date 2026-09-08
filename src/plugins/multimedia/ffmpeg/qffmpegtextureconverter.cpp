@@ -114,7 +114,7 @@ void TextureConverter::updateBackend(AVPixelFormat fmt)
 
     applyConverterTypeByPixelFormat(m_format, m_rhi, [this](auto converterTypeIdentity) {
         using ConverterType = typename decltype(converterTypeIdentity)::type;
-        m_backend = std::make_shared<ConverterType>(&m_rhi);
+        m_backend = ConverterType::create(&m_rhi);
     });
 }
 

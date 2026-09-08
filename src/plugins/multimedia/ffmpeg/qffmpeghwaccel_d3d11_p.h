@@ -76,12 +76,15 @@ private:
 class D3D11TextureConverter : public TextureConverterBackend
 {
 public:
-    D3D11TextureConverter(QRhi *rhi);
+    static std::shared_ptr<D3D11TextureConverter> create(QRhi *rhi);
 
     QVideoFrameTexturesHandlesUPtr
     createTextureHandles(AVFrame *frame, QVideoFrameTexturesHandlesUPtr oldHandles) override;
 
     static void SetupDecoderTextures(AVCodecContext *s);
+
+protected:
+    explicit D3D11TextureConverter(QRhi *rhi);
 
 private:
     ComPtr<ID3D11Device1> m_rhiDevice;
