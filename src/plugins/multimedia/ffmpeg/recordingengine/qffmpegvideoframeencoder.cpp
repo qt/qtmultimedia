@@ -71,6 +71,11 @@ std::optional<AVHWDeviceType> getHwDeviceType(const Codec &codec)
         return std::nullopt;
 }
 
+bool muxerNeedsGlobalHeader(const AVFormatContext *formatContext)
+{
+    return (formatContext->oformat->flags & AVFMT_GLOBALHEADER) != 0;
+}
+
 } // namespace
 
 VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &encoderSettings,
@@ -85,10 +90,12 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &enc
         return nullptr;
 
     const AVCodecID codecId = avCodecID(encoderSettings);
+    const bool needsGlobalHeader = muxerNeedsGlobalHeader(formatContext);
 
     auto createWithFallback = [&](const Codec &codec, HWAccelUPtr hwAccel) {
         const AVHWDeviceType deviceType = hwAccel ? hwAccel->deviceType() : AV_HWDEVICE_TYPE_NONE;
-        auto result = create(stream, codec, std::move(hwAccel), sourceParams, encoderSettings);
+        auto result = create(stream, codec, std::move(hwAccel), sourceParams, encoderSettings,
+                             needsGlobalHeader);
 
         if constexpr (isAndroid) {
             // On Android some encoders fail to open encoders with 4:2:0 formats unless it's NV12.
@@ -99,7 +106,7 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &enc
                     prohibitedTargetFormats.insert(result.targetFormat);
                     hwAccel = HWAccel::create(deviceType);
                     result = create(stream, codec, std::move(hwAccel), sourceParams,
-                                    encoderSettings, prohibitedTargetFormats);
+                                    encoderSettings, needsGlobalHeader, prohibitedTargetFormats);
                 }
             }
         }
@@ -163,11 +170,13 @@ VideoFrameEncoderUPtr VideoFrameEncoder::create(const QMediaEncoderSettings &enc
 
 VideoFrameEncoder::VideoFrameEncoder(AVStream *stream, const Codec &codec, HWAccelUPtr hwAccel,
                                      const SourceParams &sourceParams,
-                                     const QMediaEncoderSettings &encoderSettings)
+                                     const QMediaEncoderSettings &encoderSettings,
+                                     bool needsGlobalHeader)
     : m_settings(encoderSettings),
       m_stream(stream),
       m_codec(codec),
       m_accel(std::move(hwAccel)),
+      m_needsGlobalHeader(needsGlobalHeader),
       m_sourceSize(sourceParams.size),
       m_sourceFormat(sourceParams.format),
       m_sourceSWFormat(sourceParams.swFormat),
@@ -208,11 +217,12 @@ AVStream *VideoFrameEncoder::createStream(const SourceParams &sourceParams,
 VideoFrameEncoder::CreationResult
 VideoFrameEncoder::create(AVStream *stream, const Codec &codec, HWAccelUPtr hwAccel,
                           const SourceParams &sourceParams,
-                          const QMediaEncoderSettings &encoderSettings,
+                          const QMediaEncoderSettings &encoderSettings, bool needsGlobalHeader,
                           const AVPixelFormatSet &prohibitedTargetFormats)
 {
     VideoFrameEncoderUPtr frameEncoder(new VideoFrameEncoder(stream, codec, std::move(hwAccel),
-                                                             sourceParams, encoderSettings));
+                                                             sourceParams, encoderSettings,
+                                                             needsGlobalHeader));
     frameEncoder->initTargetSize();
 
     frameEncoder->initCodecFrameRate();
@@ -355,6 +365,9 @@ bool VideoFrameEncoder::initCodecContext()
     m_codecContext->time_base = m_stream->time_base;
     qCDebug(qLcVideoFrameEncoder) << "codecContext time base" << m_codecContext->time_base.num
                                   << m_codecContext->time_base.den;
+
+    if (m_needsGlobalHeader)
+        m_codecContext->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
 
     if (m_accel) {
         const AVHWDeviceType deviceType = m_accel->deviceType();

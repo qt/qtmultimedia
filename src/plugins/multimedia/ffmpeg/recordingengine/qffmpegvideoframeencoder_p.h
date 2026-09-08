@@ -64,7 +64,7 @@ public:
 private:
     VideoFrameEncoder(AVStream *stream, const Codec &codec, HWAccelUPtr hwAccel,
                       const SourceParams &sourceParams,
-                      const QMediaEncoderSettings &encoderSettings);
+                      const QMediaEncoderSettings &encoderSettings, bool needsGlobalHeader);
 
     static AVStream *createStream(const SourceParams &sourceParams, AVFormatContext *formatContext);
 
@@ -81,6 +81,7 @@ private:
     static CreationResult create(AVStream *stream, const Codec &codec, HWAccelUPtr hwAccel,
                                  const SourceParams &sourceParams,
                                  const QMediaEncoderSettings &encoderSettings,
+                                 bool needsGlobalHeader,
                                  const AVPixelFormatSet &prohibitedTargetFormats = {});
 
     void initTargetSize();
@@ -102,6 +103,7 @@ private:
     AVStream *const m_stream = nullptr;
     const Codec m_codec;
     const HWAccelUPtr m_accel;
+    const bool m_needsGlobalHeader = false;
 
     QSize m_sourceSize;
     QSize m_targetSize;
