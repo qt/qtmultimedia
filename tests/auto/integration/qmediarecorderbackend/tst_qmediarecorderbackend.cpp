@@ -654,7 +654,9 @@ void tst_QMediaRecorderBackend::record_writesVideo_withAllSupportedVideoFormats(
 
     QVERIFY(f.waitForRecorderStopped(60s));
 
-    if (unsupportedVideoCodecs(actualFormat.fileFormat()).count(actualFormat.videoCodec()))
+    // Only expect failure if it actually reproduces, so a fixed combination is a PASS, not XPASS.
+    if (f.m_recorder.error() != QMediaRecorder::NoError
+        && unsupportedVideoCodecs(actualFormat.fileFormat()).count(actualFormat.videoCodec()))
         QEXPECT_FAIL("", "QTBUG-126276", Abort);
 
     QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError,
