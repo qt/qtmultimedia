@@ -256,18 +256,8 @@ void VideoFrameEncoder::initCodecFrameRate()
 
 std::vector<ScoredPixelFormat> VideoFrameEncoder::enumerateTargetSwFormats() const
 {
-    if (isHwPixelFormat(m_targetFormat)) {
-        Q_ASSERT(m_accel);
-        return QFFmpeg::findAndScoreTargetSWFormats(m_sourceSWFormat, m_codec, *m_accel,
-                                                    m_targetSize);
-    } else {
-        return std::vector{
-            ScoredPixelFormat{
-                    m_targetFormat,
-                    AVScore::BestAVScore,
-            },
-        };
-    }
+    return QFFmpeg::findAndScoreTargetSWFormats(m_sourceSWFormat, m_codec, m_accel.get(),
+                                                m_targetSize);
 }
 
 bool VideoFrameEncoder::tryInitTargetSwFormat(AVPixelFormat targetSwFormat)
@@ -279,6 +269,9 @@ bool VideoFrameEncoder::tryInitTargetSwFormat(AVPixelFormat targetSwFormat)
     if (m_accel) {
         m_accel->destroyFramesContext();
         m_accel->createFramesContext(m_targetSWFormat, m_targetSize);
+    } else {
+        m_targetFormat = targetSwFormat;
+        m_stream->codecpar->format = targetSwFormat;
     }
     auto cleanup = QScopeGuard([this] {
         if (m_accel)

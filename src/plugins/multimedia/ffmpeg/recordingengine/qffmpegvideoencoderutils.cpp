@@ -390,8 +390,8 @@ std::optional<AVPixelFormat> findTargetSWFormat(AVPixelFormat sourceSWFormat, co
 }
 
 std::vector<ScoredPixelFormat> findAndScoreTargetSWFormats(AVPixelFormat sourceSWFormat,
-                                                           const Codec &codec, const HWAccel &accel,
-                                                           QSize resolution)
+                                                           const Codec &codec,
+                                                           const HWAccel *accel, QSize resolution)
 {
     if constexpr (false) {
         qDebug() << "findAndScoreTargetSWFormats" << codec.name() << codec.id();
@@ -406,16 +406,16 @@ std::vector<ScoredPixelFormat> findAndScoreTargetSWFormats(AVPixelFormat sourceS
     });
 
     std::vector<ScoredPixelFormat> scoredPixelFormats = [&] {
-        const auto constraints = accel.constraints();
+        const AVHWFramesConstraints *constraints = accel ? accel->constraints() : nullptr;
         if (constraints && constraints->valid_sw_formats) {
             const auto validSWFormatsForHWAccel =
                     makeSpan(constraints->valid_sw_formats) | ranges::to<QMinimalFlatSet>();
 
-            if (codecDeclaresSwFormats(codec, resolution, &accel)) {
+            if (codecDeclaresSwFormats(codec, resolution, accel)) {
                 // If the codec declares sw formats, we can find the best one among the intersection
                 // of the codec's sw formats and the valid sw formats for the hw accel.
                 const std::vector<AVPixelFormat> codecPixelFormats =
-                        encoderPixelFormats(codec, resolution, &accel);
+                        encoderPixelFormats(codec, resolution, accel);
                 auto validCodecPixelFormats =
                         views::filter(codecPixelFormats, [&](AVPixelFormat fmt) {
                     return validSWFormatsForHWAccel.contains(fmt);
@@ -429,12 +429,14 @@ std::vector<ScoredPixelFormat> findAndScoreTargetSWFormats(AVPixelFormat sourceS
                         | ranges::to<std::vector>();
             }
         } else {
-            // Some codecs, e.g. mediacodec, don't expose constraints, let's find the format in
-            // codec->pix_fmts (avcodec_get_supported_config with AV_CODEC_CONFIG_PIX_FORMAT since
-            // n7.1), or, if the codec declares nothing at all, in the probed formats.
+            // Some codecs, e.g. mediacodec, don't expose constraints, and pure software
+            // codecs (accel == nullptr) never have constraints at all; let's find the
+            // format in codec->pix_fmts (avcodec_get_supported_config with
+            // AV_CODEC_CONFIG_PIX_FORMAT since n7.1), or, if the codec declares nothing at
+            // all, in the probed formats.
 
             const std::vector<AVPixelFormat> codecPixelFormats =
-                    encoderPixelFormats(codec, resolution, &accel);
+                    encoderPixelFormats(codec, resolution, accel);
             return codecPixelFormats | score | filterSuitablePixelFormats
                     | ranges::to<std::vector>();
         }
