@@ -357,7 +357,7 @@ using VideoCodecOptionsTableType =
 
 const VideoCodecOptionsTableType videoCodecOptionTable{
     { "libx264"_L1, apply_x264 },
-    { "libx265xx"_L1, apply_x265 },
+    { "libx265"_L1, apply_x265 },
     { "libvpx"_L1, apply_libvpx },
     { "libvpx_vp9"_L1, apply_libvpx },
     { "libopenh264"_L1, apply_openh264 },
