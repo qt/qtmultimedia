@@ -15,7 +15,15 @@ QMockVideoDevices::QMockVideoDevices(QPlatformMediaIntegration *mediaIntegration
     info->isDefault = true;
     auto *f = new QCameraFormatPrivate{
         QSharedData(),
-        QVideoFrameFormat::Format_ARGB8888,
+        QVideoFrameFormat::PixelFormat::Format_ARGB8888,
+        QSize(640, 480),
+        0,
+        30
+    };
+    info->videoFormats << f->create();
+    f = new QCameraFormatPrivate{
+        QSharedData(),
+        QVideoFrameFormat::PixelFormat::Format_YUV420P,
         QSize(640, 480),
         0,
         30
@@ -29,7 +37,7 @@ QMockVideoDevices::QMockVideoDevices(QPlatformMediaIntegration *mediaIntegration
     info->position = QCameraDevice::FrontFace;
     f = new QCameraFormatPrivate{
         QSharedData(),
-        QVideoFrameFormat::Format_XRGB8888,
+        QVideoFrameFormat::PixelFormat::Format_XRGB8888,
         QSize(1280, 720),
         0,
         30
