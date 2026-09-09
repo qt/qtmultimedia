@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include "qmockintegration.h"
+#include "tst_multimediaquick_qml_cameraformathelper.h"
 #include "tst_multimediaquick_qml_screencapturehelper.h"
 #include "tst_multimediaquick_qml_testhelper.h"
 
@@ -16,6 +17,13 @@ struct TestSetupClass : public QObject
 {
     TestSetupClass()
     {
+        qmlRegisterSingletonInstance(
+            "QtMultimediaTest",
+            1,
+            0,
+            "CameraFormatHelper",
+            new CameraFormatHelper);
+
         qmlRegisterSingletonInstance(
             "QtMultimediaTest",
             1,
