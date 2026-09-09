@@ -23,4 +23,5 @@
  \preliminarycmakevariable
  \cmakevariablesince 6.8
 
-*/
+ \sa {Setting CMake variables and properties}
+ */
