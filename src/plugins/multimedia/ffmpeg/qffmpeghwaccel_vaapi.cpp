@@ -131,8 +131,8 @@ VAAPITextureConverter::createTextureHandles(AVFrame *frame,
         planes[i].offset = prime.layers[layer].offset[plane];
         planes[i].pitch = prime.layers[layer].pitch[plane];
         planes[i].drmFormat = drm_formats[i];
-        planes[i].modifier =
-                prime.objects[prime.layers[layer].object_index[plane]].drm_format_modifier;
+        planes[i].modifier = QtMultimediaPrivate::DRMModifier(
+                prime.objects[prime.layers[layer].object_index[plane]].drm_format_modifier);
     }
 
     auto textureHandles =

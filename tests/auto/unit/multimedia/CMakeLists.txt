@@ -58,6 +58,7 @@ if(QT_FEATURE_pipewire)
     add_subdirectory(qpipewire_videoformat_support)
 endif()
 add_subdirectory(qrhivaluemapper)
+add_subdirectory(qmultimedia_drm_support)
 add_subdirectory(ranges)
 add_subdirectory(iteratorfacade)
 
