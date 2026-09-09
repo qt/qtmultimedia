@@ -15,16 +15,27 @@
 // We mean it.
 //
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtMultimedia/qvideoframeformat.h>
 #include <QtCore/qspan.h>
+#include <QtCore/qstring.h>
 
 #include <cstdint>
 
 QT_BEGIN_NAMESPACE
 
+class QDebug;
+
 namespace QtMultimediaPrivate {
 
-static constexpr uint64_t DmaBufFormatModifierInvalid = ((1ULL << 56) - 1);
+// see DRM_FORMAT_MOD_VENDOR_* in drm_fourcc.h
+enum class DRMModifier : std::uint64_t { };
+
+static constexpr DRMModifier DmaBufFormatModifierInvalid = DRMModifier{ (1ULL << 56) - 1 };
+static constexpr DRMModifier DrmFormatModifierLinear = DRMModifier{ 0 };
+
+Q_MULTIMEDIA_EXPORT QString toString(DRMModifier modifier);
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug debug, DRMModifier modifier);
 
 constexpr uint32_t fourcc_code(char a, char b, char c, char d)
 {
@@ -60,6 +71,9 @@ enum class DRMFormat : std::uint32_t {
     YUV444       = fourcc_code('Y', 'U', '2', '4'), /* non-subsampled Cb (1) and Cr (2) planes */
 };
 // clang-format on
+
+Q_MULTIMEDIA_EXPORT QString toString(DRMFormat format);
+Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug debug, DRMFormat format);
 
 inline QSpan<const DRMFormat>
 dmaBufFourccFromPixelFormat(const QVideoFrameFormat::PixelFormat format)

@@ -143,10 +143,11 @@ importDmaBufTextures(QRhi &rhi, const DmaBufEglContext &eglContext, QSpan<const 
         };
         uint32_t img_attr_idx = 12;
         if (plane.modifier != DmaBufFormatModifierInvalid) {
+            const auto modifier = EGLAttrib(plane.modifier);
             img_attr[img_attr_idx++] = EGL_DMA_BUF_PLANE0_MODIFIER_LO_EXT;
-            img_attr[img_attr_idx++] = plane.modifier & 0xFFFFFFFF;
+            img_attr[img_attr_idx++] = modifier & 0xFFFFFFFF;
             img_attr[img_attr_idx++] = EGL_DMA_BUF_PLANE0_MODIFIER_HI_EXT;
-            img_attr[img_attr_idx++] = plane.modifier >> 32;
+            img_attr[img_attr_idx++] = modifier >> 32;
         }
         img_attr[img_attr_idx++] = EGL_NONE;
         Q_ASSERT(img_attr_idx <= maxAttrCount);

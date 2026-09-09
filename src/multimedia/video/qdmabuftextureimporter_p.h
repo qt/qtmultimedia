@@ -43,7 +43,7 @@ struct DmaBufPlane
     uint32_t offset = 0;
     uint32_t pitch = 0;
     DRMFormat drmFormat = DRMFormat::RGBA8888;
-    uint64_t modifier = DmaBufFormatModifierInvalid;
+    DRMModifier modifier = DmaBufFormatModifierInvalid;
 };
 
 class Q_MULTIMEDIA_EXPORT QEglImageFunctions
