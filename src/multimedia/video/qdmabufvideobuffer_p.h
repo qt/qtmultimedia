@@ -16,12 +16,13 @@
 
 
 #include <QtMultimedia/qvideoframeformat.h>
-#include <QtMultimedia/private/qdmabuftextureimporter_p.h>
 #include <QtMultimedia/private/qhwvideobuffer_p.h>
+#include <QtMultimedia/private/qmultimedia_drm_support_p.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtCore/qsize.h>
 #include <QtCore/qspan.h>
 #include <QtCore/qvarlengtharray.h>
+
 #include <array>
 #include <memory>
 
