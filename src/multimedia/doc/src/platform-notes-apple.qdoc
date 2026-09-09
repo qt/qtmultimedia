@@ -16,6 +16,15 @@ assigned to QMAKE_INFO_PLIST in the project file must contain the keys
 application will abort on startup. See \l{Info.plist} documentation from Apple
 for more information regarding this key.
 
+\section1 Shared AVAudioSession on iOS
+
+On the iOS family, Qt Multimedia activates the single, process-wide shared
+\l{https://developer.apple.com/documentation/avfaudio/avaudiosession?language=objc}
+{AVAudioSession} for audio input and output. Since this session is shared by the
+whole application, other code that also configures or activates \c AVAudioSession
+may interfere with Qt Multimedia's session configuration, and Qt Multimedia's
+configuration may equally interfere with that other code.
+
 \section1 Use of FFmpeg libraries on iOS
 
 FFmpeg binaries from the online installer must be embedded into the application's

@@ -39,6 +39,8 @@ struct SessionRequirement
     AVAudioSessionCategoryOptions options = 0;
 };
 
+// On iOS, this activates the single, process-wide shared AVAudioSession. Other code in
+// the same process that also manages AVAudioSession may conflict with this activation.
 class Q_MULTIMEDIA_EXPORT QAVAudioSessionManager final : public QObject
 {
     Q_OBJECT
