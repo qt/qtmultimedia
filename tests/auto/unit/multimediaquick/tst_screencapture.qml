@@ -3,8 +3,8 @@
 
 import QtQuick
 import QtMultimedia
-import QtTest
 import QtMultimediaTest
+import QtTest
 
 TestCase {
     id: testCase
@@ -70,6 +70,8 @@ TestCase {
     }
 
     function initTestCase() {
+        verify(TestHelper.mediaBackendName === "mock");
+
         verify(Qt.application.screens.length > 0, "The test requires at least one screen");
     }
 

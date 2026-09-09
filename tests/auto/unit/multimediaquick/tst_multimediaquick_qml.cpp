@@ -3,6 +3,7 @@
 
 #include "qmockintegration.h"
 #include "tst_multimediaquick_qml_screencapturehelper.h"
+#include "tst_multimediaquick_qml_testhelper.h"
 
 #include <QtQml/qqml.h>
 #include <QtQuickTest/quicktest.h>
@@ -21,6 +22,13 @@ struct TestSetupClass : public QObject
             0,
             "ScreenCaptureHelper",
             new ScreenCaptureHelper);
+
+        qmlRegisterSingletonInstance(
+            "QtMultimediaTest",
+            1,
+            0,
+            "TestHelper",
+            new TestHelper);
     }
 };
 

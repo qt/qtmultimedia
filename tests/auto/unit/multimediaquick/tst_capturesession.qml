@@ -3,6 +3,7 @@
 
 import QtQuick
 import QtMultimedia
+import QtMultimediaTest
 import QtTest
 
 TestCase {
@@ -130,6 +131,10 @@ TestCase {
         let object = createTemporaryObject(component, testCase);
         verify(object);
         return object;
+    }
+
+    function inittestCase() {
+        verify(TestHelper.mediaBackendName === "mock");
     }
 
     function test_captureObjects_areNull_byDefault() {

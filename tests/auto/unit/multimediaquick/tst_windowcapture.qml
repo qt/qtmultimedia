@@ -3,6 +3,7 @@
 
 import QtQuick
 import QtMultimedia
+import QtMultimediaTest
 import QtTest
 
 TestCase {
@@ -64,6 +65,10 @@ TestCase {
         verify(spy);
         verify(spy.valid, "The signal '" + signalName + "' is not exposed to QML");
         return spy;
+    }
+
+    function initTestCase() {
+        verify(TestHelper.mediaBackendName === "mock");
     }
 
     function test_window_isCapturableWindow_byDefault() {

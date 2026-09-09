@@ -5,7 +5,7 @@
 
 add_subdirectory(mockbackend)
 add_subdirectory(multimedia)
-if(TARGET Qt::Quick)
+if(TARGET Qt::Quick AND TARGET Qt::QuickTest)
     add_subdirectory(multimediaquick)
 endif()
 if(TARGET Qt::Widgets)
