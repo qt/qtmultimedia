@@ -21,8 +21,8 @@ set(QML_SOURCE_FILES
 qt_internal_multimedia_add_test(tst_multimediaquick_qml
     QMLTEST
     SOURCES
-        tst_multimediaquick_qml_screencapturehelper.cpp
-        tst_multimediaquick_qml_screencapturehelper.h
+        tst_multimediaquick_qml_screencapturehelper.h tst_multimediaquick_qml_screencapturehelper.cpp
+        tst_multimediaquick_qml_testhelper.h tst_multimediaquick_qml_testhelper.cpp
         tst_multimediaquick_qml.cpp
         ${QML_SOURCE_FILES}
     TESTDATA

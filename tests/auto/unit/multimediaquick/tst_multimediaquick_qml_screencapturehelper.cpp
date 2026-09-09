@@ -12,6 +12,8 @@
 
 #include <optional>
 
+QT_USE_NAMESPACE
+
 QString ScreenCaptureHelper::primaryScreenName()
 {
     const QScreen *screen = QGuiApplication::primaryScreen();

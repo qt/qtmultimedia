@@ -10,7 +10,7 @@
 
 #include <QtMultimedia/qscreencapture.h>
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class ScreenCaptureHelper : public QObject
 {
@@ -44,5 +44,7 @@ public:
 private:
     QPointer<QObject> m_rememberedQmlScreen;
 };
+
+QT_END_NAMESPACE
 
 #endif // TST_MULTIMEDIAQUICK_QML_SCREENCAPTUREHELPER_H
