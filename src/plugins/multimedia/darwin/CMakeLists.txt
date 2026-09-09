@@ -33,6 +33,7 @@ qt_internal_add_plugin(QDarwinMediaPlugin
         ${FWVideoToolbox}
     COMPILE_OPTIONS
         -Wno-c++20-extensions
+        $<$<AND:$<COMPILE_LANGUAGE:OBJCXX>,$<BOOL:$<TARGET_PROPERTY:UNITY_BUILD>>>:-Wno-nullability-completeness>
     PRECOMPILED_HEADER
        $<$<COMPILE_LANGUAGE:OBJCXX>:darwin_pch.h>
 )
