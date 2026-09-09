@@ -152,6 +152,15 @@ dmaBufFourccFromPixelFormat(const QVideoFrameFormat::PixelFormat format)
     return {};
 }
 
+struct DmaBufPlane
+{
+    int fd = -1;
+    uint32_t offset = 0;
+    uint32_t pitch = 0;
+    DRMFormat drmFormat = DRMFormat::RGBA8888;
+    DRMModifier modifier = DmaBufFormatModifierInvalid;
+};
+
 } // namespace QtMultimediaPrivate
 
 QT_END_NAMESPACE

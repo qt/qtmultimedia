@@ -8,10 +8,6 @@
 #include <QtMultimedia/private/qmultimedia_drm_support_p.h>
 #include <QtMultimedia/private/qvideotexturehelper_p.h>
 
-#include <QtGui/qguiapplication.h>
-#include <QtGui/qopenglfunctions.h>
-#include <QtGui/qpa/qplatformnativeinterface.h>
-
 #include <QtCore/qloggingcategory.h>
 
 extern "C" {
