@@ -1,18 +1,20 @@
 {
-    "Id": "dr_libs",
-    "Name": "DR Libs",
+    "Id": "audiosourceexample-dr_libs",
+    "Name": "DR Libs (audiosource example)",
     "QDocModule": "qtmultimedia",
     "Description": "Public domain, single file audio decoding libraries for C and C++",
     "QtUsage": "Wave file writing in the 'audiosource' example",
-    "SecurityCritical": true,
+    "QtParts": [
+        "examples"
+    ],
 
     "Homepage": "https://github.com/mackron/dr_libs",
     "Version": "0.14.6-snapshot-ee937527",
     "DownloadLocation": "https://github.com/mackron/dr_libs/commit/ee93752fec1274be42dda95baabcd9d9fb8efc29",
 
-    "License": "MIT No Attribution",
-    "LicenseId": "MIT-0",
+    "License": "The Unlicense or MIT No Attribution",
+    "LicenseId": "Unlicense OR MIT-0",
     "LicenseFile": "LICENSE",
-    "Copyright": "Copyright 2020 David Reid",
+    "Copyright": "Copyright 2023 David Reid",
     "PURL": "pkg:github/mackron/dr_libs@ee93752fec1274be42dda95baabcd9d9fb8efc29"
 }

@@ -15,5 +15,6 @@
     "LicenseFiles": [
         "LICENSE"
     ],
+    "Copyright": "Copyright 2023 David Reid",
     "PURL": "pkg:github/mackron/dr_libs@ee93752fec1274be42dda95baabcd9d9fb8efc29"
 }
