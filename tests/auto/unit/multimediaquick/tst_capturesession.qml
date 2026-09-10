@@ -133,7 +133,7 @@ TestCase {
         return object;
     }
 
-    function inittestCase() {
+    function initTestCase() {
         verify(TestHelper.mediaBackendName === "mock");
     }
 
