@@ -8,6 +8,7 @@
 #include "QtTest/qtestcase.h"
 #include "private/qmemoryvideobuffer_p.h"
 #include "private/qhwvideobuffer_p.h"
+#include "private/qimagevideobuffer_p.h"
 #include "private/qvideoframe_p.h"
 #include <QtGui/QImage>
 #include <QtCore/QPointer>
@@ -202,6 +203,9 @@ private slots:
     void qImageFromVideoFrame_goodJPEG();
     void qImageFromVideoFrame_goodJPEGWithExtraData();
     void qImageFromVideoFrame_badJPEG();
+
+    void qImageFromVideoFrame_appliesRotationAndMirroringInCorrectOrder_data();
+    void qImageFromVideoFrame_appliesRotationAndMirroringInCorrectOrder();
 
     void isMapped();
     void isReadable();
@@ -1150,6 +1154,95 @@ void tst_QVideoFrame::qImageFromVideoFrame_badJPEG()
 
     QImage img = qImageFromVideoFrame(frame, false);
     QCOMPARE(img.isNull(), true);
+}
+
+// Native (undecoded) frame layout, identical for every row below:
+// +-----+-----+
+// | red | grn |
+// +-----+-----+
+// | blu | yel |
+// +-----+-----+
+static QImage colorQuadrantImage()
+{
+    QImage image{ QSize(40, 40), QImage::Format_ARGB32 };
+    image.fill(Qt::black);
+    for (int y = 0; y < image.height(); ++y) {
+        for (int x = 0; x < image.width(); ++x) {
+            const bool top = y < image.height() / 2;
+            const bool left = x < image.width() / 2;
+            QRgb color;
+            if (top && left)
+                color = qRgb(255, 0, 0);
+            else if (top && !left)
+                color = qRgb(0, 255, 0);
+            else if (!top && left)
+                color = qRgb(0, 0, 255);
+            else
+                color = qRgb(255, 255, 0);
+            image.setPixel(x, y, color);
+        }
+    }
+    return image;
+}
+
+void tst_QVideoFrame::qImageFromVideoFrame_appliesRotationAndMirroringInCorrectOrder_data()
+{
+    QTest::addColumn<QtVideo::Rotation>("rotation");
+    QTest::addColumn<bool>("mirrored");
+    QTest::addColumn<bool>("forceCpu");
+    QTest::addColumn<QRgb>("expectedUpperLeftColor");
+
+    // Rotation and horizontal mirroring don't commute for 90/270 degree
+    // rotations, so the order the two are composed in matters: mirroring is
+    // always defined to apply in the coordinate system established by the
+    // rotation (i.e. after it), not before. This must hold for both the CPU
+    // (software) conversion path and the RHI/shader path, since they compose
+    // rotation and mirroring completely differently.
+    struct Row { const char *name; QtVideo::Rotation rotation; bool mirrored; QRgb expected; };
+    const Row rows[] = {
+        { "none", QtVideo::Rotation::None, false, qRgb(255, 0, 0) },
+        { "mirrored", QtVideo::Rotation::None, true, qRgb(0, 255, 0) },
+        { "90", QtVideo::Rotation::Clockwise90, false, qRgb(0, 0, 255) },
+        { "90 mirrored", QtVideo::Rotation::Clockwise90, true, qRgb(255, 0, 0) },
+        { "180", QtVideo::Rotation::Clockwise180, false, qRgb(255, 255, 0) },
+        { "180 mirrored", QtVideo::Rotation::Clockwise180, true, qRgb(0, 0, 255) },
+        { "270", QtVideo::Rotation::Clockwise270, false, qRgb(0, 255, 0) },
+        { "270 mirrored", QtVideo::Rotation::Clockwise270, true, qRgb(255, 255, 0) },
+    };
+
+    QList<bool> cpuChoices = { true };
+    if (isRhiRenderingSupported())
+        cpuChoices.push_back(false); // Only run tests on GPU if RHI is supported
+
+    for (const Row &row : rows) {
+        for (const bool forceCpu : cpuChoices) {
+            const QString name = QStringLiteral("%1%2").arg(row.name, forceCpu ? " cpu" : " rhi");
+            QTest::addRow("%s", name.toLatin1().data())
+                    << row.rotation << row.mirrored << forceCpu << QRgb(row.expected);
+        }
+    }
+}
+
+void tst_QVideoFrame::qImageFromVideoFrame_appliesRotationAndMirroringInCorrectOrder()
+{
+    QFETCH(const QtVideo::Rotation, rotation);
+    QFETCH(const bool, mirrored);
+    QFETCH(const bool, forceCpu);
+    QFETCH(const QRgb, expectedUpperLeftColor);
+
+    const QImage image = colorQuadrantImage();
+
+    QVideoFrameFormat format(image.size(),
+                              QVideoFrameFormat::pixelFormatFromImageFormat(image.format()));
+    format.setRotation(rotation);
+    format.setMirrored(mirrored);
+
+    auto buffer = std::make_unique<QImageVideoBuffer>(image);
+    QVideoFrame frame = QVideoFramePrivate::createFrame(std::move(buffer), format);
+
+    const QImage result = qImageFromVideoFrame(frame, forceCpu);
+    QVERIFY(!result.isNull());
+    QCOMPARE(result.pixel(5, 5), expectedUpperLeftColor);
 }
 
 #define TEST_MAPPED(frame, mode) \
