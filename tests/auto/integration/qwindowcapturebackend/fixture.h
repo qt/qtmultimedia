@@ -48,6 +48,18 @@ struct DisableCursor final
 };
 
 /*!
+    For some backends (e.g ScreenCaptureKit) has a minor delay
+    between modifying QWindow geometry before the change is
+    reflected in that backend. This enum is used to tell
+    the Fixture whether it should insert a short delay
+    in between revealing the window and starting the capture.
+*/
+enum class FirstFrameSizePolicy {
+    MayLagWindowSize,
+    MustMatchWindowSize,
+};
+
+/*!
     Fixture class that orchestrates setup/teardown of window capturing
 */
 class WindowCaptureFixture : public QObject
@@ -69,6 +81,8 @@ public:
     */
     QVideoFrame waitForFrame(qint64 noOlderThanTime = 0);
 
+    void waitForWindowGeometryToSettle(FirstFrameSizePolicy policy) const;
+
     QMediaCaptureSession m_session;
     std::unique_ptr<QWindowCapture> m_captureStorage = QtMultimediaTestLib::makeWindowCapture();
     QWindowCapture &m_capture = *m_captureStorage;
@@ -77,6 +91,11 @@ public:
     QSignalSpy m_errors{ &m_capture, &QWindowCapture::errorOccurred };
     QSignalSpy m_activations{ &m_capture, &QWindowCapture::activeChanged };
     QSignalSpy m_frameRates{ &m_capture, &QWindowCapture::maximumFrameRateChanged };
+
+    // Delay to wait for a window geometry change to be reflected by the capture
+    // backend. Mostly useful for tests that require the very first frame of the
+    // stream to have correct size.
+    static std::chrono::milliseconds windowGeometrySettleDelay;
 
 private:
     /*!
@@ -103,7 +122,17 @@ public:
         Two phase initialization is used to be able to detect
         failure to find widget window as a capturable window.
     */
-    bool start(QSize size = { 60, 40 });
+    bool start(
+        QSize size = { 60, 40 },
+        FirstFrameSizePolicy firstFrameSizePolicy = FirstFrameSizePolicy::MayLagWindowSize);
+
+    void resizeWidget(
+        QSize size,
+        FirstFrameSizePolicy firstFrameSizePolicy = FirstFrameSizePolicy::MayLagWindowSize)
+    {
+        m_widget.setSize(size);
+        waitForWindowGeometryToSettle(firstFrameSizePolicy);
+    }
 
     DisableCursor m_cursorDisabled; // Avoid mouse cursor causing image differences
     TestWidget m_widget;
