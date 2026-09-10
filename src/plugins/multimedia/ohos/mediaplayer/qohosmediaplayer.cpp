@@ -402,12 +402,11 @@ int QOhosMediaPlayer::trackCount(TrackType type)
     // detected presence of audio/video as a single default track so QMediaPlayer
     // consumers can ask for activeTrack(0) and get a sensible answer.
     switch (type) {
-    case VideoStream:
+    case TrackType::VideoStream:
         return m_hasVideoTrack ? 1 : 0;
-    case AudioStream:
+    case TrackType::AudioStream:
         return m_hasAudioTrack ? 1 : 0;
-    case SubtitleStream:
-    case NTrackTypes:
+    case TrackType::SubtitleStream:
         break;
     }
     return 0;

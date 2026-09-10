@@ -676,7 +676,7 @@ void AVFMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
         metaDataChanged();
     }
     resetBufferProgress();
-    for (int i = 0; i < QPlatformMediaPlayer::NTrackTypes; ++i) {
+    for (size_t i = 0; i < QPlatformMediaPlayer::NTrackTypes; ++i) {
         tracks[i].clear();
         nativeTracks[i].clear();
     }
@@ -1164,7 +1164,7 @@ void AVFMediaPlayer::streamDestroyed()
 void AVFMediaPlayer::updateTracks()
 {
     bool firstLoad = true;
-    for (int i = 0; i < QPlatformMediaPlayer::NTrackTypes; ++i) {
+    for (size_t i = 0; i < QPlatformMediaPlayer::NTrackTypes; ++i) {
         if (tracks[i].count())
             firstLoad = false;
         tracks[i].clear();
@@ -1179,12 +1179,12 @@ void AVFMediaPlayer::updateTracks()
         for (AVPlayerItemTrack *track in tracks) {
             AVAssetTrack *assetTrack = track.assetTrack;
             if (assetTrack) {
-                int qtTrack = -1;
+                std::optional<TrackType> qtTrack;
                 if ([assetTrack.mediaType isEqualToString:AVMediaTypeAudio]) {
-                    qtTrack = QPlatformMediaPlayer::AudioStream;
+                    qtTrack = TrackType::AudioStream;
                     hasAudio = true;
                 } else if ([assetTrack.mediaType isEqualToString:AVMediaTypeVideo]) {
-                    qtTrack = QPlatformMediaPlayer::VideoStream;
+                    qtTrack = TrackType::VideoStream;
                     hasVideo = true;
                     if (m_observer.videoTrack != track) {
                         m_observer.videoTrack = track;
@@ -1195,28 +1195,28 @@ void AVFMediaPlayer::updateTracks()
                     }
                 }
                 else if ([assetTrack.mediaType isEqualToString:AVMediaTypeSubtitle]) {
-                    qtTrack = QPlatformMediaPlayer::SubtitleStream;
+                    qtTrack = TrackType::SubtitleStream;
                 }
-                if (qtTrack != -1) {
+                if (qtTrack) {
                     QMediaMetaData metaData = AVFMetaData::fromAssetTrack(assetTrack);
-                    this->tracks[qtTrack].append(metaData);
-                    nativeTracks[qtTrack].append(track);
+                    this->tracks[*qtTrack].append(metaData);
+                    nativeTracks[*qtTrack].append(track);
                 }
             }
         }
         // subtitles are disabled by default
         if (firstLoad)
-            setActiveTrack(SubtitleStream, -1);
+            setActiveTrack(TrackType::SubtitleStream, -1);
     }
     audioAvailableChanged(hasAudio);
     videoAvailableChanged(hasVideo);
     tracksChanged();
 }
 
-void AVFMediaPlayer::setActiveTrack(QPlatformMediaPlayer::TrackType type, int index)
+void AVFMediaPlayer::setActiveTrack(TrackType type, int index)
 {
     const auto &t = nativeTracks[type];
-    if (type == QPlatformMediaPlayer::SubtitleStream) {
+    if (type == TrackType::SubtitleStream) {
         // subtitle streams are not always automatically enabled on macOS/iOS.
         // this hack ensures they get enables and we actually get the text
         AVPlayerItem *playerItem = m_observer.m_playerItem;
@@ -1240,7 +1240,7 @@ void AVFMediaPlayer::setActiveTrack(QPlatformMediaPlayer::TrackType type, int in
     activeTracksChanged();
 }
 
-int AVFMediaPlayer::activeTrack(QPlatformMediaPlayer::TrackType type)
+int AVFMediaPlayer::activeTrack(TrackType type)
 {
     const auto &t = nativeTracks[type];
     for (int i = 0; i < t.count(); ++i)
@@ -1249,12 +1249,12 @@ int AVFMediaPlayer::activeTrack(QPlatformMediaPlayer::TrackType type)
     return -1;
 }
 
-int AVFMediaPlayer::trackCount(QPlatformMediaPlayer::TrackType type)
+int AVFMediaPlayer::trackCount(TrackType type)
 {
     return nativeTracks[type].count();
 }
 
-QMediaMetaData AVFMediaPlayer::trackMetaData(QPlatformMediaPlayer::TrackType type, int trackNumber)
+QMediaMetaData AVFMediaPlayer::trackMetaData(TrackType type, int trackNumber)
 {
     const auto &t = tracks[type];
     if (trackNumber < 0 || trackNumber >= t.count())

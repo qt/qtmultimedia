@@ -417,11 +417,11 @@ void tst_GStreamer::QGstPad_inferTypeFromName()
     };
 
     QVERIFY(makePad("audio_0", GST_PAD_SRC).inferTrackTypeFromName()
-            == QPlatformMediaPlayer::AudioStream);
+            == QPlatformMediaPlayer::TrackType::AudioStream);
     QVERIFY(makePad("video_0", GST_PAD_SRC).inferTrackTypeFromName()
-            == QPlatformMediaPlayer::VideoStream);
+            == QPlatformMediaPlayer::TrackType::VideoStream);
     QVERIFY(makePad("text_0", GST_PAD_SRC).inferTrackTypeFromName()
-            == QPlatformMediaPlayer::SubtitleStream);
+            == QPlatformMediaPlayer::TrackType::SubtitleStream);
     QVERIFY(makePad("src_0", GST_PAD_SRC).inferTrackTypeFromName() == std::nullopt);
     QVERIFY(makePad("text", GST_PAD_SRC).inferTrackTypeFromName() == std::nullopt);
 }

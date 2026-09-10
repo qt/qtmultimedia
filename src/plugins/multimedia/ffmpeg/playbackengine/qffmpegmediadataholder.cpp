@@ -22,6 +22,8 @@ Q_STATIC_LOGGING_CATEGORY(qLcMediaDataHolder, "qt.multimedia.ffmpeg.mediadatahol
 
 namespace QFFmpeg {
 
+using TrackType = QPlatformMediaPlayer::TrackType;
+
 static std::optional<TrackDuration> streamDuration(const AVStream &stream)
 {
     if (stream.duration > 0)
@@ -127,7 +129,7 @@ VideoTransformation MediaDataHolder::transformation() const
     // int orientation = m_metaData.value(QMediaMetaData::Orientation).toInt();
     // return static_cast<QtVideo::Rotation>(orientation);
 
-    const int streamIndex = m_currentAVStreamIndex[QPlatformMediaPlayer::VideoStream];
+    const int streamIndex = m_currentAVStreamIndex[TrackType::VideoStream];
     if (streamIndex < 0)
         return {};
 
@@ -139,19 +141,18 @@ AVFormatContext *MediaDataHolder::avContext()
     return m_context.get();
 }
 
-int MediaDataHolder::currentStreamIndex(QPlatformMediaPlayer::TrackType trackType) const
+int MediaDataHolder::currentStreamIndex(TrackType trackType) const
 {
     return m_currentAVStreamIndex[trackType];
 }
 
-static void insertMediaData(QMediaMetaData &metaData, QPlatformMediaPlayer::TrackType trackType,
-                            const AVStream *stream)
+static void insertMediaData(QMediaMetaData &metaData, TrackType trackType, const AVStream *stream)
 {
     Q_ASSERT(stream);
     const auto *codecPar = stream->codecpar;
 
     switch (trackType) {
-    case QPlatformMediaPlayer::VideoStream:
+    case TrackType::VideoStream:
         metaData.insert(QMediaMetaData::VideoBitRate, (int)codecPar->bit_rate);
         metaData.insert(QMediaMetaData::VideoCodec,
                         QVariant::fromValue(QFFmpegMediaFormatInfo::videoCodecForAVCodecId(
@@ -163,7 +164,7 @@ static void insertMediaData(QMediaMetaData &metaData, QPlatformMediaPlayer::Trac
                         QVariant::fromValue(streamTransformation(stream).rotation));
         metaData.insert(QMediaMetaData::HasHdrContent, colorTransferSupportsHdr(stream));
         break;
-    case QPlatformMediaPlayer::AudioStream:
+    case TrackType::AudioStream:
         metaData.insert(QMediaMetaData::AudioBitRate, (int)codecPar->bit_rate);
         metaData.insert(QMediaMetaData::AudioCodec,
                         QVariant::fromValue(QFFmpegMediaFormatInfo::audioCodecForAVCodecId(
@@ -174,17 +175,17 @@ static void insertMediaData(QMediaMetaData &metaData, QPlatformMediaPlayer::Trac
     }
 };
 
-QPlatformMediaPlayer::TrackType MediaDataHolder::trackTypeFromMediaType(int mediaType)
+std::optional<TrackType> MediaDataHolder::trackTypeFromMediaType(int mediaType)
 {
     switch (mediaType) {
     case AVMEDIA_TYPE_AUDIO:
-        return QPlatformMediaPlayer::AudioStream;
+        return TrackType::AudioStream;
     case AVMEDIA_TYPE_VIDEO:
-        return QPlatformMediaPlayer::VideoStream;
+        return TrackType::VideoStream;
     case AVMEDIA_TYPE_SUBTITLE:
-        return QPlatformMediaPlayer::SubtitleStream;
+        return TrackType::SubtitleStream;
     default:
-        return QPlatformMediaPlayer::NTrackTypes;
+        return std::nullopt;
     }
 }
 
@@ -360,7 +361,7 @@ MediaDataHolder::MediaDataHolder(AVDemuxerContextUPtr context,
         const auto *stream = m_context->streams[i];
         const auto trackType = trackTypeFromMediaType(stream->codecpar->codec_type);
 
-        if (trackType == QPlatformMediaPlayer::NTrackTypes)
+        if (!trackType)
             continue;
 
         if (stream->disposition & AV_DISPOSITION_ATTACHED_PIC)
@@ -376,17 +377,18 @@ MediaDataHolder::MediaDataHolder(AVDemuxerContextUPtr context,
         auto metaData = QFFmpegMetaData::fromAVMetaData(stream->metadata);
         const bool isDefault = stream->disposition & AV_DISPOSITION_DEFAULT;
 
-        if (trackType != QPlatformMediaPlayer::SubtitleStream) {
-            insertMediaData(metaData, trackType, stream);
+        if (trackType != TrackType::SubtitleStream) {
+            insertMediaData(metaData, *trackType, stream);
 
-            if (isDefault && m_requestedStreams[trackType] < 0)
-                m_requestedStreams[trackType] = m_streamMap[trackType].size();
+            auto &requestedStream = m_requestedStreams[*trackType];
+            if (isDefault && requestedStream < 0)
+                requestedStream = m_streamMap[*trackType].size();
         }
 
         if (auto duration = streamDuration(*stream))
             metaData.insert(QMediaMetaData::Duration, toUserDuration(*duration).get());
 
-        m_streamMap[trackType].append({ (int)i, isDefault, metaData });
+        m_streamMap[*trackType].append({ (int)i, isDefault, metaData });
     }
 
     // With some media files, streams may be lacking duration info. Let's
@@ -432,8 +434,8 @@ MediaDataHolder::MediaDataHolder(AVDemuxerContextUPtr context,
 
     m_duration = mediaDuration.value_or(TrackDuration::zero());
 
-    for (auto trackType :
-         { QPlatformMediaPlayer::VideoStream, QPlatformMediaPlayer::AudioStream }) {
+    for (auto trackType : { TrackType::VideoStream,
+                            TrackType::AudioStream }) {
         auto &requestedStream = m_requestedStreams[trackType];
         auto &streamMap = m_streamMap[trackType];
 
@@ -441,7 +443,8 @@ MediaDataHolder::MediaDataHolder(AVDemuxerContextUPtr context,
             requestedStream = 0;
 
         if (requestedStream >= 0)
-            m_currentAVStreamIndex[trackType] = streamMap[requestedStream].avStreamIndex;
+            m_currentAVStreamIndex[trackType] =
+                    streamMap[requestedStream].avStreamIndex;
     }
 
     updateMetaData();
@@ -500,15 +503,15 @@ void MediaDataHolder::updateMetaData()
 
     QtMultimediaPrivate::setCoverArtImage(m_metaData, *m_cachedThumbnail);
 
-    for (auto trackType :
-         { QPlatformMediaPlayer::AudioStream, QPlatformMediaPlayer::VideoStream }) {
+    for (auto trackType : { TrackType::AudioStream,
+                            TrackType::VideoStream }) {
         const auto streamIndex = m_currentAVStreamIndex[trackType];
         if (streamIndex >= 0)
             insertMediaData(m_metaData, trackType, m_context->streams[streamIndex]);
     }
 }
 
-bool MediaDataHolder::setActiveTrack(QPlatformMediaPlayer::TrackType type, int streamNumber)
+bool MediaDataHolder::setActiveTrack(TrackType type, int streamNumber)
 {
     if (!m_context)
         return false;
@@ -532,16 +535,14 @@ bool MediaDataHolder::setActiveTrack(QPlatformMediaPlayer::TrackType type, int s
     return true;
 }
 
-int MediaDataHolder::activeTrack(QPlatformMediaPlayer::TrackType type) const
+int MediaDataHolder::activeTrack(TrackType type) const
 {
-    return type < QPlatformMediaPlayer::NTrackTypes ? m_requestedStreams[type] : -1;
+    return m_requestedStreams[type];
 }
 
 const QList<MediaDataHolder::StreamInfo> &MediaDataHolder::streamInfo(
-        QPlatformMediaPlayer::TrackType trackType) const
+        TrackType trackType) const
 {
-    Q_ASSERT(trackType < QPlatformMediaPlayer::NTrackTypes);
-
     return m_streamMap[trackType];
 }
 

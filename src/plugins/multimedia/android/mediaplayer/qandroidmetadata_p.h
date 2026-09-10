@@ -15,6 +15,7 @@
 // We mean it.
 //
 
+#include <private/qplatformmediaplayer_p.h>
 #include <qmediametadata.h>
 #include <qurl.h>
 #include <QMutex>
@@ -27,17 +28,19 @@ class AndroidMediaMetadataRetriever;
 class QAndroidMetaData : public QMediaMetaData
 {
 public:
+    using TrackType = QPlatformMediaPlayer::TrackType;
+
     static QMediaMetaData extractMetadata(const QUrl &url);
 
-    QAndroidMetaData(int trackType, int androidTrackType, int androidTrackNumber,
+    QAndroidMetaData(TrackType trackType, int androidTrackType, int androidTrackNumber,
                      const QString &mimeType, const QString &language);
 
-    int trackType() const;
+    TrackType trackType() const;
     int androidTrackType() const;
     int androidTrackNumber() const;
 
 private:
-    int mTrackType;
+    TrackType mTrackType;
     int mAndroidTrackType;
     int mAndroidTrackNumber;
 };

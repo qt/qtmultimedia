@@ -14,6 +14,8 @@
 
 QT_BEGIN_NAMESPACE
 
+using TrackType = QPlatformMediaPlayer::TrackType;
+
 /*!
     \class QMediaPlayer
     \brief The QMediaPlayer class allows the playing of a media files.
@@ -168,7 +170,7 @@ void QMediaPlayerPrivate::setMedia(QUrl media, QIODevice *stream)
     qrcFile.swap(file); // Cleans up any previous file
 }
 
-QList<QMediaMetaData> QMediaPlayerPrivate::trackMetaData(QPlatformMediaPlayer::TrackType s) const
+QList<QMediaMetaData> QMediaPlayerPrivate::trackMetaData(TrackType s) const
 {
     QList<QMediaMetaData> tracks;
     if (control) {
@@ -776,7 +778,7 @@ QAudioOutput *QMediaPlayer::audioOutput() const
 QList<QMediaMetaData> QMediaPlayer::audioTracks() const
 {
     Q_D(const QMediaPlayer);
-    return d->trackMetaData(QPlatformMediaPlayer::AudioStream);
+    return d->trackMetaData(TrackType::AudioStream);
 }
 
 /*!
@@ -803,7 +805,7 @@ QList<QMediaMetaData> QMediaPlayer::audioTracks() const
 QList<QMediaMetaData> QMediaPlayer::videoTracks() const
 {
     Q_D(const QMediaPlayer);
-    return d->trackMetaData(QPlatformMediaPlayer::VideoStream);
+    return d->trackMetaData(TrackType::VideoStream);
 }
 
 /*!
@@ -832,7 +834,7 @@ QList<QMediaMetaData> QMediaPlayer::videoTracks() const
 QList<QMediaMetaData> QMediaPlayer::subtitleTracks() const
 {
     Q_D(const QMediaPlayer);
-    return d->trackMetaData(QPlatformMediaPlayer::SubtitleStream);
+    return d->trackMetaData(TrackType::SubtitleStream);
 }
 
 /*!
@@ -855,7 +857,7 @@ QList<QMediaMetaData> QMediaPlayer::subtitleTracks() const
 int QMediaPlayer::activeAudioTrack() const
 {
     Q_D(const QMediaPlayer);
-    return d->control ? d->control->activeTrack(QPlatformMediaPlayer::AudioStream) : 0;
+    return d->control ? d->control->activeTrack(TrackType::AudioStream) : 0;
 }
 
 /*!
@@ -879,7 +881,7 @@ int QMediaPlayer::activeAudioTrack() const
 int QMediaPlayer::activeVideoTrack() const
 {
     Q_D(const QMediaPlayer);
-    return d->control ? d->control->activeTrack(QPlatformMediaPlayer::VideoStream) : -1;
+    return d->control ? d->control->activeTrack(TrackType::VideoStream) : -1;
 }
 
 /*!
@@ -903,7 +905,7 @@ int QMediaPlayer::activeVideoTrack() const
 int QMediaPlayer::activeSubtitleTrack() const
 {
     Q_D(const QMediaPlayer);
-    return d->control ? d->control->activeTrack(QPlatformMediaPlayer::SubtitleStream) : -1;
+    return d->control ? d->control->activeTrack(TrackType::SubtitleStream) : -1;
 }
 
 void QMediaPlayer::setActiveAudioTrack(int index)
@@ -914,7 +916,7 @@ void QMediaPlayer::setActiveAudioTrack(int index)
 
     if (activeAudioTrack() == index)
         return;
-    d->control->setActiveTrack(QPlatformMediaPlayer::AudioStream, index);
+    d->control->setActiveTrack(TrackType::AudioStream, index);
 }
 
 void QMediaPlayer::setActiveVideoTrack(int index)
@@ -925,7 +927,7 @@ void QMediaPlayer::setActiveVideoTrack(int index)
 
     if (activeVideoTrack() == index)
         return;
-    d->control->setActiveTrack(QPlatformMediaPlayer::VideoStream, index);
+    d->control->setActiveTrack(TrackType::VideoStream, index);
 }
 
 void QMediaPlayer::setActiveSubtitleTrack(int index)
@@ -936,7 +938,7 @@ void QMediaPlayer::setActiveSubtitleTrack(int index)
 
     if (activeSubtitleTrack() == index)
         return;
-    d->control->setActiveTrack(QPlatformMediaPlayer::SubtitleStream, index);
+    d->control->setActiveTrack(TrackType::SubtitleStream, index);
 }
 
 /*!

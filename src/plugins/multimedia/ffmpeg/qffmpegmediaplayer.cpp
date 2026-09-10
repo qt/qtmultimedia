@@ -265,9 +265,9 @@ void QFFmpegMediaPlayer::setMediaAsync(QFFmpeg::MediaDataHolder::Maybe mediaData
     seekableChanged(m_playbackEngine->isSeekable());
 
     audioAvailableChanged(
-            !m_playbackEngine->streamInfo(QPlatformMediaPlayer::AudioStream).isEmpty());
+            !m_playbackEngine->streamInfo(TrackType::AudioStream).isEmpty());
     videoAvailableChanged(
-            !m_playbackEngine->streamInfo(QPlatformMediaPlayer::VideoStream).isEmpty());
+            !m_playbackEngine->streamInfo(TrackType::VideoStream).isEmpty());
 
     mediaStatusChanged(QMediaPlayer::LoadedMedia);
 

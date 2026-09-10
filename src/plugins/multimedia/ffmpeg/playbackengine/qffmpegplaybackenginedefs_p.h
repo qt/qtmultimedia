@@ -15,6 +15,7 @@
 // We mean it.
 //
 #include <QtCore/qtconfigmacros.h>
+#include <QtMultimedia/private/qplatformmediaplayer_p.h>
 
 #include <array>
 
@@ -26,7 +27,7 @@ class PlaybackEngine;
 
 namespace QFFmpeg {
 
-using StreamIndexes = std::array<int, 3>;
+using StreamIndexes = QPlatformMediaPlayer::TrackTypeMap<int>;
 
 class PlaybackEngineObjectsController;
 class PlaybackEngineObject;

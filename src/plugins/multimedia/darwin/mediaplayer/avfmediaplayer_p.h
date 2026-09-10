@@ -104,14 +104,14 @@ public Q_SLOTS:
     void streamDestroyed();
     void loadMediaStream();
     void updateTracks();
-    void setActiveTrack(QPlatformMediaPlayer::TrackType type, int index) override;
-    int activeTrack(QPlatformMediaPlayer::TrackType type) override;
+    void setActiveTrack(TrackType type, int index) override;
+    int activeTrack(TrackType type) override;
     int trackCount(TrackType) override;
     QMediaMetaData trackMetaData(TrackType type, int trackNumber) override;
 
 public:
-    QList<QMediaMetaData> tracks[QPlatformMediaPlayer::NTrackTypes];
-    QList<AVPlayerItemTrack *> nativeTracks[QPlatformMediaPlayer::NTrackTypes];
+    TrackTypeMap<QList<QMediaMetaData>> tracks;
+    TrackTypeMap<QList<AVPlayerItemTrack *>> nativeTracks;
 
 private:
     void resetStream(QIODevice *stream = nullptr);
