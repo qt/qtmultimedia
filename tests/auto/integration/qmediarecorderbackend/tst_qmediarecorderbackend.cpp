@@ -62,15 +62,19 @@ std::set<QMediaFormat::VideoCodec> unsupportedVideoCodecs(QMediaFormat::FileForm
 
     std::set<QMediaFormat::VideoCodec> unsupportedCodecs;
     if constexpr (isMacOS) {
-        if constexpr (isArm) {
-            if (fileFormat == QMediaFormat::FileFormat::WMV)
+        if (isArm && isCI()) {
+            switch (fileFormat) {
+            case QMediaFormat::FileFormat::WMV:
+            case QMediaFormat::FileFormat::AVI:
+            case QMediaFormat::MPEG4:
+            case QMediaFormat::QuickTime:
+            case QMediaFormat::Matroska:
+                // h264_videotoolbox fails to open on some macOS/arm CI machines.
                 unsupportedCodecs.insert(VideoCodec::H264);
-            else if (fileFormat == QMediaFormat::FileFormat::AVI)
-                unsupportedCodecs.insert(VideoCodec::H264);
-            else if (fileFormat == QMediaFormat::MPEG4)
-                unsupportedCodecs.insert(VideoCodec::H264);
-            else if (fileFormat == QMediaFormat::QuickTime)
-                unsupportedCodecs.insert(VideoCodec::H264);
+                break;
+            default:
+                break;
+            }
         }
     }
 
@@ -660,10 +664,9 @@ void tst_QMediaRecorderBackend::record_writesVideo_withAllSupportedVideoFormats(
 
     QVERIFY(f.waitForRecorderStopped(60s));
 
-    // Only expect failure if it actually reproduces, so a fixed combination is a PASS, not XPASS.
     if (f.m_recorder.error() != QMediaRecorder::NoError
         && unsupportedVideoCodecs(actualFormat.fileFormat()).count(actualFormat.videoCodec()))
-        QEXPECT_FAIL("", "QTBUG-126276", Abort);
+        QEXPECT_FAIL("", "h264_videotoolbox fails to open on some CI machines", Abort);
 
     QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError,
              f.m_recorder.errorString().toLatin1().data());
