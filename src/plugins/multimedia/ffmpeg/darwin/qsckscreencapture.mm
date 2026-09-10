@@ -168,7 +168,6 @@ bool QSckScreenCapture::setActiveInternal(bool active)
         };
         createInfo.streamSettings.frameRate = frameRate();
         createInfo.streamSettings.overrideIgnoreCursor = ignoreCursor();
-        createInfo.streamSettings.overrideIgnoreDropShadow = ignoreDropShadow();
         using ResultType = q23::expected<std::unique_ptr<QMacScreenCaptureKit>, QString>;
         std::future<ResultType> streamResultFuture = QMacScreenCaptureKit::createStreamFromDisplay(
             createInfo,

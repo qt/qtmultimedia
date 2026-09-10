@@ -39,8 +39,6 @@ public:
 
     // Only applied when next stream starts.
     void setIgnoreCursor(bool);
-    // Only applied when next stream starts.
-    void setIgnoreDropShadow(bool);
 };
 
 QT_END_NAMESPACE

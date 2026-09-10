@@ -375,13 +375,6 @@ void QWindowCapturePrivate::setIgnoreCursor(bool ignore)
     platformWindowCapture->setIgnoreCursor(ignore);
 }
 
-void QWindowCapturePrivate::setIgnoreDropShadow(bool ignore)
-{
-    if (!platformWindowCapture)
-        return;
-    platformWindowCapture->setIgnoreDropShadow(ignore);
-}
-
 QT_END_NAMESPACE
 
 #include "moc_qwindowcapture.cpp"

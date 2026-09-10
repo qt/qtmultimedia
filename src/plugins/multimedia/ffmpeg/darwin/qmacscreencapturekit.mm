@@ -304,6 +304,7 @@ static AVFScopedPointer<SCStreamConfiguration> createStreamConfig(
     scStreamConfig.data().queueDepth = QMacScreenCaptureKit::queueDepth;
     scStreamConfig.data().pixelFormat = QMacScreenCaptureKit::cvPixelFormat;
     scStreamConfig.data().colorSpaceName = QMacScreenCaptureKit::cgColorSpace();
+    scStreamConfig.data().ignoreShadowsSingleWindow = true;
     scStreamConfig.data().captureResolution = SCCaptureResolutionBest;
     if (@available(macOS 15.0, *))
         scStreamConfig.data().captureDynamicRange = SCCaptureDynamicRangeSDR;
@@ -319,8 +320,6 @@ static AVFScopedPointer<SCStreamConfiguration> createStreamConfig(
     // These settings are meant to override whatever the default is.
     if (settings.overrideIgnoreCursor)
         scStreamConfig.data().showsCursor = false;
-    if (settings.overrideIgnoreDropShadow)
-        scStreamConfig.data().ignoreShadowsSingleWindow = true;
 
     return scStreamConfig;
 }

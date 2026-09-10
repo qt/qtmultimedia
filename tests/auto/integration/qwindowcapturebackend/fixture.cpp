@@ -108,7 +108,6 @@ bool WindowCaptureWithWidgetFixture::start(QSize size)
     auto *capturePrivate = QWindowCapturePrivate::get(m_capture);
     Q_ASSERT(capturePrivate);
     capturePrivate->setIgnoreCursor(true);
-    capturePrivate->setIgnoreDropShadow(true);
 
     m_capture.setWindow(*foundCapturableWindow);
     m_capture.setActive(true);
@@ -250,7 +249,6 @@ bool WindowCaptureWithWidgetInOtherProcessFixture::start()
     auto *capturePrivate = QWindowCapturePrivate::get(m_capture);
     Q_ASSERT(capturePrivate);
     capturePrivate->setIgnoreCursor(true);
-    capturePrivate->setIgnoreDropShadow(true);
 
     // Start capturing the out-of-process window
     m_capture.setWindow(*foundCapturableWindow);

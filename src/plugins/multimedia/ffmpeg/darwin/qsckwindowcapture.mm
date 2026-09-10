@@ -152,7 +152,6 @@ bool QSckWindowCapture::setActiveInternal(bool active)
         };
         createInfo.streamSettings.frameRate = frameRate();
         createInfo.streamSettings.overrideIgnoreCursor = ignoreCursor();
-        createInfo.streamSettings.overrideIgnoreDropShadow = ignoreDropShadow();
 
         // Start and wait for the stream to start. Blocking operation.
         using ResultType = q23::expected<std::unique_ptr<QMacScreenCaptureKit>, QString>;
