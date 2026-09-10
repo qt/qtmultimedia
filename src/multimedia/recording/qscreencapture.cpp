@@ -3,11 +3,10 @@
 
 #include "qscreencapture.h"
 
-#include <QtCore/private/qobject_p.h>
-
 #include <QtMultimedia/qmediacapturesession.h>
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
 #include <QtMultimedia/private/qplatformsurfacecapture_p.h>
+#include <QtMultimedia/private/qscreencapture_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -15,13 +14,6 @@ static QScreenCapture::Error toScreenCaptureError(QPlatformSurfaceCapture::Error
 {
     return static_cast<QScreenCapture::Error>(error);
 }
-
-class QScreenCapturePrivate : public QObjectPrivate
-{
-public:
-    QMediaCaptureSession *captureSession = nullptr;
-    std::unique_ptr<QPlatformSurfaceCapture> platformScreenCapture;
-};
 
 /*!
     \class QScreenCapture
@@ -347,6 +339,13 @@ class QPlatformSurfaceCapture *QScreenCapture::platformScreenCapture() const
     Q_D(const QScreenCapture);
 
     return d->platformScreenCapture.get();
+}
+
+void QScreenCapturePrivate::setIgnoreCursor(bool ignore)
+{
+    if (!platformScreenCapture)
+        return;
+    platformScreenCapture->setIgnoreCursor(ignore);
 }
 
 QT_END_NAMESPACE

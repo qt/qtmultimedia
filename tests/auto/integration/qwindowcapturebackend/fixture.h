@@ -16,11 +16,13 @@
 #include <QtMultimedia/qwindowcapture.h>
 
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/surfacecapturetestutils_p.h>
 
 #include <QtTest/qtest.h>
 #include <QtTest/qsignalspy.h>
 
 #include <chrono>
+#include <memory>
 #include <optional>
 
 inline std::chrono::milliseconds globalTestTimeout() {
@@ -68,7 +70,8 @@ public:
     QVideoFrame waitForFrame(qint64 noOlderThanTime = 0);
 
     QMediaCaptureSession m_session;
-    QWindowCapture m_capture;
+    std::unique_ptr<QWindowCapture> m_captureStorage = QtMultimediaTestLib::makeWindowCapture();
+    QWindowCapture &m_capture = *m_captureStorage;
     FrameGrabber m_grabber;
 
     QSignalSpy m_errors{ &m_capture, &QWindowCapture::errorOccurred };
