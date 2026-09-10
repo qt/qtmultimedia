@@ -10,8 +10,10 @@
 #  include <QtMultimedia/private/qpipewire_symbolloader_p.h>
 #endif
 
-#include <QtDBus/qdbusinterface.h>
-#include <QtDBus/qdbusmessage.h>
+#if QT_CONFIG(pipewire_screencapture)
+#  include <QtDBus/qdbusinterface.h>
+#  include <QtDBus/qdbusmessage.h>
+#endif
 
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qmutex.h>
@@ -101,6 +103,7 @@ pw_loop *QPipeWireInstance::eventLoop() const
     return m_eventLoop.loop();
 }
 
+#if QT_CONFIG(pipewire_screencapture)
 static std::optional<uint> portalInterfaceVersion(const QString &interface)
 {
     QDBusInterface properties(u"org.freedesktop.portal.Desktop"_s,
@@ -120,13 +123,18 @@ static std::optional<uint> portalInterfaceVersion(const QString &interface)
     qCDebug(lcPipewire) << interface << "version" << version;
     return version;
 }
+#endif
 
 bool QPipeWireInstance::hasScreenCastPortal()
 {
+#if QT_CONFIG(pipewire_screencapture)
     if (!m_hasScreenCastPortal)
         m_hasScreenCastPortal =
                 portalInterfaceVersion(u"org.freedesktop.portal.ScreenCast"_s).has_value();
     return *m_hasScreenCastPortal;
+#else
+    return false;
+#endif
 }
 
 q23::expected<PwCoreConnectionHandle, std::error_code> QPipeWireInstance::connectToDaemon()
