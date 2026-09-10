@@ -88,10 +88,14 @@ static QShader ensureShader(const QString &name)
 static void rasterTransform(QImage &image, VideoTransformation transformation)
 {
     QTransform t;
-    if (transformation.rotation != QtVideo::Rotation::None)
-        t.rotate(qreal(transformation.rotation));
+    // QTransform composes so that the first call acts last on the point (like
+    // QPainter's nested coordinate systems), so scale() must precede rotate()
+    // here for the mirror to be applied after the rotation, as required by
+    // mirroredHorizontallyAfterRotation.
     if (transformation.mirroredHorizontallyAfterRotation)
         t.scale(-1., 1);
+    if (transformation.rotation != QtVideo::Rotation::None)
+        t.rotate(qreal(transformation.rotation));
     if (!t.isIdentity())
         image = image.transformed(t);
 }
