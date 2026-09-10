@@ -4365,9 +4365,11 @@ void tst_QMediaPlayerBackend::
     QVERIFY(!image.isNull());
     QRgb upperLeftColor = image.pixel(5, 5);
 
-    if (!isRhiRenderingSupported())
-        QEXPECT_FAIL("", "QTBUG-127784: Inaccurate color handling when no RHI backend is available", Abort);
-    QCOMPARE_LT(colorDifference(upperLeftColor, expectedColor), 0.004);
+    const qreal maxColorDifference = isRhiRenderingSupported()
+            ? 0.03 // tolerance for 1 luma / 3 chroma LSB, required for e.g. paravirtualized VideoToolbox
+            : 0.06 // QTBUG-127784: cpu conversion has quite some rounding errors
+            ;
+    QCOMPARE_LT(colorDifference(upperLeftColor, expectedColor), maxColorDifference);
 
     // QSKIP_GSTREAMER("QTBUG-124005: surface.videoSize() not updated with rotation");
 
