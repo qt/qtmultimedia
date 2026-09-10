@@ -74,8 +74,6 @@ TestCase {
         }
     }
 
-    // Counts the QML signal handlers, which resolve the signals by name and can
-    // therefore behave differently from a connection made from a SignalSpy.
     Component {
         id: handlerCaptureSessionComponent
         CaptureSession {
@@ -374,5 +372,105 @@ TestCase {
         wait(0);
 
         compare(session.windowCapture, null);
+    }
+
+    function test_implicitlyConvertibleToQMediaCaptureSession() {
+        let session = createSession();
+        verify(CaptureSessionHelper.implicitlyConvertibleToQMediaCaptureSession(session));
+    }
+
+    function clearFromCppData() {
+        return [
+            {
+                tag: "camera",
+                component: cameraComponent,
+                property: "camera",
+                signalName: "cameraChanged",
+                clearFn: (session) => CaptureSessionHelper.clearCamera(session)
+            },
+            {
+                tag: "screenCapture",
+                component: screenCaptureComponent,
+                property: "screenCapture",
+                signalName: "screenCaptureChanged",
+                clearFn: (session) => CaptureSessionHelper.clearScreenCapture(session)
+            },
+            {
+                tag: "windowCapture",
+                component: windowCaptureComponent,
+                property: "windowCapture",
+                signalName: "windowCaptureChanged",
+                clearFn: (session) => CaptureSessionHelper.clearWindowCapture(session)
+            },
+            {
+                tag: "imageCapture",
+                component: imageCaptureComponent,
+                property: "imageCapture",
+                signalName: "imageCaptureChanged",
+                clearFn: (session) => CaptureSessionHelper.clearImageCapture(session)
+            },
+            {
+                tag: "recorder",
+                component: mediaRecorderComponent,
+                property: "recorder",
+                signalName: "recorderChanged",
+                clearFn: (session) => CaptureSessionHelper.clearRecorder(session)
+            },
+            {
+                tag: "audioInput",
+                component: audioInputComponent,
+                property: "audioInput",
+                signalName: "audioInputChanged",
+                clearFn: (session) => CaptureSessionHelper.clearAudioInput(session)
+            },
+            {
+                tag: "audioOutput",
+                component: audioOutputComponent,
+                property: "audioOutput",
+                signalName: "audioOutputChanged",
+                clearFn: (session) => CaptureSessionHelper.clearAudioOutput(session)
+            },
+            {
+                tag: "videoOutput",
+                component: videoOutputComponent,
+                property: "videoOutput",
+                signalName: "videoOutputChanged",
+                clearFn: (session) => CaptureSessionHelper.clearVideoOutput(session)
+            }
+        ];
+    }
+
+    function test_clearingFromCpp_isVisibleOnTheSession_data() {
+        return clearFromCppData();
+    }
+
+    function test_clearingFromCpp_isVisibleOnTheSession(data) {
+        let session = createSession();
+        let object = createObject(data.component);
+
+        session[data.property] = object;
+        compare(session[data.property], object);
+
+        data.clearFn(session);
+        compare(session[data.property], null);
+    }
+
+    function test_clearingFromCpp_isNotified_data() {
+        return clearFromCppData();
+    }
+
+    function test_clearingFromCpp_isNotified(data) {
+        let session = createSession();
+        let object = createObject(data.component);
+        session[data.property] = object;
+
+        let spy = createTemporaryObject(
+            signalSpyComponent, testCase,
+            { target: session, signalName: data.signalName });
+        verify(spy);
+        verify(spy.valid, "The signal '" + data.signalName + "' is not exposed to QML");
+
+        data.clearFn(session);
+        compare(spy.count, 1);
     }
 }

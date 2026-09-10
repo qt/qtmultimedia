@@ -3,6 +3,7 @@
 
 #include "qmockintegration.h"
 #include "tst_multimediaquick_qml_cameraformathelper.h"
+#include "tst_multimediaquick_qml_capturesessionhelper.h"
 #include "tst_multimediaquick_qml_screencapturehelper.h"
 #include "tst_multimediaquick_qml_testhelper.h"
 
@@ -23,6 +24,13 @@ struct TestSetupClass : public QObject
             0,
             "CameraFormatHelper",
             new CameraFormatHelper);
+
+        qmlRegisterSingletonInstance(
+            "QtMultimediaTest",
+            1,
+            0,
+            "CaptureSessionHelper",
+            new CaptureSessionHelper);
 
         qmlRegisterSingletonInstance(
             "QtMultimediaTest",
