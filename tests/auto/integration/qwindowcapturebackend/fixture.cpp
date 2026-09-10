@@ -8,8 +8,6 @@
 
 #include <QtMultimedia/qmediaplayer.h>
 
-#include <QtMultimedia/private/qwindowcapture_p.h>
-
 #include <QtMultimediaWidgets/qvideowidget.h>
 
 DisableCursor::DisableCursor()
@@ -104,10 +102,6 @@ bool WindowCaptureWithWidgetFixture::start(QSize size)
         m_widget.windowHandle());
     if (!foundCapturableWindow || !foundCapturableWindow->isValid())
         return false;
-
-    auto *capturePrivate = QWindowCapturePrivate::get(m_capture);
-    Q_ASSERT(capturePrivate);
-    capturePrivate->setIgnoreCursor(true);
 
     m_capture.setWindow(*foundCapturableWindow);
     m_capture.setActive(true);
@@ -245,10 +239,6 @@ bool WindowCaptureWithWidgetInOtherProcessFixture::start()
     std::optional<QCapturableWindow> foundCapturableWindow = findCaptureWindow(windowTitle);
     if (!foundCapturableWindow || !foundCapturableWindow->isValid())
         return false;
-
-    auto *capturePrivate = QWindowCapturePrivate::get(m_capture);
-    Q_ASSERT(capturePrivate);
-    capturePrivate->setIgnoreCursor(true);
 
     // Start capturing the out-of-process window
     m_capture.setWindow(*foundCapturableWindow);

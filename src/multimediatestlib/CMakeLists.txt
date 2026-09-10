@@ -17,6 +17,7 @@ qt_internal_add_module(MultimediaTestLibPrivate
         osdetection_p.h
         rhi_support_p.h rhi_support.cpp
         testvideosink_p.h testvideosink.cpp
+        surfacecapturetestutils_p.h surfacecapturetestutils.cpp
         qcolorutil_p.h qcolorutil.cpp
         qfileutil_p.h qfileutil.cpp
         qscopedenvironmentvariable_p.h
