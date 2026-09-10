@@ -882,14 +882,16 @@ QGString QGstPad::streamId() const
 std::optional<QPlatformMediaPlayer::TrackType> QGstPad::inferTrackTypeFromName() const
 {
     using namespace Qt::Literals;
+    using TrackType = QPlatformMediaPlayer::TrackType;
+
     QLatin1StringView padName = name();
 
     if (padName.startsWith("video_"_L1))
-        return QPlatformMediaPlayer::TrackType::VideoStream;
+        return TrackType::VideoStream;
     if (padName.startsWith("audio_"_L1))
-        return QPlatformMediaPlayer::TrackType::AudioStream;
+        return TrackType::AudioStream;
     if (padName.startsWith("text_"_L1))
-        return QPlatformMediaPlayer::TrackType::SubtitleStream;
+        return TrackType::SubtitleStream;
 
     return std::nullopt;
 }

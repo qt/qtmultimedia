@@ -50,6 +50,8 @@ class MFPlayerSession : public QObject, public IMFAsyncCallback
     Q_OBJECT
     friend class SourceResolver;
 public:
+    using TrackType = QPlatformMediaPlayer::TrackType;
+
     MFPlayerSession(MFPlayerControl *playerControl = 0);
 
     STDMETHODIMP QueryInterface(REFIID riid, LPVOID *ppvObject) override;
@@ -90,10 +92,10 @@ public:
 
     void setVideoSink(QVideoSink *sink);
 
-    void setActiveTrack(QPlatformMediaPlayer::TrackType type, int index);
-    int activeTrack(QPlatformMediaPlayer::TrackType type);
-    int trackCount(QPlatformMediaPlayer::TrackType);
-    QMediaMetaData trackMetaData(QPlatformMediaPlayer::TrackType type, int trackNumber);
+    void setActiveTrack(TrackType type, int index);
+    int activeTrack(TrackType type);
+    int trackCount(TrackType);
+    QMediaMetaData trackMetaData(TrackType type, int trackNumber);
 
     void setPlayerControl(MFPlayerControl *playerControl) { m_playerControl = playerControl; }
 
@@ -207,7 +209,7 @@ private:
         TOPOID outputNodeId = -1;
         GUID format = GUID_NULL;
     };
-    TrackInfo m_trackInfo[QPlatformMediaPlayer::NTrackTypes];
+    QPlatformMediaPlayer::TrackTypeMap<TrackInfo> m_trackInfo;
 
     bool m_canScrub;
     float m_volume = 1.;

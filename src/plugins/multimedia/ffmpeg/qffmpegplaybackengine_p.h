@@ -73,6 +73,8 @@ class PlaybackEngine : public QObject
 {
     Q_OBJECT
 public:
+    using TrackType = QPlatformMediaPlayer::TrackType;
+
     explicit PlaybackEngine(const QPlaybackOptions &options);
 
     ~PlaybackEngine() override;
@@ -107,7 +109,7 @@ public:
 
     float playbackRate() const;
 
-    void setActiveTrack(QPlatformMediaPlayer::TrackType type, int streamNumber);
+    void setActiveTrack(TrackType type, int streamNumber);
 
     TrackPosition currentPosition(bool topPos = true) const;
 
@@ -116,11 +118,11 @@ public:
     bool isSeekable() const;
 
     const QList<MediaDataHolder::StreamInfo> &
-    streamInfo(QPlatformMediaPlayer::TrackType trackType) const;
+    streamInfo(TrackType trackType) const;
 
     const QMediaMetaData &metaData() const;
 
-    int activeTrack(QPlatformMediaPlayer::TrackType type) const;
+    int activeTrack(TrackType type) const;
 
     void setPitchCompensation(bool enabled);
 
@@ -147,7 +149,7 @@ protected: // objects managing
     template<typename T, typename... Args>
     ObjectPtr<T> createPlaybackEngineObject(Args &&...args);
 
-    virtual RendererPtr createRenderer(QPlatformMediaPlayer::TrackType trackType);
+    virtual RendererPtr createRenderer(TrackType trackType);
 
     template <typename AudioOutput>
     void updateActiveAudioOutput(AudioOutput *output);
@@ -155,7 +157,7 @@ protected: // objects managing
     void updateActiveVideoOutput(QVideoSink *sink, bool cleanOutput = false);
 
 private:
-    void createStreamAndRenderer(QPlatformMediaPlayer::TrackType trackType);
+    void createStreamAndRenderer(TrackType trackType);
 
     void createDemuxer();
 
@@ -191,7 +193,7 @@ private:
 
     static QString objectThreadName(const PlaybackEngineObject &object);
 
-    std::optional<CodecContext> codecContextForTrack(QPlatformMediaPlayer::TrackType trackType);
+    std::optional<CodecContext> codecContextForTrack(TrackType trackType);
 
     bool hasMediaStream() const;
 
@@ -228,12 +230,12 @@ private:
     QMediaPlayer::PlaybackState m_state = QMediaPlayer::StoppedState;
 
     ObjectPtr<Demuxer> m_demuxer;
-    std::array<StreamPtr, QPlatformMediaPlayer::NTrackTypes> m_streams;
-    std::array<RendererPtr, QPlatformMediaPlayer::NTrackTypes> m_renderers;
+    QPlatformMediaPlayer::TrackTypeMap<StreamPtr> m_streams;
+    QPlatformMediaPlayer::TrackTypeMap<RendererPtr> m_renderers;
 
     bool m_seekPending = false;
 
-    std::array<std::optional<CodecContext>, QPlatformMediaPlayer::NTrackTypes> m_codecContexts;
+    QPlatformMediaPlayer::TrackTypeMap<std::optional<CodecContext>> m_codecContexts;
     int m_loops = QMediaPlayer::Once;
     LoopOffset m_currentLoopOffset;
 

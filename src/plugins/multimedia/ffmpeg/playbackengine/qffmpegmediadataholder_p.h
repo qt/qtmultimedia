@@ -39,6 +39,7 @@ struct ICancelToken
 class MediaDataHolder
 {
 public:
+    using TrackType = QPlatformMediaPlayer::TrackType;
     struct StreamInfo
     {
         int avStreamIndex = -1;
@@ -52,17 +53,17 @@ public:
         QString description;
     };
 
-    using StreamsMap = std::array<QList<StreamInfo>, QPlatformMediaPlayer::NTrackTypes>;
-    using StreamIndexes = std::array<int, QPlatformMediaPlayer::NTrackTypes>;
+    using StreamsMap = QPlatformMediaPlayer::TrackTypeMap<QList<StreamInfo>>;
+    using StreamIndexes = QPlatformMediaPlayer::TrackTypeMap<int>;
 
     MediaDataHolder() = default;
     MediaDataHolder(AVDemuxerContextUPtr context, const std::shared_ptr<ICancelToken> &cancelToken);
 
-    static QPlatformMediaPlayer::TrackType trackTypeFromMediaType(int mediaType);
+    static std::optional<TrackType> trackTypeFromMediaType(int mediaType);
 
-    int activeTrack(QPlatformMediaPlayer::TrackType type) const;
+    int activeTrack(TrackType type) const;
 
-    const QList<StreamInfo> &streamInfo(QPlatformMediaPlayer::TrackType trackType) const;
+    const QList<StreamInfo> &streamInfo(TrackType trackType) const;
 
     TrackDuration duration() const { return m_duration; }
 
@@ -74,13 +75,13 @@ public:
 
     AVFormatContext *avContext();
 
-    int currentStreamIndex(QPlatformMediaPlayer::TrackType trackType) const;
+    int currentStreamIndex(TrackType trackType) const;
 
     using Maybe = q23::expected<std::shared_ptr<MediaDataHolder>, ContextError>;
     static Maybe create(const QUrl &url, QIODevice *stream, const QPlaybackOptions &options,
                         const std::shared_ptr<ICancelToken> &cancelToken);
 
-    bool setActiveTrack(QPlatformMediaPlayer::TrackType type, int streamNumber);
+    bool setActiveTrack(TrackType type, int streamNumber);
 
 private:
     void updateMetaData();

@@ -20,12 +20,11 @@ StreamDecoder::StreamDecoder(const PlaybackEngineObjectID &id, const CodecContex
                              TrackPosition absSeekPos)
     : PlaybackEngineObject(id),
       m_codecContext(codecContext),
-      m_trackType(MediaDataHolder::trackTypeFromMediaType(codecContext.context()->codec_type)),
+      m_trackType(*MediaDataHolder::trackTypeFromMediaType(codecContext.context()->codec_type)),
       m_sessionCtx{ absSeekPos }
 {
     qCDebug(qLcStreamDecoder) << "Create stream decoder, trackType" << m_trackType
                               << "absSeekPos:" << absSeekPos.get();
-    Q_ASSERT(m_trackType != QPlatformMediaPlayer::NTrackTypes);
 }
 
 StreamDecoder::~StreamDecoder()
@@ -65,7 +64,7 @@ void StreamDecoder::doNextStep()
     Packet packet = m_sessionCtx.packets.dequeue();
 
     auto decodePacket = [this](const Packet &packet) {
-        if (trackType() == QPlatformMediaPlayer::SubtitleStream)
+        if (trackType() == TrackType::SubtitleStream)
             decodeSubtitle(packet);
         else
             decodeMedia(packet);
@@ -91,20 +90,20 @@ void StreamDecoder::doNextStep()
     scheduleNextStep();
 }
 
-QPlatformMediaPlayer::TrackType StreamDecoder::trackType() const
+StreamDecoder::TrackType StreamDecoder::trackType() const
 {
     return m_trackType;
 }
 
-qint32 StreamDecoder::maxQueueSize(QPlatformMediaPlayer::TrackType type)
+qint32 StreamDecoder::maxQueueSize(TrackType type)
 {
     switch (type) {
 
-    case QPlatformMediaPlayer::VideoStream:
+    case TrackType::VideoStream:
         return 3;
-    case QPlatformMediaPlayer::AudioStream:
+    case TrackType::AudioStream:
         return 9;
-    case QPlatformMediaPlayer::SubtitleStream:
+    case TrackType::SubtitleStream:
         return 6; /*main packet and closing packet*/
     default:
         Q_UNREACHABLE_RETURN(-1);
@@ -197,7 +196,7 @@ void StreamDecoder::receiveAVFrames(bool flushPacket)
 
 
         // Avoid starvation on FFmpeg decoders with fixed size frame pool
-        if (m_trackType == QPlatformMediaPlayer::VideoStream)
+        if (m_trackType == TrackType::VideoStream)
             avFrame = copyFromHwPool(std::move(avFrame));
 
         onFrameFound({ m_sessionCtx.offset, std::move(avFrame), m_codecContext, id() });

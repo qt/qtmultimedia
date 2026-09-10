@@ -67,9 +67,9 @@ Demuxer::Demuxer(const PlaybackEngineObjectID &id, AVFormatContext *context,
 
     Q_ASSERT(m_context);
 
-    for (auto i = 0; i < QPlatformMediaPlayer::NTrackTypes; ++i) {
+    for (size_t i = 0; i < QPlatformMediaPlayer::NTrackTypes; ++i) {
         if (streamIndexes[i] >= 0) {
-            const auto trackType = static_cast<QPlatformMediaPlayer::TrackType>(i);
+            const auto trackType = static_cast<TrackType>(i);
             qCDebug(qLcDemuxer) << "Activate demuxing stream" << i << ", trackType:" << trackType;
             m_streams[streamIndexes[i]] = { trackType };
         }
@@ -287,14 +287,14 @@ void Demuxer::ensureSeeked()
     setAtEnd(false);
 }
 
-Demuxer::RequestingSignal Demuxer::signalByTrackType(QPlatformMediaPlayer::TrackType trackType)
+Demuxer::RequestingSignal Demuxer::signalByTrackType(TrackType trackType)
 {
     switch (trackType) {
-    case QPlatformMediaPlayer::TrackType::VideoStream:
+    case TrackType::VideoStream:
         return &Demuxer::requestProcessVideoPacket;
-    case QPlatformMediaPlayer::TrackType::AudioStream:
+    case TrackType::AudioStream:
         return &Demuxer::requestProcessAudioPacket;
-    case QPlatformMediaPlayer::TrackType::SubtitleStream:
+    case TrackType::SubtitleStream:
         return &Demuxer::requestProcessSubtitlePacket;
     default:
         Q_ASSERT(!"Unknown track type");

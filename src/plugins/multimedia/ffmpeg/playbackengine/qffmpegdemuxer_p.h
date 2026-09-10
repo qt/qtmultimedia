@@ -30,6 +30,8 @@ class Demuxer : public PlaybackEngineObject
 {
     Q_OBJECT
 public:
+    using TrackType = QPlatformMediaPlayer::TrackType;
+
     Demuxer(const PlaybackEngineObjectID &id, AVFormatContext *context, TrackPosition initialPosUs,
             bool seekPending, const LoopOffset &loopOffset, const StreamIndexes &streamIndexes,
             int loops);
@@ -37,7 +39,7 @@ public:
     void seek(quint64 sessionId, TrackPosition initialPosUs, const LoopOffset &loopOffset);
 
     using RequestingSignal = void (Demuxer::*)(Packet);
-    static RequestingSignal signalByTrackType(QPlatformMediaPlayer::TrackType trackType);
+    static RequestingSignal signalByTrackType(TrackType trackType);
 
     void setLoops(int loopsCount);
 
@@ -64,7 +66,7 @@ private:
 private:
     struct StreamData
     {
-        QPlatformMediaPlayer::TrackType trackType = QPlatformMediaPlayer::TrackType::NTrackTypes;
+        TrackType trackType;
         TrackDuration bufferedDuration = TrackDuration(0);
         qint64 bufferedSize = 0;
 

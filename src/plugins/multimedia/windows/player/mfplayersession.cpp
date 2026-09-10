@@ -316,8 +316,9 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
             if (getStreamInfo(streamDesc.Get(), &mediaType, &streamName, &streamLanguage,
                               &format)) {
 
-                QPlatformMediaPlayer::TrackType trackType = (mediaType == Audio) ?
-                            QPlatformMediaPlayer::AudioStream : QPlatformMediaPlayer::VideoStream;
+                TrackType trackType = (mediaType == Audio) ?
+                            TrackType::AudioStream
+                          : TrackType::VideoStream;
 
                 QLocale::Language lang = streamLanguage.isEmpty() ?
                             QLocale::Language::AnyLanguage : QLocale(streamLanguage).language();
@@ -377,8 +378,10 @@ void MFPlayerSession::setupPlaybackTopology(IMFMediaSource *source, IMFPresentat
         changeStatus(QMediaPlayer::InvalidMedia);
         error(QMediaPlayer::ResourceError, tr("Unable to play."), true);
     } else {
-        if (m_trackInfo[QPlatformMediaPlayer::VideoStream].outputNodeId != TOPOID(-1))
-            topology = insertMFT(topology, m_trackInfo[QPlatformMediaPlayer::VideoStream].outputNodeId);
+        if (m_trackInfo[TrackType::VideoStream].outputNodeId != TOPOID(-1))
+            topology = insertMFT(
+                    topology,
+                    m_trackInfo[TrackType::VideoStream].outputNodeId);
 
         hr = m_session->SetTopology(MFSESSION_SETTOPOLOGY_IMMEDIATE, topology.Get());
         if (SUCCEEDED(hr)) {
@@ -1577,7 +1580,7 @@ void MFPlayerSession::clear()
     m_request.command = CmdNone;
     m_request.prevCmd = CmdNone;
 
-    for (int i = 0; i < QPlatformMediaPlayer::NTrackTypes; ++i) {
+    for (size_t i = 0; i < QPlatformMediaPlayer::NTrackTypes; ++i) {
         m_trackInfo[i].metaData.clear();
         m_trackInfo[i].nativeIndexes.clear();
         m_trackInfo[i].currentIndex = -1;
@@ -1619,9 +1622,10 @@ void MFPlayerSession::setAudioOutput(QPlatformAudioOutput *device)
 
 void MFPlayerSession::updateOutputRouting()
 {
-    int currentAudioTrack = m_trackInfo[QPlatformMediaPlayer::AudioStream].currentIndex;
+    int currentAudioTrack =
+            m_trackInfo[TrackType::AudioStream].currentIndex;
     if (currentAudioTrack > -1)
-        setActiveTrack(QPlatformMediaPlayer::AudioStream, currentAudioTrack);
+        setActiveTrack(TrackType::AudioStream, currentAudioTrack);
 }
 
 void MFPlayerSession::setVideoSink(QVideoSink *sink)
@@ -1629,13 +1633,13 @@ void MFPlayerSession::setVideoSink(QVideoSink *sink)
     m_videoRendererControl->setSink(sink);
 }
 
-void MFPlayerSession::setActiveTrack(QPlatformMediaPlayer::TrackType type, int index)
+void MFPlayerSession::setActiveTrack(TrackType type, int index)
 {
     if (!m_session)
         return;
 
     // Only audio track selection is currently supported.
-    if (type != QPlatformMediaPlayer::AudioStream)
+    if (type != TrackType::AudioStream)
         return;
 
     const auto &nativeIndexes = m_trackInfo[type].nativeIndexes;
@@ -1645,7 +1649,7 @@ void MFPlayerSession::setActiveTrack(QPlatformMediaPlayer::TrackType type, int i
 
     // Updating the topology fails if there is a HEVC video stream,
     // which causes other issues. Ignoring the change, for now.
-    if (m_trackInfo[QPlatformMediaPlayer::VideoStream].format == MFVideoFormat_HEVC)
+    if (m_trackInfo[TrackType::VideoStream].format == MFVideoFormat_HEVC)
         return;
 
     ComPtr<IMFTopology> topology;
@@ -1713,25 +1717,18 @@ void MFPlayerSession::setActiveTrack(QPlatformMediaPlayer::TrackType type, int i
     }
 }
 
-int MFPlayerSession::activeTrack(QPlatformMediaPlayer::TrackType type)
+int MFPlayerSession::activeTrack(TrackType type)
 {
-    if (type >= QPlatformMediaPlayer::NTrackTypes)
-        return -1;
     return m_trackInfo[type].currentIndex;
 }
 
-int MFPlayerSession::trackCount(QPlatformMediaPlayer::TrackType type)
+int MFPlayerSession::trackCount(TrackType type)
 {
-    if (type >= QPlatformMediaPlayer::NTrackTypes)
-        return -1;
     return m_trackInfo[type].metaData.count();
 }
 
-QMediaMetaData MFPlayerSession::trackMetaData(QPlatformMediaPlayer::TrackType type, int trackNumber)
+QMediaMetaData MFPlayerSession::trackMetaData(TrackType type, int trackNumber)
 {
-    if (type >= QPlatformMediaPlayer::NTrackTypes)
-        return {};
-
     if (trackNumber < 0 || trackNumber >= m_trackInfo[type].metaData.count())
         return {};
 

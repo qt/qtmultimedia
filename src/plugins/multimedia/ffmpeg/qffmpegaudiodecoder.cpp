@@ -16,6 +16,8 @@ QT_BEGIN_NAMESPACE
 namespace QFFmpeg
 {
 
+using TrackType = QPlatformMediaPlayer::TrackType;
+
 class SteppingAudioRenderer : public Renderer
 {
     Q_OBJECT
@@ -56,9 +58,9 @@ public:
     {
     }
 
-    RendererPtr createRenderer(QPlatformMediaPlayer::TrackType trackType) override
+    RendererPtr createRenderer(TrackType trackType) override
     {
-        if (trackType != QPlatformMediaPlayer::AudioStream)
+        if (trackType != TrackType::AudioStream)
             return RendererPtr{ {}, {} };
 
         auto result = createPlaybackEngineObject<SteppingAudioRenderer>(m_format);
@@ -149,7 +151,7 @@ void QFFmpegAudioDecoder::start()
 
     if (media) {
         Q_ASSERT(media.value());
-        if (media.value()->streamInfo(QPlatformMediaPlayer::AudioStream).isEmpty())
+        if (media.value()->streamInfo(QFFmpeg::TrackType::AudioStream).isEmpty())
             error(QAudioDecoder::FormatError,
                   QLatin1String("The media doesn't contain an audio stream"));
         else

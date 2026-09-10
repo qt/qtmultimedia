@@ -136,8 +136,8 @@ private:
     QGObjectHandlerScopedConnection padAdded;
     QGObjectHandlerScopedConnection padRemoved;
     std::unique_ptr<QTimer> positionUpdateTimer;
-    std::array<QGstElement, 3> customPipelineSinks;
-    std::array<QGstPad, 3> customPipelinePads;
+    TrackTypeMap<QGstElement> customPipelineSinks;
+    TrackTypeMap<QGstPad> customPipelinePads;
 
     // play
     QGstPlayHandle m_gstPlay;
@@ -151,9 +151,9 @@ private:
 
     // metadata
     QMediaMetaData m_metaData;
-    std::array<std::vector<QMediaMetaData>, 3> m_trackMetaData;
-    std::array<std::vector<QByteArray>, 3> m_trackIDs;
-    std::array<int, 3> m_activeTrack{};
+    TrackTypeMap<std::vector<QMediaMetaData>> m_trackMetaData;
+    TrackTypeMap<std::vector<QByteArray>> m_trackIDs;
+    TrackTypeMap<int> m_activeTrack{};
     QList<QSize> m_nativeSize;
 
     void resetStateForEmptyOrInvalidMedia();

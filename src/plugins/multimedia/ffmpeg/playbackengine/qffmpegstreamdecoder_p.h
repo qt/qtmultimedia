@@ -30,6 +30,8 @@ class StreamDecoder : public PlaybackEngineObject
 {
     Q_OBJECT
 public:
+    using TrackType = QPlatformMediaPlayer::TrackType;
+
     StreamDecoder(const PlaybackEngineObjectID &id, const CodecContext &codecContext,
                   TrackPosition absSeekPos);
 
@@ -37,10 +39,10 @@ public:
 
     void seek(quint64 sessionID, TrackPosition pos, const LoopOffset &offset);
 
-    QPlatformMediaPlayer::TrackType trackType() const;
+    TrackType trackType() const;
 
     // Maximum number of frames that we are allowed to keep in render queue
-    static qint32 maxQueueSize(QPlatformMediaPlayer::TrackType type);
+    static qint32 maxQueueSize(TrackType type);
 
 public slots:
 
@@ -74,7 +76,7 @@ private:
 private:
     CodecContext m_codecContext;
 
-    const QPlatformMediaPlayer::TrackType m_trackType;
+    const TrackType m_trackType;
 
     struct SessionContext
     {

@@ -191,33 +191,33 @@ void QGstreamerMediaPlayer::decoderPadAddedCustomSource(const QGstElement &src, 
     customPipelinePads[*type] = pad;
 
     switch (*type) {
-    case VideoStream: {
+    case TrackType::VideoStream: {
         QGstElement sink = gstVideoOutput->gstreamerVideoSink()
                 ? gstVideoOutput->gstreamerVideoSink()->gstSink()
                 : QGstElement::createFromPipelineDescription("fakesink");
 
         customPipeline.add(sink);
         pad.link(sink.sink());
-        customPipelineSinks[VideoStream] = sink;
+        customPipelineSinks[TrackType::VideoStream] = sink;
         sink.syncStateWithParent();
         return;
     }
-    case AudioStream: {
+    case TrackType::AudioStream: {
         QGstElement sink = gstAudioOutput ? gstAudioOutput->gstElement()
                                           : QGstElement::createFromPipelineDescription("fakesink");
         customPipeline.add(sink);
         pad.link(sink.sink());
-        customPipelineSinks[AudioStream] = sink;
+        customPipelineSinks[TrackType::AudioStream] = sink;
         sink.syncStateWithParent();
         return;
     }
-    case SubtitleStream: {
+    case TrackType::SubtitleStream: {
         QGstElement sink = gstVideoOutput->gstreamerVideoSink()
                 ? gstVideoOutput->gstreamerVideoSink()->gstSink()
                 : QGstElement::createFromPipelineDescription("fakesink");
         customPipeline.add(sink);
         pad.link(sink.sink());
-        customPipelineSinks[SubtitleStream] = sink;
+        customPipelineSinks[TrackType::SubtitleStream] = sink;
         sink.syncStateWithParent();
         return;
     }
@@ -243,15 +243,16 @@ void QGstreamerMediaPlayer::decoderPadRemovedCustomSource(const QGstElement &src
     if (found == customPipelinePads.end())
         return;
 
-    TrackType type = TrackType(found - customPipelinePads.cbegin());
+    TrackType type = static_cast<TrackType>(found - customPipelinePads.cbegin());
 
     switch (type) {
-    case VideoStream:
-    case AudioStream:
-    case SubtitleStream: {
-        if (customPipelineSinks[VideoStream]) {
-            customPipeline.stopAndRemoveElements(customPipelineSinks[VideoStream]);
-            customPipelineSinks[VideoStream] = {};
+    case TrackType::VideoStream:
+    case TrackType::AudioStream:
+    case TrackType::SubtitleStream: {
+        if (customPipelineSinks[TrackType::VideoStream]) {
+            customPipeline.stopAndRemoveElements(
+                    customPipelineSinks[TrackType::VideoStream]);
+            customPipelineSinks[TrackType::VideoStream] = {};
         }
         return;
 
@@ -295,7 +296,7 @@ void QGstreamerMediaPlayer::updateNativeSizeOnVideoOutput()
     QSize nativeSize = hasVideoTrack ? m_nativeSize[activeTrack(TrackType::VideoStream)] : QSize{};
 
     QVariant orientation = hasVideoTrack
-            ? m_trackMetaData[TrackType::VideoStream][activeTrack(TrackType::VideoStream)].value(
+            ? m_trackMetaData[TrackType::VideoStream][activeVideoTrack].value(
                     QMediaMetaData::Key::Orientation)
             : QVariant{};
 
@@ -1134,13 +1135,13 @@ void QGstreamerMediaPlayer::setVideoSink(QVideoSink *sink)
     m_gstVideoSink->connectPluggableVideoSink(pluggableSink);
 }
 
-int QGstreamerMediaPlayer::trackCount(QPlatformMediaPlayer::TrackType type)
+int QGstreamerMediaPlayer::trackCount(TrackType type)
 {
     QSpan<const QMediaMetaData> tracks = m_trackMetaData[type];
     return tracks.size();
 }
 
-QMediaMetaData QGstreamerMediaPlayer::trackMetaData(QPlatformMediaPlayer::TrackType type, int index)
+QMediaMetaData QGstreamerMediaPlayer::trackMetaData(TrackType type, int index)
 {
     QSpan<const QMediaMetaData> tracks = m_trackMetaData[type];
     if (index < tracks.size())

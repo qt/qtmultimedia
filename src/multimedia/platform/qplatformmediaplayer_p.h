@@ -22,6 +22,8 @@
 #include <QtCore/private/qglobal_p.h>
 #include <QtCore/qobject.h>
 
+#include <array>
+
 QT_BEGIN_NAMESPACE
 
 class QMediaStreamsControl;
@@ -72,7 +74,27 @@ public:
     virtual bool canPlayQrc() const { return false; }
 
     // media streams
-    enum TrackType : uint8_t { VideoStream, AudioStream, SubtitleStream, NTrackTypes };
+    enum class TrackType : uint8_t {
+        VideoStream,
+        AudioStream,
+        SubtitleStream,
+    };
+    static constexpr size_t NTrackTypes = qToUnderlying(TrackType::SubtitleStream) + 1;
+
+    template <typename T>
+    class TrackTypeMap : public std::array<T, NTrackTypes>
+    {
+        using Base = std::array<T, NTrackTypes>;
+
+    public:
+        using Base::operator[];
+
+        constexpr T &operator[](TrackType type) { return Base::operator[](qToUnderlying(type)); }
+        constexpr const T &operator[](TrackType type) const
+        {
+            return Base::operator[](qToUnderlying(type));
+        }
+    };
 
     virtual int trackCount(TrackType) { return 0; }
     virtual QMediaMetaData trackMetaData(TrackType /*type*/, int /*streamNumber*/) { return QMediaMetaData(); }

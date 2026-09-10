@@ -58,17 +58,18 @@ void PlaybackEngine::onRendererFinished(const PlaybackEngineObjectID &id)
     if (!hasRenderer(id))
         return;
 
-    auto isAtEnd = [this](auto trackType) {
-        return !m_renderers[trackType] || m_renderers[trackType]->isAtEnd();
+    auto isAtEnd = [this](TrackType trackType) {
+        auto &renderer = m_renderers[trackType];
+        return !renderer || renderer->isAtEnd();
     };
 
-    if (!isAtEnd(QPlatformMediaPlayer::VideoStream))
+    if (!isAtEnd(TrackType::VideoStream))
         return;
 
-    if (!isAtEnd(QPlatformMediaPlayer::AudioStream))
+    if (!isAtEnd(TrackType::AudioStream))
         return;
 
-    if (!isAtEnd(QPlatformMediaPlayer::SubtitleStream) && !hasMediaStream())
+    if (!isAtEnd(TrackType::SubtitleStream) && !hasMediaStream())
         return;
 
     if (std::exchange(m_state, QMediaPlayer::StoppedState) == QMediaPlayer::StoppedState)
@@ -125,7 +126,8 @@ void PlaybackEngine::onRendererSynchronized(const PlaybackEngineObjectID &id,
     if (!hasRenderer(id))
         return;
 
-    Q_ASSERT(checkObjectID(m_renderers[QPlatformMediaPlayer::AudioStream], id));
+    Q_ASSERT(checkObjectID(
+            m_renderers[TrackType::AudioStream], id));
 
     forEachExistingObject<Renderer>([&](auto &renderer) {
         if (id.objectID != renderer->objectID()) {
@@ -200,19 +202,19 @@ void PlaybackEngine::registerObject(PlaybackEngineObject &object)
 }
 
 PlaybackEngine::RendererPtr
-PlaybackEngine::createRenderer(QPlatformMediaPlayer::TrackType trackType)
+PlaybackEngine::createRenderer(TrackType trackType)
 {
     switch (trackType) {
-    case QPlatformMediaPlayer::VideoStream:
+    case TrackType::VideoStream:
         return m_videoSink ? createPlaybackEngineObject<VideoRenderer>(
                        m_timeController, m_videoSink, m_media.transformation())
                            : RendererPtr{ {}, {} };
-    case QPlatformMediaPlayer::AudioStream:
+    case TrackType::AudioStream:
         return m_audioOutput || m_audioBufferOutput
                 ? createPlaybackEngineObject<AudioRenderer>(
                           m_timeController, m_audioOutput, m_audioBufferOutput, m_pitchCompensation)
                 : RendererPtr{ {}, {} };
-    case QPlatformMediaPlayer::SubtitleStream:
+    case TrackType::SubtitleStream:
         return m_videoSink
                 ? createPlaybackEngineObject<SubtitleRenderer>(m_timeController, m_videoSink)
                 : RendererPtr{ {}, {} };
@@ -291,8 +293,9 @@ void PlaybackEngine::triggerStepIfNeeded()
     if (m_state != QMediaPlayer::PausedState)
         return;
 
-    if (m_renderers[QPlatformMediaPlayer::VideoStream])
-        m_renderers[QPlatformMediaPlayer::VideoStream]->doForceStep();
+    auto &videoRenderer = m_renderers[TrackType::VideoStream];
+    if (videoRenderer)
+        videoRenderer->doForceStep();
 
     // TODO: maybe trigger SubtitleStream.
     // If trigger it, we have to make seeking for the current subtitle frame more stable.
@@ -303,7 +306,7 @@ QString PlaybackEngine::objectThreadName(const PlaybackEngineObject &object)
 {
     QString result = QString::fromLatin1(object.metaObject()->className());
     if (auto stream = qobject_cast<const StreamDecoder *>(&object))
-        result += QString::number(stream->trackType());
+        result += QString::number(qToUnderlying(stream->trackType()));
 
     return result;
 }
@@ -334,8 +337,8 @@ void PlaybackEngine::createObjectsIfNeeded()
     if (m_state == QMediaPlayer::StoppedState || !m_media.avContext())
         return;
 
-    for (int i = 0; i < QPlatformMediaPlayer::NTrackTypes; ++i)
-        createStreamAndRenderer(static_cast<QPlatformMediaPlayer::TrackType>(i));
+    for (size_t i = 0; i < QPlatformMediaPlayer::NTrackTypes; ++i)
+        createStreamAndRenderer(static_cast<TrackType>(i));
 
     createDemuxer();
 
@@ -351,7 +354,7 @@ void PlaybackEngine::forceUpdate()
     updateObjectsPausedState();
 }
 
-void PlaybackEngine::createStreamAndRenderer(QPlatformMediaPlayer::TrackType trackType)
+void PlaybackEngine::createStreamAndRenderer(TrackType trackType)
 {
     auto codecContext = codecContextForTrack(trackType);
 
@@ -376,6 +379,8 @@ void PlaybackEngine::createStreamAndRenderer(QPlatformMediaPlayer::TrackType tra
                 &PlaybackEngine::onRendererFinished);
     }
 
+    Q_ASSERT(MediaDataHolder::trackTypeFromMediaType(codecContext->context()->codec_type));
+
     auto &stream = m_streams[trackType] =
             createPlaybackEngineObject<StreamDecoder>(*codecContext, renderer->seekPosition());
 
@@ -388,7 +393,7 @@ void PlaybackEngine::createStreamAndRenderer(QPlatformMediaPlayer::TrackType tra
             &StreamDecoder::onFrameProcessed);
 }
 
-std::optional<CodecContext> PlaybackEngine::codecContextForTrack(QPlatformMediaPlayer::TrackType trackType)
+std::optional<CodecContext> PlaybackEngine::codecContextForTrack(TrackType trackType)
 {
     const auto streamIndex = m_media.currentStreamIndex(trackType);
     if (streamIndex < 0)
@@ -416,13 +421,13 @@ std::optional<CodecContext> PlaybackEngine::codecContextForTrack(QPlatformMediaP
 
 bool PlaybackEngine::hasMediaStream() const
 {
-    return m_renderers[QPlatformMediaPlayer::AudioStream]
-            || m_renderers[QPlatformMediaPlayer::VideoStream];
+    return m_renderers[TrackType::AudioStream]
+            || m_renderers[TrackType::VideoStream];
 }
 
 void PlaybackEngine::createDemuxer()
 {
-    std::array<int, QPlatformMediaPlayer::NTrackTypes> streamIndexes = { -1, -1, -1 };
+    StreamIndexes streamIndexes = { -1, -1, -1 };
 
     bool hasStreams = false;
     forEachExistingObject<StreamDecoder>([&](auto &stream) {
@@ -533,7 +538,8 @@ TrackPosition PlaybackEngine::currentPosition(bool topPos) const
                 continue;
 
             // skip subtitle stream for finding lower rendering position
-            if (!topPos && i == QPlatformMediaPlayer::SubtitleStream && hasMediaStream())
+            if (!topPos && i == qToUnderlying(TrackType::SubtitleStream)
+                && hasMediaStream())
                 continue;
 
             const auto rendererPos = renderer->lastPosition();
@@ -558,7 +564,7 @@ TrackDuration PlaybackEngine::duration() const
 bool PlaybackEngine::isSeekable() const { return m_media.isSeekable(); }
 
 const QList<MediaDataHolder::StreamInfo> &
-PlaybackEngine::streamInfo(QPlatformMediaPlayer::TrackType trackType) const
+PlaybackEngine::streamInfo(TrackType trackType) const
 {
     return m_media.streamInfo(trackType);
 }
@@ -568,7 +574,7 @@ const QMediaMetaData &PlaybackEngine::metaData() const
     return m_media.metaData();
 }
 
-int PlaybackEngine::activeTrack(QPlatformMediaPlayer::TrackType type) const
+int PlaybackEngine::activeTrack(TrackType type) const
 {
     return m_media.activeTrack(type);
 }
@@ -580,7 +586,7 @@ void PlaybackEngine::setPitchCompensation(bool enabled)
         renderer->setPitchCompensation(enabled);
 }
 
-void PlaybackEngine::setActiveTrack(QPlatformMediaPlayer::TrackType trackType, int streamNumber)
+void PlaybackEngine::setActiveTrack(TrackType trackType, int streamNumber)
 {
     if (!m_media.setActiveTrack(trackType, streamNumber))
         return;
@@ -637,10 +643,11 @@ void PlaybackEngine::updateActiveAudioOutput(AudioOutput *output)
 void PlaybackEngine::updateActiveVideoOutput(QVideoSink *sink, bool cleanOutput)
 {
     if (auto renderer = qobject_cast<SubtitleRenderer *>(
-                m_renderers[QPlatformMediaPlayer::SubtitleStream].get()))
+                m_renderers[TrackType::SubtitleStream]
+                        .get()))
         renderer->setOutput(sink, cleanOutput);
-    if (auto renderer =
-                qobject_cast<VideoRenderer *>(m_renderers[QPlatformMediaPlayer::VideoStream].get()))
+    if (auto renderer = qobject_cast<VideoRenderer *>(
+                m_renderers[TrackType::VideoStream].get()))
         renderer->setOutput(sink, cleanOutput);
 }
 
@@ -653,7 +660,8 @@ void PlaybackEngine::updateVideoSinkSize(QVideoSink *prevSink)
     if (prevSink && prevSink->platformVideoSink())
         platformVideoSink->setNativeSize(prevSink->platformVideoSink()->nativeSize());
     else {
-        const auto streamIndex = m_media.currentStreamIndex(QPlatformMediaPlayer::VideoStream);
+        const auto streamIndex =
+                m_media.currentStreamIndex(TrackType::VideoStream);
         if (streamIndex >= 0) {
             const auto context = m_media.avContext();
             const auto stream = context->streams[streamIndex];
@@ -678,7 +686,8 @@ TrackPosition PlaybackEngine::boundPosition(TrackPosition position) const
 
 AudioRenderer *PlaybackEngine::getAudioRenderer()
 {
-    return qobject_cast<AudioRenderer *>(m_renderers[QPlatformMediaPlayer::AudioStream].get());
+    return qobject_cast<AudioRenderer *>(
+            m_renderers[TrackType::AudioStream].get());
 }
 
 } // namespace QFFmpeg

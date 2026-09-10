@@ -13,6 +13,8 @@
 
 QT_BEGIN_NAMESPACE
 
+using TrackType = QPlatformMediaPlayer::TrackType;
+
 Q_STATIC_LOGGING_CATEGORY(lcMediaPlayer, "qt.multimedia.mediaplayer.android");
 
 class StateChangeNotifier
@@ -670,42 +672,42 @@ QMediaMetaData QAndroidMediaPlayer::trackMetaData(TrackType trackType, int strea
     return static_cast<QMediaMetaData>(trackInfo);
 }
 
-QPlatformMediaPlayer::TrackType convertTrackType(AndroidMediaPlayer::TrackType type)
+std::optional<TrackType> convertTrackType(AndroidMediaPlayer::TrackType type)
 {
     switch (type) {
     case AndroidMediaPlayer::TrackType::Video:
-        return QPlatformMediaPlayer::TrackType::VideoStream;
+        return TrackType::VideoStream;
     case AndroidMediaPlayer::TrackType::Audio:
-        return QPlatformMediaPlayer::TrackType::AudioStream;
+        return TrackType::AudioStream;
     case AndroidMediaPlayer::TrackType::TimedText:
-        return QPlatformMediaPlayer::TrackType::SubtitleStream;
+        return TrackType::SubtitleStream;
     case AndroidMediaPlayer::TrackType::Subtitle:
-        return QPlatformMediaPlayer::TrackType::SubtitleStream;
+        return TrackType::SubtitleStream;
     case AndroidMediaPlayer::TrackType::Unknown:
     case AndroidMediaPlayer::TrackType::Metadata:
-        return QPlatformMediaPlayer::TrackType::NTrackTypes;
+        return std::nullopt;
     }
 
-    return QPlatformMediaPlayer::TrackType::NTrackTypes;
+    return std::nullopt;
 }
 
 int QAndroidMediaPlayer::convertTrackNumber(int androidTrackNumber)
 {
     int trackNumber = androidTrackNumber;
 
-    int videoTrackCount = trackCount(QPlatformMediaPlayer::TrackType::VideoStream);
+    int videoTrackCount = trackCount(TrackType::VideoStream);
     if (trackNumber <= videoTrackCount)
         return trackNumber;
 
     trackNumber = trackNumber - videoTrackCount;
 
-    int audioTrackCount = trackCount(QPlatformMediaPlayer::TrackType::AudioStream);
+    int audioTrackCount = trackCount(TrackType::AudioStream);
     if (trackNumber <= audioTrackCount)
         return trackNumber;
 
     trackNumber = trackNumber - audioTrackCount;
 
-    auto subtitleTracks = mTracksMetadata.value(QPlatformMediaPlayer::TrackType::SubtitleStream);
+    auto subtitleTracks = mTracksMetadata.value(TrackType::SubtitleStream);
     int timedTextCount = 0;
     int subtitleTextCount = 0;
     for (const auto &track : subtitleTracks) {
@@ -732,18 +734,18 @@ int QAndroidMediaPlayer::activeTrack(TrackType trackType)
     int androidTrackNumber = -1;
 
     switch (trackType) {
-    case QPlatformMediaPlayer::TrackType::VideoStream: {
+    case TrackType::VideoStream: {
         if (!mIsVideoTrackEnabled)
             return -1;
         androidTrackNumber = mMediaPlayer->activeTrack(AndroidMediaPlayer::TrackType::Video);
     }
-    case QPlatformMediaPlayer::TrackType::AudioStream: {
+    case TrackType::AudioStream: {
         if (!mIsAudioTrackEnabled)
             return -1;
 
         androidTrackNumber = mMediaPlayer->activeTrack(AndroidMediaPlayer::TrackType::Audio);
     }
-    case QPlatformMediaPlayer::TrackType::SubtitleStream: {
+    case TrackType::SubtitleStream: {
         int timedTextSelectedTrack =
                 mMediaPlayer->activeTrack(AndroidMediaPlayer::TrackType::TimedText);
 
@@ -761,8 +763,6 @@ int QAndroidMediaPlayer::activeTrack(TrackType trackType)
 
         return -1;
     }
-    case QPlatformMediaPlayer::TrackType::NTrackTypes:
-        return -1;
     }
 
     return convertTrackNumber(androidTrackNumber);
@@ -773,14 +773,14 @@ void QAndroidMediaPlayer::disableTrack(TrackType trackType)
     const auto track = activeTrack(trackType);
 
     switch (trackType) {
-    case VideoStream: {
+    case TrackType::VideoStream: {
         if (track > -1) {
             mMediaPlayer->setDisplay(nullptr);
             mIsVideoTrackEnabled = false;
         }
         break;
     }
-    case AudioStream: {
+    case TrackType::AudioStream: {
         if (track > -1) {
             mMediaPlayer->setMuted(true);
             mMediaPlayer->blockAudio();
@@ -788,7 +788,7 @@ void QAndroidMediaPlayer::disableTrack(TrackType trackType)
         }
         break;
     }
-    case SubtitleStream: {
+    case TrackType::SubtitleStream: {
         // subtitles and timedtext tracks can be selected at the same time so deselect both
         int subtitleSelectedTrack =
                 mMediaPlayer->activeTrack(AndroidMediaPlayer::TrackType::Subtitle);
@@ -802,8 +802,6 @@ void QAndroidMediaPlayer::disableTrack(TrackType trackType)
 
         break;
     }
-    case NTrackTypes:
-        break;
     }
 }
 
@@ -974,14 +972,16 @@ void QAndroidMediaPlayer::updateTrackInfo()
     mTracksMetadata[TrackType::VideoStream] = QList<QAndroidMetaData>();
     mTracksMetadata[TrackType::AudioStream] = QList<QAndroidMetaData>();
     mTracksMetadata[TrackType::SubtitleStream] = QList<QAndroidMetaData>();
-    mTracksMetadata[TrackType::NTrackTypes] = QList<QAndroidMetaData>();
 
     for (const auto &androidTrackInfo : androidTracksInfo) {
 
-        const auto &mediaPlayerType = convertTrackType(androidTrackInfo.trackType);
-        auto &tracks = mTracksMetadata[mediaPlayerType];
+        const auto mediaPlayerType = convertTrackType(androidTrackInfo.trackType);
+        if (!mediaPlayerType)
+            continue;
 
-        const QAndroidMetaData metadata(mediaPlayerType, androidTrackInfo.trackType,
+        auto &tracks = mTracksMetadata[*mediaPlayerType];
+
+        const QAndroidMetaData metadata(*mediaPlayerType, androidTrackInfo.trackType,
                                         androidTrackInfo.trackNumber, androidTrackInfo.mimeType,
                                         androidTrackInfo.language);
         tracks.append(metadata);

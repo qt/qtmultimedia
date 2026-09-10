@@ -135,8 +135,9 @@ QLocale::Language getLocaleLanguage(const QString &language)
     return QLocale::codeToLanguage(language, QLocale::ISO639Part2);
 }
 
-QAndroidMetaData::QAndroidMetaData(int trackType, int androidTrackType, int androidTrackNumber,
-                                   const QString &mimeType, const QString &language)
+QAndroidMetaData::QAndroidMetaData(TrackType trackType, int androidTrackType,
+                                   int androidTrackNumber, const QString &mimeType,
+                                   const QString &language)
     : mTrackType(trackType),
       mAndroidTrackType(androidTrackType),
       mAndroidTrackNumber(androidTrackNumber)
@@ -145,7 +146,7 @@ QAndroidMetaData::QAndroidMetaData(int trackType, int androidTrackType, int andr
     insert(QMediaMetaData::Language, getLocaleLanguage(language));
 }
 
-int QAndroidMetaData::trackType() const
+QAndroidMetaData::TrackType QAndroidMetaData::trackType() const
 {
     return mTrackType;
 }
