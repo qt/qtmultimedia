@@ -7,6 +7,7 @@
 #include "widget.h"
 
 #include <QtCore/qcommandlineparser.h>
+#include <QtCore/qoperatingsystemversion.h>
 
 #include <QtGui/qwindow.h>
 
@@ -16,13 +17,16 @@
 #include <QtMultimedia/private/qavfhelpers_p.h>
 #endif
 #include <QtMultimedia/private/qmultimedia_ranges_p.h>
+#include <QtMultimedia/private/qwindowcapture_p.h>
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/osdetection_p.h>
 #include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
 
 #include <QtTest/qsignalspy.h>
 #include <QtTest/qtest.h>
 
 #include <chrono>
+#include <cstdlib>
 #include <vector>
 
 namespace ranges = QtMultimediaPrivate::ranges;
@@ -31,6 +35,8 @@ using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;
 using std::chrono::microseconds;
 
+using namespace std::chrono_literals;
+
 class tst_QWindowCaptureBackend : public QIntegrationTestBase
 {
     Q_OBJECT
@@ -38,6 +44,35 @@ class tst_QWindowCaptureBackend : public QIntegrationTestBase
 private:
     bool m_skipOddSizedWindows = false;
     [[nodiscard]] bool skipOddSizedWindows() const { return m_skipOddSizedWindows; }
+
+    // Keeps capturing frames until we receive the size we expect.
+    // If it fails, it emits a QFAIL with a helpful message.
+    void waitForVideoFrameExpectedSize(
+        WindowCaptureFixture &fixture,
+        QSize expectedSize,
+        const QString &context)
+    {
+        bool matched = QTest::qWaitFor(
+            [&] {
+                const std::vector<QVideoFrame> &frames = fixture.m_grabber.getFrames();
+                return !frames.empty() && frames.back().size() == expectedSize;
+            },
+            globalTestTimeout());
+
+        const std::vector<QVideoFrame> &frames = fixture.m_grabber.getFrames();
+        QSize lastFrameSize = frames.empty() ? QSize{} : frames.back().size();
+
+        QVERIFY2(
+            matched,
+            qPrintable(u"%1: expected captured frame %2x%3, but after %4 frame(s) "
+                       "the last one was %5x%6"_s
+                .arg(context)
+                .arg(expectedSize.width())
+                .arg(expectedSize.height())
+                .arg(int(frames.size()))
+                .arg(lastFrameSize.width())
+                .arg(lastFrameSize.height())));
+    }
 
 private slots:
     void initTestCase()
@@ -68,9 +103,17 @@ private slots:
     m_skipOddSizedWindows = isCI();
 #endif
 
-        const QWindowCapture capture;
-        if (capture.error() == QWindowCapture::CapturingNotSupported)
-            QSKIP("Screen capturing not supported");
+    // On some platforms, captured frame size lags slightly behind window geometry
+    // changes, so allow a short settle time after modifying geometry before
+    // starting capture or checking frame sizes.
+    //
+    // If frame size tests are flaky, it might help to increase this value.
+    if (isMacOS || isLinux)
+        WindowCaptureFixture::windowGeometrySettleDelay = 200ms;
+
+    const QWindowCapture capture;
+    if (capture.error() == QWindowCapture::CapturingNotSupported)
+        QSKIP("Screen capturing not supported");
 
 #if defined(__SANITIZE_ADDRESS__) || __has_feature(address_sanitizer)
         QSKIP("QTBUG-135614, disabling tst_QWindowCaptureBackend for Address Sanitizer builds, due "
@@ -320,10 +363,13 @@ private slots:
         // activeChanged does not fire in between switching source
         QCOMPARE(fixture.m_activations.size(), 1);
 
-        // Make sure we get frames from the new larger window
+        // Make sure we get frames from the new larger window. The captured frame
+        // is delivered in physical pixels, so scale by the device pixel ratio.
+        const QSize expectedSize =
+            (QSizeF(secondWidget.size()) * secondWidget.devicePixelRatio()).toSize();
         QTRY_VERIFY_WITH_TIMEOUT(
             !fixture.m_grabber.getFrames().empty()
-            && fixture.m_grabber.getFrames().back().size() == secondWidget.size(),
+            && fixture.m_grabber.getFrames().back().size() == expectedSize,
             globalTestTimeout());
 
         QVERIFY(fixture.m_errors.empty());
@@ -479,6 +525,213 @@ private slots:
         const QImage actual = fixture.waitForFrame().toImage();
 
         QVERIFY(fixture.compareImages(actual, expected));
+    }
+
+    void capturedFrame_hasExpectedSize_data()
+    {
+        QTest::addColumn<QSize>("windowSize");
+        QTest::newRow("small-window") << QSize{ 60, 40 };
+        QTest::newRow("big-window") << QSize{ 800, 600 };
+        if (!skipOddSizedWindows()) {
+            QTest::newRow("odd-width-window") << QSize{ 61, 40 };
+            QTest::newRow("odd-height-window") << QSize{ 60, 41 };
+        }
+    }
+
+    void capturedFrame_hasExpectedSize()
+    {
+        QFETCH(QSize, windowSize);
+
+        WindowCaptureWithWidgetFixture fixture;
+
+        QVERIFY(fixture.start(windowSize, FirstFrameSizePolicy::MustMatchWindowSize));
+        QVERIFY(fixture.m_capture.isActive());
+
+        const QSize expectedSize =
+            (QSizeF(fixture.m_widget.size()) * fixture.m_widget.devicePixelRatio()).toSize();
+
+        QVERIFY(QTest::qWaitFor(
+            [&] { return !fixture.m_grabber.getFrames().empty(); }, globalTestTimeout()));
+
+        const std::vector<QVideoFrame> frames = fixture.m_grabber.getFrames();
+        for (size_t i = 0; i < frames.size(); ++i) {
+            QVERIFY2(
+                frames[i].size() == expectedSize,
+                qPrintable(u"Captured frame #%1 was %2x%3, but expected %4x%5"_s
+                    .arg(i)
+                    .arg(frames[i].size().width())
+                    .arg(frames[i].size().height())
+                    .arg(expectedSize.width())
+                    .arg(expectedSize.height())));
+        }
+
+        // The video sink should report the same size as the frames it receives.
+        QVERIFY2(
+            fixture.m_grabber.videoSize() == expectedSize,
+            qPrintable(u"Video sink size %1x%2 differs from expected %3x%4"_s
+                .arg(fixture.m_grabber.videoSize().width())
+                .arg(fixture.m_grabber.videoSize().height())
+                .arg(expectedSize.width())
+                .arg(expectedSize.height())));
+
+        QVERIFY(fixture.m_errors.empty());
+    }
+
+    // For some backends it's possible to unintentionally store size-snapshots
+    // in QCapturableWindow (i.e ScreenCaptureKit.SCWindow). This test
+    // checks that our stream starts at the current window size, not
+    // when the QCapturableWindow handle was constructed.
+    void capture_startsAtCurrentSize_whenWindowResizedBeforeStart()
+    {
+        WindowCaptureWithWidgetFixture fixture;
+
+        const QSize initialSize{ 200, 150 };
+        const QSize resizedSize{ 400, 300 };
+
+        fixture.m_widget.setSize(initialSize);
+        fixture.m_widget.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&fixture.m_widget, globalTestTimeout()));
+
+        // Create the capturable-window handle while the window is still at the
+        // initial size.
+        const QCapturableWindow handle{ fixture.m_widget.windowHandle() };
+        QVERIFY(handle.isValid());
+
+        // Resize, and wait until the new size has actually taken effect before we
+        // start capturing, so the new size is the window's live size.
+        fixture.m_widget.setSize(resizedSize);
+        QVERIFY(QTest::qWaitFor(
+            [&] { return fixture.m_widget.size() == resizedSize; },
+            globalTestTimeout()));
+        // This test inspects the very first captured frame's size, so let the
+        // capture backend observe the new geometry before we start the stream
+        fixture.waitForWindowGeometryToSettle(FirstFrameSizePolicy::MustMatchWindowSize);
+
+        // Start capturing using the handle that was created at the old size.
+        fixture.m_capture.setWindow(handle);
+        fixture.m_capture.setActive(true);
+        QVERIFY(fixture.m_capture.isActive());
+
+        // Every captured frame, including the very first, must reflect the
+        // new size of the window.
+        const QSize expectedSize =
+            (QSizeF(resizedSize) * fixture.m_widget.devicePixelRatio()).toSize();
+
+        QVERIFY(QTest::qWaitFor(
+            [&] { return !fixture.m_grabber.getFrames().empty(); }, globalTestTimeout()));
+
+        const std::vector<QVideoFrame> frames = fixture.m_grabber.getFrames();
+        for (size_t i = 0; i < frames.size(); ++i) {
+            QVERIFY2(
+                frames[i].size() == expectedSize,
+                qPrintable(u"Captured frame #%1 was %2x%3, but expected %4x%5"_s
+                    .arg(i)
+                    .arg(frames[i].size().width())
+                    .arg(frames[i].size().height())
+                    .arg(expectedSize.width())
+                    .arg(expectedSize.height())));
+        }
+
+        QVERIFY(fixture.m_errors.empty());
+    }
+
+    void capturedFrame_hasNewSize_whenWindowResizedOnce()
+    {
+        // The captured frame is delivered in physical pixels, so scale the
+        // window's logical size by the device pixel ratio to get the expected
+        // frame size.
+        const auto expectedFrameSize = [](const TestWidget &widget) {
+            return (QSizeF(widget.size()) * widget.devicePixelRatio()).toSize();
+        };
+
+        WindowCaptureWithWidgetFixture fixture;
+        // Use animated content to make sure backend does not
+        // consider the content idle.
+        fixture.m_widget.setDisplayPattern(TestWidget::Pattern::Animated);
+        QVERIFY(fixture.start({ 200, 150 }));
+        QVERIFY(fixture.m_capture.isActive());
+
+        // Make sure we are receiving frames at the initial window size before
+        // we resize.
+        waitForVideoFrameExpectedSize(
+            fixture,
+            expectedFrameSize(fixture.m_widget), u"Initial capture at 200x150"_s);
+        if (QTest::currentTestFailed())
+            return;
+
+        fixture.resizeWidget({ 400, 300 });
+
+        // At some point we have to receive frames with the new size.
+        waitForVideoFrameExpectedSize(
+            fixture,
+            expectedFrameSize(fixture.m_widget), u"Resized window to 400x300"_s);
+
+        QVERIFY(fixture.m_errors.empty());
+    }
+
+    void capturedFrame_hasNewSize_whenWindowResized_data()
+    {
+        using QOSVersion = QOperatingSystemVersion;
+        if (isCI()
+            && QOSVersion::currentType() == QOSVersion::OSType::MacOS
+            && QOSVersion::current() < QOSVersion(QOSVersion::OSType::MacOS, 26))
+        {
+            QSKIP("macOS 15 CI machines and older have issues with reporting content size during window resizing");
+        }
+
+        QTest::addColumn<int>("increment");
+        QTest::newRow("shrink by 1") << -1;
+        QTest::newRow("shrink by 2") << -2;
+        QTest::newRow("grow by 1") << 1;
+        QTest::newRow("grow by 2") << 2;
+    }
+
+    void capturedFrame_hasNewSize_whenWindowResized()
+    {
+        QFETCH(int, increment);
+
+        constexpr int incrementalSteps = 10;
+
+        // The captured frame is delivered in physical pixels, so scale the
+        // window's logical size by the device pixel ratio to get the expected
+        // frame size.
+        const auto expectedFrameSizeFn = [](const TestWidget &widget) {
+            return (QSizeF(widget.size()) * widget.devicePixelRatio()).toSize();
+        };
+
+        WindowCaptureWithWidgetFixture fixture;
+
+        QSize windowSize = { 200, 150 };
+        QVERIFY(fixture.start(windowSize));
+        QVERIFY(fixture.m_capture.isActive());
+
+        // Make sure we are receiving frames at the initial window size before
+        // we start resizing.
+        waitForVideoFrameExpectedSize(
+            fixture,
+            expectedFrameSizeFn(fixture.m_widget),
+            u"Initial capture at 200x150"_s);
+        if (QTest::currentTestFailed())
+            return;
+
+        for (int step = 0; step < incrementalSteps; ++step) {
+            windowSize += QSize{ increment, increment };
+            fixture.resizeWidget(windowSize);
+
+            // At some point, we must receive a frame that has the
+            // expected size.
+            waitForVideoFrameExpectedSize(
+                fixture,
+                expectedFrameSizeFn(fixture.m_widget),
+                u"Resized window to %1x%2 (step %3)"_s
+                    .arg(windowSize.width())
+                    .arg(windowSize.height())
+                    .arg(step));
+            if (QTest::currentTestFailed())
+                return;
+        }
+
+        QVERIFY(fixture.m_errors.empty());
     }
 
     void capturedImage_changes_whenWindowContentChanges()

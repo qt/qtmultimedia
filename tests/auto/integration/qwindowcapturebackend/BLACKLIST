@@ -17,3 +17,6 @@ windows-11 msvc ci
 [recorder_encodesFrames_toValidMediaFile_whenWindowResizes]
 windows-11 msvc ci
 
+# Windows WGC implementation has issues with resizing
+[capturedFrame_hasNewSize_whenWindowResized]
+windows

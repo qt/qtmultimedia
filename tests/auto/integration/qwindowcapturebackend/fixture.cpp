@@ -3,12 +3,17 @@
 
 #include "fixture.h"
 
+#include <QtCore/qoperatingsystemversion.h>
 #include <QtCore/qsystemsemaphore.h>
 #include <QtCore/quuid.h>
 
 #include <QtMultimedia/qmediaplayer.h>
 
 #include <QtMultimediaWidgets/qvideowidget.h>
+
+using namespace std::chrono_literals;
+
+std::chrono::milliseconds WindowCaptureFixture::windowGeometrySettleDelay = 0ms;
 
 DisableCursor::DisableCursor()
 {
@@ -25,6 +30,12 @@ WindowCaptureFixture::WindowCaptureFixture()
 {
     m_session.setWindowCapture(&m_capture);
     m_session.setVideoSink(&m_grabber);
+}
+
+void WindowCaptureFixture::waitForWindowGeometryToSettle(FirstFrameSizePolicy policy) const
+{
+    if (policy == FirstFrameSizePolicy::MustMatchWindowSize && windowGeometrySettleDelay > 0ms)
+        QTest::qWait(windowGeometrySettleDelay);
 }
 
 QString WindowCaptureFixture::getResultsPath(const QString &fileName)
@@ -80,7 +91,7 @@ QVideoFrame WindowCaptureFixture::waitForFrame(qint64 noOlderThanTime)
     return frames.back();
 }
 
-bool WindowCaptureWithWidgetFixture::start(QSize size)
+bool WindowCaptureWithWidgetFixture::start(QSize size, FirstFrameSizePolicy firstFrameSizePolicy)
 {
     // In case of window capture failure, signal the grabber so we can stop
     // waiting for frames that will never come.
@@ -102,6 +113,11 @@ bool WindowCaptureWithWidgetFixture::start(QSize size)
         m_widget.windowHandle());
     if (!foundCapturableWindow || !foundCapturableWindow->isValid())
         return false;
+
+    // If the test requires it, let the capture backend observe the window's
+    // geometry before we start the stream, so the very first frame already
+    // reflects the correct size.
+    waitForWindowGeometryToSettle(firstFrameSizePolicy);
 
     m_capture.setWindow(*foundCapturableWindow);
     m_capture.setActive(true);

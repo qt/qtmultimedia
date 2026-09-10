@@ -167,6 +167,8 @@ private slots:
 
     void setActive_startsStreamWithValidFrame_data();
     void setActive_startsStreamWithValidFrame();
+    void capturedFrame_hasExpectedSize_data();
+    void capturedFrame_hasExpectedSize();
     void setActive_startsAndStopsCapture();
     void setActive_isNoOp_whenStoppingCaptureThatNeverStarted();
     void setActive_isNoOp_whenAlreadyActive();
@@ -444,6 +446,59 @@ void tst_QScreenCaptureBackend::setActive_startsStreamWithValidFrame()
     // The first frame may be delayed due to backend initialization, so wait for it.
     const QVideoFrame firstFrame = sink.waitForFrame();
     QVERIFY(firstFrame.isValid());
+
+    QCOMPARE(errorsSpy.size(), 0);
+}
+
+void tst_QScreenCaptureBackend::capturedFrame_hasExpectedSize_data()
+{
+    QTest::addColumn<QScreen *>("screen");
+
+    const auto screens = QApplication::screens();
+    for (qsizetype i = 0; i < screens.size(); ++i) {
+        QByteArray rowName = u"QScreen #%1 - %2"_s
+            .arg(i)
+            .arg(screens[i]->name())
+            .toUtf8();
+        QTest::newRow(rowName.constData()) << screens[i];
+    }
+}
+
+void tst_QScreenCaptureBackend::capturedFrame_hasExpectedSize()
+{
+    QFETCH(QScreen *, screen);
+
+    TestVideoSink sink;
+    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTestLib::makeScreenCapture();
+    QScreenCapture &sc = *screenCapture;
+
+    QSignalSpy errorsSpy(&sc, &QScreenCapture::errorOccurred);
+
+    QMediaCaptureSession session;
+    session.setScreenCapture(&sc);
+    session.setVideoSink(&sink);
+
+    sc.setScreen(screen);
+    sc.setActive(true);
+    QVERIFY(sc.isActive());
+
+    // The captured frame is delivered in physical pixels, so scale the screen's
+    // logical size by its device pixel ratio to get the expected frame size.
+    const QSize expectedSize = (QSizeF(screen->size()) * screen->devicePixelRatio()).toSize();
+
+    const QVideoFrame firstFrame = sink.waitForFrame();
+    QVERIFY2(firstFrame.isValid(), "Did not receive a frame from the screen capture");
+
+    const QSize actualSize = firstFrame.size();
+    QVERIFY2(
+        actualSize == expectedSize,
+        qPrintable(
+            u"First captured frame for screen '%1' was %2x%3, but expected %4x%5"_s
+            .arg(screen->name())
+            .arg(actualSize.width())
+            .arg(actualSize.height())
+            .arg(expectedSize.width())
+            .arg(expectedSize.height())));
 
     QCOMPARE(errorsSpy.size(), 0);
 }
