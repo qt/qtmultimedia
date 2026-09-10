@@ -47,6 +47,15 @@ public:
 
     explicit QPlatformSurfaceCapture(Source initialSource);
 
+    // When capturing a Window, we should never include the drop shadow of that Window.
+    // Ideally, when configured with QCapturableWindow constructed from a QWindow,
+    // our output frames should always have sizes matching that QWindow.
+    //
+    // If the property ignoreCursor() is set to true, we should provide a hint for the backend
+    // to not capture the cursor if possible.
+    //
+    // This method must be implemented as blocking. If the function fails for some reason,
+    // the error property can not be set to NoError.
     void setActive(bool active) override;
     bool isActive() const override;
 
@@ -70,10 +79,6 @@ public:
     // Applied on next stream start.
     [[nodiscard]] bool ignoreCursor() const;
 
-    void setIgnoreDropShadow(bool);
-    // Applied on next stream start.
-    [[nodiscard]] bool ignoreDropShadow() const;
-
 protected:
     virtual bool setActiveInternal(bool) = 0;
 
@@ -94,10 +99,9 @@ private:
     Source m_source;
     bool m_active = false;
 
-    // While not part of public API, these settings tend to impact
+    // While not part of public API, this setting tends to impact
     // integration tests.
     bool m_ignoreCursor = false;
-    bool m_ignoreDropShadow = false;
 };
 
 QT_END_NAMESPACE

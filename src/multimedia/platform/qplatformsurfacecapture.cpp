@@ -90,16 +90,6 @@ bool QPlatformSurfaceCapture::ignoreCursor() const
     return m_ignoreCursor;
 }
 
-void QPlatformSurfaceCapture::setIgnoreDropShadow(bool ignore)
-{
-    m_ignoreDropShadow = ignore;
-}
-
-bool QPlatformSurfaceCapture::ignoreDropShadow() const
-{
-    return m_ignoreDropShadow;
-}
-
 void QPlatformSurfaceCapture::updateError(Error error, const QString &errorString)
 {
     m_error.setAndNotify(error, errorString, *this);

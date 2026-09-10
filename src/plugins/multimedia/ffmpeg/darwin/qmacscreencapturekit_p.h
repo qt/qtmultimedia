@@ -82,7 +82,6 @@ public:
     struct StreamSettings {
         std::optional<qreal> frameRate;
         bool overrideIgnoreCursor = false;
-        bool overrideIgnoreDropShadow = false;
     };
 
     struct CreateStreamInfo {
