@@ -285,8 +285,8 @@ using AnyNativeGLContextType = std::variant<
 #  endif
         >;
 
-std::optional<AnyNativeGLContextType> resolveNativeGlContext(QOpenGLContext *glContext,
-                                                             GstGLPlatform glPlatform)
+std::optional<AnyNativeGLContextType>
+resolveNativeGlContext([[maybe_unused]] QOpenGLContext *glContext, GstGLPlatform glPlatform)
 {
     switch (glPlatform) {
 #  if QT_CONFIG(gstreamer_gl_egl)
@@ -312,7 +312,7 @@ struct ResolveGstGlDisplayResult
     GstGLPlatform platform;
 };
 
-std::optional<ResolveGstGlDisplayResult> resolveGstGlDisplay(QRhi *rhi)
+std::optional<ResolveGstGlDisplayResult> resolveGstGlDisplay([[maybe_unused]] QRhi *rhi)
 {
     // use the egl display if we have one
 #  if QT_CONFIG(gstreamer_gl_egl)
