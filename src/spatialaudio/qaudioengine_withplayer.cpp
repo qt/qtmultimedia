@@ -4,6 +4,7 @@
 #include "qaudioengine_withplayer_p.h"
 
 #include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtMultimedia/private/qmemory_resource_tlsf_p.h>
 #include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtMultimedia/private/qrtaudioengine_p.h>
@@ -85,52 +86,44 @@ QtMultimediaPrivate::QRtAudioEngineVoice::VoicePlayResult
 QResonanceAudioPlayer::play(QSpan<float> outputBuffer) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     using namespace QtMultimediaPrivate;
-    namespace ranges = QtMultimediaPrivate::ranges;
 
-    if (m_paused) {
-        ranges::fill(outputBuffer, 0);
+    if (m_paused)
         return VoicePlayResult::Playing;
-    }
 
     const size_t samplesPerSlice = m_format.channelCount() * qToUnderlying(framesPerBuffer);
 
+    // resonance-audio renders slices with fill (not additive) semantics, so every slice is
+    // rendered into a zero-initialized scratch buffer first and mixed into outputBuffer
+    // afterwards
     while (!outputBuffer.empty()) {
-        if (!m_leftoverBuffer.empty()) {
-            // we have leftovers
-            QSpan leftoverSpanToCopy = take(QSpan(m_leftoverBuffer), outputBuffer.size());
-            ranges::copy(leftoverSpanToCopy, outputBuffer.begin());
-            m_leftoverBuffer.erase(m_leftoverBuffer.begin(),
-                                   m_leftoverBuffer.begin() + leftoverSpanToCopy.size());
-            outputBuffer = drop(outputBuffer, leftoverSpanToCopy.size());
-            continue;
-        }
-
-        Q_ASSERT(m_leftoverBuffer.empty());
-
-        auto sliceBuffer = take(outputBuffer, samplesPerSlice);
-        size_t sliceBufferSize = sliceBuffer.size();
-
-        if (sliceBufferSize == samplesPerSlice) {
-            // normal case: we have enough space
-            processSlice(sliceBuffer);
+        if (m_leftoverBuffer.empty() && size_t(outputBuffer.size()) >= samplesPerSlice) {
+            // fast path: the whole slice is consumed immediately, so we can use a stack-allocated
+            // scratch buffer instead of carrying it via m_leftoverBuffer
+            withTemporaryBuffer(samplesPerSlice * sizeof(float), [&](QSpan<std::byte> raw) {
+                QSpan<float> scratch{
+                    reinterpret_cast<float *>(raw.data()),
+                    qsizetype(samplesPerSlice),
+                };
+                std::fill(scratch.begin(), scratch.end(), 0.0f);
+                processSlice(scratch);
+                for (size_t i = 0; i != samplesPerSlice; ++i)
+                    outputBuffer[i] += scratch[i];
+            });
             outputBuffer = drop(outputBuffer, samplesPerSlice);
             continue;
-        } else {
-            // not enough space to fill a whole slice.
-            pmr::vector<float> sliceBuffer{
-                samplesPerSlice,
-                0.0f,
-                pmr::vector<float>::allocator_type{ m_leftoverBuffer.get_allocator().resource() },
-            };
-            processSlice(sliceBuffer);
-
-            QSpan sliceToOutput = take(QSpan(sliceBuffer), sliceBufferSize);
-            QSpan sliceToKeep = drop(QSpan(sliceBuffer), sliceBufferSize);
-            ranges::copy(sliceToOutput, outputBuffer.begin());
-            m_leftoverBuffer.assign(sliceToKeep.begin(), sliceToKeep.end());
-
-            outputBuffer = drop(outputBuffer, sliceToOutput.size());
         }
+
+        if (m_leftoverBuffer.empty()) {
+            m_leftoverBuffer.assign(samplesPerSlice, 0.0f);
+            processSlice(QSpan<float>(m_leftoverBuffer));
+        }
+
+        const auto samplesToMix = std::min<qsizetype>(m_leftoverBuffer.size(), outputBuffer.size());
+        for (qsizetype i = 0; i != samplesToMix; ++i)
+            outputBuffer[i] += m_leftoverBuffer[i];
+
+        m_leftoverBuffer.erase(m_leftoverBuffer.begin(), m_leftoverBuffer.begin() + samplesToMix);
+        outputBuffer = drop(outputBuffer, samplesToMix);
     }
 
     return VoicePlayResult::Playing;
