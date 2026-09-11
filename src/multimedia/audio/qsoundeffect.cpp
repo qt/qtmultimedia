@@ -71,7 +71,6 @@ QSoundEffectPrivate *makeSoundEffectPrivate(QSoundEffect *fx, const QAudioDevice
     \nativetype QSoundEffect
     \brief The SoundEffect type provides a way to play sound effects in QML.
 
-    \inmodule QtMultimedia
     \ingroup multimedia_qml
     \ingroup multimedia_audio_qml
     \inqmlmodule QtMultimedia
