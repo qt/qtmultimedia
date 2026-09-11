@@ -62,6 +62,10 @@ public:
 
     // once play() returns finished or isActive is false, the QAudioPlaybackEngine will stop the
     // voice
+    //
+    // additive mixing constraint: QRtAudioEngine zero-fills the output buffer once per callback
+    // and then invokes play() on every active voice with that same buffer, so implementations
+    // must mix additively (e.g. `+=`) rather than overwrite/clear its contents.
     [[nodiscard]] virtual VoicePlayResult play(QSpan<float>) noexcept Q_DECL_NONBLOCKING_FUNCTION = 0;
     virtual bool isActive() noexcept Q_DECL_NONBLOCKING_FUNCTION = 0;
 
