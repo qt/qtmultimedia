@@ -166,6 +166,51 @@ static void apply_mpeg4(const QMediaEncoderSettings &settings, AVCodecContext *c
     }
 }
 
+#if defined(Q_OS_LINUX) || defined(Q_OS_ANDROID)
+static void apply_v4l2m2m(const QMediaEncoderSettings &settings, AVCodecContext *codec,
+                           AVDictionary ** /*opts*/)
+{
+    if (settings.encodingMode() == QMediaRecorder::ConstantBitRateEncoding
+        || settings.encodingMode() == QMediaRecorder::AverageBitRateEncoding) {
+        codec->bit_rate = settings.videoBitRate();
+        return;
+    }
+
+    // Constant quality: v4l2m2m encoders don't read global_quality/AV_CODEC_FLAG_QSCALE,
+    // so approximate a fixed QP via qmin==qmax over the codec-specific V4L2 QP range.
+    // Bitrate is still required by the driver's frame-level rate controller, so keep
+    // supplying a heuristic ceiling alongside the QP pin.
+    codec->bit_rate = bitrateForSettings(settings);
+
+    const int quality = settings.quality();
+    switch (settings.videoCodec()) {
+    case QMediaFormat::VideoCodec::H264: {
+        static constexpr int q[] = { 45, 38, 28, 20, 10 }; // 0..51
+        codec->qmin = codec->qmax = q[quality];
+        break;
+    }
+    case QMediaFormat::VideoCodec::MPEG4: {
+        static constexpr int q[] = { 28, 22, 16, 10, 4 }; // 1..31
+        codec->qmin = codec->qmax = q[quality];
+        break;
+    }
+    case QMediaFormat::VideoCodec::VP8: {
+        static constexpr int q[] = { 108, 88, 64, 40, 16 }; // 0..127
+        codec->qmin = codec->qmax = q[quality];
+        break;
+    }
+    case QMediaFormat::VideoCodec::VP9: {
+        static constexpr int q[] = { 216, 176, 128, 80, 32 }; // 0..255
+        codec->qmin = codec->qmax = q[quality];
+        break;
+    }
+    default:
+        // e.g. HEVC/H263: driver exposes no QP control, bit_rate heuristic above is all we can do
+        break;
+    }
+}
+#endif
+
 #ifdef Q_OS_DARWIN
 static void apply_videotoolbox(const QMediaEncoderSettings &settings, AVCodecContext *codec, AVDictionary **opts)
 {
@@ -365,6 +410,12 @@ const VideoCodecOptionsTableType videoCodecOptionTable{
     { "hevc_nvenc"_L1, apply_nvenc },
     { "av1_nvenc"_L1, apply_nvenc },
     { "mpeg4"_L1, apply_mpeg4 },
+#if defined(Q_OS_LINUX) || defined(Q_OS_ANDROID)
+    { "h264_v4l2m2m"_L1, apply_v4l2m2m },
+    { "hevc_v4l2m2m"_L1, apply_v4l2m2m },
+    { "mpeg4_v4l2m2m"_L1, apply_v4l2m2m },
+    { "vp8_v4l2m2m"_L1, apply_v4l2m2m },
+#endif
 #ifdef Q_OS_DARWIN
     { "h264_videotoolbox"_L1, apply_videotoolbox },
     { "hevc_videotoolbox"_L1, apply_videotoolbox },
