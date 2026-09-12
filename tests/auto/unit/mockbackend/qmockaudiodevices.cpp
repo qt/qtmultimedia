@@ -4,6 +4,7 @@
 #include "qmockaudiodevices.h"
 #include "private/qcameradevice_p.h"
 #include "private/qaudiodevice_p.h"
+#include "qmockaudiosink_p.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -67,10 +68,10 @@ QPlatformAudioSource *QMockAudioDevices::createAudioSource(const QAudioDevice &,
     return nullptr;
 }
 
-QPlatformAudioSink *QMockAudioDevices::createAudioSink(const QAudioDevice &, const QAudioFormat &,
-                                                       QObject *)
+QPlatformAudioSink *QMockAudioDevices::createAudioSink(const QAudioDevice &device,
+                                                       const QAudioFormat &format, QObject *parent)
 {
-    return nullptr;
+    return new QMockAudioSink(device, format, parent);
 }
 
 

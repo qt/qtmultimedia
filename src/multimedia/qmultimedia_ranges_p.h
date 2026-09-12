@@ -568,6 +568,125 @@ inline constexpr impl::values_tag values{};
 
 #endif
 
+#if __cpp_lib_ranges_stride >= 202207L
+using std::views::stride;
+#else
+
+namespace impl {
+
+struct StrideAdaptor
+{
+    std::ptrdiff_t n;
+};
+
+// Minimal stand-in for std::ranges::ref_view — lets StrideView store an lvalue container by
+// reference without copying it, matching how std::views::all/std::ranges::ref_view behave.
+template <typename Range>
+class ref_view
+{
+    Range &m_range;
+
+public:
+    constexpr explicit ref_view(Range &range) : m_range(range) { }
+
+    constexpr auto begin() const { return std::begin(m_range); }
+    constexpr auto end() const { return std::end(m_range); }
+    constexpr auto data() const { return std::data(m_range); }
+    constexpr auto size() const { return std::size(m_range); }
+    constexpr bool empty() const { return std::empty(m_range); }
+};
+
+template <typename Range>
+class StrideView
+{
+    using BaseIt = decltype(std::begin(std::declval<const Range &>()));
+    using StrideReference = decltype(*std::declval<BaseIt>());
+    using StrideValue = std::remove_cv_t<std::remove_reference_t<StrideReference>>;
+
+    class iterator
+        : public IteratorFacade<iterator, StrideValue, std::input_iterator_tag, StrideReference>
+    {
+        BaseIt m_it;
+        BaseIt m_end;
+        std::ptrdiff_t m_stride;
+
+    public:
+        using reference = StrideReference;
+
+        constexpr iterator(BaseIt it, BaseIt end, std::ptrdiff_t stride)
+            : m_it(std::move(it)), m_end(std::move(end)), m_stride(stride)
+        {
+        }
+
+        constexpr reference dereference() const { return *m_it; }
+
+        constexpr void increment()
+        {
+            for (std::ptrdiff_t i = 0; i < m_stride && m_it != m_end; ++i)
+                ++m_it;
+        }
+
+        constexpr bool equals(const iterator &o) const { return m_it == o.m_it; }
+    };
+
+    Range m_range;
+    std::ptrdiff_t m_n;
+
+public:
+    constexpr StrideView(Range range, std::ptrdiff_t n) : m_range(std::move(range)), m_n(n) { }
+
+    constexpr iterator begin() const { return { std::begin(m_range), std::end(m_range), m_n }; }
+    constexpr iterator end() const { return { std::end(m_range), std::end(m_range), m_n }; }
+
+    constexpr std::ptrdiff_t size() const
+    {
+        const std::ptrdiff_t total = std::ptrdiff_t(std::size(m_range));
+        return (total + m_n - 1) / m_n;
+    }
+    constexpr bool empty() const { return std::empty(m_range); }
+
+    constexpr auto operator[](std::ptrdiff_t n) const
+            -> decltype(*std::begin(std::declval<const Range &>()))
+    {
+        return *(std::begin(m_range) + n * m_n);
+    }
+};
+
+// Mirrors std::views::all(): an lvalue container is wrapped in a ref_view (pointer only, no
+// copy); an rvalue (a view like QSpan, or another view produced earlier in a pipe chain) is
+// moved into the StrideView directly, since it is already cheap to own.
+template <typename Range>
+constexpr auto make_stride_view(Range &&range, std::ptrdiff_t n)
+{
+    if constexpr (std::is_lvalue_reference_v<Range>) {
+        using Container = std::remove_reference_t<Range>;
+        return StrideView<ref_view<Container>>{ ref_view<Container>{ range }, n };
+    } else {
+        return StrideView<Range>{ std::move(range), n };
+    }
+}
+
+// operator| is in impl so ADL finds it via the StrideAdaptor type
+template <typename Range>
+constexpr auto operator|(Range &&range, StrideAdaptor adaptor)
+{
+    return make_stride_view(std::forward<Range>(range), adaptor.n);
+}
+
+} // namespace impl
+
+template <typename Range>
+constexpr auto stride(Range &&range, std::ptrdiff_t n)
+{
+    return impl::make_stride_view(std::forward<Range>(range), n);
+}
+constexpr auto stride(std::ptrdiff_t n)
+{
+    return impl::StrideAdaptor{ n };
+}
+
+#endif
+
 inline constexpr auto filter_nonnull = views::filter([](const auto &arg) {
     return bool(arg);
 });

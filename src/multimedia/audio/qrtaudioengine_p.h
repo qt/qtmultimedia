@@ -240,6 +240,7 @@ public:
     // testing
     QAudioSink &audioSink() { return m_sink; }
     const auto &voices() const { return m_voices; }
+    void pumpAudioCallback(QSpan<float> buffer) { audioCallback(buffer); }
 
     // will return QtAudio::Stopped sink cannot be started or an error occurred
     QtAudio::State audioState() const;

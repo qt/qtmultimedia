@@ -5,7 +5,7 @@ qt_internal_add_module(MultimediaTestLibPrivate
     STATIC
     INTERNAL_MODULE
     SOURCES
-        audiogenerationutils_p.h
+        audiogenerationutils_p.h audiogenerationutils.cpp
         capturesessionfixture_p.h capturesessionfixture.cpp
         framegenerator_p.h framegenerator.cpp
         mediabackendutils_p.h
@@ -24,6 +24,8 @@ qt_internal_add_module(MultimediaTestLibPrivate
         qmockiodevice_p.h
         qmessagespy_p.h
         qmockresolvers_p.h
+    SYSTEM_INCLUDE_DIRECTORIES
+        ../3rdparty/dr_libs
     PUBLIC_LIBRARIES
         Qt::Core
         Qt::CorePrivate
