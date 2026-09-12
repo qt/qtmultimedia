@@ -4,6 +4,7 @@
 #include <QtTest/qtest.h>
 #include <private/qmultimedia_ranges_p.h>
 
+#include <list>
 #include <map>
 #include <string>
 #include <vector>
@@ -109,6 +110,14 @@ private slots:
     void viewsTransform_pipeAdaptor();
     void viewsTransform_pointerToMemberData();
     void viewsTransform_pipeAdaptor_pointerToMemberData();
+
+    // views::stride
+    void stride_returnsEveryNthElement();
+    void stride_strideOfOne_returnsAll();
+    void stride_strideLargerThanSize_returnsFirstElement();
+    void stride_emptyRange_returnsEmpty();
+    void stride_pipeAdaptor();
+    void stride_list();
 
     // Compositions
     void composition_filterThenTransformThenTo();
@@ -459,7 +468,10 @@ void tst_QMultimediaRanges::transform_outputIterator_transformsElements()
 
 void tst_QMultimediaRanges::transform_outputIterator_pointerToMemberData()
 {
-    struct Item { int value; };
+    struct Item
+    {
+        int value;
+    };
     std::vector<Item> src = { { 10 }, { 20 }, { 30 } };
     std::vector<int> dst(3);
     ranges::transform(src, dst.begin(), &Item::value);
@@ -468,7 +480,8 @@ void tst_QMultimediaRanges::transform_outputIterator_pointerToMemberData()
 
 void tst_QMultimediaRanges::transform_outputIterator_pointerToMemberFunction()
 {
-    struct Item {
+    struct Item
+    {
         int value;
         int doubled() const { return value * 2; }
     };
@@ -627,7 +640,10 @@ void tst_QMultimediaRanges::viewsTransform_pipeAdaptor()
 
 void tst_QMultimediaRanges::viewsTransform_pointerToMemberData()
 {
-    struct Item { int value; };
+    struct Item
+    {
+        int value;
+    };
     std::vector<Item> src = { { 10 }, { 20 }, { 30 } };
     auto result = views::transform(src, &Item::value) | ranges::to<std::vector<int>>();
     QCOMPARE(result, (std::vector<int>{ 10, 20, 30 }));
@@ -635,10 +651,57 @@ void tst_QMultimediaRanges::viewsTransform_pointerToMemberData()
 
 void tst_QMultimediaRanges::viewsTransform_pipeAdaptor_pointerToMemberData()
 {
-    struct Item { int value; };
+    struct Item
+    {
+        int value;
+    };
     std::vector<Item> src = { { 5 }, { 6 }, { 7 } };
     auto result = src | views::transform(&Item::value) | ranges::to<std::vector<int>>();
     QCOMPARE(result, (std::vector<int>{ 5, 6, 7 }));
+}
+
+// --- views::stride ---
+
+void tst_QMultimediaRanges::stride_returnsEveryNthElement()
+{
+    std::vector<int> v = { 1, 2, 3, 4, 5, 6 };
+    auto result = views::stride(v, 2) | ranges::to<std::vector<int>>();
+    QCOMPARE(result, (std::vector<int>{ 1, 3, 5 }));
+}
+
+void tst_QMultimediaRanges::stride_strideOfOne_returnsAll()
+{
+    std::vector<int> v = { 1, 2, 3, 4 };
+    auto result = views::stride(v, 1) | ranges::to<std::vector<int>>();
+    QCOMPARE(result, v);
+}
+
+void tst_QMultimediaRanges::stride_strideLargerThanSize_returnsFirstElement()
+{
+    std::vector<int> v = { 10, 20, 30 };
+    auto result = views::stride(v, 10) | ranges::to<std::vector<int>>();
+    QCOMPARE(result, (std::vector<int>{ 10 }));
+}
+
+void tst_QMultimediaRanges::stride_emptyRange_returnsEmpty()
+{
+    std::vector<int> v;
+    auto sv = views::stride(v, 2);
+    QVERIFY(sv.begin() == sv.end());
+}
+
+void tst_QMultimediaRanges::stride_pipeAdaptor()
+{
+    std::vector<int> v = { 0, 1, 2, 3, 4, 5, 6, 7 };
+    auto result = v | views::stride(3) | ranges::to<std::vector<int>>();
+    QCOMPARE(result, (std::vector<int>{ 0, 3, 6 }));
+}
+
+void tst_QMultimediaRanges::stride_list()
+{
+    std::list<int> l = { 1, 2, 3, 4, 5, 6, 7 };
+    auto result = l | views::stride(2) | ranges::to<std::vector<int>>();
+    QCOMPARE(result, (std::vector<int>{ 1, 3, 5, 7 }));
 }
 
 // --- Compositions ---

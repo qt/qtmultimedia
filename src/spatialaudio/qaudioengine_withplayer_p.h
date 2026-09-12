@@ -53,6 +53,9 @@ public:
 
     QAudioFormat audioFormat() const { return m_format; }
 
+    // testing
+    QtMultimediaPrivate::QRtAudioEngine *playbackEngine() const { return m_playbackEngine.get(); }
+
 private:
     using QRtAudioEngine = QtMultimediaPrivate::QRtAudioEngine;
     using QRtAudioEngineVoice = QtMultimediaPrivate::QRtAudioEngineVoice;

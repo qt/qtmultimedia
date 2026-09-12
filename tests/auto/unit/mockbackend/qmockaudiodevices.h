@@ -43,6 +43,8 @@ public:
 
     virtual QLatin1String backendName() const override { return QLatin1String{ "Mock" }; }
 
+    bool hasCallbackApi() const override { return true; }
+
 protected:
     QList<QAudioDevice> findAudioInputs() const override;
     QList<QAudioDevice> findAudioOutputs() const override;

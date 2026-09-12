@@ -20,11 +20,13 @@
 #include <QtMultimedia/qaudiobuffer.h>
 #include <QtCore/qiodevice.h>
 #include <QtCore/qmath.h>
+#include <QtCore/qtemporaryfile.h>
 
 #include <chrono>
 #include <cmath>
 #include <cstdint>
 #include <limits>
+#include <memory>
 
 QT_BEGIN_NAMESPACE
 
@@ -132,57 +134,17 @@ private:
     std::uint32_t m_increment;
 };
 
-inline unsigned char *writeSineSample(unsigned char *ptr, QAudioFormat::SampleFormat sampleFormat,
-                                      qreal x)
-{
-    auto writeNextFrame = [&](auto value) {
-        *reinterpret_cast<decltype(value) *>(ptr) = value;
-        return ptr + sizeof(value);
-    };
+unsigned char *writeSineSample(unsigned char *ptr, QAudioFormat::SampleFormat sampleFormat,
+                               qreal x);
 
-    switch (sampleFormat) {
-    case QAudioFormat::UInt8:
-        return writeNextFrame(quint8(std::round((1.0 + x) / 2 * 255)));
-    case QAudioFormat::Int16:
-        return writeNextFrame(qint16(std::round(x * std::numeric_limits<qint16>::max())));
-    case QAudioFormat::Int32:
-        return writeNextFrame(qint32(std::round(x * std::numeric_limits<qint32>::max())));
-    case QAudioFormat::Float:
-        return writeNextFrame(float(x));
-    case QAudioFormat::Unknown:
-    case QAudioFormat::NSampleFormats:
-        break;
-    }
-    return ptr;
-}
+QByteArray createSineWaveData(const QAudioFormat &format, std::chrono::microseconds duration,
+                              qint32 sampleIndex = 0, qreal frequency = 500, qreal volume = 0.8);
 
-inline QByteArray createSineWaveData(const QAudioFormat &format, std::chrono::microseconds duration,
-                                     qint32 sampleIndex = 0, qreal frequency = 500,
-                                     qreal volume = 0.8)
-{
-    if (!format.isValid())
-        return {};
-
-    const qint32 length = format.bytesForDuration(duration.count());
-
-    QByteArray data(format.bytesForDuration(duration.count()), Qt::Uninitialized);
-    unsigned char *ptr = reinterpret_cast<unsigned char *>(data.data());
-    const auto end = ptr + length;
-
-    const double initialPhase = 2.0 * M_PI * frequency * sampleIndex / format.sampleRate();
-    SineWaveSignal generator(frequency, format.sampleRate(), initialPhase);
-    for (double rawSample : generator) {
-        if (ptr >= end)
-            break;
-        const qreal x = rawSample * volume;
-        for (int ch = 0; ch < format.channelCount(); ++ch)
-            ptr = writeSineSample(ptr, format.sampleFormat(), x);
-    }
-
-    Q_ASSERT(ptr == end);
-
-    return data;
-}
+// Writes a mono, 16-bit PCM WAV file containing a sine wave to a new temporary file and
+// returns it (already closed, ready to be opened for reading via its fileName()).
+std::unique_ptr<QTemporaryFile> makeMonoPcm16WavFile(int sampleRate,
+                                                     std::chrono::microseconds duration,
+                                                     qreal frequency, qreal volume = 0.8);
 
 class SineWaveIODevice : public QIODevice
 {
