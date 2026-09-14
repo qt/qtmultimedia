@@ -101,6 +101,7 @@ public slots:
 
 private slots:
     void onSurfaceReady();
+    void onApplicationStateChanged();
 
 private:
     void emitReadyForCaptureChanged();
@@ -157,6 +158,7 @@ private:
 
     bool m_active{ false };
     bool m_pendingStart{ false };
+    bool m_restoreOnForeground{ false };
     QByteArray m_previewSurfaceId;
     std::optional<bool> m_lastReadyForCapture;
 };

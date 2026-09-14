@@ -15,6 +15,7 @@
 #include <QtCore/qset.h>
 #include <QtCore/qthread.h>
 #include <QtCore/qthreadpool.h>
+#include <QtGui/qguiapplication.h>
 #include <QtGui/qimage.h>
 #include <QtMultimedia/qvideosink.h>
 
@@ -166,7 +167,28 @@ void imageArriveCallbackTrampoline(OH_ImageReceiverNative * /*receiver*/, void *
 
 } // namespace
 
-QOhosCameraSession::QOhosCameraSession(QObject *parent) : QObject(parent) { }
+QOhosCameraSession::QOhosCameraSession(QObject *parent) : QObject(parent)
+{
+    if (qApp) {
+        connect(qApp, &QGuiApplication::applicationStateChanged, this,
+                &QOhosCameraSession::onApplicationStateChanged);
+    }
+}
+
+void QOhosCameraSession::onApplicationStateChanged()
+{
+    // HarmonyOS revokes camera access in the background and the session is left
+    // dead with no notification, so tear it down and build a new one on return.
+    if (QGuiApplication::applicationState() == Qt::ApplicationActive) {
+        if (m_restoreOnForeground) {
+            m_restoreOnForeground = false;
+            setActive(true);
+        }
+    } else if (m_active) {
+        setActive(false);
+        m_restoreOnForeground = true;
+    }
+}
 
 QOhosCameraSession::~QOhosCameraSession()
 {
@@ -220,6 +242,15 @@ void QOhosCameraSession::setActive(bool active)
 {
     if (m_active == active)
         return;
+
+    // Starting is refused while the application is in the background, so keep
+    // the request and act on it once the application is active again.
+    if (active && qApp && QGuiApplication::applicationState() != Qt::ApplicationActive) {
+        m_restoreOnForeground = true;
+        return;
+    }
+    m_restoreOnForeground = false;
+
     if (active) {
         if (!startSession()) {
             m_pendingStart = true;
