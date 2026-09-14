@@ -57,6 +57,7 @@ private slots:
     void updateDisplayRotation();
 
 private:
+    void tearDownTextureThread();
     QPointer<QVideoSink> m_sink;
     ContentSource m_contentSource;
     QSize m_videoSize;

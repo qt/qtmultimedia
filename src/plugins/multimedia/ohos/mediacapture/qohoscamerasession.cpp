@@ -280,17 +280,19 @@ void QOhosCameraSession::onSurfaceReady()
         return;
     }
 
-    // Session is already running headless because the sink wasn't ready at
-    // start time. Now that we have a surface, restart with preview attached.
-    if (m_active && !m_previewOutput && m_videoOutput
-        && !m_videoOutput->surfaceId().isEmpty()) {
-        m_active = false;
-        stopSession();
-        if (startSession()) {
-            m_active = true;
-            emit activeChanged(true);
-            emitReadyForCaptureChanged();
-        }
+    // Rebuild when the surface the session was started with has been replaced.
+    if (!m_active || !m_videoOutput)
+        return;
+    const QByteArray surfaceId = m_videoOutput->surfaceId();
+    if (surfaceId.isEmpty() || surfaceId == m_previewSurfaceId)
+        return;
+
+    m_active = false;
+    stopSession();
+    if (startSession()) {
+        m_active = true;
+        emit activeChanged(true);
+        emitReadyForCaptureChanged();
     }
 }
 
@@ -529,7 +531,7 @@ bool QOhosCameraSession::startSession()
         connect(m_videoOutput.get(), &QOhosVideoOutput::surfaceReady, this,
                 &QOhosCameraSession::onSurfaceReady);
     }
-    QByteArray previewSurfaceId = m_videoOutput->surfaceId();
+    m_previewSurfaceId = m_videoOutput->surfaceId();
 
     if (!ensureManager())
         return false;
@@ -625,11 +627,11 @@ bool QOhosCameraSession::startSession()
         liveSessions().insert(this);
     }
 
-    if (m_videoOutput && !previewSurfaceId.isEmpty()) {
+    if (m_videoOutput && !m_previewSurfaceId.isEmpty()) {
         m_videoOutput->setVideoSize(
                 QSize{ int(previewProfile->size.width), int(previewProfile->size.height) });
         if (OH_CameraManager_CreatePreviewOutput(m_manager, previewProfile,
-                                                 previewSurfaceId.constData(), &m_previewOutput)
+                                                 m_previewSurfaceId.constData(), &m_previewOutput)
                     != CAMERA_OK
             || !m_previewOutput) {
             qCWarning(qLcOhosMediaPlugin) << "CreatePreviewOutput failed";
@@ -700,6 +702,7 @@ void QOhosCameraSession::releaseSession()
         OH_PreviewOutput_Release(m_previewOutput);
         m_previewOutput = nullptr;
     }
+    m_previewSurfaceId.clear();
     if (m_cameraInput) {
         OH_CameraInput_Close(m_cameraInput);
         OH_CameraInput_Release(m_cameraInput);

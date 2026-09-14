@@ -157,6 +157,7 @@ private:
 
     bool m_active{ false };
     bool m_pendingStart{ false };
+    QByteArray m_previewSurfaceId;
     std::optional<bool> m_lastReadyForCapture;
 };
 

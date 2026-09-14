@@ -349,6 +349,7 @@ public slots:
         m_externalTexture.reset();
         m_textureCopy.reset();
         m_rhi.reset();
+        m_shareContext = nullptr;
     }
 
     // Sampled on the GUI thread; QScreen must not be touched from this thread.
@@ -398,25 +399,31 @@ signals:
 private:
     OHNativeWindow *ensureSurface(QRhi *rhi)
     {
-        // Re-use the existing surface if the parent RHI matches what we built
-        // the texture thread RHI around. For headless camera (rhi == nullptr)
-        // we accept any prior standalone surface.
+        const auto *nativeHandles =
+                rhi ? static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles())
+                    : nullptr;
+        QOpenGLContext *shareContext = nativeHandles ? nativeHandles->context : nullptr;
+
+        // Re-use the existing surface only while it still shares the caller's
+        // GL context. For headless camera (rhi == nullptr) we accept any prior
+        // standalone surface.
         const bool reuse = m_surfaceImage && m_surfaceImage->isValid()
-                && (rhi ? m_rhi.get() == rhi : m_isHeadless);
+                && (rhi ? !m_isHeadless && m_shareContext == shareContext : m_isHeadless);
         if (reuse)
             return m_surfaceImage->nativeWindow();
+
+        // Order matters: the texture and the copy pipeline outlive m_rhi otherwise.
+        tearDown();
 
         // Share with the main RHI's GL context so consumers can sample the
         // texture. For headless mode we create a standalone offscreen GLES2
         // RHI without a share context — frames are produced but consumers
         // (cameras, recorders) only need the native surface handle.
         QRhiGles2InitParams params;
-        const auto *nativeHandles =
-                rhi ? static_cast<const QRhiGles2NativeHandles *>(rhi->nativeHandles())
-                    : nullptr;
-        params.shareContext = nativeHandles ? nativeHandles->context : nullptr;
+        params.shareContext = shareContext;
         params.fallbackSurface = QRhiGles2InitParams::newFallbackSurface();
         m_isHeadless = (rhi == nullptr);
+        m_shareContext = shareContext;
         m_rhi.reset(QRhi::create(QRhi::OpenGLES2, &params));
         if (!m_rhi) {
             qCWarning(qLcOhosMediaPlugin) << "Failed to create offscreen GLES2 RHI";
@@ -456,6 +463,7 @@ private:
     std::unique_ptr<TextureCopy> m_textureCopy;
     QSize m_size{ 1, 1 };
     std::atomic<QtVideo::Rotation> m_displayRotation{ QtVideo::Rotation::None };
+    QPointer<QOpenGLContext> m_shareContext;
     bool m_isHeadless{ false };
 };
 
@@ -507,8 +515,7 @@ void QOhosVideoOutput::onRhiChanged()
     if (!m_sink || !m_sink->rhi())
         return;
     if (m_surfaceCreatedWithoutRhi) {
-        QMetaObject::invokeMethod(m_textureThread.get(), &QOhosTextureThread::tearDown,
-                                  Qt::BlockingQueuedConnection);
+        tearDownTextureThread();
         m_surfaceCreatedWithoutRhi = false;
     }
     emit surfaceReady();
@@ -516,6 +523,14 @@ void QOhosVideoOutput::onRhiChanged()
 
 QOhosVideoOutput::~QOhosVideoOutput()
 {
+    tearDownTextureThread();
+}
+
+void QOhosVideoOutput::tearDownTextureThread()
+{
+    // Delivered frames own textures from the RHI that is about to go away.
+    if (m_sink)
+        m_sink->setVideoFrame({});
     QMetaObject::invokeMethod(m_textureThread.get(), &QOhosTextureThread::tearDown,
                               Qt::BlockingQueuedConnection);
 }
@@ -526,8 +541,7 @@ OHNativeWindow *QOhosVideoOutput::nativeWindow()
     if (!rhi) {
         m_surfaceCreatedWithoutRhi = true;
     } else if (m_surfaceCreatedWithoutRhi) {
-        QMetaObject::invokeMethod(m_textureThread.get(), &QOhosTextureThread::tearDown,
-                                  Qt::BlockingQueuedConnection);
+        tearDownTextureThread();
         m_surfaceCreatedWithoutRhi = false;
     }
     return m_textureThread->nativeWindowBlocking(rhi);
@@ -543,8 +557,7 @@ QByteArray QOhosVideoOutput::surfaceId()
     if (!rhi)
         m_surfaceCreatedWithoutRhi = true;
     else if (m_surfaceCreatedWithoutRhi) {
-        QMetaObject::invokeMethod(m_textureThread.get(), &QOhosTextureThread::tearDown,
-                                  Qt::BlockingQueuedConnection);
+        tearDownTextureThread();
         m_surfaceCreatedWithoutRhi = false;
     }
     return m_textureThread->surfaceIdBlocking(rhi);
