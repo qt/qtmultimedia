@@ -15,6 +15,7 @@ qt_internal_add_module(MultimediaTestLibPrivate
         mediainfo_p.h
         multimedia_debug_support_p.h
         osdetection_p.h
+        rhi_support_p.h rhi_support.cpp
         testvideosink_p.h testvideosink.cpp
         qcolorutil_p.h qcolorutil.cpp
         qfileutil_p.h qfileutil.cpp

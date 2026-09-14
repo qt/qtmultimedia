@@ -8,16 +8,18 @@
 #include <private/qmultimedia_drm_support_p.h>
 #include <private/udmabuftestutils_p.h>
 
+#include <QtMultimediaTestLib/private/rhi_support_p.h>
+
 #include <QtGui/qguiapplication.h>
 #include <QtGui/qoffscreensurface.h>
-#include <QtGui/qopenglfunctions.h>
 #include <QtGui/qsurfaceformat.h>
 #include <QtGui/rhi/qrhi.h>
-#include <QtCore/qscopedpointer.h>
 #include <QtCore/qspan.h>
 #include <QtCore/private/quniquehandle_types_p.h>
 
 using namespace QtMultimediaPrivate;
+using namespace QtMultimediaTest;
+using namespace Qt::Literals;
 
 class tst_QDmaBufTextureImporter : public QObject
 {
@@ -59,12 +61,8 @@ void tst_QDmaBufTextureImporter::
     if (!dmabufFd)
         QSKIP("Could not wrap the test buffer as a udmabuf dma-buf fd");
 
-    QRhiGles2InitParams glParams;
-    glParams.format = QSurfaceFormat::defaultFormat();
-    QScopedPointer<QOffscreenSurface> fallbackSurface(QRhiGles2InitParams::newFallbackSurface());
-    glParams.fallbackSurface = fallbackSurface.data();
-
-    QScopedPointer<QRhi> rhi(QRhi::create(QRhi::OpenGLES2, &glParams));
+    std::unique_ptr<QOffscreenSurface> fallbackSurface;
+    std::unique_ptr<QRhi> rhi = createOffscreenGlRhi(fallbackSurface);
     if (!rhi)
         QSKIP("Could not create an OpenGL ES2 QRhi backend on this system");
 
@@ -93,24 +91,15 @@ void tst_QDmaBufTextureImporter::
               "above for the specific EGL/GL error)");
 
     rhi->makeThreadLocalNativeContextCurrent();
-    QOpenGLFunctions gl(eglContext.glContext());
-
-    const auto texture = static_cast<GLuint>((*handles)->textureHandle(*rhi, 0));
+    const quint64 texture = (*handles)->textureHandle(*rhi, 0);
     QVERIFY(texture != 0);
 
-    GLuint fbo = 0;
-    gl.glGenFramebuffers(1, &fbo);
-    gl.glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-    gl.glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
-    QCOMPARE(gl.glCheckFramebufferStatus(GL_FRAMEBUFFER), GLenum(GL_FRAMEBUFFER_COMPLETE));
+    auto readbackResult =
+            readBackPlane(*rhi, texture, QSize(width, height), QRhiTexture::RGBA8);
+    if (!readbackResult)
+        QFAIL(qPrintable(u"Failed to read back RGBA plane: "_s + readbackResult.error()));
 
-    QByteArray readback(stride * height, '\0');
-    gl.glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, readback.data());
-
-    gl.glBindFramebuffer(GL_FRAMEBUFFER, 0);
-    gl.glDeleteFramebuffers(1, &fbo);
-
-    QCOMPARE(readback, pixels);
+    QCOMPARE(*readbackResult, pixels);
 }
 
 int main(int argc, char *argv[])
