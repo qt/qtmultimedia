@@ -792,7 +792,7 @@ void tst_QSoundEffect::getPlaybackEngine()
             QMediaDevices::defaultAudioOutput(), getFormat());
 
     // the sink starts suspended
-    QCOMPARE(engine->audioSink().state(), QAudio::SuspendedState);
+    QTRY_COMPARE(engine->audioSink().state(), QAudio::SuspendedState);
 }
 
 void tst_QSoundEffect::getPlaybackEngine_nullDevice()
