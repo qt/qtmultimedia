@@ -75,6 +75,19 @@ DmaBufTextureHandles::~DmaBufTextureHandles()
     functions.glDeleteTextures(m_nPlanes, m_textures.data());
 }
 
+static bool dmaModifierIsNotSupportedByDisplay(const DmaBufPlane &plane, EGLDisplay eglDisplay)
+{
+    if (plane.modifier == DmaBufFormatModifierInvalid)
+        return true; // no modifier info to check
+
+    auto &eglFunctions = QEglImageFunctions::instance();
+    constexpr bool assumeSupportedWhenUnknown = true;
+    const bool formatIsSupported =
+            eglFunctions.isDmaBufModifierSupported(eglDisplay, plane.drmFormat, plane.modifier)
+                    .value_or(assumeSupportedWhenUnknown);
+    return formatIsSupported;
+}
+
 q23::expected<QVideoFrameTexturesHandlesUPtr, FailureSeverity>
 importDmaBufTextures(QRhi &rhi, const DmaBufEglContext &eglContext, QSpan<const DmaBufPlane> planes,
                      QVideoFrameFormat::PixelFormat qtFormat, QSize frameSize,
@@ -137,7 +150,11 @@ importDmaBufTextures(QRhi &rhi, const DmaBufEglContext &eglContext, QSpan<const 
                 QSpan<const EGLAttrib>(img_attr, img_attr_idx));
         if (!images[i]) {
             const EGLError error = EGLError(eglGetError());
-            if (error == EGLError::BadMatch) {
+            switch (error) {
+            case EGLError::Success: {
+                break;
+            }
+            case EGLError::BadMatch: {
                 qWarning() << "eglCreateImage failed for plane" << i << "with" << error
                            << ", disabling hardware acceleration. "
                               "This could indicate an EGL implementation issue."
@@ -146,9 +163,24 @@ importDmaBufTextures(QRhi &rhi, const DmaBufEglContext &eglContext, QSpan<const 
                 // Disabling texture conversion here to fix QTBUG-112312
                 return q23::unexpected{ FailureSeverity::unrecoverable };
             }
-            if (error != EGLError::Success) {
+            case EGLError::BadParameter: {
+                bool dmaModifierNotSupported =
+                        dmaModifierIsNotSupportedByDisplay(plane, eglDisplay);
+                if (dmaModifierNotSupported) {
+                    qWarning() << "eglCreateImage failed for plane" << i << "with" << error
+                               << ", disabling hardware acceleration. "
+                                  "This could indicate an EGL implementation issue."
+                                  "\nEGL vendor:"
+                               << eglQueryString(eglDisplay, EGL_VENDOR);
+                    // Disabling texture conversion here to fix QTBUG-112312
+                    return q23::unexpected{ FailureSeverity::unrecoverable };
+                }
+                [[fallthrough]];
+            }
+            default: {
                 qWarning() << "eglCreateImage failed for plane" << i << "with" << error;
                 return q23::unexpected{ FailureSeverity::recoverable };
+            }
             }
         }
         functions.glActiveTexture(GL_TEXTURE0 + i);

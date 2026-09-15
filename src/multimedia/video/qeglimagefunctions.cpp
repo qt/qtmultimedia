@@ -3,13 +3,16 @@
 
 #include "qeglimagefunctions_p.h"
 
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
+
 #include <QtCore/qloggingcategory.h>
+
+#include <optional>
+#include <vector>
 
 #if defined(EGL_KHR_image)
 #  include <limits>
 #  include <mutex>
-#  include <optional>
-#  include <vector>
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -84,6 +87,12 @@ QEglImageFunctions::QEglImageFunctions()
       },
       m_eglDestroyImageKHR{
           getEglFunction<PFNEGLDESTROYIMAGEKHRPROC>("eglDestroyImageKHR"),
+      }
+#endif
+#if defined(EGL_EXT_image_dma_buf_import_modifiers)
+      ,
+      m_eglQueryDmaBufModifiersEXT{
+          getEglFunction<PFNEGLQUERYDMABUFMODIFIERSEXTPROC>("eglQueryDmaBufModifiersEXT"),
       }
 #endif
 {
@@ -161,6 +170,34 @@ EGLBoolean QEglImageFunctions::eglDestroyImage(EGLDisplay dpy, EGLImage image) c
         return m_eglDestroyImageKHR(dpy, image);
 #endif
     return EGL_FALSE;
+}
+
+std::optional<bool> QEglImageFunctions::isDmaBufModifierSupported(EGLDisplay display,
+                                                                  DRMFormat drmFormat,
+                                                                  DRMModifier modifier) const
+{
+#if defined(EGL_EXT_image_dma_buf_import_modifiers)
+    if (!m_eglQueryDmaBufModifiersEXT)
+        return std::nullopt; // can't introspect
+
+    const EGLint format = EGLint(qToUnderlying(drmFormat));
+    EGLint numModifiers = 0;
+    if (!m_eglQueryDmaBufModifiersEXT(display, format, 0, nullptr, nullptr, &numModifiers)
+        || numModifiers <= 0)
+        return std::nullopt; // query unsupported
+
+    std::vector<EGLuint64KHR> modifiers(numModifiers);
+    if (!m_eglQueryDmaBufModifiersEXT(display, format, numModifiers, modifiers.data(), nullptr,
+                                      &numModifiers))
+        return std::nullopt;
+
+    return ranges::find(modifiers, EGLuint64KHR(qToUnderlying(modifier))) != modifiers.end();
+#else
+    Q_UNUSED(display);
+    Q_UNUSED(drmFormat);
+    Q_UNUSED(modifier);
+    return std::nullopt;
+#endif
 }
 
 } // namespace QtMultimediaPrivate

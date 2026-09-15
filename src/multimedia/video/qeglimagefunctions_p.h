@@ -14,12 +14,15 @@
 // We mean it.
 //
 
+#include <QtMultimedia/private/qmultimedia_drm_support_p.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtGui/qopengl.h>
 #include <QtCore/qspan.h>
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
+
+#include <optional>
 
 QT_BEGIN_NAMESPACE
 
@@ -39,6 +42,12 @@ public:
     EGLImage eglCreateImage(EGLDisplay, EGLContext, EGLenum, EGLClientBuffer,
                             QSpan<const EGLAttrib> attribs = {}) const;
     EGLBoolean eglDestroyImage(EGLDisplay, EGLImage) const;
+
+    // Returns whether `modifier` is a supported dma-buf import modifier for `drmFormat` on
+    // `display`, or nullopt if this EGL implementation doesn't support querying modifiers at
+    // all (EGL_EXT_image_dma_buf_import_modifiers unavailable).
+    std::optional<bool> isDmaBufModifierSupported(EGLDisplay display, DRMFormat drmFormat,
+                                                  DRMModifier modifier) const;
 
 private:
 #ifdef GL_OES_EGL_image
@@ -60,6 +69,9 @@ private:
 #if defined(EGL_KHR_image)
     const PFNEGLCREATEIMAGEKHRPROC m_eglCreateImageKHR = nullptr;
     const PFNEGLDESTROYIMAGEKHRPROC m_eglDestroyImageKHR = nullptr;
+#endif
+#if defined(EGL_EXT_image_dma_buf_import_modifiers)
+    const PFNEGLQUERYDMABUFMODIFIERSEXTPROC m_eglQueryDmaBufModifiersEXT = nullptr;
 #endif
 };
 
