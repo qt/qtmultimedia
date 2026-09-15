@@ -186,7 +186,15 @@ public:
     using Notification = std::variant<StopNotification, VisitReply>;
 
 public:
+    enum class MoveToApplicationThread : bool {
+        No,
+        Yes,
+    };
+
     QRtAudioEngine(const QAudioDevice &, const QAudioFormat &,
+                   std::optional<AudioEndpointRole> = std::nullopt,
+                   std::optional<NativePeriodFrames> nativePeriodFrames = std::nullopt);
+    QRtAudioEngine(MoveToApplicationThread, const QAudioDevice &, const QAudioFormat &,
                    std::optional<AudioEndpointRole> = std::nullopt,
                    std::optional<NativePeriodFrames> nativePeriodFrames = std::nullopt);
     Q_DISABLE_COPY_MOVE(QRtAudioEngine)
