@@ -124,23 +124,32 @@ QList<QCameraDevice> QAndroidVideoDevices::findVideoInputs() const
             }
         }
 
-        const static int imageFormat =
-                QJniObject::getStaticField<QtJniTypes::ImageFormat, jint>("YUV_420_888");
+        const static int yuvFormat = QtJniTypes::ImageFormat::getStaticField<jint>("YUV_420_888");
+        const QStringList videoSizes = deviceManager.callMethod<QStringList>(
+                "getStreamConfigurationsSizes", cameraId, yuvFormat);
 
-        const QStringList sizes = deviceManager.callMethod<QStringList>(
-                "getStreamConfigurationsSizes", cameraId, imageFormat);
+        const static int jpegFormat = QtJniTypes::ImageFormat::getStaticField<jint>("JPEG");
+        const QStringList photoSizes = deviceManager.callMethod<QStringList>(
+                "getStreamConfigurationsSizes", cameraId, jpegFormat);
 
-        if (sizes.isEmpty())
+        if (videoSizes.isEmpty() && photoSizes.isEmpty())
             continue;
 
-        for (const auto &sizeString : sizes) {
+        auto sizeFromString = [](const QString &sizeString) -> QSize {
             const auto split = sizeString.split(u"x"_s);
-
             int width = split.at(0).toInt();
             int height = split.at(1).toInt();
+            return { width, height };
+        };
 
-            info->videoFormats.append(createCameraFormat(width, height, minFps, maxFps));
+        for (const auto &sizeString : videoSizes) {
+            auto size = sizeFromString(sizeString);
+            info->videoFormats.append(
+                    createCameraFormat(size.width(), size.height(), minFps, maxFps));
         }
+
+        for (const auto &sizeString : photoSizes)
+            info->photoResolutions.append(sizeFromString(sizeString));
 
 
         devices.push_back(info.release()->create());
