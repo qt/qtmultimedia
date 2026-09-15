@@ -108,6 +108,7 @@ qt_internal_add_module(Multimedia
         video/qimagevideobuffer.cpp video/qimagevideobuffer_p.h
         video/qmemoryvideobuffer.cpp video/qmemoryvideobuffer_p.h
         video/qmultimedia_drm_support.cpp video/qmultimedia_drm_support_p.h
+        video/qmultimedia_gl_support.cpp video/qmultimedia_gl_support_p.h
         video/qtvideo.cpp video/qtvideo.h
         video/qvideoframe.cpp video/qvideoframe.h video/qvideoframe_p.h
         video/qvideoframeconversionhelper.cpp video/qvideoframeconversionhelper_p.h
