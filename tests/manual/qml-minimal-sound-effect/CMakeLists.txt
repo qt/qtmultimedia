@@ -45,6 +45,13 @@ qt_add_resources(qml-minimal-sound-effect "qml-minimal-sound-effect"
         ${qml_minimal_sound_effect_files}
 )
 
+foreach(plugin_aggregate IN ITEMS
+        qtmultimedia_backend_plugins qtmultimedia_quick_plugins qpa_default_plugins)
+    if(TARGET "${plugin_aggregate}")
+        add_dependencies(qml-minimal-sound-effect "${plugin_aggregate}")
+    endif()
+endforeach()
+
 install(TARGETS qml-minimal-sound-effect
     RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"
     BUNDLE DESTINATION "${INSTALL_EXAMPLEDIR}"

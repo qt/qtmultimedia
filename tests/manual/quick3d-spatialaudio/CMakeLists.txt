@@ -38,6 +38,13 @@ target_link_libraries(quick3d-spatialaudio PUBLIC
     Qt6::Quick
 )
 
+foreach(plugin_aggregate IN ITEMS
+        qtmultimedia_backend_plugins qtmultimedia_quick_plugins
+        qtmultimedia_quick3d_spatialaudio_plugins qpa_default_plugins)
+    if(TARGET "${plugin_aggregate}")
+        add_dependencies(quick3d-spatialaudio "${plugin_aggregate}")
+    endif()
+endforeach()
 
 install(TARGETS quick3d-spatialaudio
     RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"

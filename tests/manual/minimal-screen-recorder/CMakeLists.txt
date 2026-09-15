@@ -28,6 +28,12 @@ target_link_libraries(minimal-screen-recorder PUBLIC
 
 qt_add_ios_ffmpeg_libraries(minimal-screen-recorder)
 
+foreach(plugin_aggregate IN ITEMS qtmultimedia_backend_plugins qpa_default_plugins)
+    if(TARGET "${plugin_aggregate}")
+        add_dependencies(minimal-screen-recorder "${plugin_aggregate}")
+    endif()
+endforeach()
+
 install(TARGETS  minimal-screen-recorder
     RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"
     BUNDLE DESTINATION "${INSTALL_EXAMPLEDIR}"

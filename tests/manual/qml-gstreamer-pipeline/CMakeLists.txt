@@ -33,6 +33,13 @@ target_link_libraries( qml-gstreamer-pipeline PUBLIC
     Qt::Quick
 )
 
+foreach(plugin_aggregate IN ITEMS
+        qtmultimedia_backend_plugins qtmultimedia_quick_plugins qpa_default_plugins)
+    if(TARGET "${plugin_aggregate}")
+        add_dependencies(qml-gstreamer-pipeline "${plugin_aggregate}")
+    endif()
+endforeach()
+
 install(TARGETS  qml-gstreamer-pipeline
     RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"
     BUNDLE DESTINATION "${INSTALL_EXAMPLEDIR}"

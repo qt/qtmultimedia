@@ -26,6 +26,12 @@ target_link_libraries( minimal-player PUBLIC
     Qt::MultimediaWidgets
 )
 
+foreach(plugin_aggregate IN ITEMS qtmultimedia_backend_plugins qpa_default_plugins)
+    if(TARGET "${plugin_aggregate}")
+        add_dependencies(minimal-player "${plugin_aggregate}")
+    endif()
+endforeach()
+
 install(TARGETS  minimal-player
     RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"
     BUNDLE DESTINATION "${INSTALL_EXAMPLEDIR}"

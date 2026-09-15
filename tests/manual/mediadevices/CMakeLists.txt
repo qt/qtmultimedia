@@ -35,6 +35,12 @@ target_link_libraries(mediadevices PUBLIC
     Qt::Multimedia
 )
 
+foreach(plugin_aggregate IN ITEMS qtmultimedia_backend_plugins qpa_default_plugins)
+    if(TARGET "${plugin_aggregate}")
+        add_dependencies(mediadevices "${plugin_aggregate}")
+    endif()
+endforeach()
+
 install(TARGETS mediadevices
     RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"
     BUNDLE DESTINATION "${INSTALL_EXAMPLEDIR}"
