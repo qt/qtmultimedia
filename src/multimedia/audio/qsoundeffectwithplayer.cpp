@@ -85,7 +85,9 @@ QSoundEffectPrivateWithPlayer::getEngineFor(const QAudioDevice &device, const QA
     auto endpointRole = AudioEndpointRole::SoundEffect;
 
     auto player = std::shared_ptr<QRtAudioEngine>(
-            new QRtAudioEngine{ device, format, endpointRole }, [](QRtAudioEngine *engine) {
+            new QRtAudioEngine{ QRtAudioEngine::MoveToApplicationThread::Yes, device, format,
+                                endpointRole },
+            [](QRtAudioEngine *engine) {
         if (engine->thread()->isCurrentThread())
             delete engine;
         else

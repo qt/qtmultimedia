@@ -46,6 +46,14 @@ static QtAudio::State sinkStateToEngineState(QtAudio::State state)
 QRtAudioEngine::QRtAudioEngine(const QAudioDevice &device, const QAudioFormat &format,
                                std::optional<AudioEndpointRole> role,
                                std::optional<NativePeriodFrames> nativePeriodFrames)
+    : QRtAudioEngine{ MoveToApplicationThread::No, device, format, role, nativePeriodFrames }
+{
+}
+
+QRtAudioEngine::QRtAudioEngine(MoveToApplicationThread moveToApplicationThread,
+                               const QAudioDevice &device, const QAudioFormat &format,
+                               std::optional<AudioEndpointRole> role,
+                               std::optional<NativePeriodFrames> nativePeriodFrames)
     : m_sink{
           device,
           format,
@@ -58,7 +66,7 @@ QRtAudioEngine::QRtAudioEngine(const QAudioDevice &device, const QAudioFormat &f
         runNonRtNotifications();
     });
 
-    if (!QThread::isMainThread()) {
+    if (moveToApplicationThread == MoveToApplicationThread::Yes && !QThread::isMainThread()) {
         QThread *appThread = qApp->thread();
         moveToThread(appThread);
         m_sink.moveToThread(appThread);
