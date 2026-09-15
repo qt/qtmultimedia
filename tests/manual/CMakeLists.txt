@@ -8,6 +8,29 @@ check_cxx_source_compiles("
     int main() { return 0; }
 " COMPILER_SUPPORTS_STD_RANGES)
 
+
+add_custom_target(qtmultimedia_backend_plugins)
+foreach(plugin IN ITEMS
+        QFFmpegMediaPlugin QGstreamerMediaPlugin QDarwinMediaPlugin QWindowsMediaPlugin
+        QAndroidMediaPlugin QQnxMediaPlugin QWasmMediaPlugin QOhosMediaPlugin)
+    if(TARGET ${plugin})
+        add_dependencies(qtmultimedia_backend_plugins ${plugin})
+    endif()
+endforeach()
+
+add_custom_target(qtmultimedia_quick_plugins)
+foreach(plugin IN ITEMS quickmultimediaplugin qtquick2plugin)
+    if(TARGET ${plugin})
+        add_dependencies(qtmultimedia_quick_plugins ${plugin})
+    endif()
+endforeach()
+
+add_custom_target(qtmultimedia_quick3d_spatialaudio_plugins)
+if(TARGET quick3dspatialaudioplugin)
+    add_dependencies(qtmultimedia_quick3d_spatialaudio_plugins quick3dspatialaudioplugin)
+endif()
+
+
 add_subdirectory(audiodecoder)
 add_subdirectory(media-metadata)
 add_subdirectory(minimal-audio-recorder)

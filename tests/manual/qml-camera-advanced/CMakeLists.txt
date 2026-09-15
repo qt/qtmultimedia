@@ -54,6 +54,13 @@ target_link_libraries(qml-camera-advanced PUBLIC
 
 qt_add_ios_ffmpeg_libraries(qml-camera-advanced)
 
+foreach(plugin_aggregate IN ITEMS
+        qtmultimedia_backend_plugins qtmultimedia_quick_plugins qpa_default_plugins)
+    if(TARGET "${plugin_aggregate}")
+        add_dependencies(qml-camera-advanced "${plugin_aggregate}")
+    endif()
+endforeach()
+
 install(TARGETS qml-camera-advanced
     RUNTIME DESTINATION "${INSTALL_EXAMPLEDIR}"
     BUNDLE DESTINATION "${INSTALL_EXAMPLEDIR}"
