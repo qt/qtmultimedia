@@ -5,6 +5,7 @@
 
 #include <QtCore/q20map.h>
 #include <QtCore/qmutex.h>
+#include <QtCore/private/qobject_p.h>
 
 #include <utility>
 
@@ -87,12 +88,7 @@ QSoundEffectPrivateWithPlayer::getEngineFor(const QAudioDevice &device, const QA
     auto player = std::shared_ptr<QRtAudioEngine>(
             new QRtAudioEngine{ QRtAudioEngine::MoveToApplicationThread::Yes, device, format,
                                 endpointRole },
-            [](QRtAudioEngine *engine) {
-        if (engine->thread()->isCurrentThread())
-            delete engine;
-        else
-            engine->deleteLater();
-    });
+            &QObjectPrivate::deleteInOwnThread);
     s_playerRegistry.emplace(key, player);
 
     return player;
