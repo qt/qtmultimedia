@@ -3,6 +3,7 @@
 
 #include "qdmabuftextureimporter_p.h"
 
+#include <QtMultimedia/private/qmultimedia_gl_support_p.h>
 #include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtMultimedia/private/qvideotexturehelper_p.h>
 
@@ -154,18 +155,18 @@ importDmaBufTextures(QRhi &rhi, const DmaBufEglContext &eglContext, QSpan<const 
         images[i] = eglCreateImage(eglDisplay, EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, nullptr,
                                    img_attr);
         if (!images[i]) {
-            const GLenum error = eglGetError();
-            if (error == EGL_BAD_MATCH) {
-                qWarning() << "eglCreateImage failed for plane" << i
-                           << "with error code EGL_BAD_MATCH, disabling hardware acceleration. "
+            const EGLError error = EGLError(eglGetError());
+            if (error == EGLError::BadMatch) {
+                qWarning() << "eglCreateImage failed for plane" << i << "with" << error
+                           << ", disabling hardware acceleration. "
                               "This could indicate an EGL implementation issue."
                               "\nEGL vendor:"
                            << eglQueryString(eglDisplay, EGL_VENDOR);
                 // Disabling texture conversion here to fix QTBUG-112312
                 return q23::unexpected{ FailureSeverity::unrecoverable };
             }
-            if (error) {
-                qWarning() << "eglCreateImage failed for plane" << i << "with error code" << error;
+            if (error != EGLError::Success) {
+                qWarning() << "eglCreateImage failed for plane" << i << "with" << error;
                 return q23::unexpected{ FailureSeverity::recoverable };
             }
         }
@@ -173,10 +174,9 @@ importDmaBufTextures(QRhi &rhi, const DmaBufEglContext &eglContext, QSpan<const 
         functions.glBindTexture(GL_TEXTURE_2D, glTextures[i]);
 
         QEglImageFunctions::instance().glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, images[i]);
-        GLenum error = glGetError();
-        if (error) {
-            qWarning() << "eglImageTargetTexture2D failed for plane" << i << "with error code"
-                       << error
+        const GLError error = GLError(glGetError());
+        if (error != GLError::NoError) {
+            qWarning() << "eglImageTargetTexture2D failed for plane" << i << "with" << error
                        << "(the driver may not support importing this dma-buf as a GL texture)";
             return q23::unexpected{ FailureSeverity::recoverable };
         }

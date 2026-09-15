@@ -31,6 +31,7 @@
 #  if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
 #    include <QtMultimedia/private/qdmabuftextureimporter_p.h>
 #    include <QtMultimedia/private/qmultimedia_drm_support_p.h>
+#    include <QtMultimedia/private/qmultimedia_gl_support_p.h>
 #    include <optional>
 #    include <common/qgstreameregldisplay_p.h>
 #    include <gst/allocators/gstdmabuf.h>
@@ -111,6 +112,8 @@ bool QGstVideoBuffer::isDmaBuf() const
 #if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
 
 using QtMultimediaPrivate::DRMFormat;
+using QtMultimediaPrivate::EGLError;
+using QtMultimediaPrivate::GLError;
 
 static std::optional<DRMFormat>
 fourccFromGstVideoFormat(const GstVideoFormat format, int plane, bool singleEGLImage)
@@ -206,14 +209,13 @@ static void logGlAndEglErrors(const char *context)
     if (!qLcGstVideoBuffer().isDebugEnabled())
         return;
 
-    const GLenum glError = glGetError();
-    const EGLint eglError = eglGetError();
-    if (glError == GL_NO_ERROR && eglError == EGL_SUCCESS)
+    const GLError glError = GLError(glGetError());
+    const EGLError eglError = EGLError(eglGetError());
+    if (glError == GLError::NoError && eglError == EGLError::Success)
         return;
 
     qCDebug(qLcGstVideoBuffer).nospace()
-            << context << ": GL error 0x" << Qt::hex << glError
-            << ", EGL error 0x" << eglError;
+            << context << ": GL error " << glError << ", EGL error " << eglError;
 }
 #endif
 
@@ -484,7 +486,7 @@ static GlTextures mapFromDmaBuffer(QRhi *rhi, const QGstBufferHandle &bufferHand
                                         attr.data());
         if (image == EGL_NO_IMAGE_KHR) {
             qCWarning(qLcGstVideoBuffer) << "could not create EGL image for plane" << plane
-                                         << ", EGL error 0x" << Qt::hex << eglGetError();
+                                         << ", EGL error" << EGLError(eglGetError());
             continue;
         }
         logGlAndEglErrors("eglCreateImage");
