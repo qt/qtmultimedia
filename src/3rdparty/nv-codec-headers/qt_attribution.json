@@ -1,0 +1,19 @@
+{
+    "Id": "nv-codec-headers",
+    "Name": "FFmpeg nv-codec-headers",
+    "QDocModule": "qtmultimedia",
+    "QtUsage": "Used in the FFmpeg media backend to declare the CUDA driver API, so that building the backend does not require a CUDA Toolkit installation.",
+    "Files": "ffnvcodec/dynlink_cuda.h",
+
+    "Description": "FFmpeg version of headers required to interface with NVIDIA codec APIs.",
+    "SecurityCritical": false,
+
+    "Homepage": "https://github.com/FFmpeg/nv-codec-headers",
+    "Version": "13.1.15.0",
+    "DownloadLocation": "https://github.com/FFmpeg/nv-codec-headers/archive/refs/tags/n$<VERSION>.tar.gz",
+    "Copyright": "Copyright (c) 2016",
+    "License": "MIT License",
+    "LicenseId": "MIT",
+
+    "PURL": "pkg:github/ffmpeg/nv-codec-headers@n$<VERSION>"
+}

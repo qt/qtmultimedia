@@ -93,8 +93,10 @@ qt_internal_add_module(FFmpegMediaPluginImplPrivate
 
     SYSTEM_INCLUDE_DIRECTORIES
         ../../../3rdparty/signalsmith-stretch/
+        ../../../3rdparty/nv-codec-headers
     ATTRIBUTION_FILE_DIR_PATHS
         ../../../3rdparty/signalsmith-stretch
+        ../../../3rdparty/nv-codec-headers
 )
 
 if (LINUX OR ANDROID)
