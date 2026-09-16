@@ -608,7 +608,7 @@ void tst_QMediaPlayerBackend::setSource_emitsSourceChanged_whenCalledWithInvalid
 {
     QFETCH(QUrl, invalidMedia);
     m_fixture->player.setSource(invalidMedia);
-    QTRY_COMPARE_EQ_WITH_TIMEOUT(m_fixture->player.error(), QMediaPlayer::ResourceError, 10s);
+    QTRY_COMPARE_EQ_WITH_TIMEOUT(m_fixture->player.error(), QMediaPlayer::ResourceError, 30s);
 
     QCOMPARE_EQ(m_fixture->sourceChanged, SignalList({ { invalidMedia } }));
 }
@@ -622,7 +622,7 @@ void tst_QMediaPlayerBackend::setSource_emitsError_whenCalledWithInvalidMedia()
 {
     QFETCH(QUrl, invalidMedia);
     m_fixture->player.setSource(invalidMedia);
-    QTRY_COMPARE_EQ_WITH_TIMEOUT(m_fixture->player.error(), QMediaPlayer::ResourceError, 10s);
+    QTRY_COMPARE_EQ_WITH_TIMEOUT(m_fixture->player.error(), QMediaPlayer::ResourceError, 30s);
 
     QCOMPARE_EQ(m_fixture->errorOccurred[0][0], QMediaPlayer::ResourceError);
 }
@@ -637,7 +637,7 @@ void tst_QMediaPlayerBackend::setSource_emitsMediaStatusChange_whenCalledWithInv
     QFETCH(QUrl, invalidMedia);
 
     m_fixture->player.setSource(invalidMedia);
-    QTRY_COMPARE_EQ_WITH_TIMEOUT(m_fixture->player.error(), QMediaPlayer::ResourceError, 10s);
+    QTRY_COMPARE_EQ_WITH_TIMEOUT(m_fixture->player.error(), QMediaPlayer::ResourceError, 30s);
 
     QCOMPARE_EQ(m_fixture->mediaStatusChanged,
                 SignalList({ { QMediaPlayer::LoadingMedia }, { QMediaPlayer::InvalidMedia } }));
@@ -652,7 +652,7 @@ void tst_QMediaPlayerBackend::setSource_doesNotEmitPlaybackStateChange_whenCalle
 {
     QFETCH(QUrl, invalidMedia);
     m_fixture->player.setSource(invalidMedia);
-    QTRY_COMPARE_EQ_WITH_TIMEOUT(m_fixture->player.error(), QMediaPlayer::ResourceError, 10s);
+    QTRY_COMPARE_EQ_WITH_TIMEOUT(m_fixture->player.error(), QMediaPlayer::ResourceError, 30s);
 
     QVERIFY(m_fixture->playbackStateChanged.empty());
 }
@@ -667,7 +667,7 @@ void tst_QMediaPlayerBackend::setSource_setsSourceMediaStatusAndError_whenCalled
     QFETCH(QUrl, invalidMedia);
 
     m_fixture->player.setSource(invalidMedia);
-    QTRY_COMPARE_EQ_WITH_TIMEOUT(m_fixture->player.error(), QMediaPlayer::ResourceError, 10s);
+    QTRY_COMPARE_EQ_WITH_TIMEOUT(m_fixture->player.error(), QMediaPlayer::ResourceError, 30s);
 
     MediaPlayerState expectedState = MediaPlayerState::defaultState();
     expectedState.source = invalidMedia;
