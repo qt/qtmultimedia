@@ -42,6 +42,21 @@ struct OffscreenGlRhi
 q23::expected<OffscreenGlRhi, QString> createOffscreenGlRhi();
 #endif
 
+#if QT_CONFIG(vulkan)
+struct OffscreenVulkanRhi
+{
+    // the QRhi must be destroyed before the QVulkanInstance it was built from.
+    std::unique_ptr<QVulkanInstance> vulkanInstance;
+    std::unique_ptr<QRhi> rhi;
+};
+
+// Requests Vulkan 1.1 (so that callers relying on functionality promoted to core in 1.1, e.g.
+// vkGetPhysicalDeviceProperties2 or VK_KHR_external_memory, don't need to enable it as an
+// extension) and any device extensions the caller asks for (e.g. "VK_KHR_external_memory_fd").
+q23::expected<OffscreenVulkanRhi, QString>
+createOffscreenVulkanRhi(const QByteArrayList &deviceExtensions = {});
+#endif
+
 #if QT_CONFIG(metal)
 std::unique_ptr<QRhi> createOffscreenMetalRhi();
 #endif

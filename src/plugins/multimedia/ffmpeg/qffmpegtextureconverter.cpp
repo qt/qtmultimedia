@@ -25,6 +25,10 @@
 #  include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_mediacodec_p.h>
 #endif
 
+#if defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)
+#  include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_cuda_p.h>
+#endif
+
 QT_BEGIN_NAMESPACE
 
 using namespace QFFmpeg;
@@ -60,6 +64,11 @@ void applyConverterTypeByPixelFormat(AVFrame &hwFrame, QRhi &rhi, ConverterTypeH
 #ifdef Q_OS_ANDROID
     case AV_PIX_FMT_MEDIACODEC:
         handler(ConverterTypeIdentity<MediaCodecTextureConverter>{});
+        break;
+#endif
+#if defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)
+    case AV_PIX_FMT_CUDA:
+        handler(ConverterTypeIdentity<CUDATextureConverterFactory>{});
         break;
 #endif
     default:

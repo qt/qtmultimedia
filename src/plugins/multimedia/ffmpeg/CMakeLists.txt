@@ -133,6 +133,10 @@ if (QT_FEATURE_vaapi)
     endif()
 endif()
 
+qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION LINUX
+    SOURCES
+        qffmpeghwaccel_cuda.cpp qffmpeghwaccel_cuda_p.h
+)
 
 qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION APPLE
     SOURCES

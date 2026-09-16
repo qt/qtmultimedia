@@ -50,6 +50,32 @@ std::unique_ptr<QRhi> createGles2Rhi(QOffscreenSurface *fallbackSurface)
 }
 #endif
 
+#if QT_CONFIG(vulkan)
+q23::expected<OffscreenVulkanRhi, QString>
+createOffscreenVulkanRhi(const QByteArrayList &deviceExtensions)
+{
+    auto vulkanInstance = std::make_unique<QVulkanInstance>();
+    vulkanInstance->setApiVersion(QVersionNumber(1, 1));
+    vulkanInstance->setExtensions(QRhiVulkanInitParams::preferredInstanceExtensions());
+    if (!vulkanInstance->create())
+        return q23::unexpected(u"QVulkanInstance::create failed"_s);
+
+    QRhiVulkanInitParams params;
+    params.inst = vulkanInstance.get();
+    params.deviceExtensions = deviceExtensions;
+    std::unique_ptr<QRhi> rhi{
+        QRhi::create(QRhi::Vulkan, &params),
+    };
+    if (!rhi) {
+        return q23::unexpected(u"QRhi::create failed"_s);
+    }
+    return OffscreenVulkanRhi{
+        std::move(vulkanInstance),
+        std::move(rhi),
+    };
+}
+#endif
+
 #if QT_CONFIG(metal)
 std::unique_ptr<QRhi> createOffscreenMetalRhi()
 {
