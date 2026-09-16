@@ -181,6 +181,18 @@ qt_internal_extend_target(Multimedia
         EGL::EGL
 )
 
+qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_vaapi
+    SOURCES
+        video/qmultimedia_va_support.cpp video/qmultimedia_va_support_p.h
+    LIBRARIES
+        VAAPI::VAAPI
+)
+
+qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_vulkan
+    SOURCES
+        video/qmultimedia_vulkan_support.cpp video/qmultimedia_vulkan_support_p.h
+)
+
 qt_internal_extend_target(Multimedia
     CONDITION
         QT_FEATURE_opengl
