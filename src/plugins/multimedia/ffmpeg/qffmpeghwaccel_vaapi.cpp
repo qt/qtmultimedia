@@ -6,6 +6,7 @@
 #include "qffmpegvideobuffer_p.h"
 
 #include <QtMultimedia/private/qmultimedia_drm_support_p.h>
+#include <QtMultimedia/private/qmultimedia_va_support_p.h>
 #include <QtMultimedia/private/qvideotexturehelper_p.h>
 
 #include <QtCore/qloggingcategory.h>
@@ -79,13 +80,15 @@ VAAPITextureConverter::createTextureHandles(AVFrame *frame,
     VASurfaceID vaSurface = (uintptr_t)frame->data[3];
 
     VADRMPRIMESurfaceDescriptor prime = {};
-    if (vaExportSurfaceHandle(vaDisplay, vaSurface, VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2,
-                              VA_EXPORT_SURFACE_READ_ONLY
-                                      | (VAExportUseLayers ? VA_EXPORT_SURFACE_SEPARATE_LAYERS
-                                                           : VA_EXPORT_SURFACE_COMPOSED_LAYERS),
-                              &prime)
-        != VA_STATUS_SUCCESS) {
-        qWarning() << "vaExportSurfaceHandle failed";
+    const auto exportStatus =
+            vaExportSurfaceHandle(vaDisplay, vaSurface, VA_SURFACE_ATTRIB_MEM_TYPE_DRM_PRIME_2,
+                                  VA_EXPORT_SURFACE_READ_ONLY
+                                          | (VAExportUseLayers ? VA_EXPORT_SURFACE_SEPARATE_LAYERS
+                                                               : VA_EXPORT_SURFACE_COMPOSED_LAYERS),
+                                  &prime);
+    if (exportStatus != VA_STATUS_SUCCESS) {
+        qWarning() << "vaExportSurfaceHandle failed:"
+                   << QtMultimediaPrivate::VAStatus(exportStatus);
         return nullptr;
     }
 

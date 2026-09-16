@@ -1,0 +1,136 @@
+// Copyright (C) 2026 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
+
+#include "qmultimedia_vulkan_support_p.h"
+
+#include <QtCore/qdebug.h>
+
+QT_BEGIN_NAMESPACE
+
+using namespace Qt::StringLiterals;
+
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_CLANG("-Wswitch")
+QT_WARNING_DISABLE_GCC("-Wswitch")
+
+// Compare: https://docs.vulkan.org/refpages/latest/refpages/source/VkResult.html
+static QString toString(VkResult result)
+{
+    switch (result) {
+    case VK_SUCCESS:
+        return u"VK_SUCCESS"_s;
+    case VK_NOT_READY:
+        return u"VK_NOT_READY"_s;
+    case VK_TIMEOUT:
+        return u"VK_TIMEOUT"_s;
+    case VK_EVENT_SET:
+        return u"VK_EVENT_SET"_s;
+    case VK_EVENT_RESET:
+        return u"VK_EVENT_RESET"_s;
+    case VK_INCOMPLETE:
+        return u"VK_INCOMPLETE"_s;
+    case VK_ERROR_OUT_OF_HOST_MEMORY:
+        return u"VK_ERROR_OUT_OF_HOST_MEMORY"_s;
+    case VK_ERROR_OUT_OF_DEVICE_MEMORY:
+        return u"VK_ERROR_OUT_OF_DEVICE_MEMORY"_s;
+    case VK_ERROR_INITIALIZATION_FAILED:
+        return u"VK_ERROR_INITIALIZATION_FAILED"_s;
+    case VK_ERROR_DEVICE_LOST:
+        return u"VK_ERROR_DEVICE_LOST"_s;
+    case VK_ERROR_MEMORY_MAP_FAILED:
+        return u"VK_ERROR_MEMORY_MAP_FAILED"_s;
+    case VK_ERROR_LAYER_NOT_PRESENT:
+        return u"VK_ERROR_LAYER_NOT_PRESENT"_s;
+    case VK_ERROR_EXTENSION_NOT_PRESENT:
+        return u"VK_ERROR_EXTENSION_NOT_PRESENT"_s;
+    case VK_ERROR_FEATURE_NOT_PRESENT:
+        return u"VK_ERROR_FEATURE_NOT_PRESENT"_s;
+    case VK_ERROR_INCOMPATIBLE_DRIVER:
+        return u"VK_ERROR_INCOMPATIBLE_DRIVER"_s;
+    case VK_ERROR_TOO_MANY_OBJECTS:
+        return u"VK_ERROR_TOO_MANY_OBJECTS"_s;
+    case VK_ERROR_FORMAT_NOT_SUPPORTED:
+        return u"VK_ERROR_FORMAT_NOT_SUPPORTED"_s;
+    case VK_ERROR_FRAGMENTED_POOL:
+        return u"VK_ERROR_FRAGMENTED_POOL"_s;
+    case -13: // VK_ERROR_UNKNOWN
+        return u"VK_ERROR_UNKNOWN"_s;
+    case -1000069000: // VK_ERROR_OUT_OF_POOL_MEMORY
+        return u"VK_ERROR_OUT_OF_POOL_MEMORY"_s;
+    case -1000072003: // VK_ERROR_INVALID_EXTERNAL_HANDLE
+        return u"VK_ERROR_INVALID_EXTERNAL_HANDLE"_s;
+    case -1000161000: // VK_ERROR_FRAGMENTATION
+        return u"VK_ERROR_FRAGMENTATION"_s;
+    case -1000257000: // VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS
+        return u"VK_ERROR_INVALID_OPAQUE_CAPTURE_ADDRESS"_s;
+    case 1000297000: // VK_PIPELINE_COMPILE_REQUIRED
+        return u"VK_PIPELINE_COMPILE_REQUIRED"_s;
+    case -1000011001: // VK_ERROR_VALIDATION_FAILED
+        return u"VK_ERROR_VALIDATION_FAILED"_s;
+    case -1000174001: // VK_ERROR_NOT_PERMITTED
+        return u"VK_ERROR_NOT_PERMITTED"_s;
+    case -1000000000: // VK_ERROR_SURFACE_LOST_KHR
+        return u"VK_ERROR_SURFACE_LOST_KHR"_s;
+    case -1000000001: // VK_ERROR_NATIVE_WINDOW_IN_USE_KHR
+        return u"VK_ERROR_NATIVE_WINDOW_IN_USE_KHR"_s;
+    case 1000001003: // VK_SUBOPTIMAL_KHR
+        return u"VK_SUBOPTIMAL_KHR"_s;
+    case -1000001004: // VK_ERROR_OUT_OF_DATE_KHR
+        return u"VK_ERROR_OUT_OF_DATE_KHR"_s;
+    case -1000003001: // VK_ERROR_INCOMPATIBLE_DISPLAY_KHR
+        return u"VK_ERROR_INCOMPATIBLE_DISPLAY_KHR"_s;
+    case -1000012000: // VK_ERROR_INVALID_SHADER_NV
+        return u"VK_ERROR_INVALID_SHADER_NV"_s;
+    case -1000023000: // VK_ERROR_IMAGE_USAGE_NOT_SUPPORTED_KHR
+        return u"VK_ERROR_IMAGE_USAGE_NOT_SUPPORTED_KHR"_s;
+    case -1000023001: // VK_ERROR_VIDEO_PICTURE_LAYOUT_NOT_SUPPORTED_KHR
+        return u"VK_ERROR_VIDEO_PICTURE_LAYOUT_NOT_SUPPORTED_KHR"_s;
+    case -1000023002: // VK_ERROR_VIDEO_PROFILE_OPERATION_NOT_SUPPORTED_KHR
+        return u"VK_ERROR_VIDEO_PROFILE_OPERATION_NOT_SUPPORTED_KHR"_s;
+    case -1000023003: // VK_ERROR_VIDEO_PROFILE_FORMAT_NOT_SUPPORTED_KHR
+        return u"VK_ERROR_VIDEO_PROFILE_FORMAT_NOT_SUPPORTED_KHR"_s;
+    case -1000023004: // VK_ERROR_VIDEO_PROFILE_CODEC_NOT_SUPPORTED_KHR
+        return u"VK_ERROR_VIDEO_PROFILE_CODEC_NOT_SUPPORTED_KHR"_s;
+    case -1000023005: // VK_ERROR_VIDEO_STD_VERSION_NOT_SUPPORTED_KHR
+        return u"VK_ERROR_VIDEO_STD_VERSION_NOT_SUPPORTED_KHR"_s;
+    case -1000158000: // VK_ERROR_INVALID_DRM_FORMAT_MODIFIER_PLANE_LAYOUT_EXT
+        return u"VK_ERROR_INVALID_DRM_FORMAT_MODIFIER_PLANE_LAYOUT_EXT"_s;
+    case -1000255000: // VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT
+        return u"VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT"_s;
+    case 1000268000: // VK_THREAD_IDLE_KHR
+        return u"VK_THREAD_IDLE_KHR"_s;
+    case 1000268001: // VK_THREAD_DONE_KHR
+        return u"VK_THREAD_DONE_KHR"_s;
+    case 1000268002: // VK_OPERATION_DEFERRED_KHR
+        return u"VK_OPERATION_DEFERRED_KHR"_s;
+    case 1000268003: // VK_OPERATION_NOT_DEFERRED_KHR
+        return u"VK_OPERATION_NOT_DEFERRED_KHR"_s;
+    case -1000299000: // VK_ERROR_INVALID_VIDEO_STD_PARAMETERS_KHR
+        return u"VK_ERROR_INVALID_VIDEO_STD_PARAMETERS_KHR"_s;
+    case -1000338000: // VK_ERROR_COMPRESSION_EXHAUSTED_EXT
+        return u"VK_ERROR_COMPRESSION_EXHAUSTED_EXT"_s;
+    case 1000482000: // VK_INCOMPATIBLE_SHADER_BINARY_EXT
+        return u"VK_INCOMPATIBLE_SHADER_BINARY_EXT"_s;
+    case 1000483000: // VK_PIPELINE_BINARY_MISSING_KHR
+        return u"VK_PIPELINE_BINARY_MISSING_KHR"_s;
+    case -1000483000: // VK_ERROR_NOT_ENOUGH_SPACE_KHR
+        return u"VK_ERROR_NOT_ENOUGH_SPACE_KHR"_s;
+    case -1000208000: // VK_ERROR_PRESENT_TIMING_QUEUE_FULL_EXT
+        return u"VK_ERROR_PRESENT_TIMING_QUEUE_FULL_EXT"_s;
+    default:
+        break;
+    }
+    return u"unknown VkResult"_s;
+}
+
+QT_WARNING_POP
+
+QDebug operator<<(QDebug debug, VkResult result)
+{
+    const QDebugStateSaver saver(debug);
+    debug.nospace().noquote() << "VkResult(0x" << Qt::hex << qToUnderlying(result) << Qt::dec
+                              << ", " << toString(result) << ')';
+    return debug;
+}
+
+QT_END_NAMESPACE
