@@ -34,7 +34,8 @@ constexpr bool VAExportUseLayers = false;
 
 std::shared_ptr<VAAPITextureConverter> VAAPITextureConverter::create(QRhi *rhi)
 {
-    return std::shared_ptr<VAAPITextureConverter>(new VAAPITextureConverter(rhi));
+    auto ret = std::shared_ptr<VAAPITextureConverter>(new VAAPITextureConverter(rhi));
+    return ret->rhi ? ret : nullptr;
 }
 
 VAAPITextureConverter::VAAPITextureConverter(QRhi *rhi)

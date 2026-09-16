@@ -61,7 +61,8 @@ public:
 
 std::shared_ptr<VideoToolBoxTextureConverter> VideoToolBoxTextureConverter::create(QRhi *rhi)
 {
-    return std::shared_ptr<VideoToolBoxTextureConverter>(new VideoToolBoxTextureConverter(rhi));
+    auto ret = std::shared_ptr<VideoToolBoxTextureConverter>(new VideoToolBoxTextureConverter(rhi));
+    return ret->rhi ? ret : nullptr;
 }
 
 VideoToolBoxTextureConverter::VideoToolBoxTextureConverter(QRhi *targetRhi)
