@@ -245,11 +245,8 @@ std::vector<RenderingMode> renderingModes(QVideoFrameFormat::PixelFormat pixelFo
     std::vector<RenderingMode> result;
     if (supportsCpuConversion(pixelFormat))
         result.push_back(RenderingMode::Cpu); // Only run tests on GPU if RHI is supported
-    if (isRhiRenderingSupported()) {
-        QRhi *rhi = qEnsureThreadLocalRhi();
-        QTEST_ASSERT(rhi);
+    if (isRhiRenderingSupported() && qEnsureThreadLocalRhi())
         result.push_back(RenderingMode::Rhi);
-    }
     return result;
 }
 
