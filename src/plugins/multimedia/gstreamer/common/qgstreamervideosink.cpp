@@ -26,6 +26,8 @@
 #  endif
 #  if QT_CONFIG(gstreamer_gl_egl)
 #    include <common/qgstreameregldisplay_p.h>
+#    include <QtMultimedia/private/qeglimagefunctions_p.h>
+#    include <QtMultimedia/private/qmultimedia_gl_support_p.h>
 #    include <gst/gl/egl/gstgldisplay_egl.h>
 #    include <EGL/egl.h>
 #    include <EGL/eglext.h>
@@ -312,11 +314,11 @@ struct ResolveGstGlDisplayResult
     GstGLPlatform platform;
 };
 
-std::optional<ResolveGstGlDisplayResult> resolveGstGlDisplay([[maybe_unused]] QRhi *rhi)
+std::optional<ResolveGstGlDisplayResult> resolveGstGlDisplay([[maybe_unused]] QRhi &rhi)
 {
     // use the egl display if we have one
 #  if QT_CONFIG(gstreamer_gl_egl)
-    if (EGLDisplay eglDisplay = qGstEglDisplay(rhi)) {
+    if (EGLDisplay eglDisplay = QtMultimediaPrivate::resolveEglDisplay(rhi)) {
         QGstGLDisplayHandle gstGlDisplay{
             GST_GL_DISPLAY_CAST(gst_gl_display_egl_new_with_egl_display(eglDisplay)),
             QGstGLDisplayHandle::HasRef,
@@ -396,7 +398,7 @@ void QGstreamerRelayVideoSink::updateGstContexts()
             static_cast<const QRhiGles2NativeHandles *>(currentRhi->nativeHandles())->context;
     Q_ASSERT(glContext);
 
-    std::optional resolvedDisplay = resolveGstGlDisplay(currentRhi);
+    std::optional resolvedDisplay = resolveGstGlDisplay(*currentRhi);
     if (!resolvedDisplay) {
         qWarning() << "Could not resolve GstGLDisplay";
         return;

@@ -3,7 +3,14 @@
 
 #include "qmultimedia_gl_support_p.h"
 
+#include <QtGui/rhi/qrhi.h>
+
 #include <QtCore/qdebug.h>
+
+#if QT_CONFIG(egl)
+#  include <QtGui/qopenglcontext.h>
+#  include <EGL/egl.h>
+#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -41,6 +48,8 @@ QDebug operator<<(QDebug debug, GLError error)
                               << toString(error) << ')';
     return debug;
 }
+
+#if QT_CONFIG(egl)
 
 static QString toString(EGLError error)
 {
@@ -86,6 +95,22 @@ QDebug operator<<(QDebug debug, EGLError error)
                               << toString(error) << ')';
     return debug;
 }
+
+EGLDisplay resolveEglDisplay(QRhi &rhi)
+{
+    if (rhi.backend() != QRhi::OpenGLES2)
+        return EGL_NO_DISPLAY;
+
+    auto *nativeHandles = static_cast<const QRhiGles2NativeHandles *>(rhi.nativeHandles());
+    QOpenGLContext *glContext = nativeHandles ? nativeHandles->context : nullptr;
+    if (!glContext)
+        return EGL_NO_DISPLAY;
+
+    auto *eglContext = glContext->nativeInterface<QNativeInterface::QEGLContext>();
+    return eglContext ? eglContext->display() : EGL_NO_DISPLAY;
+}
+
+#endif
 
 } // namespace QtMultimediaPrivate
 
