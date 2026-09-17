@@ -9,10 +9,10 @@
 
 QT_BEGIN_NAMESPACE
 
+using namespace Qt::Literals;
+
 bool copyAllFiles(const QDir &source, const QDir &dest)
 {
-    using namespace Qt::Literals;
-
     if (!source.exists() || !dest.exists())
         return false;
 
@@ -39,6 +39,32 @@ bool copyAllFiles(const QDir &source, const QDir &dest)
     }
 
     return success;
+}
+
+std::unique_ptr<QTemporaryFile> copyResourceToTemporaryFile(const QUrl &resource,
+                                                            const QString &fileTemplate)
+{
+    QString resourcePath;
+    if (resource.scheme() == "qrc"_L1)
+        resourcePath = u':' + resource.path();
+    else if (resource.isLocalFile())
+        resourcePath = resource.toLocalFile();
+    else
+        return nullptr;
+
+    QFile resourceFile(resourcePath);
+    if (!resourceFile.open(QIODeviceBase::ReadOnly))
+        return nullptr;
+
+    auto temporaryFile = std::make_unique<QTemporaryFile>(fileTemplate);
+    if (!temporaryFile->open())
+        return nullptr;
+
+    if (temporaryFile->write(resourceFile.readAll()) < 0)
+        return nullptr;
+
+    temporaryFile->close();
+    return temporaryFile;
 }
 
 QT_END_NAMESPACE

@@ -16,10 +16,17 @@
 //
 
 #include <QtCore/qdir.h>
+#include <QtCore/qtemporaryfile.h>
+#include <QtCore/qurl.h>
+
+#include <memory>
 
 QT_BEGIN_NAMESPACE
 
 bool copyAllFiles(const QDir &source, const QDir &dest);
+
+std::unique_ptr<QTemporaryFile> copyResourceToTemporaryFile(const QUrl &resource,
+                                                            const QString &fileTemplate);
 
 QT_END_NAMESPACE
 
