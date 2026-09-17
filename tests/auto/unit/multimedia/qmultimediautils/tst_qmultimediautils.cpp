@@ -27,6 +27,9 @@ private slots:
 
     void qRotatedFrameSize_returnsSizeAccordinglyToRotation();
 
+    void qClosestSupportedResolution_returnsBestMatch_data();
+    void qClosestSupportedResolution_returnsBestMatch();
+
     void qMediaFromUserInput_addsFilePrefix_whenCalledWithLocalFile();
 
     void qGetRequiredSwapChainFormat_returnsSdr_whenMaxLuminanceIsBelowSdrThreshold_data();
@@ -123,6 +126,52 @@ void tst_QMultimediaUtils::qRotatedFrameSize_returnsSizeAccordinglyToRotation()
 
     QCOMPARE(qRotatedFrameSize({ 11, 22 }, QtVideo::Rotation::Clockwise90), QSize(22, 11));
     QCOMPARE(qRotatedFrameSize({ 11, 22 }, QtVideo::Rotation::Clockwise270), QSize(22, 11));
+}
+
+void tst_QMultimediaUtils::qClosestSupportedResolution_returnsBestMatch_data()
+{
+    QTest::addColumn<QSize>("requested");
+    QTest::addColumn<QList<QSize>>("supportedResolutions");
+    QTest::addColumn<QSize>("expected");
+
+    QTest::newRow("exact match is returned")
+            << QSize(1280, 720) << QList<QSize>{ { 640, 480 }, { 1280, 720 }, { 1920, 1080 } }
+            << QSize(1280, 720);
+
+    QTest::newRow("empty requested resolution gives invalid size")
+            << QSize() << QList<QSize>{ { 640, 480 } } << QSize();
+
+    QTest::newRow("empty list of supported resolutions gives invalid size")
+            << QSize(640, 480) << QList<QSize>{} << QSize();
+
+    QTest::newRow("only invalid supported resolutions gives invalid size")
+            << QSize(640, 480) << QList<QSize>{ { 0, 0 }, { 640, 0 } } << QSize();
+
+    QTest::newRow("invalid supported resolutions are skipped")
+            << QSize(600, 400) << QList<QSize>{ { 0, 0 }, { 640, 480 } } << QSize(640, 480);
+
+    QTest::newRow("matching aspect ratio is preferred over matching pixel count")
+            << QSize(1600, 1200) << QList<QSize>{ { 1920, 1080 }, { 640, 480 } } << QSize(640, 480);
+
+    QTest::newRow("closest pixel count is used among equal aspect ratios")
+            << QSize(1000, 750)
+            << QList<QSize>{ { 640, 480 }, { 1280, 960 }, { 2048, 1536 } } << QSize(640, 480);
+
+    QTest::newRow("aspect ratios within tolerance compete on pixel count")
+            << QSize(3840, 2160) << QList<QSize>{ { 640, 360 }, { 4000, 2248 } }
+            << QSize(4000, 2248);
+
+    QTest::newRow("aspect ratios outside tolerance are rejected")
+            << QSize(3840, 2160) << QList<QSize>{ { 640, 360 }, { 4000, 3000 } } << QSize(640, 360);
+}
+
+void tst_QMultimediaUtils::qClosestSupportedResolution_returnsBestMatch()
+{
+    QFETCH(const QSize, requested);
+    QFETCH(const QList<QSize>, supportedResolutions);
+    QFETCH(const QSize, expected);
+
+    QCOMPARE(qClosestSupportedResolution(requested, supportedResolutions), expected);
 }
 
 void tst_QMultimediaUtils::qMediaFromUserInput_addsFilePrefix_whenCalledWithLocalFile()

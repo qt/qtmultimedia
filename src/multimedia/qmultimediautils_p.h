@@ -18,6 +18,7 @@
 #include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtMultimedia/private/qvideotransformation_p.h>
 #include <QtCore/private/qexpected_p.h>
+#include <QtCore/qlist.h>
 #include <QtCore/qsize.h>
 #include <QtCore/qurl.h>
 #include <QtGui/rhi/qrhi.h>
@@ -52,6 +53,18 @@ inline QSize qRotatedFrameSize(QSize size, QtVideo::Rotation rotation)
 }
 
 Q_MULTIMEDIA_EXPORT QSize qRotatedFramePresentationSize(const QVideoFrame &frame);
+
+/* Pick the resolution from supportedResolutions that matches requested best.
+ *
+ * The aspect ratios are compared first, so scaling between resolutions doesn't
+ * require cropping or cause distortion. This comparison has a small tolerance
+ * added to it. Then the closest pixel count is picked among the candidates.
+ *
+ * Returns an invalid size if requested is empty, or if supportedResolutions
+ * doesn't contain any valid resolutions.
+ */
+Q_MULTIMEDIA_EXPORT QSize qClosestSupportedResolution(QSize requested,
+                                                      QSpan<const QSize> supportedResolutions);
 
 Q_MULTIMEDIA_EXPORT QUrl qMediaFromUserInput(const QUrl &fileName);
 

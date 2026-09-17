@@ -5,6 +5,7 @@
 
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qvideoframeformat.h>
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
@@ -76,6 +77,54 @@ QSize qRotatedFramePresentationSize(const QVideoFrame &frame)
     // but this inaccuracy doesn't impact on the result.
     const int rotation = qToUnderlying(frame.rotation()) + qToUnderlying(frame.surfaceFormat().rotation());
     return qRotatedFrameSize(frame.size(), rotation);
+}
+
+QSize qClosestSupportedResolution(QSize requested, QSpan<const QSize> supportedResolutions)
+{
+    if (requested.isEmpty())
+        return {};
+
+    namespace ranges = QtMultimediaPrivate::ranges;
+
+    if (ranges::contains(supportedResolutions, requested))
+        return requested;
+
+    const qreal requestedAspectRatio =
+            static_cast<qreal>(requested.width()) / static_cast<qreal>(requested.height());
+    const auto aspectRatioDiff = [&](QSize size) {
+        return qAbs((static_cast<qreal>(size.width()) / static_cast<qreal>(size.height()))
+                    - requestedAspectRatio);
+    };
+    const auto pixelCountDiff = [&](QSize size) {
+        return qAbs((static_cast<qint64>(size.width()) * size.height())
+                    - (static_cast<qint64>(requested.width()) * requested.height()));
+    };
+
+    const auto *const bestAspectRatio =
+            ranges::min_element(supportedResolutions, [&](QSize lhs, QSize rhs) {
+                return aspectRatioDiff(lhs) < aspectRatioDiff(rhs);
+            });
+
+    if (bestAspectRatio == supportedResolutions.end())
+        return {}; // No valid candidate
+
+    // Allow a small tolerance
+    constexpr qreal aspectRatioTolerance = 0.01;
+    const qreal maxAspectRatioDiff = aspectRatioDiff(*bestAspectRatio) + aspectRatioTolerance;
+
+    QSize closestResolution;
+    for (const QSize candidate : supportedResolutions) {
+        if (candidate.isEmpty())
+            continue;
+        if (aspectRatioDiff(candidate) > maxAspectRatioDiff)
+            continue;
+        if (!closestResolution.isValid()
+            || pixelCountDiff(candidate) < pixelCountDiff(closestResolution)) {
+            closestResolution = candidate;
+        }
+    }
+
+    return closestResolution;
 }
 
 QUrl qMediaFromUserInput(const QUrl &url)
