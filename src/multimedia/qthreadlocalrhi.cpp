@@ -4,10 +4,15 @@
 #include "qthreadlocalrhi_p.h"
 
 #include <QtCore/qcoreapplication.h>
+#include <QtCore/qloggingcategory.h>
 #include <QtCore/qthreadstorage.h>
 #include <QtGui/private/qguiapplication_p.h>
 #include <QtGui/qoffscreensurface.h>
 #include <QtGui/qpa/qplatformintegration.h>
+
+#if QT_CONFIG(vulkan)
+#  include <QtGui/qvulkaninstance.h>
+#endif
 
 #if defined(Q_OS_ANDROID)
 #  include <QtCore/qmetaobject.h>
@@ -16,6 +21,8 @@
 QT_BEGIN_NAMESPACE
 
 namespace {
+
+Q_STATIC_LOGGING_CATEGORY(qLcThreadLocalRhi, "qt.multimedia.threadlocalrhi")
 
 static thread_local QRhi::Implementation s_preferredBackend = QRhi::Null;
 
@@ -88,11 +95,29 @@ public:
                 }
             }
 #endif
+
+#if QT_CONFIG(vulkan)
+            if (!m_rhi && canUseRhiImpl(QRhi::Vulkan, backend)) {
+                auto instance = std::make_unique<QVulkanInstance>();
+                instance->setExtensions(QRhiVulkanInitParams::preferredInstanceExtensions());
+                if (instance->create()) {
+                    QRhiVulkanInitParams params;
+                    params.inst = instance.get();
+                    m_rhi.reset(QRhi::create(QRhi::Vulkan, &params));
+                } else {
+                    qCDebug(qLcThreadLocalRhi) << "Failed to create QVulkanInstance";
+                }
+
+                if (m_rhi)
+                    m_vulkanInstance = std::move(instance);
+            }
+#endif
         }
 
         if (!m_rhi) {
             m_cpuOnly = true;
-            qWarning() << Q_FUNC_INFO << ": No RHI backend. Using CPU conversion.";
+            qCWarning(qLcThreadLocalRhi)
+                    << Q_FUNC_INFO << ": No RHI backend. Using CPU conversion.";
         }
 
         return m_rhi.get();
@@ -103,6 +128,9 @@ public:
         m_rhi.reset();
 #if QT_CONFIG(opengl)
         m_fallbackSurface.reset();
+#endif
+#if QT_CONFIG(vulkan)
+        m_vulkanInstance.reset();
 #endif
         m_cpuOnly = false;
     }
@@ -126,6 +154,9 @@ private:
     std::unique_ptr<QRhi> m_rhi;
 #if QT_CONFIG(opengl)
     std::unique_ptr<QOffscreenSurface> m_fallbackSurface;
+#endif
+#if QT_CONFIG(vulkan)
+    std::unique_ptr<QVulkanInstance> m_vulkanInstance;
 #endif
     bool m_cpuOnly = false;
 #if defined(Q_OS_ANDROID)
