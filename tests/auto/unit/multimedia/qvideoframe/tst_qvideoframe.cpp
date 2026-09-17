@@ -15,6 +15,7 @@
 #include <QtCore/qset.h>
 #include <QtMultimedia/private/qtmultimedia-config_p.h>
 #include "private/qvideoframeconverter_p.h"
+#include "private/qthreadlocalrhi_p.h"
 #include <private/mediabackendutils_p.h>
 #include <private/osdetection_p.h>
 
@@ -1191,6 +1192,7 @@ void tst_QVideoFrame::qImageFromVideoFrame_appliesRotationAndMirroringInCorrectO
     QTest::addColumn<bool>("mirrored");
     QTest::addColumn<bool>("forceCpu");
     QTest::addColumn<QRgb>("expectedUpperLeftColor");
+    QTest::addColumn<QRgb>("expectedLowerLeftColor");
 
     // Rotation and horizontal mirroring don't commute for 90/270 degree
     // rotations, so the order the two are composed in matters: mirroring is
@@ -1198,27 +1200,32 @@ void tst_QVideoFrame::qImageFromVideoFrame_appliesRotationAndMirroringInCorrectO
     // rotation (i.e. after it), not before. This must hold for both the CPU
     // (software) conversion path and the RHI/shader path, since they compose
     // rotation and mirroring completely differently.
-    struct Row { const char *name; QtVideo::Rotation rotation; bool mirrored; QRgb expected; };
+    //
+    // Both corners are checked (not just the upper-left one): a rotation-by-90 error and a
+    // pure vertical flip both move the upper-left color to the same place for a 90/270 swap,
+    // so a single sampled corner cannot tell them apart.
+    struct Row { const char *name; QtVideo::Rotation rotation; bool mirrored; QRgb upperLeft; QRgb lowerLeft; };
     const Row rows[] = {
-        { "none", QtVideo::Rotation::None, false, qRgb(255, 0, 0) },
-        { "mirrored", QtVideo::Rotation::None, true, qRgb(0, 255, 0) },
-        { "90", QtVideo::Rotation::Clockwise90, false, qRgb(0, 0, 255) },
-        { "90 mirrored", QtVideo::Rotation::Clockwise90, true, qRgb(255, 0, 0) },
-        { "180", QtVideo::Rotation::Clockwise180, false, qRgb(255, 255, 0) },
-        { "180 mirrored", QtVideo::Rotation::Clockwise180, true, qRgb(0, 0, 255) },
-        { "270", QtVideo::Rotation::Clockwise270, false, qRgb(0, 255, 0) },
-        { "270 mirrored", QtVideo::Rotation::Clockwise270, true, qRgb(255, 255, 0) },
+        { "none", QtVideo::Rotation::None, false, qRgb(255, 0, 0), qRgb(0, 0, 255) },
+        { "mirrored", QtVideo::Rotation::None, true, qRgb(0, 255, 0), qRgb(255, 255, 0) },
+        { "90", QtVideo::Rotation::Clockwise90, false, qRgb(0, 0, 255), qRgb(255, 255, 0) },
+        { "90 mirrored", QtVideo::Rotation::Clockwise90, true, qRgb(255, 0, 0), qRgb(0, 255, 0) },
+        { "180", QtVideo::Rotation::Clockwise180, false, qRgb(255, 255, 0), qRgb(0, 255, 0) },
+        { "180 mirrored", QtVideo::Rotation::Clockwise180, true, qRgb(0, 0, 255), qRgb(255, 0, 0) },
+        { "270", QtVideo::Rotation::Clockwise270, false, qRgb(0, 255, 0), qRgb(255, 0, 0) },
+        { "270 mirrored", QtVideo::Rotation::Clockwise270, true, qRgb(255, 255, 0), qRgb(0, 0, 255) },
     };
 
     QList<bool> cpuChoices = { true };
-    if (isRhiRenderingSupported())
+    if (isRhiRenderingSupported() && qEnsureThreadLocalRhi())
         cpuChoices.push_back(false); // Only run tests on GPU if RHI is supported
 
     for (const Row &row : rows) {
         for (const bool forceCpu : cpuChoices) {
             const QString name = QStringLiteral("%1%2").arg(row.name, forceCpu ? " cpu" : " rhi");
             QTest::addRow("%s", name.toLatin1().data())
-                    << row.rotation << row.mirrored << forceCpu << QRgb(row.expected);
+                    << row.rotation << row.mirrored << forceCpu << QRgb(row.upperLeft)
+                    << QRgb(row.lowerLeft);
         }
     }
 }
@@ -1229,6 +1236,7 @@ void tst_QVideoFrame::qImageFromVideoFrame_appliesRotationAndMirroringInCorrectO
     QFETCH(const bool, mirrored);
     QFETCH(const bool, forceCpu);
     QFETCH(const QRgb, expectedUpperLeftColor);
+    QFETCH(const QRgb, expectedLowerLeftColor);
 
     const QImage image = colorQuadrantImage();
 
@@ -1243,6 +1251,7 @@ void tst_QVideoFrame::qImageFromVideoFrame_appliesRotationAndMirroringInCorrectO
     const QImage result = qImageFromVideoFrame(frame, forceCpu);
     QVERIFY(!result.isNull());
     QCOMPARE(result.pixel(5, 5), expectedUpperLeftColor);
+    QCOMPARE(result.pixel(5, result.height() - 6), expectedLowerLeftColor);
 }
 
 #define TEST_MAPPED(frame, mode) \

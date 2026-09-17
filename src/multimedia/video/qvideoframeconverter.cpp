@@ -372,10 +372,15 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, const VideoTransformation 
     }
 
     float xScale = transformation.mirroredHorizontallyAfterRotation ? -1.0 : 1.0;
-    float yScale = 1.f;
-
-    if (rhi->isYUpInFramebuffer())
-        yScale = -yScale;
+    // Two independent effects can each flip the rendered quad vertically before it reaches the
+    // QImage we build from the QRhiReadbackResult below:
+    // - readback row order is inverted iff isYUpInFramebuffer() (true only for OpenGL)
+    // - g_quad is authored for Y-up NDC, so it renders vertically mirrored iff the backend's NDC
+    //   is not Y-up (isYUpInNDC() false; true only for Vulkan, currently)
+    // A flip is needed iff exactly one of the two applies; they cancel out otherwise.
+    const bool flipForFramebufferReadback = rhi->isYUpInFramebuffer();
+    const bool flipForClipSpaceConvention = !rhi->isYUpInNDC();
+    float yScale = (flipForFramebufferReadback != flipForClipSpaceConvention) ? -1.f : 1.f;
 
     QMatrix4x4 transform;
     transform.scale(xScale, yScale);
