@@ -10,6 +10,7 @@
 #include <QtCore/qrandom.h>
 #include <QtCore/qtemporaryfile.h>
 #include <QtCore/qtimer.h>
+#include <QtCore/qurl.h>
 
 #include <QtCore/private/qglobal_p.h>
 
@@ -33,6 +34,7 @@
 #include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
 #include <QtMultimediaTestLib/private/mediafileselector_p.h>
 #include <QtMultimediaTestLib/private/qsequentialfileadaptor_p.h>
+#include <QtMultimediaTestLib/private/qfileutil_p.h>
 
 #ifdef QT_FEATURE_network
 #include <QtNetwork/qtcpserver.h>
@@ -343,26 +345,6 @@ static bool commandExists(const QString &command)
         QString fullPath = QDir(dir).filePath(command);
         return QFile::exists(fullPath);
     });
-}
-
-static std::unique_ptr<QTemporaryFile> copyResourceToTemporaryFile(QString resource,
-                                                                   QString filePattern)
-{
-    QFile resourceFile(resource);
-    if (!resourceFile.open(QIODeviceBase::ReadOnly))
-        return nullptr;
-
-    auto temporaryFile = std::make_unique<QTemporaryFile>(filePattern);
-    if (!temporaryFile->open())
-        return nullptr;
-
-    QByteArray bytes = resourceFile.readAll();
-    QDataStream stream(temporaryFile.get());
-    stream.writeRawData(bytes.data(), bytes.length());
-
-    temporaryFile->close();
-
-    return temporaryFile;
 }
 
 void tst_QMediaPlayerBackend::detectVlcCommand()
@@ -1063,7 +1045,8 @@ void tst_QMediaPlayerBackend::setSource_emitsError_whenSdpFileIsLoaded()
     // Make sure the default whitelist is used
     qunsetenv("QT_FFMPEG_PROTOCOL_WHITELIST");
 
-    auto temporaryFile = copyResourceToTemporaryFile(":/testdata/colors.mp4", "colors.XXXXXX.mp4");
+    auto temporaryFile = copyResourceToTemporaryFile(QUrl(u"qrc:/testdata/colors.mp4"_s),
+                                                     u"colors.XXXXXX.mp4"_s);
     QVERIFY(temporaryFile);
 
     // Pass a "file:" URL to VLC in order to generate an .sdp file
@@ -1622,7 +1605,8 @@ void tst_QMediaPlayerBackend::
     QSKIP_GSTREAMER("GStreamer tests fail");
     QSKIP_DARWIN("RTSP playback is not reliably supported with AVFoundation");
 
-    auto temporaryFile = copyResourceToTemporaryFile(":/testdata/colors.mp4", "colors.XXXXXX.mp4");
+    auto temporaryFile = copyResourceToTemporaryFile(QUrl(u"qrc:/testdata/colors.mp4"_s),
+                                                     u"colors.XXXXXX.mp4"_s);
     QVERIFY(temporaryFile);
 
     const QString streamUrl = "rtsp://localhost:8083/stream";
@@ -1779,7 +1763,8 @@ void tst_QMediaPlayerBackend::play_playsRtpStream_whenSdpFileIsLoaded()
     if (!canCreateRtpStream())
         QSKIP("Rtp stream cannot be created");
 
-    auto temporaryFile = copyResourceToTemporaryFile(":/testdata/colors.mp4", "colors.XXXXXX.mp4");
+    auto temporaryFile = copyResourceToTemporaryFile(QUrl(u"qrc:/testdata/colors.mp4"_s),
+                                                     u"colors.XXXXXX.mp4"_s);
     QVERIFY(temporaryFile);
 
     // Pass a "file:" URL to VLC in order to generate an .sdp file
@@ -4167,8 +4152,8 @@ void tst_QMediaPlayerBackend::nonAsciiFileName()
 {
     CHECK_SELECTED_URL(m_localWavFile);
 
-    auto temporaryFile =
-            copyResourceToTemporaryFile(":/testdata/test.wav", "äöüØøÆ中文.XXXXXX.wav");
+    auto temporaryFile = copyResourceToTemporaryFile(QUrl(u"qrc:/testdata/test.wav"_s),
+                                                     u"äöüØøÆ中文.XXXXXX.wav"_s);
     QVERIFY(temporaryFile);
 
     m_fixture->player.setSource(QUrl::fromLocalFile(temporaryFile->fileName()));
