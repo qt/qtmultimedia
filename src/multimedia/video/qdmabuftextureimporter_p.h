@@ -18,6 +18,7 @@
 
 #include <QtMultimedia/qvideoframeformat.h>
 #include <QtMultimedia/private/qmultimedia_drm_support_p.h>
+#include <QtMultimedia/private/qmultimedia_gl_support_p.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 
 #include <QtGui/qopenglfunctions.h>
@@ -59,20 +60,17 @@ private:
 class Q_MULTIMEDIA_EXPORT DmaBufTextureHandles final : public QVideoFrameTexturesHandles
 {
 public:
-    DmaBufTextureHandles(QRhi &rhi, QOpenGLContext *glContext, int nPlanes,
-                         std::array<GLuint, 4> textures,
+    DmaBufTextureHandles(QRhi &rhi, std::array<GlTextureHandle, 4> textures,
                          std::shared_ptr<void> parentKeepAlive = {});
 
     ~DmaBufTextureHandles() override;
 
-    quint64 textureHandle(QRhi &, int plane) override { return m_textures[plane]; }
+    quint64 textureHandle(QRhi &, int plane) override { return m_textures[plane].get(); }
 
 private:
     const std::shared_ptr<void> m_parentKeepAlive; // keep the backend alive
     QRhi &m_rhi;
-    QOpenGLContext *const m_glContext;
-    const int m_nPlanes;
-    const std::array<GLuint, 4> m_textures;
+    const std::array<GlTextureHandle, 4> m_textures;
 };
 
 // Severity of a failure to import DMABUF planes as GL textures.
