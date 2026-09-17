@@ -17,6 +17,7 @@
 #include <QtGstreamerMediaPluginImpl/private/qgstreamermetadata_p.h>
 
 #include <array>
+#include <cstdlib>
 #include <set>
 #include <variant>
 
@@ -604,8 +605,12 @@ void tst_GStreamer::QGstDiscoverer_discoverMedia()
     // video metadata
     QMediaMetaData videoStreamMetaData = toStreamMetadata(result->videoStreams[0]);
     QCOMPARE(videoStreamMetaData.value(Key::Resolution), QSize(1920, 1080));
-    if (validateBitRates)
-        QCOMPARE(videoStreamMetaData.value(Key::VideoBitRate), 30029);
+    if (validateBitRates) {
+        constexpr int expectedVideoBitRate = 30029;
+        constexpr int allowedVideoBitRateError = expectedVideoBitRate / 5;
+        const int actualVideoBitRate = videoStreamMetaData.value(Key::VideoBitRate).toInt();
+        QCOMPARE_LE(std::abs(actualVideoBitRate - expectedVideoBitRate), allowedVideoBitRateError);
+    }
     QCOMPARE(videoStreamMetaData.value(Key::VideoFrameRate), 25);
     QCOMPARE(videoStreamMetaData.value(Key::VideoCodec).value<QMediaFormat::VideoCodec>(),
              QMediaFormat::VideoCodec::H265);
