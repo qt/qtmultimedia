@@ -18,9 +18,35 @@
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtCore/qstring.h>
 
+// thanks X.h
+#pragma push_macro("Success")
+#ifdef Success
+#  undef Success
+#endif
+
+#pragma push_macro("BadAccess")
+#ifdef BadAccess
+#  undef BadAccess
+#endif
+
+#pragma push_macro("BadAlloc")
+#ifdef BadAlloc
+#  undef BadAlloc
+#endif
+
+#pragma push_macro("BadMatch")
+#ifdef BadMatch
+#  undef BadMatch
+#endif
+
+#if QT_CONFIG(egl)
+typedef void *EGLDisplay;
+#endif
+
 QT_BEGIN_NAMESPACE
 
 class QDebug;
+class QRhi;
 
 namespace QtMultimediaPrivate {
 
@@ -38,6 +64,8 @@ enum class GLError : unsigned int {
 };
 
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug debug, GLError error);
+
+#if QT_CONFIG(egl)
 
 // Error codes returned by eglGetError(), see
 // https://registry.khronos.org/EGL/sdk/docs/man/html/eglGetError.xhtml
@@ -61,8 +89,16 @@ enum class EGLError : int {
 
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug debug, EGLError error);
 
+Q_MULTIMEDIA_EXPORT EGLDisplay resolveEglDisplay(QRhi &);
+#endif
+
 } // namespace QtMultimediaPrivate
 
 QT_END_NAMESPACE
+
+#pragma pop_macro("Success")
+#pragma pop_macro("BadAccess")
+#pragma pop_macro("BadAlloc")
+#pragma pop_macro("BadMatch")
 
 #endif

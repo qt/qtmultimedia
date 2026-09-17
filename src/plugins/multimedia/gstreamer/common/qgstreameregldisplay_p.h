@@ -27,8 +27,6 @@ QT_BEGIN_NAMESPACE
 class QRhi;
 
 #if QT_CONFIG(gstreamer_gl) && QT_CONFIG(gstreamer_gl_egl)
-EGLDisplay qGstEglDisplay(QRhi *rhi);
-
 #  if QT_CONFIG(linux_dmabuf)
 bool qGstEglCanMapDmaBuf(QRhi *rhi);
 #  endif

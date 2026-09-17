@@ -513,6 +513,8 @@ static GlTextures mapFromDmaBuffer(QRhi *rhi, const QGstBufferHandle &bufferHand
 
 QVideoFrameTexturesUPtr QGstVideoBuffer::mapTextures(QRhi &rhi, QVideoFrameTexturesUPtr& /*oldTextures*/)
 {
+    using namespace QtMultimediaPrivate;
+
 #if QT_CONFIG(gstreamer_gl)
     GlTextures textures = {};
     if (m_memoryFormat == QGstCaps::GLTexture)
@@ -521,7 +523,7 @@ QVideoFrameTexturesUPtr QGstVideoBuffer::mapTextures(QRhi &rhi, QVideoFrameTextu
 #  if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(linux_dmabuf)
     else if (m_memoryFormat == QGstCaps::DMABuf && qGstEglCanMapDmaBuf(&rhi)
              && rhi.backend() == QRhi::OpenGLES2)
-        textures = mapFromDmaBuffer(&rhi, m_buffer, m_videoInfo, qGstEglDisplay(&rhi));
+        textures = mapFromDmaBuffer(&rhi, m_buffer, m_videoInfo, resolveEglDisplay(rhi));
 #  endif
     if (textures.count > 0)
         return std::make_unique<QGstQVideoFrameTextures>(
