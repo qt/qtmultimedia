@@ -16,6 +16,8 @@
 //
 
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#include <QtGui/qopengl.h>
+#include <QtCore/private/quniquehandle_p.h>
 #include <QtCore/qstring.h>
 
 // thanks X.h
@@ -41,10 +43,12 @@
 
 #if QT_CONFIG(egl)
 typedef void *EGLDisplay;
+typedef void *EGLImage;
 #endif
 
 QT_BEGIN_NAMESPACE
 
+class QOpenGLContext;
 class QDebug;
 class QRhi;
 
@@ -90,7 +94,47 @@ enum class EGLError : int {
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug debug, EGLError error);
 
 Q_MULTIMEDIA_EXPORT EGLDisplay resolveEglDisplay(QRhi &);
-#endif
+
+///////////////////////////////////////////////////////////////////////////////
+// (e)gl handle types
+
+class Q_MULTIMEDIA_EXPORT EglImageDeleter
+{
+public:
+    EglImageDeleter() = default;
+    explicit EglImageDeleter(EGLDisplay display) : m_display(display) { }
+    void operator()(EGLImage image) const noexcept;
+
+private:
+    EGLDisplay m_display = {}; // EGL_NO_DISPLAY;
+};
+
+struct EGLImageHandleTraits
+{
+    using Type = EGLImage;
+    static Type invalidValue() { return nullptr; } // EGL_NO_IMAGE;
+};
+using EGLImageHandle = QUniqueHandle<EGLImageHandleTraits, EglImageDeleter>;
+
+#endif // QT_CONFIG(egl)
+
+class Q_MULTIMEDIA_EXPORT GlTextureDeleter
+{
+public:
+    GlTextureDeleter() = default;
+    explicit GlTextureDeleter(QOpenGLContext *context) : m_context(context) { }
+    void operator()(GLuint texture) const noexcept;
+
+private:
+    QOpenGLContext *m_context = nullptr;
+};
+
+struct GlTextureHandleTraits
+{
+    using Type = GLuint;
+    static Type invalidValue() { return 0; }
+};
+using GlTextureHandle = QUniqueHandle<GlTextureHandleTraits, GlTextureDeleter>;
 
 } // namespace QtMultimediaPrivate
 

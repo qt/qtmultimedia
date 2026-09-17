@@ -3,12 +3,14 @@
 
 #include "qmultimedia_gl_support_p.h"
 
+#include <QtGui/qopenglcontext.h>
+#include <QtGui/qopenglfunctions.h>
 #include <QtGui/rhi/qrhi.h>
 
 #include <QtCore/qdebug.h>
 
 #if QT_CONFIG(egl)
-#  include <QtGui/qopenglcontext.h>
+#  include <QtMultimedia/private/qeglimagefunctions_p.h>
 #  include <EGL/egl.h>
 #endif
 
@@ -110,7 +112,20 @@ EGLDisplay resolveEglDisplay(QRhi &rhi)
     return eglContext ? eglContext->display() : EGL_NO_DISPLAY;
 }
 
+void EglImageDeleter::operator()(EGLImage image) const noexcept
+{
+    if (image != EGL_NO_IMAGE)
+        QEglImageFunctions::instance().eglDestroyImage(m_display, image);
+}
 #endif
+
+void GlTextureDeleter::operator()(GLuint texture) const noexcept
+{
+    if (texture && m_context) {
+        QOpenGLFunctions functions(m_context);
+        functions.glDeleteTextures(1, &texture);
+    }
+}
 
 } // namespace QtMultimediaPrivate
 

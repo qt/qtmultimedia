@@ -5,13 +5,11 @@
 
 #include <QtMultimedia/private/qeglimagefunctions_p.h>
 #include <QtMultimedia/private/qmultimedia_gl_support_p.h>
-#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtMultimedia/private/qvideotexturehelper_p.h>
 
 #include <QtGui/qopenglcontext.h>
 #include <QtGui/rhi/qrhi.h>
 #include <QtCore/qloggingcategory.h>
-#include <QtCore/qscopeguard.h>
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
@@ -57,22 +55,16 @@ DmaBufEglContext::DmaBufEglContext(QRhi *rhi)
     m_valid = true;
 }
 
-DmaBufTextureHandles::DmaBufTextureHandles(QRhi &rhi, QOpenGLContext *glContext, int nPlanes,
-                                           std::array<unsigned int, 4> textures,
+DmaBufTextureHandles::DmaBufTextureHandles(QRhi &rhi, std::array<GlTextureHandle, 4> textures,
                                            std::shared_ptr<void> parentKeepAlive)
-    : m_parentKeepAlive(std::move(parentKeepAlive)),
-      m_rhi(rhi),
-      m_glContext(glContext),
-      m_nPlanes(nPlanes),
-      m_textures(textures)
+    : m_parentKeepAlive(std::move(parentKeepAlive)), m_rhi(rhi), m_textures(std::move(textures))
 {
 }
 
 DmaBufTextureHandles::~DmaBufTextureHandles()
 {
+    // m_textures is destroyed right after this body runs, calling glDeleteTextures on each plane.
     m_rhi.makeThreadLocalNativeContextCurrent();
-    QOpenGLFunctions functions(m_glContext);
-    functions.glDeleteTextures(m_nPlanes, m_textures.data());
 }
 
 static bool dmaModifierIsNotSupportedByDisplay(const DmaBufPlane &plane, EGLDisplay eglDisplay)
@@ -105,16 +97,13 @@ importDmaBufTextures(QRhi &rhi, const DmaBufEglContext &eglContext, QSpan<const 
 
     rhi.makeThreadLocalNativeContextCurrent();
 
-    EGLImage images[4] = {};
-    std::array<GLuint, 4> glTextures{};
-    functions.glGenTextures(nPlanes, glTextures.data());
+    std::array<EGLImageHandle, 4> images;
+    std::array<GLuint, 4> rawGlTextures{};
+    functions.glGenTextures(nPlanes, rawGlTextures.data());
 
-    auto releaseTextures = qScopeGuard([&] {
-        for (EGLImage img : images | views::filter_nonnull)
-            elgImageFunctions.eglDestroyImage(eglDisplay, img);
-
-        functions.glDeleteTextures(nPlanes, glTextures.data());
-    });
+    std::array<GlTextureHandle, 4> glTextures;
+    for (int i = 0; i < nPlanes; ++i)
+        glTextures[i] = GlTextureHandle(rawGlTextures[i], GlTextureDeleter(glContext));
 
     for (int i = 0; i < nPlanes; ++i) {
         const DmaBufPlane &plane = planes[i];
@@ -184,9 +173,9 @@ importDmaBufTextures(QRhi &rhi, const DmaBufEglContext &eglContext, QSpan<const 
             }
         }
         functions.glActiveTexture(GL_TEXTURE0 + i);
-        functions.glBindTexture(GL_TEXTURE_2D, glTextures[i]);
+        functions.glBindTexture(GL_TEXTURE_2D, glTextures[i].get());
 
-        elgImageFunctions.glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, images[i]);
+        elgImageFunctions.glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, images[i].get());
         const GLError error = GLError(glGetError());
         if (error != GLError::NoError) {
             qWarning() << "eglImageTargetTexture2D failed for plane" << i << "with" << error
@@ -195,15 +184,12 @@ importDmaBufTextures(QRhi &rhi, const DmaBufEglContext &eglContext, QSpan<const 
         }
     }
 
-    releaseTextures.dismiss();
-
     for (int i = 0; i < nPlanes; ++i) {
         functions.glActiveTexture(GL_TEXTURE0 + i);
         functions.glBindTexture(GL_TEXTURE_2D, 0);
-        QEglImageFunctions::instance().eglDestroyImage(eglDisplay, images[i]);
     }
 
-    return std::make_unique<DmaBufTextureHandles>(rhi, glContext, nPlanes, glTextures,
+    return std::make_unique<DmaBufTextureHandles>(rhi, std::move(glTextures),
                                                   std::move(parentKeepAlive));
 }
 

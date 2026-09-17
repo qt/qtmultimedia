@@ -16,6 +16,7 @@
 #include <rhi/qrhi.h>
 
 #include <QtMultimedia/private/qeglimagefunctions_p.h>
+#include <QtMultimedia/private/qmultimedia_gl_support_p.h>
 
 #include <cstring>
 
@@ -24,6 +25,9 @@
 
 QT_BEGIN_NAMESPACE
 
+using QtMultimediaPrivate::EGLImageHandle;
+using QtMultimediaPrivate::GlTextureDeleter;
+using QtMultimediaPrivate::GlTextureHandle;
 using QtMultimediaPrivate::QEglImageFunctions;
 
 class QQnxWindowGrabberImage
@@ -44,8 +48,8 @@ private:
     QSize m_size;
     screen_pixmap_t m_pixmap;
     screen_buffer_t m_pixmapBuffer;
-    EGLImage m_eglImage;
-    GLuint m_glTexture;
+    EGLImageHandle m_eglImage;
+    GlTextureHandle m_glTexture;
     unsigned char *m_bufferAddress;
     int m_bufferStride;
 };
@@ -307,8 +311,6 @@ void QQnxWindowGrabber::resetBuffers()
 QQnxWindowGrabberImage::QQnxWindowGrabberImage()
     : m_pixmap(0),
     m_pixmapBuffer(0),
-    m_eglImage(0),
-    m_glTexture(0),
     m_bufferAddress(nullptr),
     m_bufferStride(0)
 {
@@ -316,11 +318,6 @@ QQnxWindowGrabberImage::QQnxWindowGrabberImage()
 
 QQnxWindowGrabberImage::~QQnxWindowGrabberImage()
 {
-    if (m_glTexture)
-        glDeleteTextures(1, &m_glTexture);
-    if (m_eglImage)
-        QEglImageFunctions::instance().eglDestroyImage(eglGetDisplay(EGL_DEFAULT_DISPLAY),
-                                                       m_eglImage);
     if (m_pixmap)
         screen_destroy_pixmap(m_pixmap);
 }
@@ -400,30 +397,30 @@ GLuint QQnxWindowGrabberImage::getTexture(screen_window_t window, const QSize &s
     if (size != m_size) {
         // create a brand new texture to be the KHR image sibling, as
         // previously used textures cannot be reused with new KHR image
-        // sources - note that glDeleteTextures handles nullptr gracefully
-        glDeleteTextures(1, &m_glTexture);
-        glGenTextures(1, &m_glTexture);
+        // sources
+        GLuint glTexture = 0;
+        glGenTextures(1, &glTexture);
+        m_glTexture = GlTextureHandle(glTexture, GlTextureDeleter(QOpenGLContext::currentContext()));
 
         const auto &eglImageFunctions = QEglImageFunctions::instance();
 
-        glBindTexture(GL_TEXTURE_2D, m_glTexture);
+        glBindTexture(GL_TEXTURE_2D, m_glTexture.get());
         if (m_eglImage) {
             eglImageFunctions.glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, 0);
-            eglImageFunctions.eglDestroyImage(eglGetDisplay(EGL_DEFAULT_DISPLAY), m_eglImage);
-            m_eglImage = 0;
+            m_eglImage.reset();
         }
         if (!resize(size))
             return 0;
         m_eglImage = eglImageFunctions.eglCreateImage(eglGetDisplay(EGL_DEFAULT_DISPLAY),
                                                       EGL_NO_CONTEXT, EGL_NATIVE_PIXMAP_KHR,
                                                       m_pixmap);
-        eglImageFunctions.glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, m_eglImage);
+        eglImageFunctions.glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, m_eglImage.get());
     }
 
     if (!m_pixmap || !grab(window))
         return 0;
 
-    return m_glTexture;
+    return m_glTexture.get();
 }
 
 QT_END_NAMESPACE

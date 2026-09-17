@@ -15,6 +15,7 @@
 //
 
 #include <QtMultimedia/private/qmultimedia_drm_support_p.h>
+#include <QtMultimedia/private/qmultimedia_gl_support_p.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtGui/qopengl.h>
 #include <QtCore/qspan.h>
@@ -39,8 +40,8 @@ public:
 
     void glEGLImageTargetTexture2DOES(GLenum, GLeglImageOES) const;
 
-    EGLImage eglCreateImage(EGLDisplay, EGLContext, EGLenum, EGLClientBuffer,
-                            QSpan<const EGLAttrib> attribs = {}) const;
+    EGLImageHandle eglCreateImage(EGLDisplay, EGLContext, EGLenum, EGLClientBuffer,
+                                  QSpan<const EGLAttrib> attribs = {}) const;
     EGLBoolean eglDestroyImage(EGLDisplay, EGLImage) const;
 
     // Returns whether `modifier` is a supported dma-buf import modifier for `drmFormat` on

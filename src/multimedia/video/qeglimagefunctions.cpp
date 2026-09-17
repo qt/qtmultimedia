@@ -131,32 +131,40 @@ void QEglImageFunctions::glEGLImageTargetTexture2DOES(GLenum target, GLeglImageO
 #endif
 }
 
-EGLImage QEglImageFunctions::eglCreateImage(EGLDisplay dpy, EGLContext ctx, EGLenum target,
-                                            EGLClientBuffer buffer,
-                                            QSpan<const EGLAttrib> attribs) const
+EGLImageHandle QEglImageFunctions::eglCreateImage(EGLDisplay dpy, EGLContext ctx, EGLenum target,
+                                                  EGLClientBuffer buffer,
+                                                  QSpan<const EGLAttrib> attribs) const
 {
+    EglImageDeleter deleter(dpy);
 #ifdef EGL_VERSION_1_5
     if (m_eglCreateImage) {
-        return m_eglCreateImage(dpy, ctx, target, buffer,
-                                attribs.empty() ? nullptr : attribs.data());
+        return EGLImageHandle(
+                m_eglCreateImage(dpy, ctx, target, buffer,
+                                 attribs.empty() ? nullptr : attribs.data()),
+                deleter);
     }
 #endif
 #if defined(EGL_KHR_image)
     if (m_eglCreateImageKHR) {
         if constexpr (sizeof(EGLAttrib) == sizeof(EGLint)) {
-            return m_eglCreateImageKHR(
-                    dpy, ctx, target, buffer,
-                    attribs.empty() ? nullptr : reinterpret_cast<const EGLint *>(attribs.data()));
+            return EGLImageHandle(
+                    m_eglCreateImageKHR(
+                            dpy, ctx, target, buffer,
+                            attribs.empty() ? nullptr
+                                            : reinterpret_cast<const EGLint *>(attribs.data())),
+                    deleter);
         } else {
             const auto narrowed = narrowToEGLint(attribs);
             if (!narrowed)
-                return EGL_NO_IMAGE;
-            return m_eglCreateImageKHR(dpy, ctx, target, buffer,
-                                       narrowed->empty() ? nullptr : narrowed->data());
+                return EGLImageHandle(EGL_NO_IMAGE, deleter);
+            return EGLImageHandle(
+                    m_eglCreateImageKHR(dpy, ctx, target, buffer,
+                                       narrowed->empty() ? nullptr : narrowed->data()),
+                    deleter);
         }
     }
 #endif
-    return EGL_NO_IMAGE;
+    return EGLImageHandle(EGL_NO_IMAGE, deleter);
 }
 
 EGLBoolean QEglImageFunctions::eglDestroyImage(EGLDisplay dpy, EGLImage image) const
