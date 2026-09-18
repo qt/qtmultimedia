@@ -493,6 +493,120 @@ private slots:
         QCOMPARE_LT(actualFps, newFrameRate * (1 + slopFactor));
     }
 
+    void firstFrame_hasZeroStartTime_whenCaptureIsStartedOrRestarted()
+    {
+        constexpr int restartCount = 2;
+
+        WindowCaptureWithWidgetFixture fixture;
+        QVERIFY(fixture.start());
+
+        QWindowCapture &windowCapture = fixture.m_capture;
+
+        // Presentation times are relative to the start of the stream, so the first
+        // frame of every stream, including restarted ones, must start at zero.
+        for (int i = 0; i <= restartCount; ++i) {
+            if (i > 0) {
+                windowCapture.setActive(false);
+                windowCapture.setActive(true);
+            }
+
+            const std::optional<QVideoFrame> frame = fixture.consumeFirstFrame();
+            QVERIFY(frame);
+            QCOMPARE(frame->startTime(), 0);
+        }
+    }
+
+    void capturedFrames_havePresentationTimesInIncreasingOrder()
+    {
+        WindowCaptureWithWidgetFixture fixture;
+
+        // Animated content so the backend keeps producing new frames rather than
+        // considering the content idle.
+        fixture.m_widget.setDisplayPattern(TestWidget::Pattern::Animated);
+        QVERIFY(fixture.start());
+
+        const std::vector<QVideoFrame> frames = fixture.m_grabber.waitAndTakeFrames(10);
+        QVERIFY2(
+            frames.size() >= 2,
+            "Did not receive enough QVideoFrames to compare presentation times");
+
+        for (size_t i = 1; i < frames.size(); ++i) {
+            const qint64 prevStart = frames[i - 1].startTime();
+            const qint64 currStart = frames[i].startTime();
+
+            // Presentation (start) times must strictly increase along the stream.
+            QVERIFY2(
+                currStart > prevStart,
+                qPrintable(u"Frame #%1 start time (%2) is not after frame #%3 "
+                           "start time (%4)"_s
+                    .arg(i).arg(currStart).arg(i - 1).arg(prevStart)));
+
+            // Where the backend also reports an end time, the frame must not end
+            // before it starts, and the next frame must not start before the
+            // previous one ended (frames must not overlap in time).
+            const qint64 prevEnd = frames[i - 1].endTime();
+            if (prevEnd >= 0) {
+                QVERIFY2(
+                    prevEnd >= prevStart,
+                    qPrintable(u"Frame #%1 end time (%2) precedes its start time (%3)"_s
+                        .arg(i - 1).arg(prevEnd).arg(prevStart)));
+                QVERIFY2(
+                    currStart >= prevEnd,
+                    qPrintable(u"Frame #%1 start time (%2) precedes frame #%3 "
+                               "end time (%4)"_s
+                        .arg(i).arg(currStart).arg(i - 1).arg(prevEnd)));
+            }
+        }
+    }
+
+    void setFrameRate_emitsFramesWithExpectedPresentationTimeSpacing()
+    {
+        WindowCaptureWithWidgetFixture fixture;
+
+        // Use animated content to make sure the backend does not consider the
+        // content idle and keeps emitting at the requested rate.
+        fixture.m_widget.setDisplayPattern(TestWidget::Pattern::Animated);
+
+        const float frameRate = 5.f;
+        fixture.m_capture.setMaximumFrameRate(frameRate);
+
+        QVERIFY(fixture.start());
+
+        const std::vector<QVideoFrame> frames = fixture.m_grabber.waitAndTakeFrames(6);
+        QVERIFY2(
+            frames.size() >= 2,
+            "Did not receive enough QVideoFrames to measure presentation time spacing");
+
+        // Expected spacing between consecutive presentation times, in microseconds.
+        const qint64 expectedSpacingUs = qint64(std::micro::den / frameRate);
+
+        // maximumFrameRate is an upper bound, so frames must not be spaced closer
+        // than the requested interval (allowing some slop). An occasional dropped
+        // frame widens the gap, so we do not enforce a tight upper bound per gap;
+        // instead we require the average spacing to stay near the expected value.
+        const double lowerSlop = 0.15;
+        const double upperAverageSlop = 0.5;
+
+        qint64 totalSpacingUs = 0;
+        for (size_t i = 1; i < frames.size(); ++i) {
+            const qint64 spacingUs = frames[i].startTime() - frames[i - 1].startTime();
+            totalSpacingUs += spacingUs;
+
+            QVERIFY2(
+                spacingUs >= qint64(expectedSpacingUs * (1 - lowerSlop)),
+                qPrintable(u"Frames #%1 and #%2 are spaced %3us apart, closer than "
+                           "the requested minimum of %4us"_s
+                    .arg(i - 1).arg(i).arg(spacingUs).arg(expectedSpacingUs)));
+        }
+
+        const qint64 averageSpacingUs = totalSpacingUs / qint64(frames.size() - 1);
+        QVERIFY2(
+            averageSpacingUs <= qint64(expectedSpacingUs * (1 + upperAverageSlop)),
+            qPrintable(u"Average presentation time spacing %1us is far larger than "
+                       "the requested %2us"_s
+                .arg(averageSpacingUs).arg(expectedSpacingUs)));
+    }
+
     void capturedImage_equals_imageFromGrab_data()
     {
         QTest::addColumn<QSize>("windowSize");

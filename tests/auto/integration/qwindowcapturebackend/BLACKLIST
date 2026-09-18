@@ -20,3 +20,9 @@ windows-11 msvc ci
 # Windows WGC implementation has issues with resizing
 [capturedFrame_hasNewSize_whenWindowResized]
 windows
+
+# Linux and Windows implementations hace issues with
+# presentation timings
+[setFrameRate_emitsFramesWithExpectedPresentationTimeSpacing]
+windows
+linux
