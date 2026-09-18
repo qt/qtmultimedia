@@ -233,7 +233,16 @@ qt_feature("linux_v4l" PRIVATE
 )
 qt_feature("linux_dmabuf" PRIVATE
     LABEL "Linux DMA buffer support"
-    CONDITION TEST_egl_has_image AND QT_FEATURE_egl AND TEST_linux_dmabuf AND NOT ANDROID
+    CONDITION LINUX AND TEST_linux_dmabuf AND NOT ANDROID
+)
+qt_feature("linux_dmabuf_egl" PRIVATE
+    LABEL "Linux DMA buffer EGL/GL texture import"
+    CONDITION QT_FEATURE_linux_dmabuf AND QT_FEATURE_opengl AND QT_FEATURE_egl
+              AND TEST_egl_has_image
+)
+qt_feature("linux_dmabuf_vulkan" PRIVATE
+    LABEL "Linux DMA buffer Vulkan texture import"
+    CONDITION QT_FEATURE_linux_dmabuf AND QT_FEATURE_vulkan
 )
 qt_feature("gpu_vivante" PRIVATE
     LABEL "Vivante GPU direct-texture zero-copy video import (glTexDirectVIV)"

@@ -31,8 +31,7 @@
 #include <memory>
 #include <optional>
 
-static_assert(QT_CONFIG(linux_dmabuf));
-static_assert(QT_CONFIG(vulkan));
+static_assert(QT_CONFIG(linux_dmabuf_vulkan));
 
 QT_BEGIN_NAMESPACE
 

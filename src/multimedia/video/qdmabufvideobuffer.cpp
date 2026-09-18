@@ -10,7 +10,7 @@
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/private/qcore_unix_p.h>
 
-#if QT_CONFIG(opengl) && QT_CONFIG(egl)
+#if QT_CONFIG(linux_dmabuf_egl)
 #  include <QtMultimedia/private/qdmabuftextureimporter_p.h>
 #endif
 
@@ -29,7 +29,7 @@ Q_STATIC_LOGGING_CATEGORY(qLcDmaBufVideoBuffer, "qt.multimedia.dmabufvideobuffer
 
 namespace QtMultimediaPrivate {
 
-#if QT_CONFIG(opengl) && QT_CONFIG(egl)
+#if QT_CONFIG(linux_dmabuf_egl)
 static QRhiValueMapper<DmaBufEglContext> g_eglContexts;
 #endif
 
@@ -100,7 +100,7 @@ QVideoFrameTexturesUPtr QDmaBufVideoBuffer::mapTextures(QRhi &rhi)
     if (rhi.backend() != QRhi::OpenGLES2)
         return {};
 
-#if QT_CONFIG(opengl) && QT_CONFIG(egl)
+#if QT_CONFIG(linux_dmabuf_egl)
     // DmaBufEglContext is bound to the GL context associated with a QRhi;
     // textures are (re-)imported on the RHI render thread, so this is
     // created lazily here (rather than in the constructor, which may run on
@@ -127,11 +127,11 @@ QVideoFrameTexturesUPtr QDmaBufVideoBuffer::mapTextures(QRhi &rhi)
 
     return QVideoTextureHelper::createTexturesFromHandles(std::move(*handles), rhi, m_format,
                                                           m_size);
-#else // QT_CONFIG(opengl) && QT_CONFIG(egl)
+#else // QT_CONFIG(linux_dmabuf_egl)
     qCDebug(qLcDmaBufVideoBuffer)
             << "DMABUF texture import is not supported in this build, falling back to CPU path";
     return {};
-#endif // QT_CONFIG(opengl) && QT_CONFIG(egl)
+#endif // QT_CONFIG(linux_dmabuf_egl)
 }
 
 void QDmaBufVideoBuffer::unmapRegions(QSpan<const MappedRegion> regions)

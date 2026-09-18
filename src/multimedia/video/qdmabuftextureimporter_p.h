@@ -32,7 +32,7 @@
 #include <memory>
 #include <vector>
 
-static_assert(QT_CONFIG(linux_dmabuf));
+static_assert(QT_CONFIG(linux_dmabuf_egl));
 
 QT_BEGIN_NAMESPACE
 

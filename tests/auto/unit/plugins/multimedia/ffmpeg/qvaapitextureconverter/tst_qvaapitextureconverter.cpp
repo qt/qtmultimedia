@@ -16,7 +16,7 @@
 #include <QtGui/qopenglfunctions.h>
 #include <QtGui/qsurfaceformat.h>
 #include <QtGui/rhi/qrhi.h>
-#if QT_CONFIG(vulkan)
+#if QT_CONFIG(linux_dmabuf_vulkan)
 #  include <QtGui/qvulkaninstance.h>
 #endif
 
@@ -130,6 +130,7 @@ class tst_QVaapiTextureConverter : public QObject
     Q_OBJECT
 
 private slots:
+#if QT_CONFIG(linux_dmabuf_egl)
     void create_succeedsAndKeepsRhi_whenVaapiAndEglAreAvailable();
 
     void createTextureHandles_roundTripsPixelData_forHwFrame_data();
@@ -140,12 +141,14 @@ private slots:
 
     void createTextureHandles_outlivesSourceFrame_afterFrameContextIsDestroyed();
     void createTextureHandles_acceptsOldHandles_onSecondCall();
-#if QT_CONFIG(vulkan)
+#endif
+#if QT_CONFIG(linux_dmabuf_vulkan)
     void create_succeedsAndKeepsRhi_whenVaapiAndVulkanAreAvailable();
     void createTextureHandles_returnsOnePlanePerNv12Component_forHwFrame_vulkan();
 #endif
 };
 
+#if QT_CONFIG(linux_dmabuf_egl)
 void tst_QVaapiTextureConverter::create_succeedsAndKeepsRhi_whenVaapiAndEglAreAvailable()
 {
     q23::expected<OffscreenGlRhi, QString> offscreenRhi = createOffscreenGlRhi();
@@ -342,8 +345,9 @@ void tst_QVaapiTextureConverter::createTextureHandles_acceptsOldHandles_onSecond
     QVERIFY(secondHandles);
     QVERIFY(GLuint(secondHandles->textureHandle(*rhi, 0)) != 0);
 }
+#endif // QT_CONFIG(linux_dmabuf_egl)
 
-#if QT_CONFIG(vulkan)
+#if QT_CONFIG(linux_dmabuf_vulkan)
 void tst_QVaapiTextureConverter::create_succeedsAndKeepsRhi_whenVaapiAndVulkanAreAvailable()
 {
     auto offscreen = createOffscreenVulkanRhi(
@@ -399,7 +403,7 @@ void tst_QVaapiTextureConverter::
     QVERIFY(chromaHandle != 0);
     QVERIFY(lumaHandle != chromaHandle);
 }
-#endif // QT_CONFIG(vulkan)
+#endif // QT_CONFIG(linux_dmabuf_vulkan)
 
 int main(int argc, char *argv[])
 {

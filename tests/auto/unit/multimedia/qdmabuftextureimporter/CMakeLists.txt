@@ -7,7 +7,7 @@ if(NOT QT_BUILD_STANDALONE_TESTS AND NOT QT_BUILDING_QT)
     find_package(Qt6BuildInternals REQUIRED COMPONENTS STANDALONE_TEST)
 endif()
 
-if(NOT LINUX OR NOT QT_FEATURE_linux_dmabuf)
+if(NOT LINUX OR NOT QT_FEATURE_linux_dmabuf_egl)
     return()
 endif()
 

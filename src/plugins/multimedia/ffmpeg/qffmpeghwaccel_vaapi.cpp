@@ -5,8 +5,10 @@
 
 #include <QtFFmpegMediaPluginImpl/private/qffmpegvideobuffer_p.h>
 
-#include <QtMultimedia/private/qdmabuftextureimporter_p.h>
-#if QT_CONFIG(vulkan)
+#if QT_CONFIG(linux_dmabuf_egl)
+#  include <QtMultimedia/private/qdmabuftextureimporter_p.h>
+#endif
+#if QT_CONFIG(linux_dmabuf_vulkan)
 #  include <QtMultimedia/private/qdmabufvulkanimporter_p.h>
 #endif
 #include <QtMultimedia/private/qmultimedia_drm_support_p.h>
@@ -133,6 +135,7 @@ createVaapiTextureHandles(AVFrame *frame, TextureConverterBackend &converter,
     return std::move(*textureHandles);
 }
 
+#if QT_CONFIG(linux_dmabuf_egl)
 class VAAPIGLTextureConverter final : public TextureConverterBackend
 {
 public:
@@ -163,8 +166,9 @@ private:
 
     QtMultimediaPrivate::DmaBufEglContext m_context;
 };
+#endif // QT_CONFIG(linux_dmabuf_egl)
 
-#if QT_CONFIG(vulkan)
+#if QT_CONFIG(linux_dmabuf_vulkan)
 class VAAPIVulkanTextureConverter final : public TextureConverterBackend
 {
 public:
@@ -192,7 +196,7 @@ private:
 
     QtMultimediaPrivate::DmaBufVulkanContext m_context;
 };
-#endif // QT_CONFIG(vulkan)
+#endif // QT_CONFIG(linux_dmabuf_vulkan)
 
 } // namespace
 
@@ -200,9 +204,11 @@ std::shared_ptr<TextureConverterBackend> VAAPITextureConverterFactory::create(QR
 {
     if (rhi) {
         switch (rhi->backend()) {
+#if QT_CONFIG(linux_dmabuf_egl)
         case QRhi::OpenGLES2:
             return VAAPIGLTextureConverter::create(rhi);
-#if QT_CONFIG(vulkan)
+#endif
+#if QT_CONFIG(linux_dmabuf_vulkan)
         case QRhi::Vulkan:
             return VAAPIVulkanTextureConverter::create(rhi);
 #endif
