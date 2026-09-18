@@ -274,11 +274,11 @@ void QGstreamerRelayVideoSink::unrefGstContexts()
 namespace {
 
 using AnyNativeGLContextType = std::variant<
-#  if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(gstreamer_gl_x11)
+#  if QT_CONFIG(gstreamer_gl_egl) && QT_CONFIG(gstreamer_gl_x11) && QT_CONFIG(xcb_glx_plugin)
         EGLContext, GLXContext
 #  elif QT_CONFIG(gstreamer_gl_egl)
         EGLContext
-#  elif QT_CONFIG(gstreamer_gl_x11)
+#  elif QT_CONFIG(gstreamer_gl_x11) && QT_CONFIG(xcb_glx_plugin)
         GLXContext
 #  else
         void *
@@ -295,12 +295,12 @@ resolveNativeGlContext([[maybe_unused]] QOpenGLContext *glContext, GstGLPlatform
             return eglContext->nativeContext();
         return std::nullopt;
 #    endif
-#    if QT_CONFIG(gstreamer_gl_x11)
+#  if QT_CONFIG(gstreamer_gl_x11) && QT_CONFIG(xcb_glx_plugin)
     case GST_GL_PLATFORM_GLX:
         if (auto *glxContext = glContext->nativeInterface<QNativeInterface::QGLXContext>())
             return glxContext->nativeContext();
         return std::nullopt;
-#    endif
+#  endif
     default:
         return std::nullopt;
     }
@@ -343,7 +343,7 @@ std::optional<ResolveGstGlDisplayResult> resolveGstGlDisplay([[maybe_unused]] QR
     }
 #  endif
 
-#  if QT_CONFIG(gstreamer_gl_x11)
+#  if QT_CONFIG(gstreamer_gl_x11) && QT_CONFIG(xcb_glx_plugin)
     if (auto *x11App = qGuiApp->nativeInterface<QNativeInterface::QX11Application>()) {
         QGstGLDisplayHandle gstGlDisplay{
             GST_GL_DISPLAY_CAST(gst_gl_display_x11_new_with_display(x11App->display())),
@@ -355,7 +355,7 @@ std::optional<ResolveGstGlDisplayResult> resolveGstGlDisplay([[maybe_unused]] QR
                 GST_GL_PLATFORM_GLX,
             };
     }
-#    endif
+#  endif
 
     return std::nullopt;
 }
