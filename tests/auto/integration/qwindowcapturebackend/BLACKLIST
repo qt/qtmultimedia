@@ -26,3 +26,7 @@ windows
 [setFrameRate_emitsFramesWithExpectedPresentationTimeSpacing]
 windows
 linux
+
+# BUG: Not all windows listed by capturableWindows() can be captured on Windows
+[capturableWindows_canAllBeCaptured]
+windows

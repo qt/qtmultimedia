@@ -207,6 +207,59 @@ private slots:
         QVERIFY(fixture.m_errors.empty());
     }
 
+    void capturableWindows_canAllBeCaptured_data()
+    {
+        QTest::addColumn<QCapturableWindow>("window");
+
+        const QList<QCapturableWindow> windows = QWindowCapture::capturableWindows();
+
+        if (windows.empty()) {
+            // CI machines may run without any windows other than our own, which
+            // do not exist yet at this point.
+            if (isCI())
+                QSKIP("QWindowCapture::capturableWindows() returned no windows");
+
+            // Without any rows, QtTest still runs the test function once, and QFETCH
+            // aborts the whole test run. Add an invalid window instead, so that the
+            // test function reports the empty list as a failure.
+            QTest::newRow("no capturable windows") << QCapturableWindow{};
+            return;
+        }
+
+        for (qsizetype i = 0; i < windows.size(); ++i) {
+            // Window descriptions are not unique, so prefix the tag with the
+            // index to keep the data tags distinct.
+            const QString tag = u"%1: %2"_s.arg(i).arg(windows.at(i).description());
+            QTest::newRow(qPrintable(tag)) << windows.at(i);
+        }
+    }
+
+    /*
+        Every handle that capturableWindows() hands out is advertised as
+        capturable, so starting a stream on any of them must succeed and deliver
+        a valid frame.
+
+        Note that this captures windows belonging to other applications, which
+        makes it sensitive to whatever happens to be on screen.
+    */
+    void capturableWindows_canAllBeCaptured()
+    {
+        QFETCH(const QCapturableWindow, window);
+        QVERIFY2(window.isValid(), "QWindowCapture::capturableWindows() returned no windows");
+
+        WindowCaptureFixture fixture;
+        fixture.m_capture.setWindow(window);
+        fixture.m_capture.setActive(true);
+
+        // Ensure that we have received a frame
+        QVERIFY(fixture.consumeFirstFrame());
+
+        QVERIFY(fixture.m_capture.isActive());
+        QCOMPARE(fixture.m_activations.size(), 1);
+        QVERIFY(fixture.m_activations.at(0).at(0).toBool());
+        QVERIFY(fixture.m_errors.empty());
+    }
+
     void setActive_failsAndEmitsError_whenWindowIsDefaultConstructed()
     {
         WindowCaptureFixture fixture;
