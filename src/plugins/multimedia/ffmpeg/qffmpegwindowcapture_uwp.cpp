@@ -145,7 +145,7 @@ struct WindowGrabber
 {
     WindowGrabber() = default;
 
-    WindowGrabber(IDXGIAdapter1 *adapter, HWND hwnd)
+    WindowGrabber(IDXGIAdapter1 *adapter, HWND hwnd, bool ignoreCursor)
         : m_captureWindow{ hwnd }, m_frameSize{ getWindowSize(hwnd) }
     {
         check_hresult(D3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, 0, nullptr, 0,
@@ -159,9 +159,9 @@ struct WindowGrabber
 
         m_session = m_framePool.CreateCaptureSession(captureItem);
 
-        // If supported, enable cursor capture
+        // If supported, capture the cursor unless asked not to
         if (const auto session2 = m_session.try_as<IGraphicsCaptureSession2>())
-            session2.IsCursorCaptureEnabled(true);
+            session2.IsCursorCaptureEnabled(!ignoreCursor);
 
         // If supported, disable colored border around captured window to match other platforms
         if (const auto session3 = m_session.try_as<IGraphicsCaptureSession3>())
@@ -301,6 +301,7 @@ public:
     Grabber(QFFmpegWindowCaptureUwp &capture, HWND hwnd)
         : QSurfaceCaptureGrabber(),
           m_hwnd(hwnd),
+          m_ignoreCursor(capture.ignoreCursor()),
           m_format(QVideoFrameFormat(asQSize(getWindowSize(hwnd)),
                                      QVideoFrameFormat::Format_RGBX8888))
     {
@@ -329,7 +330,10 @@ protected:
             return; // Error already logged
 
         try {
-            m_windowGrabber = std::make_unique<WindowGrabber>(m_adapter.get(), m_hwnd);
+            m_windowGrabber = std::make_unique<WindowGrabber>(
+                m_adapter.get(),
+                m_hwnd,
+                m_ignoreCursor);
 
             QSurfaceCaptureGrabber::initializeGrabbingContext();
         } catch (const winrt::hresult_error &err) {
@@ -434,6 +438,7 @@ private:
     }
 
     HWND m_hwnd{};
+    bool m_ignoreCursor = false;
     com_ptr<IDXGIAdapter1> m_adapter{};
     std::unique_ptr<WindowGrabber> m_windowGrabber;
     QVideoFrameFormat m_format;
