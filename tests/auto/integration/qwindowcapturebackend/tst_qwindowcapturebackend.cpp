@@ -207,6 +207,42 @@ private slots:
         QVERIFY(fixture.m_errors.empty());
     }
 
+    void setActive_failsAndEmitsError_whenWindowIsDefaultConstructed()
+    {
+        WindowCaptureFixture fixture;
+        QWindowCapture &windowCapture = fixture.m_capture;
+
+        QSignalSpy windowChanges{ &windowCapture, &QWindowCapture::windowChanged };
+
+        // A default-constructed QCapturableWindow does not refer to any window,
+        // and can never be captured.
+        const QCapturableWindow emptyWindow;
+        QVERIFY(!emptyWindow.isValid());
+
+        windowCapture.setWindow(emptyWindow);
+
+        // Assigning an invalid window to an inactive capture is a no-op, since
+        // it already holds a default-constructed window.
+        QCOMPARE(windowCapture.window(), QCapturableWindow{});
+        QCOMPARE(windowChanges.size(), 0);
+        QVERIFY(fixture.m_errors.empty());
+
+        // Starting the capture must fail and report an error.
+        windowCapture.setActive(true);
+
+        QVERIFY(!windowCapture.isActive());
+        QVERIFY(fixture.m_activations.empty());
+        QCOMPARE(fixture.m_errors.size(), 1);
+
+        // No frames must ever arrive on the stream.
+        QTest::qWait(500ms);
+        QVERIFY(fixture.m_grabber.getFrames().empty());
+
+        // TODO: Verify a specific error code once it is consistent across
+        // platforms.
+        // QCOMPARE(windowCapture.error(), QWindowCapture::Error::NotFound);
+    }
+
     void setActive_failsAndEmitsErrors_whenNoWindowSelected()
     {
         WindowCaptureFixture fixture;
