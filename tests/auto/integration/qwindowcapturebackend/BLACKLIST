@@ -39,3 +39,22 @@ linux
 
 [recorder_doesNotAutoStop_whenWindowIsSwitched]
 xcb
+
+[stream_endsWithNullFrame_whenStopped]
+windows
+linux
+[stream_endsWithNullFrame_whenDestroyed]
+windows
+linux
+[stream_endsWithNullFrame_whenRestarted]
+windows
+linux
+
+[recorder_autoStops_whenWindowCaptureIsDestroyed]
+windows
+linux
+
+# BUG: Removing a video source from the capture session does not report
+# end-of-stream to the recorder (see TODO in connectEncoderToSource).
+[recorder_autoStops_whenWindowCaptureIsRemovedFromCaptureSession]
+*

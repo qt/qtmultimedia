@@ -84,6 +84,135 @@ private:
                 .arg(lastFrameSize.height())));
     }
 
+    // Verifies that a null-frame ending a stream has a valid presentation time that
+    // comes after the last valid frame of the stream, so it can be ordered as the
+    // last event of the stream.
+    void verifyNullFrameTiming(
+        const VideoFrameInfo &lastValidFrame,
+        const VideoFrameInfo &nullFrame,
+        const QString &context)
+    {
+        QVERIFY2(
+            nullFrame.startTime >= 0,
+            qPrintable(u"%1: null-frame has no valid start time (%2)"_s
+                .arg(context)
+                .arg(nullFrame.startTime)));
+
+        QVERIFY2(
+            nullFrame.startTime > lastValidFrame.startTime,
+            qPrintable(u"%1: null-frame start time (%2) is not after the start time "
+                       "of the last valid frame (%3)"_s
+                .arg(context)
+                .arg(nullFrame.startTime)
+                .arg(lastValidFrame.startTime)));
+
+        // The null-frame may end the last valid frame exactly at its end time, but
+        // not before it.
+        if (lastValidFrame.endTime >= 0) {
+            QVERIFY2(
+                nullFrame.startTime >= lastValidFrame.endTime,
+                qPrintable(u"%1: null-frame start time (%2) is before the end time "
+                           "of the last valid frame (%3)"_s
+                    .arg(context)
+                    .arg(nullFrame.startTime)
+                    .arg(lastValidFrame.endTime)));
+        }
+    }
+
+    void verifyStreamEndsWithNullFrame(WindowCaptureFixture &fixture, const QString &context)
+    {
+        // The backend may emit the null-frame from the thread it delivers frames on,
+        // in which case it is still in flight when the capture has been stopped.
+        const bool streamTerminated = QTest::qWaitFor(
+            [&] {
+                const std::vector<VideoFrameInfo> &frames = fixture.m_grabber.getFrameInfos();
+                return !frames.empty() && !frames.back().isValid;
+            },
+            surfaceCaptureTestTimeout());
+
+        const std::vector<VideoFrameInfo> frames = fixture.m_grabber.getFrameInfos();
+
+        QVERIFY2(
+            streamTerminated,
+            qPrintable(u"%1: the stream did not end with a null-frame, received "
+                       "%2 frame(s)"_s
+                .arg(context)
+                .arg(int(frames.size()))));
+
+        // Only the very last frame may be a null-frame; everything before it must
+        // be a valid frame, and there must be at least one valid frame.
+        QVERIFY2(
+            frames.size() >= 2,
+            qPrintable(u"%1: stream only contained a null-frame, expected at least "
+                       "one valid frame before it"_s.arg(context)));
+
+        for (size_t i = 0; i + 1 < frames.size(); ++i) {
+            QVERIFY2(
+                frames[i].isValid,
+                qPrintable(u"%1: frame #%2 (before the terminating null-frame) was "
+                           "an unexpected null-frame"_s.arg(context).arg(i)));
+        }
+
+        verifyNullFrameTiming(frames[frames.size() - 2], frames.back(), context);
+        if (QTest::currentTestFailed())
+            return;
+
+        // Wait a bit to make sure no stray frames arrive after the terminating
+        // null-frame.
+        const size_t frameCountAfterNull = frames.size();
+        QTest::qWait(500ms);
+
+        const std::vector<VideoFrameInfo> &framesAfterWait = fixture.m_grabber.getFrameInfos();
+        if (framesAfterWait.size() != frameCountAfterNull) {
+            QString strayFrames;
+            for (size_t i = frameCountAfterNull; i < framesAfterWait.size(); ++i) {
+                const VideoFrameInfo &frame = framesAfterWait[i];
+                strayFrames += u" [#%1 %2 %3x%4 startTime %5]"_s
+                    .arg(i)
+                    .arg(frame.isValid ? u"valid"_s : u"null"_s)
+                    .arg(frame.size.width())
+                    .arg(frame.size.height())
+                    .arg(frame.startTime);
+            }
+
+            QFAIL(qPrintable(u"%1: received %2 frame(s) after the terminating "
+                             "null-frame:%3"_s
+                .arg(context)
+                .arg(int(framesAfterWait.size() - frameCountAfterNull))
+                .arg(strayFrames)));
+        }
+    }
+
+    // Starts recording with autoStop enabled, and waits until the recorder is encoding.
+    void startRecordingWithAutoStop(WindowCaptureWithWidgetAndRecorderFixture &fixture)
+    {
+        fixture.m_recorder.setAutoStop(true);
+        fixture.start();
+
+        QVERIFY(fixture.tryWaitForFirstFrameInfo());
+        QTRY_VERIFY_WITH_TIMEOUT(fixture.m_recorder.duration() > 0, surfaceCaptureTestTimeout());
+    }
+
+    // Waits for the recorder to stop on its own, and verifies that the recording is valid.
+    void verifyRecorderAutoStopped(WindowCaptureWithWidgetAndRecorderFixture &fixture)
+    {
+        const bool autoStopped = QTest::qWaitFor(
+            [&] {
+                return fixture.m_recorderState == QMediaRecorder::RecorderState::StoppedState;
+            },
+            surfaceCaptureTestTimeout());
+
+        if (!autoStopped) {
+            // Stop explicitly, so the recording is finalized before the test ends.
+            QVERIFY(fixture.stop());
+            QFAIL("The recorder did not auto-stop");
+        }
+
+        QVERIFY(fixture.m_recorderErrors.empty());
+        QVERIFY(QFile{ fixture.m_mediaFile }.exists());
+        QVERIFY(fixture.testVideoFilePlayback(fixture.m_mediaFile));
+    }
+
 private slots:
     void initTestCase()
     {
@@ -460,6 +589,121 @@ private slots:
         QCOMPARE_GE(capturedFrames.size(), size_t(capturedFrameCount));
     }
 
+    void stream_endsWithNullFrame_whenStopped()
+    {
+        WindowCaptureWithWidgetFixture fixture;
+        QVERIFY(fixture.start());
+        QVERIFY(fixture.m_capture.isActive());
+        QVERIFY(fixture.tryWaitForFirstFrameInfo());
+
+        // Stopping the capture must terminate the stream with a null-frame.
+        fixture.m_capture.setActive(false);
+        QVERIFY(!fixture.m_capture.isActive());
+
+        verifyStreamEndsWithNullFrame(fixture, u"setActive(false)"_s);
+
+        QVERIFY(fixture.m_errors.empty());
+    }
+
+    void stream_endsWithNullFrame_whenDestroyed()
+    {
+        WindowCaptureWithWidgetFixture fixture;
+        QVERIFY(fixture.start());
+        QVERIFY(fixture.m_capture.isActive());
+        QVERIFY(fixture.tryWaitForFirstFrameInfo());
+
+        // Destroying the QWindowCapture must terminate the stream with a null-frame.
+        // The grabber (video sink) outlives the capture, so it will still receive
+        // the terminating null-frame.
+        fixture.m_captureStorage.reset();
+
+        verifyStreamEndsWithNullFrame(fixture, u"QWindowCapture destroyed"_s);
+
+        QVERIFY(fixture.m_errors.empty());
+    }
+
+    void stream_endsWithNullFrame_whenRestarted()
+    {
+        constexpr int streamCount = 3;
+
+        WindowCaptureWithWidgetFixture fixture;
+        QVERIFY(fixture.start());
+        QVERIFY(fixture.m_capture.isActive());
+
+        const auto nullFrameCount = [&] {
+            int count = 0;
+            for (const VideoFrameInfo &frame : fixture.m_grabber.getFrameInfos()) {
+                if (!frame.isValid)
+                    ++count;
+            }
+            return count;
+        };
+
+        for (int i = 0; i < streamCount; ++i) {
+            QVERIFY2(
+                fixture.tryWaitForFirstFrameInfo(),
+                qPrintable(u"stream #%1: no first frame was received"_s.arg(i)));
+
+            // Stopping the capture must terminate every stream with a null-frame,
+            // not just the first one.
+            fixture.m_capture.setActive(false);
+            QVERIFY(!fixture.m_capture.isActive());
+
+            // Wait for the null-frame before restarting, so we know which stream
+            // it belongs to.
+            const bool streamTerminated = QTest::qWaitFor(
+                [&] {
+                    const std::vector<VideoFrameInfo> &frames = fixture.m_grabber.getFrameInfos();
+                    return !frames.empty() && !frames.back().isValid;
+                },
+                surfaceCaptureTestTimeout());
+            QVERIFY2(
+                streamTerminated,
+                qPrintable(u"stream #%1: the stream did not end with a null-frame"_s.arg(i)));
+            QCOMPARE(nullFrameCount(), i + 1);
+
+            if (i + 1 < streamCount) {
+                fixture.m_capture.setActive(true);
+                QVERIFY(fixture.m_capture.isActive());
+            }
+        }
+
+        // Every stream must consist of at least one valid frame, followed by exactly
+        // one null-frame. The null-frame must be presented after the last valid
+        // frame of its stream.
+        const std::vector<VideoFrameInfo> frames = fixture.m_grabber.getFrameInfos();
+
+        int streamIndex = 0;
+        size_t streamFrameCount = 0;
+        for (size_t i = 0; i < frames.size(); ++i) {
+            const VideoFrameInfo &frame = frames[i];
+            if (frame.isValid) {
+                ++streamFrameCount;
+                continue;
+            }
+
+            QVERIFY2(
+                streamFrameCount > 0,
+                qPrintable(u"stream #%1: ended with a null-frame (frame #%2) without "
+                           "delivering any valid frame"_s
+                    .arg(streamIndex)
+                    .arg(i)));
+
+            verifyNullFrameTiming(frames[i - 1], frame, u"stream #%1"_s.arg(streamIndex));
+            if (QTest::currentTestFailed())
+                return;
+
+            ++streamIndex;
+            streamFrameCount = 0;
+        }
+
+        QCOMPARE(streamIndex, streamCount);
+        QVERIFY(!frames.back().isValid);
+
+        QCOMPARE(fixture.m_activations.size(), 2 * streamCount);
+        QVERIFY(fixture.m_errors.empty());
+    }
+
     void setWindow_switchesSource_whileActive()
     {
         WindowCaptureWithWidgetFixture fixture;
@@ -649,6 +893,47 @@ private slots:
 
         // TODO: Check that last error state is a specific error code.
         // QCOMPARE(windowCapture.error(), QWindowCapture::Error::NotFound);
+    }
+
+    // Switching source while active continues the stream with the new source. It must
+    // not end the stream with a null-frame, as consumers such as QMediaRecorder would
+    // then consider the capture to have ended.
+    void setWindow_doesNotEmitNullFrame_whenSwitchingSourceWhileActive()
+    {
+        WindowCaptureWithWidgetFixture fixture;
+        QVERIFY(fixture.start({ 60, 40 }));
+        QVERIFY(fixture.tryWaitForFirstFrameInfo());
+
+        // Create a second, differently-sized window to switch to
+        TestWidget secondWidget;
+        secondWidget.setSize({ 120, 80 });
+        secondWidget.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&secondWidget, surfaceCaptureTestTimeout()));
+
+        std::optional<QCapturableWindow> secondWindow =
+            WindowCaptureWithWidgetFixture::findCaptureWindow(
+                secondWidget.windowTitle(),
+                secondWidget.windowHandle());
+        QVERIFY(secondWindow && secondWindow->isValid());
+
+        fixture.m_capture.setWindow(*secondWindow);
+        QVERIFY(fixture.m_capture.isActive());
+
+        // Wait for frames of the new window's size, so we know the backend has
+        // completed the switch. The captured frame is delivered in physical pixels,
+        // so scale by the device pixel ratio.
+        const QSize expectedSize =
+            (QSizeF(secondWidget.size()) * secondWidget.devicePixelRatio()).toSize();
+        QTRY_VERIFY_WITH_TIMEOUT(
+            !fixture.m_grabber.getFrameInfos().empty()
+            && fixture.m_grabber.getFrameInfos().back().size == expectedSize,
+            surfaceCaptureTestTimeout());
+
+        for (const VideoFrameInfo &frame : fixture.m_grabber.getFrameInfos())
+            QVERIFY(frame.isValid);
+
+        QVERIFY(fixture.m_capture.isActive());
+        QVERIFY(fixture.m_errors.empty());
     }
 
     void setWindow_updatesPropertyAndEmitsSignal_whenNotActive()
@@ -1354,6 +1639,42 @@ private slots:
 
         QVERIFY(fixture.m_errors.empty());
         QVERIFY(fixture.m_recorderErrors.empty());
+    }
+
+    void recorder_autoStops_whenWindowCaptureIsDeactivated()
+    {
+        WindowCaptureWithWidgetAndRecorderFixture fixture;
+        startRecordingWithAutoStop(fixture);
+        if (QTest::currentTestFailed())
+            return;
+
+        fixture.m_capture.setActive(false);
+
+        verifyRecorderAutoStopped(fixture);
+    }
+
+    void recorder_autoStops_whenWindowCaptureIsDestroyed()
+    {
+        WindowCaptureWithWidgetAndRecorderFixture fixture;
+        startRecordingWithAutoStop(fixture);
+        if (QTest::currentTestFailed())
+            return;
+
+        fixture.m_captureStorage.reset();
+
+        verifyRecorderAutoStopped(fixture);
+    }
+
+    void recorder_autoStops_whenWindowCaptureIsRemovedFromCaptureSession()
+    {
+        WindowCaptureWithWidgetAndRecorderFixture fixture;
+        startRecordingWithAutoStop(fixture);
+        if (QTest::currentTestFailed())
+            return;
+
+        fixture.m_session.setWindowCapture(nullptr);
+
+        verifyRecorderAutoStopped(fixture);
     }
 
     void windowCapture_capturesWindowsInOtherProcesses()
