@@ -479,6 +479,7 @@ qt_internal_extend_target(Multimedia CONDITION WIN32
         windows/qwindowsvideodevices.cpp windows/qwindowsvideodevices_p.h
         windows/qwindowsd3d11texturebridge.cpp windows/qwindowsd3d11texturebridge_p.h
         windows/qwindowsd3d11rhitextureimporter.cpp windows/qwindowsd3d11rhitextureimporter_p.h
+        windows/qwindowsd3d11texturereadback.cpp windows/qwindowsd3d11texturereadback_p.h
         windows/qwmf_support.cpp windows/qwmf_support_p.h
     LIBRARIES
         avrt
