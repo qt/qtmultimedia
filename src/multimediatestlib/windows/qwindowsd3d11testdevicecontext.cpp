@@ -89,6 +89,19 @@ QWindowsD3D11TestDeviceContext::createTextureArray(QSize size,
     return tex;
 }
 
+bool QWindowsD3D11TestDeviceContext::isTextureFormatSupported(DXGI_FORMAT format) const
+{
+    if (!device)
+        return false;
+
+    UINT formatSupport = 0;
+    const HRESULT hr = device->CheckFormatSupport(format, &formatSupport);
+    if (FAILED(hr))
+        return false;
+
+    return (formatSupport & D3D11_FORMAT_SUPPORT_TEXTURE2D) != 0;
+}
+
 ComResult<ComPtr<ID3D11Texture2D>>
 QWindowsD3D11TestDeviceContext::createNV12Texture(QSize size) const
 {

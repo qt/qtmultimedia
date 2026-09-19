@@ -41,6 +41,8 @@ struct QWindowsD3D11TestDeviceContext
     ComResult<ComPtr<ID3D11Texture2D>> createTextureArray(QSize size,
                                                           const std::vector<QColor> &colors) const;
 
+    bool isTextureFormatSupported(DXGI_FORMAT format) const;
+
     // Creates an uninitialized single-plane NV12 texture, e.g. for structural (plane
     // count/size/format) tests that don't need to verify pixel contents.
     ComResult<ComPtr<ID3D11Texture2D>> createNV12Texture(QSize size) const;
