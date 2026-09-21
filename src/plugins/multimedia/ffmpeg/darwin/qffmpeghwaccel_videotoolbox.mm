@@ -210,7 +210,7 @@ VideoToolBoxTextureConverter::createTextureHandles(AVFrame *frame,
     textureHandles->rhi = rhi;
 
     auto *textureDescription = QVideoTextureHelper::textureDescription(pixelFormat);
-    int bufferPlanes = CVPixelBufferGetPlaneCount(textureHandles->m_buffer.get());
+    const int bufferPlanes = textureDescription->nplanes;
 
     if (rhi->backend() == QRhi::Metal) {
         // First check that all planes have pixel-formats that we can handle,
