@@ -77,7 +77,9 @@ QT_END_NAMESPACE
 
     // Used to track when the underlying window size changed, in pixel-coordinates.
     QSize m_previousFrameContentRect;
-    std::chrono::microseconds m_startTime;
+
+    // Presentation timestamp of the first frame of the stream. Used to report
+    // frame times relative to the start of the stream.
     std::optional<std::chrono::microseconds> m_baseTime;
     std::unique_ptr<QT_PREPEND_NAMESPACE(QFFmpeg::HWAccel)> m_hwAccel;
 }
@@ -193,13 +195,13 @@ struct FrameInfo
         av_map_videotoolbox_format_to_pixfmt(incomingCvPixelFormat),
         incomingFrameSize);
 
-    // TODO: We can extract these values specifically with ScreenCaptureKit.
-    std::chrono::microseconds frameTime =
+    // ScreenCaptureKit timestamps frames on the host clock. QVideoFrame times are
+    // relative to the start of the stream, so use the first frame as our zero point.
+    const std::chrono::microseconds frameTime =
         QAVFHelpers::CMTimeToMicroseconds(CMSampleBufferGetPresentationTimeStamp(sampleBufferRef));
-    if (!scStreamOutput.m_baseTime) {
+    if (!scStreamOutput.m_baseTime)
         scStreamOutput.m_baseTime = frameTime;
-        scStreamOutput.m_startTime = frameTime;
-    }
+    const std::chrono::microseconds presentationTime = frameTime - *scStreamOutput.m_baseTime;
 
     QVideoFrameFormat format = QAVFHelpers::videoFormatForImageBuffer(pixelBuffer.get());
     if (!format.isValid())
@@ -213,7 +215,7 @@ struct FrameInfo
     QVideoFrame frame;
     q23::expected<QVideoFrame, QString> frameResult = QFFmpeg::qVideoFrameFromCvPixelBuffer(
         *scStreamOutput.m_hwAccel,
-        scStreamOutput.m_startTime - *scStreamOutput.m_baseTime,
+        presentationTime,
         pixelBuffer,
         format);
     if (!frameResult)
@@ -227,9 +229,9 @@ struct FrameInfo
             std::move(format));
     }
 
-    frame.setStartTime((scStreamOutput.m_startTime - *scStreamOutput.m_baseTime).count());
-    frame.setEndTime((frameTime - *scStreamOutput.m_baseTime).count());
-    scStreamOutput.m_startTime = frameTime;
+    frame.setStartTime(presentationTime.count());
+
+    frame.setEndTime(-1);
 
     return frame;
 }
