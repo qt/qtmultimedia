@@ -7,6 +7,12 @@ namespace QtMultimediaTest {
 
 using namespace Qt::Literals;
 
+std::unique_ptr<QRhi> createNullRhi()
+{
+    QRhiNullInitParams params;
+    return std::unique_ptr<QRhi>{ QRhi::create(QRhi::Null, &params) };
+}
+
 #if QT_CONFIG(opengl)
 std::unique_ptr<QRhi> createOffscreenGlRhi(std::unique_ptr<QOffscreenSurface> &fallbackSurface)
 {
@@ -23,6 +29,24 @@ std::unique_ptr<QRhi> createOffscreenMetalRhi()
 {
     QRhiMetalInitParams metalParams;
     return std::unique_ptr<QRhi>(QRhi::create(QRhi::Metal, &metalParams));
+}
+#endif
+
+#if defined(Q_OS_WIN)
+std::unique_ptr<QRhi> createOffscreenD3D11Rhi()
+{
+    QRhiD3D11InitParams params;
+    return std::unique_ptr<QRhi>(QRhi::create(QRhi::D3D11, &params));
+}
+
+std::unique_ptr<QRhi> createWarpD3D11Rhi(const QWindowsD3D11TestDeviceContext &warpDevice)
+{
+    QRhiD3D11NativeHandles nativeHandles;
+    nativeHandles.dev = warpDevice.device.Get();
+    nativeHandles.context = warpDevice.context.Get();
+
+    QRhiD3D11InitParams params;
+    return std::unique_ptr<QRhi>{ QRhi::create(QRhi::D3D11, &params, {}, &nativeHandles) };
 }
 #endif
 
