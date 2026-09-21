@@ -19,6 +19,7 @@ extern "C" {
 #include <QtMultimedia/private/qavfhelpers_p.h>
 #include <QtMultimedia/private/qvideoframe_p.h>
 
+#include <CoreMedia/CMSync.h>
 #include <CoreMedia/CMTime.h>
 #include <ScreenCaptureKit/ScreenCaptureKit.h>
 
@@ -236,6 +237,20 @@ struct FrameInfo
     return frame;
 }
 
+[[nodiscard]] static QVideoFrame createEndOfStreamFrame(std::chrono::microseconds baseTime)
+{
+    QVideoFrame frame{ QVideoFrameFormat{} };
+    Q_ASSERT(!frame.isValid());
+
+    // ScreenCaptureKit timestamps frames on the host clock, so we can use that clock
+    // to express the end of the stream relative to the start of the stream.
+    const std::chrono::microseconds hostTime =
+        QAVFHelpers::CMTimeToMicroseconds(CMClockGetTime(CMClockGetHostTimeClock()));
+    frame.setStartTime((hostTime - baseTime).count());
+
+    return frame;
+}
+
 // Main frame handler.
 // Invoked on background dispatch-queue.
 static void handleFrameOutput(
@@ -400,7 +415,8 @@ createStreamOutput(
     return resolutionPx;
 }
 
-// The strategy is to flush any remaining jobs on the background thread.
+// The strategy is to flush any remaining jobs on the background thread, and then
+// mark the end of the stream with a null-frame.
 QMacScreenCaptureKit::~QMacScreenCaptureKit()
 {
     if (!m_stream)
@@ -419,9 +435,29 @@ QMacScreenCaptureKit::~QMacScreenCaptureKit()
     dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
     dispatch_release(semaphore);
 
-    // Flush the dispatch_queue. After this we assume it's safe to tear everything down.
-    if (m_dispatchQueue)
+    // Mark the end of the stream with a null-frame. We emit it from the background
+    // queue so that it is ordered after, and serialized with, the normal frames.
+    // Note that dispatch_sync() may run its block on the calling thread, so the
+    // emit must use dispatch_async().
+    if (m_dispatchQueue) {
+        Q_ASSERT(m_streamOutput);
+        // m_baseTime is owned by the background queue, so it is only read from there.
+        // The queue is serial, so this runs after all frames that were already delivered.
+        dispatch_async(m_dispatchQueue.data(), [this] {
+            std::optional<std::chrono::microseconds> baseTime =
+                m_streamOutput.data()->m_baseTime;
+
+            // A stream that never delivered a frame never started, in which case there is
+            // no stream for consumers to see the end of.
+            if (!baseTime)
+                return;
+
+            emit newVideoFrameGenerated(m_streamId, createEndOfStreamFrame(*baseTime));
+        });
+
+        // Flush the dispatch_queue. After this we assume it's safe to tear everything down.
         dispatch_sync(m_dispatchQueue.data(), []{});
+    }
 }
 
 // This will commonly fail if we are missing permissions for screen capturing.
