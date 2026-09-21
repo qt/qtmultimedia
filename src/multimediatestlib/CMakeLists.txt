@@ -20,6 +20,7 @@ qt_internal_add_module(MultimediaTestLibPrivate
         surfacecapturetestutils_p.h surfacecapturetestutils.cpp
         qcolorutil_p.h qcolorutil.cpp
         qfileutil_p.h qfileutil.cpp
+        qvideoframetestutils_p.h qvideoframetestutils.cpp
         qscopedenvironmentvariable_p.h
         qsequentialfileadaptor_p.h
         qsinewavevalidator_p.h qsinewavevalidator.cpp
