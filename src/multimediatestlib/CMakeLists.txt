@@ -45,3 +45,10 @@ qt_internal_extend_target(MultimediaTestLibPrivate CONDITION LINUX
     SOURCES
         udmabuftestutils_p.h udmabuftestutils.cpp
 )
+
+qt_internal_extend_target(MultimediaTestLibPrivate CONDITION WIN32
+    SOURCES
+        windows/qwindowsd3d11testdevicecontext_p.h windows/qwindowsd3d11testdevicecontext.cpp
+    LIBRARIES
+        d3d11
+)

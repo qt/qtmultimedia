@@ -21,7 +21,13 @@
 
 #include <memory>
 
+#if defined(Q_OS_WIN)
+#  include <QtMultimediaTestLib/private/qwindowsd3d11testdevicecontext_p.h>
+#endif
+
 namespace QtMultimediaTest {
+
+std::unique_ptr<QRhi> createNullRhi();
 
 #if QT_CONFIG(opengl)
 struct OffscreenGlRhi
@@ -36,6 +42,12 @@ q23::expected<OffscreenGlRhi, QString> createOffscreenGlRhi();
 
 #if QT_CONFIG(metal)
 std::unique_ptr<QRhi> createOffscreenMetalRhi();
+#endif
+
+#if defined(Q_OS_WIN)
+std::unique_ptr<QRhi> createOffscreenD3D11Rhi();
+
+std::unique_ptr<QRhi> createWarpD3D11Rhi(const QWindowsD3D11TestDeviceContext &warpDevice);
 #endif
 
 q23::expected<QByteArray, QString> readBackPlane(QRhi &, quint64 handle, QSize planeSize,

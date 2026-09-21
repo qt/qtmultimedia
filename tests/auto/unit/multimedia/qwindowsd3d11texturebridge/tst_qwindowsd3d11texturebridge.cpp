@@ -1,16 +1,16 @@
-// Copyright (C) 2025 The Qt Company Ltd.
+// Copyright (C) 2026 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include "devicecontext.h"
+#include <QtMultimediaTestLib/private/qwindowsd3d11testdevicecontext_p.h>
 
 #include <QtTest/QtTest>
-#include <QtCore/qobject.h>
-#include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_d3d11_p.h>
+#include <QtMultimedia/private/qwindowsd3d11texturebridge_p.h>
 #include <QtGui/qcolor.h>
+#include <QtCore/qobject.h>
 #include <QtCore/private/qsystemerror_p.h>
 
 using namespace std::chrono_literals;
-
+using QWindowsD3D11TextureBridge = QtMultimediaPrivate::QWindowsD3D11TextureBridge;
 
 // Helper macro to verify q23::expected<T, HRESULT>
 #define QVERIFYCOMRESULT(comresult) \
@@ -26,18 +26,18 @@ QSize getTextureSize(const ComPtr<ID3D11Texture2D> &tex)
     return QSize{ static_cast<int>(desc.Width), static_cast<int>(desc.Height) };
 }
 
-class tst_texturebridge : public QObject
+class tst_qwindowsd3d11texturebridge : public QObject
 {
     Q_OBJECT
 
 public slots:
     void init()
     {
-        ComResult<DeviceContext> src = createDeviceContext();
+        ComResult<QWindowsD3D11TestDeviceContext> src = createD3D11TestDeviceContext();
         QVERIFYCOMRESULT(src);
         m_src = *src;
 
-        ComResult<DeviceContext> dst = createDeviceContext();
+        ComResult<QWindowsD3D11TestDeviceContext> dst = createD3D11TestDeviceContext();
         QVERIFYCOMRESULT(dst);
         m_dst = *dst;
     }
@@ -54,12 +54,12 @@ private slots:
 
         QVERIFYCOMRESULT(srcTex);
 
-        QFFmpeg::TextureBridge bridge{};
+        QWindowsD3D11TextureBridge bridge{};
 
         for (UINT plane = 0; plane < static_cast<UINT>(testColors.size()); ++plane) {
 
-            const bool copySuccess = bridge.copyToSharedTex(m_src.device.Get(), m_src.context.Get(),
-                                                            *srcTex, plane, frameSize);
+            const bool copySuccess =
+                    bridge.copyToSharedTex(m_src.device, m_src.context, *srcTex, frameSize, plane);
             QVERIFY(copySuccess);
 
             const ComPtr<ID3D11Texture2D> copy =
@@ -81,12 +81,12 @@ private slots:
 
         QVERIFYCOMRESULT(srcTex);
 
-        QFFmpeg::TextureBridge bridge{};
+        QWindowsD3D11TextureBridge bridge{};
 
         for (UINT iteration = 0; iteration < 3; ++iteration) {
 
-            const bool copySuccess = bridge.copyToSharedTex(m_src.device.Get(), m_src.context.Get(),
-                                                            *srcTex, 0, frameSize);
+            const bool copySuccess =
+                    bridge.copyToSharedTex(m_src.device, m_src.context, *srcTex, frameSize);
             QVERIFY(copySuccess);
 
             const ComPtr<ID3D11Texture2D> copy =
@@ -104,7 +104,7 @@ private slots:
     {
         constexpr QSize frameSize{ 128, 64 };
 
-        QFFmpeg::TextureBridge bridge{};
+        QWindowsD3D11TextureBridge bridge{};
 
         { // Arrange bridge such that a texture was already copied to a primary destination device
             const ComResult<ComPtr<ID3D11Texture2D>> srcTex =
@@ -112,19 +112,19 @@ private slots:
 
             QVERIFYCOMRESULT(srcTex);
 
-            bool copySuccess = bridge.copyToSharedTex(m_src.device.Get(), m_src.context.Get(),
-                                                      *srcTex, 0, frameSize);
+            bool copySuccess =
+                    bridge.copyToSharedTex(m_src.device, m_src.context, *srcTex, frameSize);
             QVERIFY(copySuccess);
 
             ComPtr<ID3D11Texture2D> copy = bridge.copyFromSharedTex(m_dst.device, m_dst.context);
             QVERIFY(copy);
 
-            copySuccess = bridge.copyToSharedTex(m_src.device.Get(), m_src.context.Get(), *srcTex,
-                                                 0, frameSize);
+            copySuccess = bridge.copyToSharedTex(m_src.device, m_src.context, *srcTex, frameSize);
             QVERIFY(copySuccess);
         }
 
-        const ComResult<DeviceContext> secondDeviceContext = createDeviceContext();
+        const ComResult<QWindowsD3D11TestDeviceContext> secondDeviceContext =
+                createD3D11TestDeviceContext();
         QVERIFYCOMRESULT(secondDeviceContext);
 
         // Act
@@ -149,11 +149,11 @@ private slots:
             QSize{ 500, 600 } // grow
         };
 
-        QFFmpeg::TextureBridge bridge{};
+        QWindowsD3D11TextureBridge bridge{};
 
         constexpr QSize padding{
             64, 32
-        }; // Source texture from FFmpeg may have padding, so test with that.
+        }; // Source texture may have padding (e.g. decoder surface alignment), so test with that.
 
         for (const QSize &frameSize : frameSizes) {
             const ComResult<ComPtr<ID3D11Texture2D>> srcTex =
@@ -161,8 +161,8 @@ private slots:
 
             QVERIFYCOMRESULT(srcTex);
 
-            const bool copySuccess = bridge.copyToSharedTex(m_src.device.Get(), m_src.context.Get(),
-                                                            *srcTex, 1, frameSize);
+            const bool copySuccess =
+                    bridge.copyToSharedTex(m_src.device, m_src.context, *srcTex, frameSize, 1);
             QVERIFY(copySuccess);
 
             const ComPtr<ID3D11Texture2D> copy =
@@ -177,10 +177,10 @@ private slots:
     }
 
 private:
-    DeviceContext m_src;
-    DeviceContext m_dst;
+    QWindowsD3D11TestDeviceContext m_src;
+    QWindowsD3D11TestDeviceContext m_dst;
 };
 
-QTEST_GUILESS_MAIN(tst_texturebridge)
+QTEST_GUILESS_MAIN(tst_qwindowsd3d11texturebridge)
 
-#include "tst_texturebridge.moc"
+#include "tst_qwindowsd3d11texturebridge.moc"

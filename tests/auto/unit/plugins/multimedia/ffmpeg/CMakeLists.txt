@@ -13,8 +13,8 @@ if(APPLE)
 endif()
 
 if(WIN32)
-    add_subdirectory(texturebridge)
     add_subdirectory(qwindowscamera)
+    add_subdirectory(qffmpegd3d11textureconverter)
 endif()
 
 if (LINUX AND QT_FEATURE_vaapi)
