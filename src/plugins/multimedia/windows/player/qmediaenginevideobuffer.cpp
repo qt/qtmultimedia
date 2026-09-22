@@ -30,7 +30,8 @@ QMediaEngineVideoBuffer::mapTextures(QRhi &rhi, QVideoFrameTexturesUPtr & /*oldT
     m_engineDevice->GetImmediateContext(&engineCtx);
 
     QVideoFrameTexturesHandlesUPtr handles = m_importer->importTexture(
-            rhi, m_engineDevice.Get(), engineCtx.Get(), m_texture, m_frameSize);
+            rhi, m_engineDevice.Get(), engineCtx.Get(), m_texture, m_frameSize,
+            QVideoFrameFormat::Format_BGRA8888);
     if (!handles)
         return nullptr;
 

@@ -67,17 +67,32 @@ QWindowsD3D11TextureBridge::copyFromSharedTex(const ComPtr<ID3D11Device1> &dev,
     if (!ensureDestTex(dev))
         return {};
 
+    if (!copyFromSharedTex(dev, ctx, m_outputTex))
+        return {};
+
+    return m_outputTex;
+}
+
+bool QWindowsD3D11TextureBridge::copyFromSharedTex(const ComPtr<ID3D11Device1> &dev,
+                                                   const ComPtr<ID3D11DeviceContext> &ctx,
+                                                   const ComPtr<ID3D11Texture2D> &destination)
+{
+    Q_ASSERT(destination);
+
+    if (!ensureDestTex(dev))
+        return false;
+
     if (const HRESULT hr = m_destMutex->AcquireSync(kDestKey, kMutexTimeoutMs); hr != S_OK) {
         qCWarning(lcD3D11TextureBridge)
                 << "AcquireSync failed:" << QSystemError::windowsComString(hr);
-        return {};
+        return false;
     }
 
-    ctx->CopySubresourceRegion(m_outputTex.Get(), 0, 0, 0, 0, m_destTex.Get(), 0, nullptr);
+    ctx->CopySubresourceRegion(destination.Get(), 0, 0, 0, 0, m_destTex.Get(), 0, nullptr);
 
     m_destMutex->ReleaseSync(kSrcKey);
 
-    return m_outputTex;
+    return true;
 }
 
 bool QWindowsD3D11TextureBridge::ensureDestTex(const ComPtr<ID3D11Device1> &dev)

@@ -122,25 +122,16 @@ QRhi *QFFmpegVideoBuffer::associatedCurrentThreadRhi() const
 
 QVideoFrameFormat::ColorSpace QFFmpegVideoBuffer::colorSpace() const
 {
-    // QWindowsD3D11VideoProcessor, the only pixel-format overrider, always converts to
-    // DXGI_COLOR_SPACE_RGB_FULL_G22_NONE_P709; report that, not the original hw frame's
-    // (possibly HDR) color properties, which no longer describe the actual pixel data.
-    if (m_isPixelFormatOverridden)
-        return QVideoFrameFormat::ColorSpace_BT709;
     return fromAvColorSpace(m_frame->colorspace);
 }
 
 QVideoFrameFormat::ColorTransfer QFFmpegVideoBuffer::colorTransfer() const
 {
-    if (m_isPixelFormatOverridden)
-        return QVideoFrameFormat::ColorTransfer_Gamma22;
     return fromAvColorTransfer(m_frame->color_trc);
 }
 
 QVideoFrameFormat::ColorRange QFFmpegVideoBuffer::colorRange() const
 {
-    if (m_isPixelFormatOverridden)
-        return QVideoFrameFormat::ColorRange_Full;
     return fromAvColorRange(m_frame->color_range);
 }
 

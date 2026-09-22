@@ -9,11 +9,14 @@
 
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qscopeguard.h>
+#include <QtCore/qvarlengtharray.h>
 #include <QtCore/private/qsystemerror_p.h>
 #include <QtCore/private/qexpected_p.h>
 
 #include <d3d11on12.h>
 #include <d3d12.h>
+
+#include <algorithm>
 
 #if QT_CONFIG(opengl)
 #  include <QtMultimedia/private/qmultimedia_gl_support_p.h>
@@ -71,10 +74,12 @@ class D3D12TextureHandles : public QVideoFrameTexturesHandles
 {
 public:
     D3D12TextureHandles(ComPtr<ID3D12Resource> resource, ComPtr<ID3D11On12Device2> on12Device,
-                        ComPtr<ID3D11Texture2D> wrappedResource)
+                        ComPtr<ID3D11Texture2D> wrappedResource,
+                        std::shared_ptr<std::atomic_bool> wrappedResourceInUse)
         : m_resource(std::move(resource)),
           m_on12Device(std::move(on12Device)),
-          m_wrappedResource(std::move(wrappedResource))
+          m_wrappedResource(std::move(wrappedResource)),
+          m_wrappedResourceInUse(std::move(wrappedResourceInUse))
     {
     }
 
@@ -83,6 +88,9 @@ public:
         m_resource.Reset();
         if (m_on12Device && m_wrappedResource)
             m_on12Device->ReturnUnderlyingResource(m_wrappedResource.Get(), 0, nullptr, nullptr);
+        // Only now may the texture be reused for another frame.
+        if (m_wrappedResourceInUse)
+            m_wrappedResourceInUse->store(false);
     }
 
     quint64 textureHandle(QRhi &rhi, int /*plane*/) override
@@ -99,6 +107,7 @@ private:
     ComPtr<ID3D12Resource> m_resource;
     const ComPtr<ID3D11On12Device2> m_on12Device;
     const ComPtr<ID3D11Texture2D> m_wrappedResource;
+    const std::shared_ptr<std::atomic_bool> m_wrappedResourceInUse;
 };
 
 #if QT_CONFIG(opengl)
@@ -254,10 +263,66 @@ private:
 
 #endif // QT_CONFIG(opengl)
 
+// At most 2 planes: NV12 and P010 are luma plus a single chroma plane.
+class MultiPlaneTextureHandles : public QVideoFrameTexturesHandles
+{
+public:
+    explicit MultiPlaneTextureHandles(QVarLengthArray<QVideoFrameTexturesHandlesUPtr, 2> planes)
+        : m_planes(std::move(planes))
+    {
+    }
+
+    quint64 textureHandle(QRhi &rhi, int plane) override
+    {
+        if (plane < 0 || plane >= m_planes.size() || !m_planes[plane])
+            return 0;
+        return m_planes[plane]->textureHandle(rhi, 0);
+    }
+
+private:
+    const QVarLengthArray<QVideoFrameTexturesHandlesUPtr, 2> m_planes;
+};
+
 } // namespace
 
 QWindowsD3D11RhiTextureImporter::QWindowsD3D11RhiTextureImporter() = default;
 QWindowsD3D11RhiTextureImporter::~QWindowsD3D11RhiTextureImporter() = default;
+
+QWindowsD3D11RhiTextureImporter::D3D12OutputTexturePool::Texture
+QWindowsD3D11RhiTextureImporter::D3D12OutputTexturePool::acquire(ID3D11Device *device,
+                                                                 const D3D11_TEXTURE2D_DESC &desc)
+{
+    const auto matches = [&](const Texture &entry) {
+        ComPtr<ID3D11Device> entryDevice;
+        entry.texture->GetDevice(&entryDevice);
+        D3D11_TEXTURE2D_DESC entryDesc{};
+        entry.texture->GetDesc(&entryDesc);
+        return entryDevice.Get() == device && entryDesc.Format == desc.Format
+                && entryDesc.Width == desc.Width && entryDesc.Height == desc.Height;
+    };
+
+    m_textures.erase(std::remove_if(m_textures.begin(), m_textures.end(),
+                                    [&](const Texture &entry) {
+        return !entry.inUse->load() && !matches(entry);
+    }),
+                     m_textures.end());
+
+    for (const Texture &entry : m_textures) {
+        if (!entry.inUse->load() && matches(entry)) {
+            entry.inUse->store(true);
+            return entry;
+        }
+    }
+
+    Texture entry{ {}, std::make_shared<std::atomic_bool>(true) };
+    if (const HRESULT hr = device->CreateTexture2D(&desc, nullptr, &entry.texture); FAILED(hr)) {
+        qCWarning(lcD3D11RhiTextureImporter)
+                << "CreateTexture2D failed for D3D12 import:" << QSystemError::windowsComString(hr);
+        return {};
+    }
+    m_textures.push_back(entry);
+    return entry;
+}
 
 bool QWindowsD3D11RhiTextureImporter::isRhiBackendSupported(QRhi &rhi)
 {
@@ -301,7 +366,9 @@ bool QWindowsD3D11RhiTextureImporter::isPixelFormatSupportedByRhiBackend(
     case QRhi::D3D12:
     case QRhi::OpenGLES2: {
         const auto *desc = QVideoTextureHelper::textureDescription(pixelFormat);
-        return desc && desc->nplanes == 1;
+        if (desc && desc->nplanes == 1)
+            return true;
+        return QWindowsD3D11PlaneSplitter::isPixelFormatSupported(pixelFormat);
     }
     default:
         return true;
@@ -310,20 +377,83 @@ bool QWindowsD3D11RhiTextureImporter::isPixelFormatSupportedByRhiBackend(
 
 QVideoFrameTexturesHandlesUPtr QWindowsD3D11RhiTextureImporter::importTexture(
         QRhi &rhi, ID3D11Device *srcDevice, ID3D11DeviceContext *srcContext,
-        const ComPtr<ID3D11Texture2D> &texture, const QSize &frameSize, UINT subresourceIndex)
+        const ComPtr<ID3D11Texture2D> &texture, const QSize &frameSize,
+        QVideoFrameFormat::PixelFormat pixelFormat, UINT subresourceIndex)
 {
+    if (rhi.backend() == QRhi::D3D12 || rhi.backend() == QRhi::OpenGLES2) {
+        const auto *desc = QVideoTextureHelper::textureDescription(pixelFormat);
+        if (desc && desc->nplanes > 1)
+            return importSplitPlanes(rhi, srcDevice, srcContext, texture, frameSize, pixelFormat,
+                                     subresourceIndex);
+    }
+
     switch (rhi.backend()) {
     case QRhi::D3D11:
         return importTextureD3D11(rhi, srcDevice, srcContext, texture, frameSize, subresourceIndex);
     case QRhi::D3D12:
-        return importTextureD3D12(rhi, srcDevice, srcContext, texture, frameSize, subresourceIndex);
+        return importTextureD3D12(rhi, srcDevice, srcContext, texture, frameSize, subresourceIndex,
+                                  m_bridge, m_d3d12OutputPool);
 #if QT_CONFIG(opengl)
     case QRhi::OpenGLES2:
-        return importTextureOpenGL(rhi, srcDevice, srcContext, texture, frameSize);
+        return importTextureOpenGL(rhi, srcDevice, srcContext, texture, frameSize, m_glInteropTex);
 #endif
     default:
         return nullptr;
     }
+}
+
+QVideoFrameTexturesHandlesUPtr QWindowsD3D11RhiTextureImporter::importSplitPlanes(
+        QRhi &rhi, ID3D11Device *srcDevice, ID3D11DeviceContext *srcContext,
+        const ComPtr<ID3D11Texture2D> &texture, const QSize &frameSize,
+        QVideoFrameFormat::PixelFormat pixelFormat, UINT subresourceIndex)
+{
+    Q_ASSERT(rhi.backend() == QRhi::D3D12 || rhi.backend() == QRhi::OpenGLES2);
+
+    if (!m_planeSplitter || m_planeSplitterDevice.Get() != srcDevice) {
+        m_planeSplitter = QWindowsD3D11PlaneSplitter::create(srcDevice);
+        m_planeSplitterDevice = srcDevice;
+        if (!m_planeSplitter) {
+            qCWarning(lcD3D11RhiTextureImporter) << "Cannot create plane splitter";
+            return nullptr;
+        }
+    }
+
+    const std::optional<std::vector<QWindowsD3D11PlaneSplitter::Plane>> planes =
+            m_planeSplitter->split(srcDevice, srcContext, texture, subresourceIndex, frameSize,
+                                   pixelFormat);
+    if (!planes)
+        return nullptr;
+
+    if (planes->size() > 2) {
+        qCWarning(lcD3D11RhiTextureImporter) << "Splitting more than 2 planes is not supported";
+        return nullptr;
+    }
+
+    QWindowsD3D11TextureBridge *bridges[] = { &m_bridge, &m_bridge2 };
+    D3D12OutputTexturePool *outputPools[] = { &m_d3d12OutputPool, &m_d3d12OutputPool2 };
+#if QT_CONFIG(opengl)
+    ComPtr<ID3D11Texture2D> *glInteropSlots[] = { &m_glInteropTex, &m_glInteropTex2 };
+#endif
+
+    QVarLengthArray<QVideoFrameTexturesHandlesUPtr, 2> planeHandles;
+    for (size_t i = 0; i < planes->size(); ++i) {
+        QVideoFrameTexturesHandlesUPtr handles;
+        if (rhi.backend() == QRhi::D3D12) {
+            handles = importTextureD3D12(rhi, srcDevice, srcContext, (*planes)[i].texture,
+                                         (*planes)[i].size, 0, *bridges[i], *outputPools[i]);
+        }
+#if QT_CONFIG(opengl)
+        else {
+            handles = importTextureOpenGL(rhi, srcDevice, srcContext, (*planes)[i].texture,
+                                          (*planes)[i].size, *glInteropSlots[i]);
+        }
+#endif
+        if (!handles)
+            return nullptr;
+        planeHandles.push_back(std::move(handles));
+    }
+
+    return std::make_unique<MultiPlaneTextureHandles>(std::move(planeHandles));
 }
 
 QVideoFrameTexturesHandlesUPtr QWindowsD3D11RhiTextureImporter::importTextureD3D11(
@@ -361,7 +491,8 @@ QVideoFrameTexturesHandlesUPtr QWindowsD3D11RhiTextureImporter::importTextureD3D
 
 QVideoFrameTexturesHandlesUPtr QWindowsD3D11RhiTextureImporter::importTextureD3D12(
         QRhi &rhi, ID3D11Device *srcDevice, ID3D11DeviceContext *srcContext,
-        const ComPtr<ID3D11Texture2D> &texture, const QSize &frameSize, UINT subresourceIndex)
+        const ComPtr<ID3D11Texture2D> &texture, const QSize &frameSize, UINT subresourceIndex,
+        QWindowsD3D11TextureBridge &bridge, D3D12OutputTexturePool &outputPool)
 {
     Q_ASSERT(rhi.backend() == QRhi::D3D12);
     Q_ASSERT(srcDevice);
@@ -410,11 +541,30 @@ QVideoFrameTexturesHandlesUPtr QWindowsD3D11RhiTextureImporter::importTextureD3D
     ComPtr<ID3D11DeviceContext> d3d11on12Ctx;
     m_d3d11on12Device->GetImmediateContext(&d3d11on12Ctx);
 
-    if (!m_bridge.copyToSharedTex(srcDevice, srcContext, texture, frameSize, subresourceIndex))
+    if (!bridge.copyToSharedTex(srcDevice, srcContext, texture, frameSize, subresourceIndex))
         return nullptr;
 
-    ComPtr<ID3D11Texture2D> d3d11Tex = m_bridge.copyFromSharedTex(d3d11on12Device1, d3d11on12Ctx);
-    if (!d3d11Tex)
+    D3D11_TEXTURE2D_DESC srcDesc{};
+    texture->GetDesc(&srcDesc);
+    D3D11_TEXTURE2D_DESC outputDesc{};
+    outputDesc.Width = static_cast<UINT>(frameSize.width());
+    outputDesc.Height = static_cast<UINT>(frameSize.height());
+    outputDesc.MipLevels = 1;
+    outputDesc.ArraySize = 1;
+    outputDesc.Format = srcDesc.Format;
+    outputDesc.SampleDesc.Count = 1;
+    outputDesc.Usage = D3D11_USAGE_DEFAULT;
+    outputDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+
+    D3D12OutputTexturePool::Texture output = outputPool.acquire(d3d11on12Device1.Get(), outputDesc);
+    if (!output.texture)
+        return nullptr;
+    // Give the texture back to the pool unless handles end up owning it.
+    auto releaseOutput = qScopeGuard([&] {
+        output.inUse->store(false);
+    });
+
+    if (!bridge.copyFromSharedTex(d3d11on12Device1, d3d11on12Ctx, output.texture.Get()))
         return nullptr;
 
     ComPtr<ID3D11On12Device2> on12Device2;
@@ -425,7 +575,7 @@ QVideoFrameTexturesHandlesUPtr QWindowsD3D11RhiTextureImporter::importTextureD3D
     }
 
     ComPtr<ID3D12Resource> resource;
-    if (const HRESULT hr = on12Device2->UnwrapUnderlyingResource(d3d11Tex.Get(), cmdQueue,
+    if (const HRESULT hr = on12Device2->UnwrapUnderlyingResource(output.texture.Get(), cmdQueue,
                                                                  IID_PPV_ARGS(&resource));
         FAILED(hr)) {
         qCWarning(lcD3D11RhiTextureImporter)
@@ -437,15 +587,18 @@ QVideoFrameTexturesHandlesUPtr QWindowsD3D11RhiTextureImporter::importTextureD3D
     // cmdQueue now waits for.
     d3d11on12Ctx->Flush();
 
+    releaseOutput.dismiss();
     return std::make_unique<D3D12TextureHandles>(std::move(resource), std::move(on12Device2),
-                                                 std::move(d3d11Tex));
+                                                 std::move(output.texture),
+                                                 std::move(output.inUse));
 }
 
 #if QT_CONFIG(opengl)
 
 QVideoFrameTexturesHandlesUPtr QWindowsD3D11RhiTextureImporter::importTextureOpenGL(
         QRhi &rhi, ID3D11Device *srcDevice, ID3D11DeviceContext *srcContext,
-        const ComPtr<ID3D11Texture2D> &texture, const QSize &frameSize)
+        const ComPtr<ID3D11Texture2D> &texture, const QSize &frameSize,
+        ComPtr<ID3D11Texture2D> &interopTexSlot)
 {
     Q_ASSERT(rhi.backend() == QRhi::OpenGLES2);
     Q_ASSERT(srcDevice);
@@ -471,10 +624,10 @@ QVideoFrameTexturesHandlesUPtr QWindowsD3D11RhiTextureImporter::importTextureOpe
     const UINT width = static_cast<UINT>(frameSize.width());
     const UINT height = static_cast<UINT>(frameSize.height());
     {
-        bool needRecreate = !m_glInteropTex;
-        if (m_glInteropTex) {
+        bool needRecreate = !interopTexSlot;
+        if (interopTexSlot) {
             CD3D11_TEXTURE2D_DESC cachedDesc;
-            m_glInteropTex->GetDesc(&cachedDesc);
+            interopTexSlot->GetDesc(&cachedDesc);
             if (cachedDesc.Width != width || cachedDesc.Height != height)
                 needRecreate = true;
         }
@@ -487,12 +640,12 @@ QVideoFrameTexturesHandlesUPtr QWindowsD3D11RhiTextureImporter::importTextureOpe
             desc.MiscFlags = 0;
             desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
             if (FAILED(srcDevice->CreateTexture2D(&desc, nullptr,
-                                                  m_glInteropTex.ReleaseAndGetAddressOf())))
+                                                  interopTexSlot.ReleaseAndGetAddressOf())))
                 return nullptr;
         }
 
         const D3D11_BOX crop{ 0, 0, 0, width, height, 1 };
-        srcContext->CopySubresourceRegion(m_glInteropTex.Get(), 0, 0, 0, 0, texture.Get(), 0,
+        srcContext->CopySubresourceRegion(interopTexSlot.Get(), 0, 0, 0, 0, texture.Get(), 0,
                                           &crop);
         srcContext->Flush();
     }
@@ -529,9 +682,9 @@ QVideoFrameTexturesHandlesUPtr QWindowsD3D11RhiTextureImporter::importTextureOpe
         GlTextureDeleter{ glCtx },
     };
 
-    HANDLE interopObj = wgl.wglDXRegisterObjectNV(m_glInteropDevice.get(), m_glInteropTex.Get(),
-                                                  interopGlTex.get(), GL_TEXTURE_2D,
-                                                  WGL_ACCESS_READ_ONLY_NV);
+    HANDLE interopObj =
+            wgl.wglDXRegisterObjectNV(m_glInteropDevice.get(), interopTexSlot.Get(),
+                                      interopGlTex.get(), GL_TEXTURE_2D, WGL_ACCESS_READ_ONLY_NV);
     if (!interopObj) {
         qCWarning(lcD3D11RhiTextureImporter) << "wglDXRegisterObjectNV failed";
         return nullptr;
@@ -547,10 +700,10 @@ QVideoFrameTexturesHandlesUPtr QWindowsD3D11RhiTextureImporter::importTextureOpe
 
     // GL may only access a registered object while it is locked, and unregistering it detaches
     // 'interopGlTex' from the D3D11 texture. So copy it into a texture that GL owns while it is
-    // locked. The copy stays valid after unregistering, and isn't affected when 'm_glInteropTex'
+    // locked. The copy stays valid after unregistering, and isn't affected when 'interopTexSlot'
     // is reused for the next frame. Locking also synchronizes the D3D11 copy above with GL.
     CD3D11_TEXTURE2D_DESC interopDesc;
-    m_glInteropTex->GetDesc(&interopDesc);
+    interopTexSlot->GetDesc(&interopDesc);
     GlTextureHandle ownedGlTex = copyToOwnedGlTexture(glCtx, interopGlTex.get(), interopDesc.Format,
                                                       GLsizei(width), GLsizei(height));
     wgl.wglDXUnlockObjectsNV(m_glInteropDevice.get(), 1, &interopObj);
@@ -565,6 +718,7 @@ void QWindowsD3D11RhiTextureImporter::releaseGLInterop()
 {
     m_glInteropDevice.reset();
     m_glInteropTex.Reset();
+    m_glInteropTex2.Reset();
 }
 
 #endif // QT_CONFIG(opengl)

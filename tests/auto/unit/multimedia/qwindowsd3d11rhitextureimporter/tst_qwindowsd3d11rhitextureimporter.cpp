@@ -31,6 +31,28 @@ ComPtr<ID3D11Texture2D> nativeTextureFromHandle(quint64 handle)
     return reinterpret_cast<ID3D11Texture2D *>(handle);
 }
 
+// With D3D11_BIND_SHADER_RESOURCE set, matching the real decoder pool (the splitter needs a
+// plane-view SRV). Not folded into createNV12Texture(): ID3D11VideoProcessorInputView rejects
+// the flag, and that helper is shared with tst_qwindowsd3d11videoprocessor.
+ComResult<ComPtr<ID3D11Texture2D>>
+createNV12TextureForSplitting(const QWindowsD3D11TestDeviceContext &dev, QSize size)
+{
+    D3D11_TEXTURE2D_DESC texDesc{};
+    texDesc.Width = static_cast<UINT>(size.width());
+    texDesc.Height = static_cast<UINT>(size.height());
+    texDesc.Format = DXGI_FORMAT_NV12;
+    texDesc.Usage = D3D11_USAGE_DEFAULT;
+    texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    texDesc.ArraySize = 1;
+    texDesc.MipLevels = 1;
+    texDesc.SampleDesc = { 1, 0 };
+
+    ComPtr<ID3D11Texture2D> tex;
+    if (const HRESULT hr = dev.device->CreateTexture2D(&texDesc, nullptr, &tex); hr != S_OK)
+        return q23::unexpected{ hr };
+    return tex;
+}
+
 // Reads back the texture behind 'handle' and checks that every texel equals 'texel'. Returns an
 // error message, or an empty string on success.
 QString checkPlaneContent(QRhi &rhi, quint64 handle, QSize planeSize, QRhiTexture::Format format,
@@ -70,16 +92,65 @@ private slots:
     void importTexture_reusesResources_whenCalledRepeatedly();
     void importTexture_recreatesSharedTexture_whenFrameSizeChanges();
     void importTexture_returnsWorkingTexture_whenRhiIsD3D12();
+    void importTexture_returnsDistinctHandlesPerPlane_whenNV12AndRhiIsD3D12();
+    void importTexture_keepsEachFramesContent_whenNV12AndRhiIsD3D12();
 #if QT_CONFIG(opengl)
     void importTexture_returnsWorkingTexture_whenRhiIsOpenGL();
+    void importTexture_returnsDistinctHandlesPerPlane_whenNV12AndRhiIsOpenGL();
+    void importTexture_keepsEachFramesContent_whenNV12AndRhiIsOpenGL();
 #endif
 
     void isRhiBackendSupported_returnsFalse_whenRhiIsNull();
     void isRhiBackendSupported_returnsFalse_whenRhiIsWarpD3D11();
 
 private:
+    // Two frames with the first one's handles kept alive, like a renderer with frames in flight.
+    void verifyNV12FramesKeepTheirContent(QRhi &rhi);
+
     ComResult<QWindowsD3D11TestDeviceContext> m_srcDevice = q23::unexpected{ E_FAIL };
 };
+
+void tst_QWindowsD3D11RhiTextureImporter::verifyNV12FramesKeepTheirContent(QRhi &rhi)
+{
+    constexpr QSize frameSize{ 64, 32 };
+    constexpr QSize chromaSize{ frameSize.width() / 2, frameSize.height() / 2 };
+
+    // Like the FFmpeg backend's frame copies: no D3D11_BIND_SHADER_RESOURCE.
+    const ComResult<ComPtr<ID3D11Texture2D>> srcTex = m_srcDevice->createNV12Texture(frameSize);
+    QVERIFYCOMRESULT(srcTex);
+
+    struct Frame
+    {
+        quint8 luma;
+        quint8 chromaU;
+        quint8 chromaV;
+        QVideoFrameTexturesHandlesUPtr handles;
+    };
+    Frame frames[] = { { 0x42, 0x11, 0xEE, nullptr }, { 0x80, 0x22, 0xDD, nullptr } };
+
+    QWindowsD3D11RhiTextureImporter importer;
+    for (Frame &frame : frames) {
+        QCOMPARE(m_srcDevice->fillNV12Texture(*srcTex, frameSize, frame.luma, frame.chromaU,
+                                              frame.chromaV),
+                 S_OK);
+        frame.handles =
+                importer.importTexture(rhi, m_srcDevice->device.Get(), m_srcDevice->context.Get(),
+                                       *srcTex, frameSize, QVideoFrameFormat::Format_NV12);
+        QVERIFY(frame.handles);
+    }
+
+    for (Frame &frame : frames) {
+        const char luma[] = { char(frame.luma) };
+        QString error = checkPlaneContent(rhi, frame.handles->textureHandle(rhi, 0), frameSize,
+                                          QRhiTexture::R8, QByteArrayView(luma, sizeof(luma)));
+        QVERIFY2(error.isEmpty(), qPrintable(u"Luma: "_s + error));
+
+        const char chroma[] = { char(frame.chromaU), char(frame.chromaV) };
+        error = checkPlaneContent(rhi, frame.handles->textureHandle(rhi, 1), chromaSize,
+                                  QRhiTexture::RG8, QByteArrayView(chroma, sizeof(chroma)));
+        QVERIFY2(error.isEmpty(), qPrintable(u"Chroma: "_s + error));
+    }
+}
 
 void tst_QWindowsD3D11RhiTextureImporter::init()
 {
@@ -101,8 +172,9 @@ void tst_QWindowsD3D11RhiTextureImporter::importTexture_returnsWorkingTexture_wh
     QVERIFYCOMRESULT(srcTex);
 
     QWindowsD3D11RhiTextureImporter importer;
-    QVideoFrameTexturesHandlesUPtr handles = importer.importTexture(
-            *rhi, m_srcDevice->device.Get(), m_srcDevice->context.Get(), *srcTex, frameSize);
+    QVideoFrameTexturesHandlesUPtr handles =
+            importer.importTexture(*rhi, m_srcDevice->device.Get(), m_srcDevice->context.Get(),
+                                   *srcTex, frameSize, QVideoFrameFormat::Format_RGBA8888);
     QVERIFY(handles);
 
     const quint64 handle = handles->textureHandle(*rhi, 0);
@@ -138,8 +210,9 @@ void tst_QWindowsD3D11RhiTextureImporter::importTexture_returnsPlaneShapes_whenN
     QVERIFYCOMRESULT(srcTex);
 
     QWindowsD3D11RhiTextureImporter importer;
-    QVideoFrameTexturesHandlesUPtr handles = importer.importTexture(
-            *rhi, m_srcDevice->device.Get(), m_srcDevice->context.Get(), *srcTex, frameSize);
+    QVideoFrameTexturesHandlesUPtr handles =
+            importer.importTexture(*rhi, m_srcDevice->device.Get(), m_srcDevice->context.Get(),
+                                   *srcTex, frameSize, QVideoFrameFormat::Format_NV12);
     QVERIFY(handles);
 
     // A single physical resource backs both planes for D3D11: the SRV format (R8 for luma,
@@ -184,8 +257,9 @@ void tst_QWindowsD3D11RhiTextureImporter::importTexture_reusesResources_whenCall
                 m_srcDevice->createTextureArray(frameSize, { color });
         QVERIFYCOMRESULT(srcTex);
 
-        QVideoFrameTexturesHandlesUPtr handles = importer.importTexture(
-                *rhi, m_srcDevice->device.Get(), m_srcDevice->context.Get(), *srcTex, frameSize);
+        QVideoFrameTexturesHandlesUPtr handles =
+                importer.importTexture(*rhi, m_srcDevice->device.Get(), m_srcDevice->context.Get(),
+                                       *srcTex, frameSize, QVideoFrameFormat::Format_RGBA8888);
         QVERIFY(handles);
 
         const quint64 handle = handles->textureHandle(*rhi, 0);
@@ -214,8 +288,9 @@ void tst_QWindowsD3D11RhiTextureImporter::
                 m_srcDevice->createTextureArray(frameSize, { Qt::green });
         QVERIFYCOMRESULT(srcTex);
 
-        QVideoFrameTexturesHandlesUPtr handles = importer.importTexture(
-                *rhi, m_srcDevice->device.Get(), m_srcDevice->context.Get(), *srcTex, frameSize);
+        QVideoFrameTexturesHandlesUPtr handles =
+                importer.importTexture(*rhi, m_srcDevice->device.Get(), m_srcDevice->context.Get(),
+                                       *srcTex, frameSize, QVideoFrameFormat::Format_RGBA8888);
         QVERIFY(handles);
 
         const quint64 handle = handles->textureHandle(*rhi, 0);
@@ -268,8 +343,9 @@ void tst_QWindowsD3D11RhiTextureImporter::importTexture_returnsWorkingTexture_wh
     QVERIFYCOMRESULT(srcTex);
 
     QWindowsD3D11RhiTextureImporter importer;
-    QVideoFrameTexturesHandlesUPtr handles = importer.importTexture(
-            *rhi, m_srcDevice->device.Get(), m_srcDevice->context.Get(), *srcTex, frameSize);
+    QVideoFrameTexturesHandlesUPtr handles =
+            importer.importTexture(*rhi, m_srcDevice->device.Get(), m_srcDevice->context.Get(),
+                                   *srcTex, frameSize, QVideoFrameFormat::Format_RGBA8888);
     QVERIFY(handles);
 
     // The handle is a native ID3D12Resource*, which can't be read back with the D3D11 test
@@ -285,6 +361,56 @@ void tst_QWindowsD3D11RhiTextureImporter::importTexture_returnsWorkingTexture_wh
     QRhiTexture *tex = textures->texture(0);
     QVERIFY(tex);
     QCOMPARE(tex->pixelSize(), frameSize);
+}
+
+void tst_QWindowsD3D11RhiTextureImporter::
+        importTexture_returnsDistinctHandlesPerPlane_whenNV12AndRhiIsD3D12()
+{
+    std::unique_ptr<QRhi> rhi = createD3D12Rhi();
+    if (!rhi)
+        QSKIP("Could not create a D3D12 QRhi on this machine");
+
+    QVERIFY(QWindowsD3D11RhiTextureImporter::isPixelFormatSupportedByRhiBackend(
+            *rhi, QVideoFrameFormat::Format_NV12));
+
+    constexpr QSize frameSize{ 64, 32 };
+    const ComResult<ComPtr<ID3D11Texture2D>> srcTex =
+            createNV12TextureForSplitting(*m_srcDevice, frameSize);
+    QVERIFYCOMRESULT(srcTex);
+
+    QWindowsD3D11RhiTextureImporter importer;
+    QVideoFrameTexturesHandlesUPtr handles =
+            importer.importTexture(*rhi, m_srcDevice->device.Get(), m_srcDevice->context.Get(),
+                                   *srcTex, frameSize, QVideoFrameFormat::Format_NV12);
+    QVERIFY(handles);
+
+    // D3D12 imports each plane as a genuinely distinct resource, unlike D3D11's views of one handle.
+    const quint64 lumaHandle = handles->textureHandle(*rhi, 0);
+    const quint64 chromaHandle = handles->textureHandle(*rhi, 1);
+    QVERIFY(lumaHandle != 0);
+    QVERIFY(chromaHandle != 0);
+    QVERIFY(lumaHandle != chromaHandle);
+
+    QVideoFrameTexturesUPtr textures = QVideoTextureHelper::createTexturesFromHandles(
+            std::move(handles), *rhi, QVideoFrameFormat::Format_NV12, frameSize);
+    QVERIFY(textures);
+
+    QRhiTexture *luma = textures->texture(0);
+    QRhiTexture *chroma = textures->texture(1);
+    QVERIFY(luma);
+    QVERIFY(chroma);
+    QCOMPARE(luma->pixelSize(), frameSize);
+    QCOMPARE(chroma->pixelSize(), QSize(frameSize.width() / 2, frameSize.height() / 2));
+}
+
+void tst_QWindowsD3D11RhiTextureImporter::
+        importTexture_keepsEachFramesContent_whenNV12AndRhiIsD3D12()
+{
+    std::unique_ptr<QRhi> rhi = createD3D12Rhi();
+    if (!rhi)
+        QSKIP("Could not create a D3D12 QRhi on this machine");
+
+    verifyNV12FramesKeepTheirContent(*rhi);
 }
 
 #if QT_CONFIG(opengl)
@@ -304,8 +430,9 @@ void tst_QWindowsD3D11RhiTextureImporter::importTexture_returnsWorkingTexture_wh
     QVERIFYCOMRESULT(srcTex);
 
     QWindowsD3D11RhiTextureImporter importer;
-    QVideoFrameTexturesHandlesUPtr handles = importer.importTexture(
-            *rhi, m_srcDevice->device.Get(), m_srcDevice->context.Get(), *srcTex, frameSize);
+    QVideoFrameTexturesHandlesUPtr handles =
+            importer.importTexture(*rhi, m_srcDevice->device.Get(), m_srcDevice->context.Get(),
+                                   *srcTex, frameSize, QVideoFrameFormat::Format_RGBA8888);
     QVERIFY(handles);
 
     const quint64 handle = handles->textureHandle(*rhi, 0);
@@ -323,6 +450,62 @@ void tst_QWindowsD3D11RhiTextureImporter::importTexture_returnsWorkingTexture_wh
     QRhiTexture *tex = textures->texture(0);
     QVERIFY(tex);
     QCOMPARE(tex->pixelSize(), frameSize);
+}
+
+void tst_QWindowsD3D11RhiTextureImporter::
+        importTexture_returnsDistinctHandlesPerPlane_whenNV12AndRhiIsOpenGL()
+{
+    q23::expected<OffscreenGlRhi, QString> glRhi = createOffscreenGlRhi();
+    if (!glRhi)
+        QSKIP("Could not create an OpenGL QRhi on this machine");
+    QRhi *rhi = glRhi->rhi.get();
+
+    if (!QWindowsD3D11RhiTextureImporter::isRhiBackendSupported(*rhi))
+        QSKIP("OpenGL import needs GL_ARB_copy_image or OpenGL 4.3");
+
+    QVERIFY(QWindowsD3D11RhiTextureImporter::isPixelFormatSupportedByRhiBackend(
+            *rhi, QVideoFrameFormat::Format_NV12));
+
+    constexpr QSize frameSize{ 64, 32 };
+    const ComResult<ComPtr<ID3D11Texture2D>> srcTex =
+            createNV12TextureForSplitting(*m_srcDevice, frameSize);
+    QVERIFYCOMRESULT(srcTex);
+
+    QWindowsD3D11RhiTextureImporter importer;
+    QVideoFrameTexturesHandlesUPtr handles =
+            importer.importTexture(*rhi, m_srcDevice->device.Get(), m_srcDevice->context.Get(),
+                                   *srcTex, frameSize, QVideoFrameFormat::Format_NV12);
+    QVERIFY(handles);
+
+    const quint64 lumaHandle = handles->textureHandle(*rhi, 0);
+    const quint64 chromaHandle = handles->textureHandle(*rhi, 1);
+    QVERIFY(lumaHandle != 0);
+    QVERIFY(chromaHandle != 0);
+    QVERIFY(lumaHandle != chromaHandle);
+
+    QVideoFrameTexturesUPtr textures = QVideoTextureHelper::createTexturesFromHandles(
+            std::move(handles), *rhi, QVideoFrameFormat::Format_NV12, frameSize);
+    QVERIFY(textures);
+
+    QRhiTexture *luma = textures->texture(0);
+    QRhiTexture *chroma = textures->texture(1);
+    QVERIFY(luma);
+    QVERIFY(chroma);
+    QCOMPARE(luma->pixelSize(), frameSize);
+    QCOMPARE(chroma->pixelSize(), QSize(frameSize.width() / 2, frameSize.height() / 2));
+}
+
+void tst_QWindowsD3D11RhiTextureImporter::
+        importTexture_keepsEachFramesContent_whenNV12AndRhiIsOpenGL()
+{
+    q23::expected<OffscreenGlRhi, QString> glRhi = createOffscreenGlRhi();
+    if (!glRhi)
+        QSKIP("Could not create an OpenGL QRhi on this machine");
+
+    if (!QWindowsD3D11RhiTextureImporter::isRhiBackendSupported(*glRhi->rhi))
+        QSKIP("OpenGL import needs GL_ARB_copy_image or OpenGL 4.3");
+
+    verifyNV12FramesKeepTheirContent(*glRhi->rhi);
 }
 #endif // QT_CONFIG(opengl)
 

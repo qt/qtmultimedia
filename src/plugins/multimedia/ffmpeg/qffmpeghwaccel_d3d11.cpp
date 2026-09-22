@@ -196,24 +196,21 @@ D3D11TextureConverter::createTextureHandles(AVFrame *frame,
         std::lock_guard<AVD3D11VADeviceContext> guard(*avDeviceCtx);
 
         if (canImportDirectly) {
-            // Import a copy of the slice from the frame pool, cropping away extra surface
-            // alignment areas that FFmpeg adds to the textures.
+            // Import a copy of the slice, cropping away FFmpeg's surface alignment padding.
             handles =
                     m_importer.importTexture(*rhi, avDeviceCtx->device, avDeviceCtx->device_context,
-                                             ffmpegTex, frameSize, index);
+                                             ffmpegTex, frameSize, pixelFormat, index);
         } else {
-            // rhi can't consume this pixel format's planes directly (e.g. NV12 on D3D12 or
-            // OpenGL): convert it to a single-plane format on the decoder's device first. The
-            // video processor reads directly from the (possibly padded) frame pool slice, so
-            // no separate cropping copy is needed here.
+            // The video processor reads the (possibly padded) pool slice directly, so no
+            // separate cropping copy is needed here.
             const ComPtr<ID3D11Texture2D> converted = m_videoProcessor.convertToBGRA(
                     avDeviceCtx->device, avDeviceCtx->device_context, ffmpegTex, frameSize,
                     fromAvColorSpace(frame->colorspace), fromAvColorRange(frame->color_range),
                     fromAvColorTransfer(frame->color_trc), index);
             if (converted) {
-                handles =
-                        m_importer.importTexture(*rhi, avDeviceCtx->device,
-                                                 avDeviceCtx->device_context, converted, frameSize);
+                handles = m_importer.importTexture(*rhi, avDeviceCtx->device,
+                                                   avDeviceCtx->device_context, converted,
+                                                   frameSize, QVideoFrameFormat::Format_BGRA8888);
             }
         }
     }

@@ -47,11 +47,13 @@ public:
     bool copyToSharedTex(const ComPtr<ID3D11Device> &, const ComPtr<ID3D11DeviceContext> &,
                          const ComPtr<ID3D11Texture2D> &, const QSize &frameSize, UINT index = 0);
 
-    /** Obtain a copy of the texture on a second device 'dev'.
-     * NOTE: Will block (up to a timeout) until a texture is available
-     * (copyToSharedTex was called) */
+    // Obtain a copy of the texture on a second device.
     ComPtr<ID3D11Texture2D> copyFromSharedTex(const ComPtr<ID3D11Device1> &,
                                               const ComPtr<ID3D11DeviceContext> &);
+
+    // Obtain a copy of the texture on a second device into a caller-provided destination texture.
+    bool copyFromSharedTex(const ComPtr<ID3D11Device1> &, const ComPtr<ID3D11DeviceContext> &,
+                           const ComPtr<ID3D11Texture2D> &destination);
 
 private:
     bool ensureDestTex(const ComPtr<ID3D11Device1> &dev);

@@ -4,6 +4,7 @@
 #include <QtTest/qtest.h>
 
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_d3d11_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegvideobuffer_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpeg_p.h>
 
 #include "../shared/hwframecontext_p.h"
@@ -11,6 +12,7 @@
 #include <QtMultimediaTestLib/private/qwindowsd3d11testdevicecontext_p.h>
 #include <QtMultimediaTestLib/private/rhi_support_p.h>
 #include <QtMultimedia/private/qvideotexturehelper_p.h>
+#include <QtMultimedia/private/qvideoframe_p.h>
 
 #include <QtGui/rhi/qrhi.h>
 #include <QtGui/qcolor.h>
@@ -171,7 +173,12 @@ private slots:
     void map_returnsRealPixelData_forHwFrame_data();
     void map_returnsRealPixelData_forHwFrame();
 
-    void createTextureHandles_convertsViaVideoProcessor_whenRhiIsD3D12();
+    void createTextureHandles_splitsPlanes_whenRhiIsD3D12_data();
+    void createTextureHandles_splitsPlanes_whenRhiIsD3D12();
+
+    void map_returnsRealPixelData_afterMapTexturesWithD3D12Rhi_data();
+    void map_returnsRealPixelData_afterMapTexturesWithD3D12Rhi();
+
     void createTextureHandles_outlivesSourceFrame_afterFrameContextIsDestroyed();
     void createTextureHandles_acceptsOldHandles_onSecondCall();
 
@@ -220,11 +227,8 @@ void tst_QFFmpegD3D11TextureConverter::isSupported_returnsTrue_whenRhiIsD3D11()
     QVERIFY(D3D11TextureConverter::isSupported(*frame, *rhi));
 }
 
-// D3D12 and OpenGL can't expose NV12's two planes directly (see
-// QWindowsD3D11RhiTextureImporter::isRhiBackendSupported), but isSupported() must still report
-// true for them because D3D11TextureConverter falls back to converting via
-// QWindowsD3D11VideoProcessor first - this is the gate that lets createTextureHandles() even
-// attempt that conversion.
+// isSupported() is still true here: the splitter covers NV12/P010, so no VideoProcessor
+// fallback is needed (see isPixelFormatSupportedByRhiBackend).
 void tst_QFFmpegD3D11TextureConverter::isSupported_returnsTrue_whenRhiIsD3D12OrOpenGL()
 {
     AVFrameUPtr frame =
@@ -472,19 +476,39 @@ void tst_QFFmpegD3D11TextureConverter::map_returnsRealPixelData_forHwFrame()
     QVERIFY2(result.has_value(), result ? "" : qPrintable(result.error()));
 }
 
-// D3D12 can't consume NV12 directly (see isRhiBackendSupported), so this exercises the full
-// fallback path added for D3D12/OpenGL sinks: converting the NV12 frame to BGRA8 via
-// QWindowsD3D11VideoProcessor before importing it - the one thing the commit that introduced this
-// path documented as not verified end-to-end.
-void tst_QFFmpegD3D11TextureConverter::
-        createTextureHandles_convertsViaVideoProcessor_whenRhiIsD3D12()
+void tst_QFFmpegD3D11TextureConverter::createTextureHandles_splitsPlanes_whenRhiIsD3D12_data()
 {
+    QTest::addColumn<QVideoFrameFormat::PixelFormat>("pixelFormat");
+
+    QTest::newRow("NV12") << QVideoFrameFormat::Format_NV12;
+    QTest::newRow("P010") << QVideoFrameFormat::Format_P010;
+}
+
+// Exercises the split-then-import path for the 8- and 10-bit D3D11VA surfaces.
+void tst_QFFmpegD3D11TextureConverter::createTextureHandles_splitsPlanes_whenRhiIsD3D12()
+{
+    QFETCH(QVideoFrameFormat::PixelFormat, pixelFormat);
+
     std::unique_ptr<QRhi> rhi = createD3D12Rhi();
     if (!rhi)
         QSKIP("Could not create a D3D12 QRhi on this system");
 
-    AVFrameUPtr frame =
-            createNv12TestFrame(m_framesCtx.get(), *m_device, kFrameSize, 180, 128, 128);
+    AVBufferUPtr framesCtx;
+    AVFrameUPtr frame;
+    switch (pixelFormat) {
+    case QVideoFrameFormat::Format_P010:
+        framesCtx = createD3D11FramesContext(m_deviceCtx.get(), kFrameSize, AV_PIX_FMT_P010);
+        QVERIFY(framesCtx);
+        frame = createP010TestFrame(framesCtx.get(), *m_device, kFrameSize, 180, 128, 128);
+        break;
+    case QVideoFrameFormat::Format_NV12:
+        framesCtx = createD3D11FramesContext(m_deviceCtx.get(), kFrameSize, AV_PIX_FMT_NV12);
+        QVERIFY(framesCtx);
+        frame = createNv12TestFrame(framesCtx.get(), *m_device, kFrameSize, 180, 128, 128);
+        break;
+    default:
+        Q_UNREACHABLE();
+    }
     QVERIFY(frame);
 
     std::shared_ptr<D3D11TextureConverter> converter = D3D11TextureConverter::create(rhi.get());
@@ -493,20 +517,95 @@ void tst_QFFmpegD3D11TextureConverter::
     QVideoFrameTexturesHandlesUPtr handles = converter->createTextureHandles(frame.get(), nullptr);
     QVERIFY(handles);
 
-    const quint64 handle = handles->textureHandle(*rhi, 0);
-    QVERIFY(handle != 0);
+    // Native ID3D12Resource* handles can't be read back via the D3D11 fixture (as in the
+    // importer test); non-zero and distinct is all that's checked here.
+    const quint64 lumaHandle = handles->textureHandle(*rhi, 0);
+    const quint64 chromaHandle = handles->textureHandle(*rhi, 1);
+    QVERIFY(lumaHandle != 0);
+    QVERIFY(chromaHandle != 0);
+    QVERIFY(lumaHandle != chromaHandle);
 
-    // The handle is a native ID3D12Resource*, which can't be read back with the D3D11 test
-    // fixture (see the equivalent D3D12 case in tst_qwindowsd3d11rhitextureimporter); this still
-    // exercises the whole video-processor-conversion + D3D11On12-unwrap path end to end without
-    // crashing or silently failing.
     QVideoFrameTexturesUPtr textures = QVideoTextureHelper::createTexturesFromHandles(
-            std::move(handles), *rhi, QVideoFrameFormat::Format_BGRA8888, kFrameSize);
+            std::move(handles), *rhi, pixelFormat, kFrameSize);
     QVERIFY(textures);
 
-    QRhiTexture *tex = textures->texture(0);
-    QVERIFY(tex);
-    QCOMPARE(tex->pixelSize(), kFrameSize);
+    QRhiTexture *luma = textures->texture(0);
+    QRhiTexture *chroma = textures->texture(1);
+    QVERIFY(luma);
+    QVERIFY(chroma);
+    QCOMPARE(luma->pixelSize(), kFrameSize);
+    QCOMPARE(chroma->pixelSize(), QSize(kFrameSize.width() / 2, kFrameSize.height() / 2));
+}
+
+void tst_QFFmpegD3D11TextureConverter::map_returnsRealPixelData_afterMapTexturesWithD3D12Rhi_data()
+{
+    QTest::addColumn<QVideoFrameFormat::PixelFormat>("pixelFormat");
+
+    QTest::newRow("NV12") << QVideoFrameFormat::Format_NV12;
+    QTest::newRow("P010") << QVideoFrameFormat::Format_P010;
+}
+
+// GPU import (mapTextures()) must not mutate the buffer's shared format state out from under
+// the CPU path: map() on the same buffer must still return the real decoded planes.
+void tst_QFFmpegD3D11TextureConverter::map_returnsRealPixelData_afterMapTexturesWithD3D12Rhi()
+{
+    QFETCH(QVideoFrameFormat::PixelFormat, pixelFormat);
+
+    std::unique_ptr<QRhi> rhi = createD3D12Rhi();
+    if (!rhi)
+        QSKIP("Could not create a D3D12 QRhi on this system");
+
+    AVBufferUPtr framesCtx;
+    AVFrameUPtr frame;
+    QList<QByteArray> planeTexels;
+    switch (pixelFormat) {
+    case QVideoFrameFormat::Format_P010: {
+        framesCtx = createD3D11FramesContext(m_deviceCtx.get(), kFrameSize, AV_PIX_FMT_P010);
+        QVERIFY(framesCtx);
+        frame = createP010TestFrame(framesCtx.get(), *m_device, kFrameSize, 0x141, 0x161, 0x181);
+        const auto toBytes = [](quint16 value) {
+            const quint16 shifted = quint16(value << 6);
+            return QByteArray(reinterpret_cast<const char *>(&shifted), sizeof(shifted));
+        };
+        planeTexels = { toBytes(0x141), toBytes(0x161) + toBytes(0x181) };
+        break;
+    }
+    case QVideoFrameFormat::Format_NV12:
+        framesCtx = createD3D11FramesContext(m_deviceCtx.get(), kFrameSize, AV_PIX_FMT_NV12);
+        QVERIFY(framesCtx);
+        frame = createNv12TestFrame(framesCtx.get(), *m_device, kFrameSize, 0x40, 0x60, 0x80);
+        planeTexels = { QByteArray(1, char(0x40)), makeBytes({ 0x60, 0x80 }) };
+        break;
+    default:
+        Q_UNREACHABLE();
+    }
+    QVERIFY(frame);
+
+    QFFmpegVideoBuffer buffer(std::move(frame));
+
+    buffer.initTextureConverter(*rhi);
+    QVideoFrameTexturesUPtr oldTextures;
+    QVideoFrameTexturesUPtr textures = buffer.mapTextures(*rhi, oldTextures);
+    QVERIFY(textures);
+
+    QCOMPARE(buffer.pixelFormat(), pixelFormat);
+
+    const QAbstractVideoBuffer::MapData mapData = buffer.map(QVideoFrame::ReadOnly);
+
+    const auto *desc = QVideoTextureHelper::textureDescription(pixelFormat);
+    QCOMPARE(mapData.planeCount, desc->nplanes);
+    QCOMPARE(mapData.planeCount, planeTexels.size());
+
+    for (int plane = 0; plane < mapData.planeCount; ++plane) {
+        const int width = desc->widthForPlane(kFrameSize.width(), plane);
+        const int height = desc->heightForPlane(kFrameSize.height(), plane);
+        const q23::expected<void, QString> result =
+                QtMultimediaTest::comparePlaneRows(mapData.data[plane], mapData.bytesPerLine[plane],
+                                                   width, height, planeTexels[plane]);
+        QVERIFY2(result.has_value(), result ? "" : qPrintable(result.error()));
+    }
+
+    buffer.unmap();
 }
 
 void tst_QFFmpegD3D11TextureConverter::
