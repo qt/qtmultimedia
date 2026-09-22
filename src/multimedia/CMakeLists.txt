@@ -492,8 +492,10 @@ qt_internal_extend_target(Multimedia CONDITION WIN32
         windows/qwindowsmultimediautils.cpp windows/qwindowsmultimediautils_p.h
         windows/qwindowsresampler.cpp windows/qwindowsresampler_p.h
         windows/qwindowsvideodevices.cpp windows/qwindowsvideodevices_p.h
-        windows/qwindowsd3d11texturebridge.cpp windows/qwindowsd3d11texturebridge_p.h
+        windows/qwindowsd3d11planesplitter.cpp windows/qwindowsd3d11planesplitter_p.h
+        windows/qwindowsd3d11planesplitter_shaders_p.h
         windows/qwindowsd3d11rhitextureimporter.cpp windows/qwindowsd3d11rhitextureimporter_p.h
+        windows/qwindowsd3d11texturebridge.cpp windows/qwindowsd3d11texturebridge_p.h
         windows/qwindowsd3d11texturereadback.cpp windows/qwindowsd3d11texturereadback_p.h
         windows/qwindowsd3d11videoprocessor.cpp windows/qwindowsd3d11videoprocessor_p.h
         windows/qwmf_support.cpp windows/qwmf_support_p.h
