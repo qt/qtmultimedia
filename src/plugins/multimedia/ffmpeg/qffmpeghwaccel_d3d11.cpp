@@ -126,7 +126,10 @@ private:
 
 std::shared_ptr<D3D11TextureConverter> D3D11TextureConverter::create(QRhi *rhi)
 {
-    if (!rhi || !QWindowsD3D11RhiTextureImporter::isRhiBackendSupported(*rhi))
+    if (!rhi)
+        return nullptr;
+
+    if (!QWindowsD3D11RhiTextureImporter::isRhiBackendSupported(*rhi))
         return nullptr;
 
     return std::shared_ptr<D3D11TextureConverter>(new D3D11TextureConverter(rhi));
@@ -154,6 +157,19 @@ D3D11TextureConverter::createTextureHandles(AVFrame *frame,
 
     const ComPtr<ID3D11Texture2D> ffmpegTex = getAvFrameTexture(frame);
     const int index = getAvFramePoolIndex(frame);
+    const QVideoFrameFormat::PixelFormat pixelFormat =
+            QFFmpegVideoBuffer::toQtPixelFormat(HWAccel::format(frame));
+
+    switch (rhi->backend()) {
+    case QRhi::D3D11:
+        break;
+    case QRhi::D3D12:
+        if (!QWindowsD3D11RhiTextureImporter::isPixelFormatSupportedByRhiBackend(*rhi, pixelFormat))
+            return nullptr;
+        break;
+    default:
+        Q_UNREACHABLE_RETURN(nullptr);
+    }
 
     QVideoFrameTexturesHandlesUPtr handles;
     {

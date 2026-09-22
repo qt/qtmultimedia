@@ -31,15 +31,6 @@ class QRhi;
 
 namespace QtMultimediaPrivate {
 
-/*! \internal
-    Imports a D3D11 texture, owned by an arbitrary D3D11 device, for use by a QRhi.
-
-    Only the QRhi::D3D11 backend is currently supported; this involves a device-to-device copy
-    into a shared texture. The instance caches the resources needed to do so cheaply across
-    repeated calls (e.g. the shared texture used for the copy), so it should be kept alive for as
-    long as textures may need to be imported for a given source device, rather than recreated per
-    frame.
-*/
 class Q_MULTIMEDIA_EXPORT QWindowsD3D11RhiTextureImporter
 {
 public:
@@ -50,22 +41,33 @@ public:
 
     static bool isRhiBackendSupported(QRhi &);
 
+    // D3D12 only supports single-plane formats: it has no way to view distinct planes of one
+    // texture with different formats, so a multi-planar format (e.g. NV12) must
+    // be converted to a single-plane one first
+    static bool isPixelFormatSupportedByRhiBackend(QRhi &, QVideoFrameFormat::PixelFormat);
+
     /** Imports the texture slice at position 'subresourceIndex' of 'texture', owned by
-     *  'srcDevice', so that it can be used by 'rhi'. Returns null on failure.
-     */
-    QVideoFrameTexturesHandlesUPtr importTexture(QRhi &rhi, ID3D11Device *srcDevice,
+     *  'srcDevice', so that it can be used by 'rhi'. Returns null on failure. */
+    QVideoFrameTexturesHandlesUPtr importTexture(QRhi &, ID3D11Device *srcDevice,
                                                  ID3D11DeviceContext *srcContext,
                                                  const ComPtr<ID3D11Texture2D> &texture,
                                                  const QSize &frameSize, UINT subresourceIndex = 0);
 
 private:
-    QVideoFrameTexturesHandlesUPtr importTextureD3D11(QRhi &rhi, ID3D11Device *srcDevice,
+    QVideoFrameTexturesHandlesUPtr importTextureD3D11(QRhi &, ID3D11Device *srcDevice,
+                                                      ID3D11DeviceContext *srcContext,
+                                                      const ComPtr<ID3D11Texture2D> &texture,
+                                                      const QSize &frameSize,
+                                                      UINT subresourceIndex);
+    QVideoFrameTexturesHandlesUPtr importTextureD3D12(QRhi &, ID3D11Device *srcDevice,
                                                       ID3D11DeviceContext *srcContext,
                                                       const ComPtr<ID3D11Texture2D> &texture,
                                                       const QSize &frameSize,
                                                       UINT subresourceIndex);
 
     QWindowsD3D11TextureBridge m_bridge;
+
+    ComPtr<ID3D11Device> m_d3d11on12Device;
 };
 
 } // namespace QtMultimediaPrivate

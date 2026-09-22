@@ -44,10 +44,10 @@ private slots:
     void importTexture_returnsPlaneShapes_whenNV12AndRhiIsD3D11();
     void importTexture_reusesResources_whenCalledRepeatedly();
     void importTexture_recreatesSharedTexture_whenFrameSizeChanges();
+    void importTexture_returnsWorkingTexture_whenRhiIsD3D12();
 
     void isRhiBackendSupported_returnsFalse_whenRhiIsNull();
     void isRhiBackendSupported_returnsFalse_whenRhiIsWarpD3D11();
-    void isRhiBackendSupported_returnsFalse_whenRhiIsD3D12();
 #if QT_CONFIG(opengl)
     void isRhiBackendSupported_returnsFalse_whenRhiIsOpenGL();
 #endif
@@ -207,8 +207,6 @@ void tst_QWindowsD3D11RhiTextureImporter::
 
 void tst_QWindowsD3D11RhiTextureImporter::isRhiBackendSupported_returnsFalse_whenRhiIsNull()
 {
-    // importTexture() asserts isRhiBackendSupported() as a precondition rather than failing
-    // gracefully - callers must check this themselves before ever calling it.
     std::unique_ptr<QRhi> rhi = createNullRhi();
     QVERIFY(rhi);
 
@@ -231,14 +229,37 @@ void tst_QWindowsD3D11RhiTextureImporter::isRhiBackendSupported_returnsFalse_whe
     QVERIFY(!QWindowsD3D11RhiTextureImporter::isRhiBackendSupported(*rhi));
 }
 
-void tst_QWindowsD3D11RhiTextureImporter::isRhiBackendSupported_returnsFalse_whenRhiIsD3D12()
+void tst_QWindowsD3D11RhiTextureImporter::importTexture_returnsWorkingTexture_whenRhiIsD3D12()
 {
-    // D3D12 support is not implemented yet; verify the gap is reported rather than asserting.
     std::unique_ptr<QRhi> rhi = createD3D12Rhi();
     if (!rhi)
         QSKIP("Could not create a D3D12 QRhi on this machine");
 
-    QVERIFY(!QWindowsD3D11RhiTextureImporter::isRhiBackendSupported(*rhi));
+    QVERIFY(QWindowsD3D11RhiTextureImporter::isRhiBackendSupported(*rhi));
+
+    constexpr QSize frameSize{ 64, 32 };
+    const ComResult<ComPtr<ID3D11Texture2D>> srcTex =
+            m_srcDevice->createTextureArray(frameSize, { Qt::red });
+    QVERIFYCOMRESULT(srcTex);
+
+    QWindowsD3D11RhiTextureImporter importer;
+    QVideoFrameTexturesHandlesUPtr handles = importer.importTexture(
+            *rhi, m_srcDevice->device.Get(), m_srcDevice->context.Get(), *srcTex, frameSize);
+    QVERIFY(handles);
+
+    // The handle is a native ID3D12Resource*, which can't be read back with the D3D11 test
+    // fixture; this at least exercises the whole D3D11On12 unwrap path (and, once 'handles' is
+    // destroyed, ReturnUnderlyingResource) without crashing or silently failing.
+    const quint64 handle = handles->textureHandle(*rhi, 0);
+    QVERIFY(handle != 0);
+
+    QVideoFrameTexturesUPtr textures = QVideoTextureHelper::createTexturesFromHandles(
+            std::move(handles), *rhi, QVideoFrameFormat::Format_RGBA8888, frameSize);
+    QVERIFY(textures);
+
+    QRhiTexture *tex = textures->texture(0);
+    QVERIFY(tex);
+    QCOMPARE(tex->pixelSize(), frameSize);
 }
 
 #if QT_CONFIG(opengl)
