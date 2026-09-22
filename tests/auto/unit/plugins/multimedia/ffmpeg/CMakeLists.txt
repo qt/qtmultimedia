@@ -20,3 +20,7 @@ endif()
 if (LINUX AND QT_FEATURE_vaapi)
     add_subdirectory(qvaapitextureconverter)
 endif()
+
+if (ANDROID)
+    add_subdirectory(qmediacodectextureconverter)
+endif()
