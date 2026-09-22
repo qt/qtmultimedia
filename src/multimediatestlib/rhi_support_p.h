@@ -53,6 +53,10 @@ std::unique_ptr<QRhi> createD3D12Rhi();
 q23::expected<QByteArray, QString> readBackPlane(QRhi &, quint64 handle, QSize planeSize,
                                                  QRhiTexture::Format);
 
+#if QT_CONFIG(opengl)
+q23::expected<QByteArray, QString> readBackExternalOesTexture(QRhi &, quint64 handle, QSize size);
+#endif
+
 } // namespace QtMultimediaTest
 
 #endif // RHI_SUPPORT_P_H
