@@ -157,11 +157,11 @@ private slots:
 
     void capturableWindows_containsVisibleWindow()
     {
-#if defined(Q_OS_MACOS)
-        // Note: Remove this skip if this test is promoted to bundle.
-        QSKIP("On macOS, windows without a bundle identifier are filtered out of "
-              "capturableWindows(), so our test window never appears in the list");
-#endif
+        if (isMacOS) {
+            // Note: Remove this skip if this test is promoted to bundle.
+            QSKIP("On macOS, windows without a bundle identifier are filtered out of "
+                  "capturableWindows(), so our test window never appears in the list");
+        }
 
         TestWidget widget;
         widget.show();
@@ -466,14 +466,6 @@ private slots:
 
     void setFrameRate_emitsFramesAtCorrectRate()
     {
-#ifdef Q_OS_ANDROID // QTBUG-141824
-        QSKIP("Framerate setting not implemented on Android");
-#endif
-#ifdef Q_OS_LINUX
-        if (QGuiApplication::platformName() == u"wayland"_s)
-            QSKIP("Framerate setting not implemented on Wayland");
-#endif
-
         WindowCaptureWithWidgetFixture fixture;
 
         // Use animated content to make sure backend does not
@@ -766,16 +758,15 @@ private slots:
 
     void sequenceOfCapturedImages_compareEqual_whenWindowContentIsUnchanged()
     {
-#ifdef Q_OS_WIN
-        QSKIP(
-            "Windows does not emit frames if content is unchanged. "
-            "Cannot test framerates reliably in CI. QTBUG-147051");
-#endif
-#ifdef Q_OS_MACOS
-        QSKIP(
-            "The macOS ScreenCaptureKit backend will often not emit "
-            "new frames if content is unchanged");
-#endif
+        if (isWindows)
+            QSKIP(
+                "Windows does not emit frames if content is unchanged. "
+                "Cannot test framerates reliably in CI. QTBUG-147051");
+
+        if (isMacOS)
+            QSKIP(
+                "The macOS ScreenCaptureKit backend will often not emit "
+                "new frames if content is unchanged");
 
         WindowCaptureWithWidgetFixture fixture;
         QVERIFY(fixture.start());
@@ -859,9 +850,10 @@ private slots:
 
     void windowCapture_capturesWindowsInOtherProcesses()
     {
-#if defined(Q_OS_MACOS)
-        QSKIP("Separate process tests do not work on macOS because they are launched without bundle identifiers");
-#endif
+        if (isMacOS) {
+            QSKIP("Separate process tests do not work on macOS "
+                  "because they are launched without bundle identifiers");
+        }
 
         WindowCaptureWithWidgetInOtherProcessFixture fixture;
         QVERIFY(fixture.start());
@@ -882,9 +874,10 @@ private slots:
     */
     void windowCapture_stopsWithError_whenProcessCloses()
     {
-#if defined(Q_OS_MACOS)
-        QSKIP("Separate process tests do not work on macOS because they are launched without bundle identifiers");
-#endif
+        if (isMacOS) {
+            QSKIP("Separate process tests do not work on macOS "
+                  "because they are launched without bundle identifiers");
+        }
 
         WindowCaptureWithWidgetInOtherProcessFixture fixture;
         QVERIFY(fixture.start());
