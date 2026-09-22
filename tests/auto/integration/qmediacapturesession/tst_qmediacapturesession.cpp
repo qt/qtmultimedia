@@ -101,6 +101,7 @@ private slots:
     void can_move_ImageCapture_between_sessions();
     void capture_is_not_available_when_Camera_is_null();
     void can_add_ImageCapture_and_capture_during_recording();
+    void settingImageCaptureResolution_providesCorrectSizeVideoFrame();
 
     void can_switch_audio_output();
     void can_switch_audio_input();
@@ -1226,6 +1227,56 @@ void tst_QMediaCaptureSession::can_add_ImageCapture_and_capture_during_recording
     QVERIFY(!fileName.isEmpty());
     QTRY_VERIFY(QFileInfo(fileName).size() > 0);
     QFile(fileName).remove();
+}
+
+void tst_QMediaCaptureSession::settingImageCaptureResolution_providesCorrectSizeVideoFrame()
+{
+    QSKIP_IF_NOT_FFMPEG("Test only for FFmpeg backend");
+
+#if defined(Q_OS_DARWIN) || defined(Q_OS_LINUX) || defined(Q_OS_WIN)
+    QSKIP("Camera doesn't respect QImageCapture resolution");
+#endif
+
+    QCamera camera;
+
+    if (!camera.isAvailable())
+        QSKIP("No video input available");
+
+    auto photoResolutions = camera.cameraDevice().photoResolutions();
+    if (photoResolutions.isEmpty())
+        QSKIP("No photo resolutions provided by camera device");
+
+    auto it = std::find_if(
+            photoResolutions.begin(), photoResolutions.end(), [&](const QSize &resolution) {
+                return resolution != camera.cameraFormat().resolution();
+            });
+    if (it == photoResolutions.end())
+        QSKIP("No photo resolutions that differ from default for camera format");
+
+    const QSize requestedResolution = *it;
+
+    QImageCapture capture;
+    QMediaCaptureSession session;
+
+    QSignalSpy imageAvailableSignal(&capture, &QImageCapture::imageAvailable);
+
+    session.setCamera(&camera);
+    camera.setActive(true);
+    session.setImageCapture(&capture);
+
+    // Act
+    capture.setResolution(requestedResolution);
+    QTest::qWait(1000); // Some platforms asynchronously restart camera when capture resolution changes
+    QTRY_VERIFY(capture.isReadyForCapture());
+    capture.capture();
+
+    // Assert
+    QTRY_COMPARE(imageAvailableSignal.size(), 1);
+
+    const QList<QVariant> arguments = imageAvailableSignal.front();
+    const QVideoFrame frame = arguments.at(1).value<QVideoFrame>();
+    QVERIFY(frame.isValid());
+    QCOMPARE(frame.size(), requestedResolution);
 }
 
 void tst_QMediaCaptureSession::testAudioMute()
