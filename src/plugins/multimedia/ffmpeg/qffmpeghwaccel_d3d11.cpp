@@ -137,11 +137,36 @@ std::shared_ptr<D3D11TextureConverter> D3D11TextureConverter::create(QRhi *rhi)
 
 D3D11TextureConverter::D3D11TextureConverter(QRhi *rhi) : TextureConverterBackend(rhi) { }
 
+bool D3D11TextureConverter::isSupported(AVFrame &hwFrame, QRhi &rhi)
+{
+    if (!QWindowsD3D11RhiTextureImporter::isRhiBackendSupported(rhi))
+        return false;
+
+    const QVideoFrameFormat::PixelFormat pixelFormat =
+            QFFmpegVideoBuffer::toQtPixelFormat(HWAccel::format(&hwFrame));
+
+    if (QWindowsD3D11RhiTextureImporter::isPixelFormatSupportedByRhiBackend(rhi, pixelFormat))
+        return true;
+
+    switch (rhi.backend()) {
+    case QRhi::D3D12:
+#if QT_CONFIG(opengl)
+    case QRhi::OpenGLES2:
+#endif
+        return QWindowsD3D11VideoProcessor::isPixelFormatSupported(pixelFormat);
+    default:
+        return false;
+    }
+}
+
 QVideoFrameTexturesHandlesUPtr
 D3D11TextureConverter::createTextureHandles(AVFrame *frame,
                                             QVideoFrameTexturesHandlesUPtr /*oldHandles*/)
 {
     if (!frame || !frame->hw_frames_ctx || frame->format != AV_PIX_FMT_D3D11)
+        return nullptr;
+
+    if (!isSupported(*frame, *rhi))
         return nullptr;
 
     const auto *ctx = avFrameDeviceContext(frame);
@@ -160,29 +185,37 @@ D3D11TextureConverter::createTextureHandles(AVFrame *frame,
     const QVideoFrameFormat::PixelFormat pixelFormat =
             QFFmpegVideoBuffer::toQtPixelFormat(HWAccel::format(frame));
 
-    switch (rhi->backend()) {
-    case QRhi::D3D11:
-        break;
-    case QRhi::D3D12:
-    case QRhi::OpenGLES2:
-        if (!QWindowsD3D11RhiTextureImporter::isPixelFormatSupportedByRhiBackend(*rhi, pixelFormat))
-            return nullptr;
-        break;
-    default:
-        Q_UNREACHABLE_RETURN(nullptr);
-    }
+    bool canImportDirectly =
+            QWindowsD3D11RhiTextureImporter::isPixelFormatSupportedByRhiBackend(*rhi, pixelFormat);
 
+    const QSize frameSize{ frame->width, frame->height };
     QVideoFrameTexturesHandlesUPtr handles;
     {
-        // Lock the FFmpeg device context while we copy from FFmpeg's
-        // frame pool into a shared texture because the underlying ID3D11DeviceContext
-        // is not thread safe.
+        // Lock the FFmpeg device context while we read from FFmpeg's frame pool because the
+        // underlying ID3D11DeviceContext is not thread safe.
         std::lock_guard<AVD3D11VADeviceContext> guard(*avDeviceCtx);
 
-        // Import a copy of the slice from the frame pool, cropping away extra surface
-        // alignment areas that FFmpeg adds to the textures.
-        handles = m_importer.importTexture(*rhi, avDeviceCtx->device, avDeviceCtx->device_context,
-                                           ffmpegTex, QSize{ frame->width, frame->height }, index);
+        if (canImportDirectly) {
+            // Import a copy of the slice from the frame pool, cropping away extra surface
+            // alignment areas that FFmpeg adds to the textures.
+            handles =
+                    m_importer.importTexture(*rhi, avDeviceCtx->device, avDeviceCtx->device_context,
+                                             ffmpegTex, frameSize, index);
+        } else {
+            // rhi can't consume this pixel format's planes directly (e.g. NV12 on D3D12 or
+            // OpenGL): convert it to a single-plane format on the decoder's device first. The
+            // video processor reads directly from the (possibly padded) frame pool slice, so
+            // no separate cropping copy is needed here.
+            const ComPtr<ID3D11Texture2D> converted = m_videoProcessor.convertToBGRA(
+                    avDeviceCtx->device, avDeviceCtx->device_context, ffmpegTex, frameSize,
+                    fromAvColorSpace(frame->colorspace), fromAvColorRange(frame->color_range),
+                    fromAvColorTransfer(frame->color_trc), index);
+            if (converted) {
+                handles =
+                        m_importer.importTexture(*rhi, avDeviceCtx->device,
+                                                 avDeviceCtx->device_context, converted, frameSize);
+            }
+        }
     }
 
     if (!handles)

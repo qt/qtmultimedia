@@ -64,6 +64,11 @@ public:
                 QRhiD3D11InitParams params;
                 m_rhi.reset(QRhi::create(QRhi::D3D11, &params));
             }
+
+            if (!m_rhi && canUseRhiImpl(QRhi::D3D12, backend)) {
+                QRhiD3D12InitParams params;
+                m_rhi.reset(QRhi::create(QRhi::D3D12, &params));
+            }
 #endif
 
 #if QT_CONFIG(opengl)

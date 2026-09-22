@@ -39,6 +39,22 @@ public:
     QVideoFrameFormat::PixelFormat pixelFormat() const;
     QSize size() const;
 
+    /** Overrides the pixel format reported by pixelFormat() and used to interpret the hw frame
+     *  when building GPU textures via mapTextures(). Used when the frame will be converted to
+     *  a different (single-plane) pixel format before texture import, e.g. an NV12 or P010
+     *  D3D11VA frame on a backend that can only import single-plane textures. Must be called
+     *  before the buffer is wrapped in a QVideoFrame, since QVideoFrameFormat is fixed at that
+     *  point. Does not affect the underlying hw frame or its decoder pool: the CPU (map())
+     *  fallback still transfers the real data and then converts it into the overridden pixel
+     *  format. Also makes colorSpace()/colorTransfer()/colorRange() report the color properties
+     *  of the converted data instead of the original hw frame's, since on Windows this converter
+     *  (QWindowsD3D11VideoProcessor) always tone-maps its output to SDR BT.709. */
+    void setPixelFormatOverride(QVideoFrameFormat::PixelFormat format)
+    {
+        m_pixelFormat = format;
+        m_isPixelFormatOverridden = true;
+    }
+
     static QVideoFrameFormat::PixelFormat toQtPixelFormat(AVPixelFormat avPixelFormat, bool *needsConversion = nullptr);
     static AVPixelFormat toAVPixelFormat(QVideoFrameFormat::PixelFormat pixelFormat);
 
@@ -64,6 +80,7 @@ private:
 
 private:
     QVideoFrameFormat::PixelFormat m_pixelFormat;
+    bool m_isPixelFormatOverridden = false;
     AVFrame *m_frame = nullptr;
     AVFrameUPtr m_hwFrame;
     AVFrameUPtr m_swFrame;

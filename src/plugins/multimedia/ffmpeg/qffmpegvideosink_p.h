@@ -32,11 +32,18 @@ public:
     QFFmpegVideoSink(QVideoSink *sink);
     void setRhi(QRhi *rhi) override;
 
+    template <typename Functor>
+    auto withRhi(Functor &&functor) const
+    {
+        QMutexLocker guard{ &m_rhiMutex };
+        return functor(m_rhi);
+    }
+
 protected:
     void onVideoFrameChanged(const QVideoFrame &frame) override;
 
 private:
-    QMutex m_rhiMutex;
+    mutable QMutex m_rhiMutex;
     QRhi *m_rhi = nullptr;
 };
 

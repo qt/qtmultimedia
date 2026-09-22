@@ -16,6 +16,7 @@
 
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 #include <QtMultimedia/private/qwindowsd3d11rhitextureimporter_p.h>
+#include <QtMultimedia/private/qwindowsd3d11videoprocessor_p.h>
 #include <QtCore/private/qcomptr_p.h>
 
 #include <d3d11.h>
@@ -39,12 +40,16 @@ public:
 
     static void SetupDecoderTextures(AVCodecContext *s);
 
+    static bool isSupported(AVFrame &, QRhi &);
+
 protected:
     explicit D3D11TextureConverter(QRhi *rhi);
 
 private:
     using QWindowsD3D11RhiTextureImporter = QtMultimediaPrivate::QWindowsD3D11RhiTextureImporter;
+    using QWindowsD3D11VideoProcessor = QtMultimediaPrivate::QWindowsD3D11VideoProcessor;
     QWindowsD3D11RhiTextureImporter m_importer;
+    QWindowsD3D11VideoProcessor m_videoProcessor;
 };
 
 AVFrameUPtr copyFromHwPoolD3D11(AVFrameUPtr src);

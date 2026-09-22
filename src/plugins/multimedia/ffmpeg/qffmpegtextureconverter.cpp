@@ -35,13 +35,12 @@ template <typename Converter>
 using ConverterTypeIdentity = q20::type_identity<Converter>;
 
 template <typename ConverterTypeHandler>
-void applyConverterTypeByPixelFormat(AVPixelFormat fmt, const QRhi &rhi,
-                                     ConverterTypeHandler &&handler)
+void applyConverterTypeByPixelFormat(AVFrame &hwFrame, QRhi &rhi, ConverterTypeHandler &&handler)
 {
     if (!TextureConverter::hwTextureConversionEnabled())
         return;
 
-    switch (fmt) {
+    switch (AVPixelFormat(hwFrame.format)) {
 #if QT_CONFIG(vaapi)
     case AV_PIX_FMT_VAAPI:
         handler(ConverterTypeIdentity<VAAPITextureConverter>{});
@@ -54,10 +53,8 @@ void applyConverterTypeByPixelFormat(AVPixelFormat fmt, const QRhi &rhi,
 #endif
 #ifdef Q_OS_WINDOWS
     case AV_PIX_FMT_D3D11:
-        if (rhi.backend() == QRhi::Implementation::D3D11) {
-            if (rhi.driverInfo().deviceType != QRhiDriverInfo::CpuDevice)
-                handler(ConverterTypeIdentity<D3D11TextureConverter>{});
-        }
+        if (D3D11TextureConverter::isSupported(hwFrame, rhi))
+            handler(ConverterTypeIdentity<D3D11TextureConverter>{});
         break;
 #endif
 #ifdef Q_OS_ANDROID
@@ -81,9 +78,8 @@ TextureConverter::TextureConverter(QRhi &rhi) : m_rhi(rhi) { }
 bool TextureConverter::init(AVFrame &hwFrame)
 {
     Q_ASSERT(hwFrame.hw_frames_ctx);
-    AVPixelFormat fmt = AVPixelFormat(hwFrame.format);
-    if (fmt != m_format)
-        updateBackend(fmt);
+    if (AVPixelFormat(hwFrame.format) != m_format)
+        updateBackend(hwFrame);
     return !isNull();
 }
 
@@ -107,12 +103,12 @@ TextureConverter::createTextureHandles(AVFrame &hwFrame, QVideoFrameTexturesHand
     return m_backend->createTextureHandles(&hwFrame, std::move(oldHandles));
 }
 
-void TextureConverter::updateBackend(AVPixelFormat fmt)
+void TextureConverter::updateBackend(AVFrame &hwFrame)
 {
     m_backend = nullptr;
-    m_format = fmt; // should be saved even if m_backend is not created
+    m_format = AVPixelFormat(hwFrame.format); // should be saved even if m_backend is not created
 
-    applyConverterTypeByPixelFormat(m_format, m_rhi, [this](auto converterTypeIdentity) {
+    applyConverterTypeByPixelFormat(hwFrame, m_rhi, [this](auto converterTypeIdentity) {
         using ConverterType = typename decltype(converterTypeIdentity)::type;
         m_backend = ConverterType::create(&m_rhi);
     });
@@ -147,10 +143,10 @@ void TextureConverter::applyDecoderPreset(const AVPixelFormat format, AVCodecCon
 #endif
 }
 
-bool TextureConverter::isBackendAvailable(AVFrame &hwFrame, const QRhi &rhi)
+bool TextureConverter::isBackendAvailable(AVFrame &hwFrame, QRhi &rhi)
 {
     bool result = false;
-    applyConverterTypeByPixelFormat(AVPixelFormat(hwFrame.format), rhi, [&result](auto) {
+    applyConverterTypeByPixelFormat(hwFrame, rhi, [&result](auto) {
         result = true;
     });
     return result;

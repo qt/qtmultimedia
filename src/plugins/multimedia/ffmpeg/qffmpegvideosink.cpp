@@ -25,10 +25,14 @@ void QFFmpegVideoSink::setRhi(QRhi *rhi)
 
 void QFFmpegVideoSink::onVideoFrameChanged(const QVideoFrame &frame)
 {
-    QMutexLocker guard { &m_rhiMutex };
     auto *buffer = QVideoFramePrivate::hwBuffer(frame);
-    if (buffer && m_rhi)
-        buffer->initTextureConverter(*m_rhi);
+    if (!buffer)
+        return;
+
+    withRhi([&](QRhi *rhi) {
+        if (rhi)
+            buffer->initTextureConverter(*rhi);
+    });
 }
 
 QT_END_NAMESPACE

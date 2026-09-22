@@ -14,6 +14,7 @@
 
 #include <QtGui/rhi/qrhi.h>
 #include <QtGui/qcolor.h>
+#include <QtGui/qoffscreensurface.h>
 
 #include <QtCore/qbytearrayview.h>
 
@@ -156,6 +157,9 @@ private slots:
 
     void create_succeedsAndKeepsRhi_whenRhiIsD3D11();
 
+    void isSupported_returnsTrue_whenRhiIsD3D11();
+    void isSupported_returnsTrue_whenRhiIsD3D12OrOpenGL();
+
     void createTextureHandles_returnsNull_whenRhiIsNotD3D11();
     void createTextureHandles_returnsNull_whenRhiIsWarpD3D11();
     void createTextureHandles_returnsNull_whenFrameFormatIsNotD3D11();
@@ -167,6 +171,7 @@ private slots:
     void map_returnsRealPixelData_forHwFrame_data();
     void map_returnsRealPixelData_forHwFrame();
 
+    void createTextureHandles_convertsViaVideoProcessor_whenRhiIsD3D12();
     void createTextureHandles_outlivesSourceFrame_afterFrameContextIsDestroyed();
     void createTextureHandles_acceptsOldHandles_onSecondCall();
 
@@ -200,6 +205,48 @@ void tst_QFFmpegD3D11TextureConverter::create_succeedsAndKeepsRhi_whenRhiIsD3D11
     std::shared_ptr<D3D11TextureConverter> converter = D3D11TextureConverter::create(rhi.get());
     QVERIFY(converter);
     QCOMPARE(converter->rhi, rhi.get());
+}
+
+void tst_QFFmpegD3D11TextureConverter::isSupported_returnsTrue_whenRhiIsD3D11()
+{
+    std::unique_ptr<QRhi> rhi = createOffscreenD3D11Rhi();
+    if (!rhi)
+        QSKIP("Could not create a D3D11 QRhi on this system");
+
+    AVFrameUPtr frame =
+            createNv12TestFrame(m_framesCtx.get(), *m_device, kFrameSize, 180, 128, 128);
+    QVERIFY(frame);
+
+    QVERIFY(D3D11TextureConverter::isSupported(*frame, *rhi));
+}
+
+// D3D12 and OpenGL can't expose NV12's two planes directly (see
+// QWindowsD3D11RhiTextureImporter::isRhiBackendSupported), but isSupported() must still report
+// true for them because D3D11TextureConverter falls back to converting via
+// QWindowsD3D11VideoProcessor first - this is the gate that lets createTextureHandles() even
+// attempt that conversion.
+void tst_QFFmpegD3D11TextureConverter::isSupported_returnsTrue_whenRhiIsD3D12OrOpenGL()
+{
+    AVFrameUPtr frame =
+            createNv12TestFrame(m_framesCtx.get(), *m_device, kFrameSize, 180, 128, 128);
+    QVERIFY(frame);
+
+    bool checkedAtLeastOneBackend = false;
+
+    if (std::unique_ptr<QRhi> d3d12Rhi = createD3D12Rhi()) {
+        QVERIFY(D3D11TextureConverter::isSupported(*frame, *d3d12Rhi));
+        checkedAtLeastOneBackend = true;
+    }
+
+#if QT_CONFIG(opengl)
+    if (auto offscreenGlRhi = createOffscreenGlRhi()) {
+        QVERIFY(D3D11TextureConverter::isSupported(*frame, *offscreenGlRhi->rhi));
+        checkedAtLeastOneBackend = true;
+    }
+#endif
+
+    if (!checkedAtLeastOneBackend)
+        QSKIP("Could not create a D3D12 or OpenGL QRhi on this system");
 }
 
 void tst_QFFmpegD3D11TextureConverter::createTextureHandles_returnsNull_whenRhiIsNotD3D11()
@@ -423,6 +470,43 @@ void tst_QFFmpegD3D11TextureConverter::map_returnsRealPixelData_forHwFrame()
 
     const q23::expected<void, QString> result = verifyMappedHwFrame(std::move(frame), planeTexels);
     QVERIFY2(result.has_value(), result ? "" : qPrintable(result.error()));
+}
+
+// D3D12 can't consume NV12 directly (see isRhiBackendSupported), so this exercises the full
+// fallback path added for D3D12/OpenGL sinks: converting the NV12 frame to BGRA8 via
+// QWindowsD3D11VideoProcessor before importing it - the one thing the commit that introduced this
+// path documented as not verified end-to-end.
+void tst_QFFmpegD3D11TextureConverter::
+        createTextureHandles_convertsViaVideoProcessor_whenRhiIsD3D12()
+{
+    std::unique_ptr<QRhi> rhi = createD3D12Rhi();
+    if (!rhi)
+        QSKIP("Could not create a D3D12 QRhi on this system");
+
+    AVFrameUPtr frame =
+            createNv12TestFrame(m_framesCtx.get(), *m_device, kFrameSize, 180, 128, 128);
+    QVERIFY(frame);
+
+    std::shared_ptr<D3D11TextureConverter> converter = D3D11TextureConverter::create(rhi.get());
+    QVERIFY(converter);
+
+    QVideoFrameTexturesHandlesUPtr handles = converter->createTextureHandles(frame.get(), nullptr);
+    QVERIFY(handles);
+
+    const quint64 handle = handles->textureHandle(*rhi, 0);
+    QVERIFY(handle != 0);
+
+    // The handle is a native ID3D12Resource*, which can't be read back with the D3D11 test
+    // fixture (see the equivalent D3D12 case in tst_qwindowsd3d11rhitextureimporter); this still
+    // exercises the whole video-processor-conversion + D3D11On12-unwrap path end to end without
+    // crashing or silently failing.
+    QVideoFrameTexturesUPtr textures = QVideoTextureHelper::createTexturesFromHandles(
+            std::move(handles), *rhi, QVideoFrameFormat::Format_BGRA8888, kFrameSize);
+    QVERIFY(textures);
+
+    QRhiTexture *tex = textures->texture(0);
+    QVERIFY(tex);
+    QCOMPARE(tex->pixelSize(), kFrameSize);
 }
 
 void tst_QFFmpegD3D11TextureConverter::

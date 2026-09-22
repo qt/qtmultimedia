@@ -8,6 +8,12 @@
 #include <QtMultimedia/qvideosink.h>
 #include <QtMultimedia/private/qvideoframe_p.h>
 
+#ifdef Q_OS_WINDOWS
+#  include "qffmpegvideosink_p.h"
+#  include <QtMultimedia/private/qwindowsd3d11rhitextureimporter_p.h>
+#  include <QtMultimedia/private/qwindowsd3d11videoprocessor_p.h>
+#endif
+
 QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
@@ -66,7 +72,38 @@ VideoRenderer::RenderingResult VideoRenderer::renderInternal(Frame frame)
 #endif
 
     const auto pixelAspectRatio = codecContext->pixelAspectRatio(frame.avFrame());
+
+#ifdef Q_OS_WINDOWS
+    // D3D12 and OpenGL can only import single-plane textures (see
+    // QWindowsD3D11RhiTextureImporter::isRhiBackendSupported); an NV12 or P010 D3D11VA frame
+    // needs to be converted to a single-plane format before it can be imported on those
+    // backends. This has to be decided now rather than in QFFmpegVideoBuffer::mapTextures(),
+    // since the QVideoFrameFormat below is fixed for the lifetime of the QVideoFrame.
+    QVideoFrameFormat::PixelFormat pixelFormatOverride = QVideoFrameFormat::Format_Invalid;
+    if (frame.avFrame()->format == AV_PIX_FMT_D3D11 && frame.avFrame()->hw_frames_ctx) {
+        if (auto *ffmpegSink = qobject_cast<QFFmpegVideoSink *>(m_sink->platformVideoSink())) {
+            ffmpegSink->withRhi([&](QRhi *rhi) {
+                if (!rhi)
+                    return;
+                using namespace QtMultimediaPrivate;
+                const auto swPixelFormat =
+                        QFFmpegVideoBuffer::toQtPixelFormat(HWAccel::format(frame.avFrame()));
+                if ((!QWindowsD3D11RhiTextureImporter::isRhiBackendSupported(*rhi)
+                     || !QWindowsD3D11RhiTextureImporter::isPixelFormatSupportedByRhiBackend(
+                             *rhi, swPixelFormat))
+                    && QWindowsD3D11VideoProcessor::isPixelFormatSupported(swPixelFormat)) {
+                    pixelFormatOverride = QVideoFrameFormat::Format_BGRA8888;
+                }
+            });
+        }
+    }
+#endif
+
     auto buffer = std::make_unique<QFFmpegVideoBuffer>(frame.takeAVFrame(), pixelAspectRatio);
+#ifdef Q_OS_WINDOWS
+    if (pixelFormatOverride != QVideoFrameFormat::Format_Invalid)
+        buffer->setPixelFormatOverride(pixelFormatOverride);
+#endif
     QVideoFrameFormat format(buffer->size(), buffer->pixelFormat());
     format.setColorSpace(buffer->colorSpace());
     format.setColorTransfer(buffer->colorTransfer());

@@ -122,10 +122,10 @@ public:
      *        the specified frame. If it returns true, init will attempt to create backend,
      *        but it may fail if something goes wrong in the backend.
      */
-    static bool isBackendAvailable(AVFrame &hwFrame, const QRhi &rhi);
+    static bool isBackendAvailable(AVFrame &hwFrame, QRhi &rhi);
 
 private:
-    void updateBackend(AVPixelFormat format);
+    void updateBackend(AVFrame &hwFrame);
 
 private:
     QRhi &m_rhi;
