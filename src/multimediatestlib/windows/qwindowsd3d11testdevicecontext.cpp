@@ -10,6 +10,19 @@
 #include <QtCore/private/qsystemerror_p.h>
 
 #include <algorithm>
+#include <cstring>
+
+namespace {
+
+// Subresource index of the first mip level of 'arraySlice' in 'texture'.
+UINT sliceSubresource(const ComPtr<ID3D11Texture2D> &texture, UINT arraySlice)
+{
+    D3D11_TEXTURE2D_DESC desc{};
+    texture->GetDesc(&desc);
+    return D3D11CalcSubresource(0, arraySlice, desc.MipLevels);
+}
+
+} // namespace
 
 ComResult<QColor>
 QWindowsD3D11TestDeviceContext::getFirstPixelColor(const ComPtr<ID3D11Texture2D> &texture) const
@@ -51,6 +64,39 @@ QWindowsD3D11TestDeviceContext::getFirstPixelColor(const ComPtr<ID3D11Texture2D>
     QColor firstPixel{ data[0], data[1], data[2], data[3] };
 
     // Unmap the staging texture
+    context->Unmap(stagingTexture.Get(), 0);
+
+    return firstPixel;
+}
+
+ComResult<QColor>
+QWindowsD3D11TestDeviceContext::getFirstPixelColorBGRA(const ComPtr<ID3D11Texture2D> &texture) const
+{
+    D3D11_TEXTURE2D_DESC desc{};
+    texture->GetDesc(&desc);
+
+    D3D11_TEXTURE2D_DESC stagingDesc = desc;
+    stagingDesc.Usage = D3D11_USAGE_STAGING;
+    stagingDesc.BindFlags = 0;
+    stagingDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+    stagingDesc.MiscFlags = 0;
+
+    ComPtr<ID3D11Texture2D> stagingTexture;
+    HRESULT hr = device->CreateTexture2D(&stagingDesc, nullptr, &stagingTexture);
+    if (hr != S_OK)
+        return q23::unexpected{ hr };
+
+    context->CopyResource(stagingTexture.Get(), texture.Get());
+
+    D3D11_MAPPED_SUBRESOURCE mappedResource{};
+    hr = context->Map(stagingTexture.Get(), 0, D3D11_MAP_READ, 0, &mappedResource);
+    if (hr != S_OK)
+        return q23::unexpected{ hr };
+
+    unsigned char *data = static_cast<unsigned char *>(mappedResource.pData);
+
+    QColor firstPixel{ data[2], data[1], data[0], data[3] };
+
     context->Unmap(stagingTexture.Get(), 0);
 
     return firstPixel;
@@ -132,31 +178,17 @@ HRESULT QWindowsD3D11TestDeviceContext::fillNV12Texture(const ComPtr<ID3D11Textu
                                                         quint8 chromaUValue, quint8 chromaVValue,
                                                         UINT arraySlice) const
 {
-    D3D11_TEXTURE2D_DESC desc{};
-    texture->GetDesc(&desc);
-
-    D3D11_TEXTURE2D_DESC stagingDesc = desc;
-    stagingDesc.Usage = D3D11_USAGE_STAGING;
-    stagingDesc.BindFlags = 0;
-    stagingDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    stagingDesc.MiscFlags = 0;
-
-    ComPtr<ID3D11Texture2D> stagingTexture;
-    HRESULT hr = device->CreateTexture2D(&stagingDesc, nullptr, stagingTexture.GetAddressOf());
-    if (FAILED(hr)) {
+    const ComResult<ComPtr<ID3D11Texture2D>> staging =
+            createStagingSliceCopy(texture, arraySlice, D3D11_CPU_ACCESS_WRITE);
+    if (!staging) {
         qWarning() << "Failed to create staging texture for NV12 fill"
-                   << QSystemError::windowsComString(hr);
-        return hr;
+                   << QSystemError::windowsComString(staging.error());
+        return staging.error();
     }
-
-    // texture may be a texture array (e.g. a pooled decoder surface); operate on the specific
-    // array slice this frame actually occupies, not just subresource 0.
-    const UINT subresource = D3D11CalcSubresource(0, arraySlice, desc.MipLevels);
-
-    context->CopyResource(stagingTexture.Get(), texture.Get());
+    const ComPtr<ID3D11Texture2D> &stagingTexture = *staging;
 
     D3D11_MAPPED_SUBRESOURCE mappedResource{};
-    hr = context->Map(stagingTexture.Get(), subresource, D3D11_MAP_WRITE, 0, &mappedResource);
+    HRESULT hr = context->Map(stagingTexture.Get(), 0, D3D11_MAP_WRITE, 0, &mappedResource);
     if (FAILED(hr)) {
         qWarning() << "Failed to map staging texture for NV12 fill"
                    << QSystemError::windowsComString(hr);
@@ -184,10 +216,26 @@ HRESULT QWindowsD3D11TestDeviceContext::fillNV12Texture(const ComPtr<ID3D11Textu
         }
     }
 
-    context->Unmap(stagingTexture.Get(), subresource);
-    context->CopyResource(texture.Get(), stagingTexture.Get());
+    context->Unmap(stagingTexture.Get(), 0);
+    context->CopySubresourceRegion(texture.Get(), sliceSubresource(texture, arraySlice), 0, 0, 0,
+                                   stagingTexture.Get(), 0, nullptr);
 
     return S_OK;
+}
+
+ComResult<ComPtr<ID3D11Texture2D>>
+QWindowsD3D11TestDeviceContext::createFilledNV12Texture(QSize size, quint8 lumaValue,
+                                                        quint8 chromaU, quint8 chromaV) const
+{
+    const ComResult<ComPtr<ID3D11Texture2D>> tex = createNV12Texture(size);
+    if (!tex)
+        return tex;
+
+    const HRESULT hr = fillNV12Texture(*tex, size, lumaValue, chromaU, chromaV);
+    if (hr != S_OK)
+        return q23::unexpected{ hr };
+
+    return tex;
 }
 
 ComResult<ComPtr<ID3D11Texture2D>>
@@ -220,29 +268,17 @@ HRESULT QWindowsD3D11TestDeviceContext::fillP010Texture(const ComPtr<ID3D11Textu
                                                         quint16 chromaUValue, quint16 chromaVValue,
                                                         UINT arraySlice) const
 {
-    D3D11_TEXTURE2D_DESC desc{};
-    texture->GetDesc(&desc);
-
-    D3D11_TEXTURE2D_DESC stagingDesc = desc;
-    stagingDesc.Usage = D3D11_USAGE_STAGING;
-    stagingDesc.BindFlags = 0;
-    stagingDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    stagingDesc.MiscFlags = 0;
-
-    ComPtr<ID3D11Texture2D> stagingTexture;
-    HRESULT hr = device->CreateTexture2D(&stagingDesc, nullptr, stagingTexture.GetAddressOf());
-    if (FAILED(hr)) {
+    const ComResult<ComPtr<ID3D11Texture2D>> staging =
+            createStagingSliceCopy(texture, arraySlice, D3D11_CPU_ACCESS_WRITE);
+    if (!staging) {
         qWarning() << "Failed to create staging texture for P010 fill"
-                   << QSystemError::windowsComString(hr);
-        return hr;
+                   << QSystemError::windowsComString(staging.error());
+        return staging.error();
     }
-
-    const UINT subresource = D3D11CalcSubresource(0, arraySlice, desc.MipLevels);
-
-    context->CopyResource(stagingTexture.Get(), texture.Get());
+    const ComPtr<ID3D11Texture2D> &stagingTexture = *staging;
 
     D3D11_MAPPED_SUBRESOURCE mappedResource{};
-    hr = context->Map(stagingTexture.Get(), subresource, D3D11_MAP_WRITE, 0, &mappedResource);
+    HRESULT hr = context->Map(stagingTexture.Get(), 0, D3D11_MAP_WRITE, 0, &mappedResource);
     if (FAILED(hr)) {
         qWarning() << "Failed to map staging texture for P010 fill"
                    << QSystemError::windowsComString(hr);
@@ -271,8 +307,9 @@ HRESULT QWindowsD3D11TestDeviceContext::fillP010Texture(const ComPtr<ID3D11Textu
                                     size.height() / 2,
                                     QByteArrayView(chromaTexel, sizeof(chromaTexel)));
 
-    context->Unmap(stagingTexture.Get(), subresource);
-    context->CopyResource(texture.Get(), stagingTexture.Get());
+    context->Unmap(stagingTexture.Get(), 0);
+    context->CopySubresourceRegion(texture.Get(), sliceSubresource(texture, arraySlice), 0, 0, 0,
+                                   stagingTexture.Get(), 0, nullptr);
 
     return S_OK;
 }
@@ -307,29 +344,17 @@ QWindowsD3D11TestDeviceContext::fillSinglePlaneTexture(const ComPtr<ID3D11Textur
                                                        QSize size, QByteArrayView texel,
                                                        UINT arraySlice) const
 {
-    D3D11_TEXTURE2D_DESC desc{};
-    texture->GetDesc(&desc);
-
-    D3D11_TEXTURE2D_DESC stagingDesc = desc;
-    stagingDesc.Usage = D3D11_USAGE_STAGING;
-    stagingDesc.BindFlags = 0;
-    stagingDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-    stagingDesc.MiscFlags = 0;
-
-    ComPtr<ID3D11Texture2D> stagingTexture;
-    HRESULT hr = device->CreateTexture2D(&stagingDesc, nullptr, stagingTexture.GetAddressOf());
-    if (FAILED(hr)) {
+    const ComResult<ComPtr<ID3D11Texture2D>> staging =
+            createStagingSliceCopy(texture, arraySlice, D3D11_CPU_ACCESS_WRITE);
+    if (!staging) {
         qWarning() << "Failed to create staging texture for single-plane fill"
-                   << QSystemError::windowsComString(hr);
-        return hr;
+                   << QSystemError::windowsComString(staging.error());
+        return staging.error();
     }
-
-    const UINT subresource = D3D11CalcSubresource(0, arraySlice, desc.MipLevels);
-
-    context->CopyResource(stagingTexture.Get(), texture.Get());
+    const ComPtr<ID3D11Texture2D> &stagingTexture = *staging;
 
     D3D11_MAPPED_SUBRESOURCE mappedResource{};
-    hr = context->Map(stagingTexture.Get(), subresource, D3D11_MAP_WRITE, 0, &mappedResource);
+    HRESULT hr = context->Map(stagingTexture.Get(), 0, D3D11_MAP_WRITE, 0, &mappedResource);
     if (FAILED(hr)) {
         qWarning() << "Failed to map staging texture for single-plane fill"
                    << QSystemError::windowsComString(hr);
@@ -340,8 +365,9 @@ QWindowsD3D11TestDeviceContext::fillSinglePlaneTexture(const ComPtr<ID3D11Textur
     QtMultimediaTest::fillPlaneRows(data, mappedResource.RowPitch, size.width(), size.height(),
                                     texel);
 
-    context->Unmap(stagingTexture.Get(), subresource);
-    context->CopyResource(texture.Get(), stagingTexture.Get());
+    context->Unmap(stagingTexture.Get(), 0);
+    context->CopySubresourceRegion(texture.Get(), sliceSubresource(texture, arraySlice), 0, 0, 0,
+                                   stagingTexture.Get(), 0, nullptr);
 
     return S_OK;
 }
@@ -351,29 +377,17 @@ QWindowsD3D11TestDeviceContext::readPlaneRows(const ComPtr<ID3D11Texture2D> &tex
                                               int width, int height, int texelSize,
                                               UINT arraySlice) const
 {
-    D3D11_TEXTURE2D_DESC desc{};
-    texture->GetDesc(&desc);
-
-    D3D11_TEXTURE2D_DESC stagingDesc = desc;
-    stagingDesc.Usage = D3D11_USAGE_STAGING;
-    stagingDesc.BindFlags = 0;
-    stagingDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
-    stagingDesc.MiscFlags = 0;
-
-    ComPtr<ID3D11Texture2D> stagingTexture;
-    HRESULT hr = device->CreateTexture2D(&stagingDesc, nullptr, stagingTexture.GetAddressOf());
-    if (FAILED(hr)) {
+    const ComResult<ComPtr<ID3D11Texture2D>> staging =
+            createStagingSliceCopy(texture, arraySlice, D3D11_CPU_ACCESS_READ);
+    if (!staging) {
         qWarning() << "Failed to create staging texture for plane read"
-                   << QSystemError::windowsComString(hr);
-        return q23::unexpected{ hr };
+                   << QSystemError::windowsComString(staging.error());
+        return q23::unexpected{ staging.error() };
     }
-
-    const UINT subresource = D3D11CalcSubresource(0, arraySlice, desc.MipLevels);
-
-    context->CopyResource(stagingTexture.Get(), texture.Get());
+    const ComPtr<ID3D11Texture2D> &stagingTexture = *staging;
 
     D3D11_MAPPED_SUBRESOURCE mappedResource{};
-    hr = context->Map(stagingTexture.Get(), subresource, D3D11_MAP_READ, 0, &mappedResource);
+    HRESULT hr = context->Map(stagingTexture.Get(), 0, D3D11_MAP_READ, 0, &mappedResource);
     if (FAILED(hr)) {
         qWarning() << "Failed to map staging texture for plane read"
                    << QSystemError::windowsComString(hr);
@@ -388,7 +402,7 @@ QWindowsD3D11TestDeviceContext::readPlaneRows(const ComPtr<ID3D11Texture2D> &tex
         std::copy(rowData, rowData + rowBytes, result.data() + row * rowBytes);
     }
 
-    context->Unmap(stagingTexture.Get(), subresource);
+    context->Unmap(stagingTexture.Get(), 0);
 
     return result;
 }
@@ -447,6 +461,30 @@ QWindowsD3D11TestDeviceContext::fillTextureWithColors(const ComPtr<ID3D11Texture
     context->CopyResource(texture.Get(), stagingTexture.Get());
 
     return S_OK;
+}
+
+ComResult<ComPtr<ID3D11Texture2D>>
+QWindowsD3D11TestDeviceContext::createStagingSliceCopy(const ComPtr<ID3D11Texture2D> &texture,
+                                                       UINT arraySlice, UINT cpuAccessFlags) const
+{
+    D3D11_TEXTURE2D_DESC stagingDesc{};
+    texture->GetDesc(&stagingDesc);
+    stagingDesc.ArraySize = 1;
+    stagingDesc.MipLevels = 1;
+    stagingDesc.Usage = D3D11_USAGE_STAGING;
+    stagingDesc.BindFlags = 0;
+    stagingDesc.CPUAccessFlags = cpuAccessFlags;
+    stagingDesc.MiscFlags = 0;
+
+    ComPtr<ID3D11Texture2D> stagingTexture;
+    if (const HRESULT hr = device->CreateTexture2D(&stagingDesc, nullptr, &stagingTexture);
+        FAILED(hr)) {
+        return q23::unexpected{ hr };
+    }
+
+    context->CopySubresourceRegion(stagingTexture.Get(), 0, 0, 0, 0, texture.Get(),
+                                   sliceSubresource(texture, arraySlice), nullptr);
+    return stagingTexture;
 }
 
 static ComResult<QWindowsD3D11TestDeviceContext>

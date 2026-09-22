@@ -40,6 +40,11 @@ struct QWindowsD3D11TestDeviceContext
     ComPtr<ID3D11DeviceContext> context;
 
     ComResult<QColor> getFirstPixelColor(const ComPtr<ID3D11Texture2D> &texture) const;
+
+    // Like getFirstPixelColor, but interprets the pixel bytes in B,G,R,A order (for
+    // DXGI_FORMAT_B8G8R8A8_UNORM textures).
+    ComResult<QColor> getFirstPixelColorBGRA(const ComPtr<ID3D11Texture2D> &texture) const;
+
     ComResult<ComPtr<ID3D11Texture2D>> createTextureArray(QSize size,
                                                           const std::vector<QColor> &colors) const;
 
@@ -54,6 +59,11 @@ struct QWindowsD3D11TestDeviceContext
     // array (e.g. a pooled decoder surface), arraySlice selects which slice to fill.
     HRESULT fillNV12Texture(const ComPtr<ID3D11Texture2D> &texture, QSize size, quint8 lumaValue,
                             quint8 chromaUValue, quint8 chromaVValue, UINT arraySlice = 0) const;
+
+    // Creates a single-plane NV12 texture with a uniform luma/chroma value, for tests that
+    // verify actual color conversion.
+    ComResult<ComPtr<ID3D11Texture2D>>
+    createFilledNV12Texture(QSize size, quint8 lumaValue, quint8 chromaU, quint8 chromaV) const;
 
     // Same as createNV12Texture, but for a 10-bit P010 surface.
     ComResult<ComPtr<ID3D11Texture2D>> createP010Texture(QSize size) const;
@@ -84,6 +94,14 @@ private:
     // Function to set the pixels of an ID3D11Texture2D texture to red
     HRESULT fillTextureWithColors(const ComPtr<ID3D11Texture2D> &texture,
                                   const std::vector<QColor> &colors) const;
+
+    // Creates a single-slice staging texture with the given CPU access, holding a copy of
+    // 'arraySlice' of 'texture'. Only that slice is copied: copying a whole multi-slice planar
+    // texture array created with D3D11_BIND_DECODER, like FFmpeg's decoder pool, removes the
+    // device on some drivers (seen on AMD).
+    ComResult<ComPtr<ID3D11Texture2D>>
+    createStagingSliceCopy(const ComPtr<ID3D11Texture2D> &texture, UINT arraySlice,
+                           UINT cpuAccessFlags) const;
 };
 
 // Creates a device context using a hardware D3D11 adapter.
