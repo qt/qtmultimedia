@@ -17,6 +17,8 @@
 
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtGui/qopengl.h>
+#include <QtGui/qopenglextrafunctions.h>
+#include <QtGui/qopenglcontext.h>
 #include <QtCore/private/quniquehandle_p.h>
 #include <QtCore/qstring.h>
 
@@ -48,7 +50,6 @@ typedef void *EGLImage;
 
 QT_BEGIN_NAMESPACE
 
-class QOpenGLContext;
 class QDebug;
 class QRhi;
 
@@ -68,6 +69,23 @@ enum class GLError : unsigned int {
 };
 
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug debug, GLError error);
+
+template <typename Fn>
+Fn resolveGlFunction(QOpenGLContext *context, const char *fn)
+{
+    Q_ASSERT(context);
+    return reinterpret_cast<Fn>(context->getProcAddress(fn));
+}
+
+inline void clearGlErrors(QOpenGLExtraFunctions *f)
+{
+    while (GLError(f->glGetError()) != GLError::NoError) { }
+}
+
+inline void clearGlErrors(QOpenGLContext *context)
+{
+    clearGlErrors(context->extraFunctions());
+}
 
 #if QT_CONFIG(egl)
 

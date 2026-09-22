@@ -19,17 +19,47 @@
 #include <QtMultimedia/private/qhwvideobuffer_p.h>
 #include <QtMultimedia/private/qwindowsd3d11texturebridge_p.h>
 
+#include <QtGui/qtguiglobal.h>
+
+#include <QtCore/qobject.h>
 #include <QtCore/qsize.h>
 #include <QtCore/private/qcomptr_p.h>
+#include <QtCore/private/quniquehandle_p.h>
 
 #include <d3d11.h>
 #include <d3d11_1.h>
+
+#include <memory>
 
 QT_BEGIN_NAMESPACE
 
 class QRhi;
 
 namespace QtMultimediaPrivate {
+
+#if QT_CONFIG(opengl)
+class WglDxDeviceDeleter
+{
+public:
+    WglDxDeviceDeleter() = default;
+    explicit WglDxDeviceDeleter(BOOL(WINAPI *closeFn)(HANDLE)) : m_closeFn(closeFn) { }
+    void operator()(HANDLE device) const noexcept
+    {
+        Q_ASSERT(m_closeFn);
+        m_closeFn(device);
+    }
+
+private:
+    BOOL(WINAPI *m_closeFn)(HANDLE) = nullptr;
+};
+
+struct WglDxDeviceHandleTraits
+{
+    using Type = HANDLE;
+    static Type invalidValue() noexcept { return nullptr; }
+};
+using WglDxDeviceHandle = QUniqueHandle<WglDxDeviceHandleTraits, WglDxDeviceDeleter>;
+#endif
 
 class Q_MULTIMEDIA_EXPORT QWindowsD3D11RhiTextureImporter
 {
@@ -41,9 +71,9 @@ public:
 
     static bool isRhiBackendSupported(QRhi &);
 
-    // D3D12 only supports single-plane formats: it has no way to view distinct planes of one
-    // texture with different formats, so a multi-planar format (e.g. NV12) must
-    // be converted to a single-plane one first
+    // D3D12 and OpenGL only supports single-plane formats: it has no way to view distinct planes
+    // of one texture with different formats, so a multi-planar format (e.g. NV12) must be converted
+    // to a single-plane one first
     static bool isPixelFormatSupportedByRhiBackend(QRhi &, QVideoFrameFormat::PixelFormat);
 
     /** Imports the texture slice at position 'subresourceIndex' of 'texture', owned by
@@ -68,6 +98,19 @@ private:
     QWindowsD3D11TextureBridge m_bridge;
 
     ComPtr<ID3D11Device> m_d3d11on12Device;
+
+#if QT_CONFIG(opengl)
+    QVideoFrameTexturesHandlesUPtr importTextureOpenGL(QRhi &rhi, ID3D11Device *srcDevice,
+                                                       ID3D11DeviceContext *srcContext,
+                                                       const ComPtr<ID3D11Texture2D> &texture,
+                                                       const QSize &frameSize);
+    void releaseGLInterop();
+
+    // OpenGL interop (WGL_NV_DX_interop2)
+    WglDxDeviceHandle m_glInteropDevice;
+    ComPtr<ID3D11Texture2D> m_glInteropTex; // cached non-shared texture for WGL interop
+    std::unique_ptr<QObject> m_glCleanupContext; // context object for the cleanup connection
+#endif
 };
 
 } // namespace QtMultimediaPrivate

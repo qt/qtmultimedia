@@ -164,6 +164,7 @@ D3D11TextureConverter::createTextureHandles(AVFrame *frame,
     case QRhi::D3D11:
         break;
     case QRhi::D3D12:
+    case QRhi::OpenGLES2:
         if (!QWindowsD3D11RhiTextureImporter::isPixelFormatSupportedByRhiBackend(*rhi, pixelFormat))
             return nullptr;
         break;

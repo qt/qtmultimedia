@@ -31,6 +31,31 @@ ComPtr<ID3D11Texture2D> nativeTextureFromHandle(quint64 handle)
     return reinterpret_cast<ID3D11Texture2D *>(handle);
 }
 
+// Reads back the texture behind 'handle' and checks that every texel equals 'texel'. Returns an
+// error message, or an empty string on success.
+QString checkPlaneContent(QRhi &rhi, quint64 handle, QSize planeSize, QRhiTexture::Format format,
+                          QByteArrayView texel)
+{
+    const q23::expected<QByteArray, QString> data = readBackPlane(rhi, handle, planeSize, format);
+    if (!data)
+        return data.error();
+
+    const qsizetype expectedSize = qsizetype(planeSize.width()) * planeSize.height() * texel.size();
+    if (data->size() != expectedSize)
+        return u"Read back %1 bytes, expected %2"_s.arg(data->size()).arg(expectedSize);
+
+    for (qsizetype i = 0; i < data->size(); ++i) {
+        const uchar actual = uchar(data->at(i));
+        const uchar expected = uchar(texel[i % texel.size()]);
+        if (actual != expected) {
+            return u"Byte %1 is 0x%2, expected 0x%3"_s.arg(i)
+                    .arg(actual, 2, 16, u'0')
+                    .arg(expected, 2, 16, u'0');
+        }
+    }
+    return {};
+}
+
 } // namespace
 
 class tst_QWindowsD3D11RhiTextureImporter : public QObject
@@ -45,12 +70,12 @@ private slots:
     void importTexture_reusesResources_whenCalledRepeatedly();
     void importTexture_recreatesSharedTexture_whenFrameSizeChanges();
     void importTexture_returnsWorkingTexture_whenRhiIsD3D12();
+#if QT_CONFIG(opengl)
+    void importTexture_returnsWorkingTexture_whenRhiIsOpenGL();
+#endif
 
     void isRhiBackendSupported_returnsFalse_whenRhiIsNull();
     void isRhiBackendSupported_returnsFalse_whenRhiIsWarpD3D11();
-#if QT_CONFIG(opengl)
-    void isRhiBackendSupported_returnsFalse_whenRhiIsOpenGL();
-#endif
 
 private:
     ComResult<QWindowsD3D11TestDeviceContext> m_srcDevice = q23::unexpected{ E_FAIL };
@@ -263,17 +288,43 @@ void tst_QWindowsD3D11RhiTextureImporter::importTexture_returnsWorkingTexture_wh
 }
 
 #if QT_CONFIG(opengl)
-void tst_QWindowsD3D11RhiTextureImporter::isRhiBackendSupported_returnsFalse_whenRhiIsOpenGL()
+void tst_QWindowsD3D11RhiTextureImporter::importTexture_returnsWorkingTexture_whenRhiIsOpenGL()
 {
-    // OpenGL support is not implemented yet; verify the gap is reported rather than asserting.
-    auto offscreenGlRHI = createOffscreenGlRhi();
-
-    if (!offscreenGlRHI)
+    q23::expected<OffscreenGlRhi, QString> glRhi = createOffscreenGlRhi();
+    if (!glRhi)
         QSKIP("Could not create an OpenGL QRhi on this machine");
+    QRhi *rhi = glRhi->rhi.get();
 
-    QVERIFY(!QWindowsD3D11RhiTextureImporter::isRhiBackendSupported(*offscreenGlRHI->rhi));
+    if (!QWindowsD3D11RhiTextureImporter::isRhiBackendSupported(*rhi))
+        QSKIP("OpenGL import needs GL_ARB_copy_image or OpenGL 4.3");
+
+    constexpr QSize frameSize{ 64, 32 };
+    const ComResult<ComPtr<ID3D11Texture2D>> srcTex =
+            m_srcDevice->createTextureArray(frameSize, { Qt::red });
+    QVERIFYCOMRESULT(srcTex);
+
+    QWindowsD3D11RhiTextureImporter importer;
+    QVideoFrameTexturesHandlesUPtr handles = importer.importTexture(
+            *rhi, m_srcDevice->device.Get(), m_srcDevice->context.Get(), *srcTex, frameSize);
+    QVERIFY(handles);
+
+    const quint64 handle = handles->textureHandle(*rhi, 0);
+    QVERIFY(handle != 0);
+
+    const char red[] = { char(0xff), 0, 0, char(0xff) };
+    const QString error =
+            checkPlaneContent(*rhi, handle, frameSize, QRhiTexture::RGBA8, QByteArrayView(red, 4));
+    QVERIFY2(error.isEmpty(), qPrintable(error));
+
+    QVideoFrameTexturesUPtr textures = QVideoTextureHelper::createTexturesFromHandles(
+            std::move(handles), *rhi, QVideoFrameFormat::Format_RGBA8888, frameSize);
+    QVERIFY(textures);
+
+    QRhiTexture *tex = textures->texture(0);
+    QVERIFY(tex);
+    QCOMPARE(tex->pixelSize(), frameSize);
 }
-#endif
+#endif // QT_CONFIG(opengl)
 
 QTEST_MAIN(tst_QWindowsD3D11RhiTextureImporter)
 
