@@ -3,8 +3,8 @@
 
 #include "qambisonicdecoder_p.h"
 
-#include <QtMultimedia/private/qaudio_qspan_support_p.h>
 #include <QtSpatialAudio/private/qambisonicdecoderdata_p.h>
+#include <QtMultimedia/private/qaudio_qspan_support_p.h>
 #include <QtCore/qdebug.h>
 
 #include <algorithm>

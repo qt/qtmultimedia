@@ -15,8 +15,8 @@
 #ifndef QQUICK3DAUDIOGLOBAL_P_H
 #define QQUICK3DAUDIOGLOBAL_P_H
 
-#include <QtCore/qglobal.h>
 #include <QtMultimediaQuick/qtmultimediaquickexports.h>
+#include <QtCore/qglobal.h>
 
 QT_BEGIN_NAMESPACE
 

@@ -16,8 +16,8 @@
 //
 
 #include <QtQuick3D/private/qquick3dnode_p.h>
-#include <QtGui/qvector3d.h>
 #include <QtSpatialAudio/qaudioroom.h>
+#include <QtGui/qvector3d.h>
 
 QT_BEGIN_NAMESPACE
 

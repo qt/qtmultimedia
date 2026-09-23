@@ -4,7 +4,7 @@
 #ifndef QTQUICK3DAUDIOGLOBAL_H
 #define QTQUICK3DAUDIOGLOBAL_H
 
-#include <QtSpatialAudio/qtspatialaudioglobal.h>
 #include <QtQuick3DSpatialAudio/qtquick3dspatialaudioexports.h>
+#include <QtSpatialAudio/qtspatialaudioglobal.h>
 
 #endif // QTQUICK3DAUDIOGLOBAL_H
