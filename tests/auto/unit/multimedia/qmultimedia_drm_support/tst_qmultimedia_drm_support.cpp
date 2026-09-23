@@ -34,6 +34,11 @@ private slots:
 
     void debugOperator_includesToStringAndHexCode_forDRMFormat();
 
+    void pixelFormatFromDrmFourcc_returnsExpectedFormat_data();
+    void pixelFormatFromDrmFourcc_returnsExpectedFormat();
+
+    void dmaBufFourccFromPixelFormat_and_pixelFormatFromDrmFourcc_agree_forSinglePlaneFormats();
+
     void toString_decodesModifier_data();
     void toString_decodesModifier();
 
@@ -66,11 +71,15 @@ void tst_QMultimediaDrmSupport::toString_returnsFourCharacterCode_forEveryKnownD
     QTest::newRow("NV12")        << DRMFormat::NV12        << u"NV12"_s;
     QTest::newRow("NV21")        << DRMFormat::NV21        << u"NV21"_s;
     QTest::newRow("P010")        << DRMFormat::P010        << u"P010"_s;
+    QTest::newRow("P016")        << DRMFormat::P016        << u"P016"_s;
     QTest::newRow("YUV411")      << DRMFormat::YUV411      << u"YU11"_s;
     QTest::newRow("YUV420")      << DRMFormat::YUV420      << u"YU12"_s;
     QTest::newRow("YVU420")      << DRMFormat::YVU420      << u"YV12"_s;
     QTest::newRow("YUV422")      << DRMFormat::YUV422      << u"YU16"_s;
     QTest::newRow("YUV444")      << DRMFormat::YUV444      << u"YU24"_s;
+    QTest::newRow("XRGB8888")    << DRMFormat::XRGB8888    << u"XR24"_s;
+    QTest::newRow("XBGR8888")    << DRMFormat::XBGR8888    << u"XB24"_s;
+    QTest::newRow("MJPEG")       << DRMFormat::MJPEG       << u"MJPG"_s;
     // clang-format on
 }
 
@@ -88,6 +97,75 @@ void tst_QMultimediaDrmSupport::debugOperator_includesToStringAndHexCode_forDRMF
 
     QVERIFY(debug.contains(u"NV12"_s));
     QVERIFY(debug.contains(u"0x3231564e"_s));
+}
+
+void tst_QMultimediaDrmSupport::pixelFormatFromDrmFourcc_returnsExpectedFormat_data()
+{
+    QTest::addColumn<DRMFormat>("format");
+    QTest::addColumn<std::optional<QVideoFrameFormat::PixelFormat>>("expected");
+
+    // clang-format off
+    // Frame-level identities: lossless, unambiguous 1:1 correspondence with a QVideoFrameFormat.
+    QTest::newRow("NV12")        << DRMFormat::NV12        << std::optional(QVideoFrameFormat::Format_NV12);
+    QTest::newRow("NV21")        << DRMFormat::NV21        << std::optional(QVideoFrameFormat::Format_NV21);
+    QTest::newRow("YUV420")      << DRMFormat::YUV420      << std::optional(QVideoFrameFormat::Format_YUV420P);
+    QTest::newRow("YVU420")      << DRMFormat::YVU420      << std::optional(QVideoFrameFormat::Format_YV12);
+    QTest::newRow("YUV422")      << DRMFormat::YUV422      << std::optional(QVideoFrameFormat::Format_YUV422P);
+    QTest::newRow("YUYV")        << DRMFormat::YUYV        << std::optional(QVideoFrameFormat::Format_YUYV);
+    QTest::newRow("UYVY")        << DRMFormat::UYVY        << std::optional(QVideoFrameFormat::Format_UYVY);
+    QTest::newRow("XRGB8888")    << DRMFormat::XRGB8888    << std::optional(QVideoFrameFormat::Format_XRGB8888);
+    QTest::newRow("XBGR8888")    << DRMFormat::XBGR8888    << std::optional(QVideoFrameFormat::Format_XBGR8888);
+    QTest::newRow("ARGB8888")    << DRMFormat::ARGB8888    << std::optional(QVideoFrameFormat::Format_ARGB8888);
+    QTest::newRow("ABGR8888")    << DRMFormat::ABGR8888    << std::optional(QVideoFrameFormat::Format_ABGR8888);
+    QTest::newRow("R8")          << DRMFormat::R8          << std::optional(QVideoFrameFormat::Format_Y8);
+    QTest::newRow("R16")         << DRMFormat::R16         << std::optional(QVideoFrameFormat::Format_Y16);
+    QTest::newRow("P010")        << DRMFormat::P010        << std::optional(QVideoFrameFormat::Format_P010);
+    QTest::newRow("P016")        << DRMFormat::P016        << std::optional(QVideoFrameFormat::Format_P016);
+    QTest::newRow("MJPEG")       << DRMFormat::MJPEG       << std::optional(QVideoFrameFormat::Format_Jpeg);
+
+    // Ambiguous: non-premultiplied alpha
+    QTest::newRow("RGBA8888")    << DRMFormat::RGBA8888    << std::optional(QVideoFrameFormat::Format_RGBA8888);
+    QTest::newRow("BGRA8888")    << DRMFormat::BGRA8888    << std::optional(QVideoFrameFormat::Format_BGRA8888);
+    QTest::newRow("AYUV")        << DRMFormat::AYUV        << std::optional(QVideoFrameFormat::Format_AYUV);
+
+    // No QVideoFrameFormat equivalent at all.
+    QTest::newRow("RGB888")      << DRMFormat::RGB888      << std::optional<QVideoFrameFormat::PixelFormat>();
+    QTest::newRow("RG88")        << DRMFormat::RG88        << std::optional<QVideoFrameFormat::PixelFormat>();
+    QTest::newRow("BGR888")      << DRMFormat::BGR888      << std::optional<QVideoFrameFormat::PixelFormat>();
+    QTest::newRow("GR88")        << DRMFormat::GR88        << std::optional<QVideoFrameFormat::PixelFormat>();
+    QTest::newRow("RGB565")      << DRMFormat::RGB565      << std::optional<QVideoFrameFormat::PixelFormat>();
+    QTest::newRow("RG1616")      << DRMFormat::RG1616      << std::optional<QVideoFrameFormat::PixelFormat>();
+    QTest::newRow("GR1616")      << DRMFormat::GR1616      << std::optional<QVideoFrameFormat::PixelFormat>();
+    QTest::newRow("BGRA1010102") << DRMFormat::BGRA1010102 << std::optional<QVideoFrameFormat::PixelFormat>();
+    QTest::newRow("YUV411")      << DRMFormat::YUV411      << std::optional<QVideoFrameFormat::PixelFormat>();
+    QTest::newRow("YUV444")      << DRMFormat::YUV444      << std::optional<QVideoFrameFormat::PixelFormat>();
+    // clang-format on
+}
+
+void tst_QMultimediaDrmSupport::pixelFormatFromDrmFourcc_returnsExpectedFormat()
+{
+    QFETCH(DRMFormat, format);
+    QFETCH(std::optional<QVideoFrameFormat::PixelFormat>, expected);
+
+    QCOMPARE_EQ(pixelFormatFromDrmFourcc(format), expected);
+}
+
+void tst_QMultimediaDrmSupport::
+        dmaBufFourccFromPixelFormat_and_pixelFormatFromDrmFourcc_agree_forSinglePlaneFormats()
+{
+    // clang-format off
+    static constexpr QVideoFrameFormat::PixelFormat singlePlaneFormats[] = {
+        QVideoFrameFormat::Format_Y8,
+        QVideoFrameFormat::Format_Y16,
+        QVideoFrameFormat::Format_Jpeg,
+    };
+    // clang-format on
+
+    for (const auto pixelFormat : singlePlaneFormats) {
+        const QSpan<const DRMFormat> planes = dmaBufFourccFromPixelFormat(pixelFormat);
+        QCOMPARE_EQ(planes.size(), 1);
+        QCOMPARE_EQ(pixelFormatFromDrmFourcc(planes[0]), std::optional(pixelFormat));
+    }
 }
 
 void tst_QMultimediaDrmSupport::toString_decodesModifier_data()
