@@ -10,6 +10,8 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qloggingcategory.h>
 
+#include <utility>
+
 QT_BEGIN_NAMESPACE
 
 namespace QtPipeWire {
@@ -243,8 +245,12 @@ void QPipewireAudioSourceStream::processCallback() noexcept Q_DECL_NONBLOCKING_F
 
 void QPipewireAudioSourceStream::handleDeviceRemoved()
 {
-    if (!isStopRequested())
-        QPlatformAudioSourceStream::handleIOError(m_parent);
+    if (isStopRequested())
+        return;
+
+    requestStop();
+    disconnectQIODeviceConnections();
+    QPlatformAudioSourceStream::handleIOError(std::exchange(m_parent, nullptr));
 }
 
 void QPipewireAudioSourceStream::stateChanged(pw_stream_state /*oldState*/, pw_stream_state state,
