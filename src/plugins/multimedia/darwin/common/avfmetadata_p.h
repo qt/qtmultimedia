@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include <QtMultimedia/QMediaMetaData>
+#include <QtMultimedia/qmediametadata.h>
 #include <QtCore/qvariant.h>
 
 #import <AVFoundation/AVFoundation.h>
