@@ -4,12 +4,11 @@
 #ifndef QMOCKCAMERAIMAGECAPTURE_H
 #define QMOCKCAMERAIMAGECAPTURE_H
 
-#include <QDateTime>
-#include <QTimer>
 #include <QtMultimedia/qmediametadata.h>
-
-#include "private/qplatformimagecapture_p.h"
-#include "private/qplatformcamera_p.h"
+#include <QtMultimedia/private/qplatformcamera_p.h>
+#include <QtMultimedia/private/qplatformimagecapture_p.h>
+#include <QtCore/qdatetime.h>
+#include <QtCore/qtimer.h>
 
 QT_BEGIN_NAMESPACE
 

@@ -2,10 +2,9 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include <QtTest/qtest.h>
-
-#include <private/qmemoryvideobuffer_p.h>
-#include <private/qimagevideobuffer_p.h>
-#include "qvideoframeformat.h"
+#include <QtMultimedia/qvideoframeformat.h>
+#include <QtMultimedia/private/qimagevideobuffer_p.h>
+#include <QtMultimedia/private/qmemoryvideobuffer_p.h>
 
 using BufferPtr = std::shared_ptr<QAbstractVideoBuffer>;
 

@@ -2,13 +2,12 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include <QtTest/qtest.h>
-
+#include <QtMultimedia/qaudioformat.h>
 #include <QtMultimedia/private/qpipewire_propertydict_p.h>
 #include <QtMultimedia/private/qpipewire_registry_support_p.h>
 #include <QtMultimedia/private/qpipewire_spa_pod_parser_support_p.h>
 #include <QtMultimedia/private/qpipewire_spa_pod_support_p.h>
 #include <QtMultimedia/private/qpipewire_support_p.h>
-#include <QtMultimedia/qaudioformat.h>
 
 #include <pipewire/extensions/metadata.h>
 #include <pipewire/extensions/profiler.h>

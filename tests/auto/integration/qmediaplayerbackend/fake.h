@@ -4,8 +4,7 @@
 #ifndef FAKE_H
 #define FAKE_H
 
-#include <private/testvideosink_p.h>
-
+#include <QtMultimediaTestLib/private/testvideosink_p.h>
 
 class TestVideoOutput : public QObject
 {

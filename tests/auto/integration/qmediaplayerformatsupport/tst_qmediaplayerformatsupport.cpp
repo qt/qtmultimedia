@@ -1,17 +1,14 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtCore/qdebug.h>
-#include <QtCore/qdiriterator.h>
-
-#include <QtMultimedia/qmediaplayer.h>
-#include <QtMultimedia/qvideosink.h>
-
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
 #include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
-
 #include <QtTest/qsignalspy.h>
 #include <QtTest/qtest.h>
+#include <QtMultimedia/qmediaplayer.h>
+#include <QtMultimedia/qvideosink.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qdiriterator.h>
 
 using namespace Qt::StringLiterals;
 

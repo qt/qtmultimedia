@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include <QtTest/qtest.h>
-#include <qaudiodevice.h>
-#include "private/qaudiodevice_p.h"
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/private/qaudiodevice_p.h>
 
 using namespace Qt::StringLiterals;
 

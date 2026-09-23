@@ -11,6 +11,10 @@
 #include <QtCore/qstandardpaths.h>
 #include <QtCore/qtemporaryfile.h>
 #include <QtTest/qsignalspy.h>
+#include <QtMultimedia/qgstreamerinterface.h>
+#include <QtMultimedia/qmediaplayer.h>
+#include <QtCore/qstandardpaths.h>
+#include <QtCore/qtemporaryfile.h>
 
 #include <memory>
 #include <optional>

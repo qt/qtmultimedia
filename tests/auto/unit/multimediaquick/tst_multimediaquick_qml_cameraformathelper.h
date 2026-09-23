@@ -4,9 +4,8 @@
 #ifndef TST_MULTIMEDIAQUICK_QML_CAMERAFORMATHELPER_H
 #define TST_MULTIMEDIAQUICK_QML_CAMERAFORMATHELPER_H
 
-#include <QtCore/qobject.h>
-
 #include <QtMultimedia/qcameradevice.h>
+#include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE
 

@@ -1,9 +1,8 @@
 // Copyright (C) 2026 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtTest/qtest.h>
-
 #include <QtFFmpegMediaPluginImpl/private/qwindowscamera_p.h>
+#include <QtTest/qtest.h>
 #include <QtMultimedia/private/qcameradevice_p.h>
 #include <QtCore/qobject.h>
 

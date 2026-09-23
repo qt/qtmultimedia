@@ -9,8 +9,8 @@
 #include <QtGui/qwindow.h>
 
 #include <QtTest/qtest.h>
-
 #include <QtWidgets/qapplication.h>
+
 
 using QtMultimediaTest::surfaceCaptureTestTimeout;
 

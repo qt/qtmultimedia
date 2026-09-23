@@ -2,9 +2,8 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include <QtTest/qtest.h>
-
-#include <rhi/qrhi.h>
-#include <private/qhwvideobuffer_p.h>
+#include <QtMultimedia/private/qhwvideobuffer_p.h>
+#include <QtGui/rhi/qrhi.h>
 
 class tst_QAbstractVideoBuffer : public QObject
 {

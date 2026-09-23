@@ -1,24 +1,22 @@
 // Copyright (C) 2026 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtTest/qtest.h>
+#include <QtMultimediaTestLib/private/audiogenerationutils_p.h>
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/osdetection_p.h>
 #include <QtTest/qsignalspy.h>
-
+#include <QtTest/qtest.h>
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qaudioformat.h>
 #include <QtMultimedia/qaudiosink.h>
 #include <QtMultimedia/qmediadevices.h>
 
-#include <private/audiogenerationutils_p.h>
-#include <private/mediabackendutils_p.h>
-#include <private/osdetection_p.h>
+#import <AVFoundation/AVAudioSession.h>
+#import <Foundation/Foundation.h>
 
 #include <memory>
 #include <optional>
-
-#import <AVFoundation/AVAudioSession.h>
-#import <Foundation/Foundation.h>
 
 using namespace Qt::Literals;
 

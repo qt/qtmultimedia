@@ -3,6 +3,7 @@
 
 #include <QtTest/qtest.h>
 #include <QtMultimedia/qplaybackoptions.h>
+
 #include <tuple>
 
 using namespace std::chrono_literals;

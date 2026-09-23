@@ -1,14 +1,13 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-
-#include <QtCore/QString>
-#include <QtTest/qtest.h>
-#include <QtTest/qsignalspy.h>
-
-#include "qaudiodecoder.h"
 #include "qmockaudiodecoder.h"
 #include "qmockintegration.h"
+
+#include <QtTest/qsignalspy.h>
+#include <QtTest/qtest.h>
+#include <QtMultimedia/qaudiodecoder.h>
+#include <QtCore/qstring.h>
 
 using namespace Qt::StringLiterals;
 

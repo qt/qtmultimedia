@@ -1,13 +1,12 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
 #include <QtTest/qtest.h>
+#include <QtMultimedia/qsoundeffect.h>
 #include <QtCore/qatomic.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qthread.h>
-#include <QtMultimedia/qsoundeffect.h>
-
-#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
 
 #include <array>
 #include <chrono>

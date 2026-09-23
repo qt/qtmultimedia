@@ -1,20 +1,16 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/osdetection_p.h>
 #include <QtTest/qtest.h>
-
-#include <QtCore/qstringlist.h>
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
 #include <QtCore/qlist.h>
 #include <QtCore/qsemaphore.h>
+#include <QtCore/qstringlist.h>
 #include <QtCore/qthread.h>
-#include <QtMultimedia/qmediadevices.h>
-#include <QtMultimedia/qaudiodevice.h>
-
-#include <private/mediabackendutils_p.h>
-#include <private/osdetection_p.h>
-#include <private/qplatformmediaintegration_p.h>
-
 #ifdef Q_OS_ANDROID
 #include <QtCore/qcoreapplication_platform.h>
 #endif

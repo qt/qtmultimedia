@@ -1,19 +1,17 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtTest/qtest.h>
-#include <QtTest/qsignalspy.h>
-#include <QDebug>
-
-#include <private/qplatformcamera_p.h>
-#include <private/qplatformimagecapture_p.h>
-#include <qcamera.h>
-#include <qimagecapture.h>
-#include <qmediacapturesession.h>
-
 #include "qmockmediacapturesession.h"
 #include "qmockintegration.h"
 
+#include <QtTest/qsignalspy.h>
+#include <QtTest/qtest.h>
+#include <QtMultimedia/qcamera.h>
+#include <QtMultimedia/qimagecapture.h>
+#include <QtMultimedia/qmediacapturesession.h>
+#include <QtMultimedia/private/qplatformcamera_p.h>
+#include <QtMultimedia/private/qplatformimagecapture_p.h>
+#include <QtCore/qdebug.h>
 
 Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN
 

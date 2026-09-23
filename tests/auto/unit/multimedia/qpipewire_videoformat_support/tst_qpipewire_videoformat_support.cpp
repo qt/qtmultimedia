@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include <QtTest/qtest.h>
-
-#include <private/qpipewire_videoformat_support_p.h>
+#include <QtMultimedia/private/qpipewire_videoformat_support_p.h>
 
 using namespace QtPipeWire;
 

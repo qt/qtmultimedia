@@ -3,12 +3,10 @@
 
 #include "tst_multimediaquick_qml_screencapturehelper.h"
 
+#include <QtMultimediaQuick/private/qquickscreencapture_p.h>
+#include <QtQuick/private/qquickscreen_p.h>
 #include <QtGui/qguiapplication.h>
 #include <QtGui/qscreen.h>
-
-#include <QtMultimediaQuick/private/qquickscreencapture_p.h>
-
-#include <QtQuick/private/qquickscreen_p.h>
 
 #include <optional>
 

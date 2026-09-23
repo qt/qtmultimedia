@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include <private/qplatformvideodevices_p.h>
+#include <QtMultimedia/private/qplatformvideodevices_p.h>
 
 QT_BEGIN_NAMESPACE
 

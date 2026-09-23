@@ -7,9 +7,9 @@
 #include "qmockmediaencoder.h"
 #include "qmockimagecapture.h"
 #include "qmockcamera.h"
-#include "qmockimagecapture.h"
 #include "qmocksurfacecapture.h"
-#include <private/qplatformmediacapture_p.h>
+
+#include <QtMultimedia/private/qplatformmediacapture_p.h>
 
 QT_BEGIN_NAMESPACE
 

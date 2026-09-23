@@ -1,14 +1,13 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtCore/qbytearray.h>
+#include <QtMultimediaTestLib/private/audiogenerationutils_p.h>
 #include <QtTest/qtest.h>
-
+#include <QtMultimedia/private/qaudio_qspan_support_p.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
-#include <QtMultimediaTestLib/private/audiogenerationutils_p.h>
-#include <QtMultimedia/private/qaudio_qspan_support_p.h>
 #include <QtMultimedia/private/qtmm_alignment_support_p.h>
+#include <QtCore/qbytearray.h>
 
 #include <random>
 

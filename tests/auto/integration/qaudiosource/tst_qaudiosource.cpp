@@ -10,10 +10,6 @@
 
 #include <QtTest/qtest.h>
 #include <QtTest/qsignalspy.h>
-#include <QtCore/qbuffer.h>
-#include <QtCore/qsemaphore.h>
-#include <QtCore/qtemporarydir.h>
-
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qaudioformat.h>
@@ -21,6 +17,9 @@
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/qwavedecoder.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
+#include <QtCore/qbuffer.h>
+#include <QtCore/qsemaphore.h>
+#include <QtCore/qtemporarydir.h>
 
 #include <memory>
 

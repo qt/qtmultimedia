@@ -4,7 +4,6 @@
 #include "../../../../../../../src/plugins/multimedia/windows/common/qwindowsasfpicture_p.h"
 
 #include <QtTest/qtest.h>
-
 #include <QtCore/qstring.h>
 
 #include <array>

@@ -15,9 +15,8 @@
 // We mean it.
 //
 
-#include <QtCore/qplugin.h>
-
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
+#include <QtCore/qplugin.h>
 
 QT_BEGIN_NAMESPACE
 

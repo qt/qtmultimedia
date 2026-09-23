@@ -4,6 +4,7 @@
 #include <QtMultimediaTestLib/private/framegrabber_p.h>
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
 #include <QtMultimediaTestLib/private/mediainfo_p.h>
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
 #include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
 #include <QtTest/qsignalspy.h>
 #include <QtTest/qtest.h>
@@ -36,6 +37,17 @@
 #endif
 
 #include <algorithm>
+#include <QtCore/qlocale.h>
+#include <QtCore/qobject.h>
+#include <QtCore/qscopeguard.h>
+#include <QtCore/qurl.h>
+#if QT_CONFIG(process)
+#  include <QtCore/qprocess.h>
+#endif
+#ifdef Q_OS_DARWIN
+#  include <QtCore/private/qcore_mac_p.h>
+#endif
+
 #include <chrono>
 #include <memory>
 

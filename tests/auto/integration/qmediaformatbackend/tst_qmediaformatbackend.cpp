@@ -1,16 +1,13 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtMultimedia/qmediaformat.h>
-
-#include <QtMultimedia/private/qplatformmediaintegration_p.h>
-
 #include <QtMultimediaTestLib/private/formatutils_p.h>
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
-#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
 #include <QtMultimediaTestLib/private/osdetection_p.h>
-
+#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
 #include <QtTest/qtest.h>
+#include <QtMultimedia/qmediaformat.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
 
 #include <map>
 #include <set>

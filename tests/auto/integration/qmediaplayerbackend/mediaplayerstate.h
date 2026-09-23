@@ -4,15 +4,14 @@
 #ifndef MEDIAPLAYERSTATE_H
 #define MEDIAPLAYERSTATE_H
 
-#include <QtCore/qlist.h>
-#include <QtCore/qurl.h>
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtTest/qtestcase.h>
 #include <QtMultimedia/qaudiooutput.h>
 #include <QtMultimedia/qmediametadata.h>
 #include <QtMultimedia/qmediaplayer.h>
 #include <QtMultimedia/qmediatimerange.h>
-#include <QtTest/qtestcase.h>
-
-#include <private/mediabackendutils_p.h>
+#include <QtCore/qlist.h>
+#include <QtCore/qurl.h>
 
 #include <optional>
 

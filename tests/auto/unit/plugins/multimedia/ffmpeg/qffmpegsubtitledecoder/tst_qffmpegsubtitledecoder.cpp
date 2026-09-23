@@ -1,11 +1,9 @@
 // Copyright (C) 2026 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtTest/qtest.h>
-
-#include <qobject.h>
-
 #include <QtFFmpegMediaPluginImpl/private/qffmpegstreamdecoder_p.h>
+#include <QtTest/qtest.h>
+#include <QtCore/qobject.h>
 
 #include <cstring>
 

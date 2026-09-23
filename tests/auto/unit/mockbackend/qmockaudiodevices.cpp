@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include "qmockaudiodevices.h"
-#include "private/qcameradevice_p.h"
-#include "private/qaudiodevice_p.h"
+
 #include "qmockaudiosink_p.h"
+
+#include <QtMultimedia/private/qaudiodevice_p.h>
+#include <QtMultimedia/private/qcameradevice_p.h>
 
 QT_BEGIN_NAMESPACE
 

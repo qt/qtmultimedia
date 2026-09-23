@@ -1,15 +1,14 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtTest/qtest.h>
+#include <QtMultimediaTestLib/private/osdetection_p.h>
 #include <QtTest/qsignalspy.h>
-
-#include <QtCore/qsemaphore.h>
+#include <QtTest/qtest.h>
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
 #include <QtMultimedia/private/qrtaudioengine_p.h>
-#include <QtMultimediaTestLib/private/osdetection_p.h>
+#include <QtCore/qsemaphore.h>
 
 #if __cplusplus > 201703L
 #  define QT_SET_HAS_CONTAINS

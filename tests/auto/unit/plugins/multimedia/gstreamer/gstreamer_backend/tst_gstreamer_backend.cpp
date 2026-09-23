@@ -3,26 +3,24 @@
 
 #include "tst_gstreamer_backend.h"
 
-#include <QtTest/qtest.h>
-
-#include <QtCore/qtemporaryfile.h>
-#include <QtGui/qimage.h>
-#include <QtMultimedia/qmediaformat.h>
-#include <QtMultimedia/private/qmultimediautils_p.h>
-#include <QtGstreamerMediaPluginImpl/private/qgst_handle_types_p.h>
-#include <QtGstreamerMediaPluginImpl/private/qgst_p.h>
 #include <QtGstreamerMediaPluginImpl/private/qgst_debug_p.h>
 #include <QtGstreamerMediaPluginImpl/private/qgst_discoverer_p.h>
+#include <QtGstreamerMediaPluginImpl/private/qgst_handle_types_p.h>
+#include <QtGstreamerMediaPluginImpl/private/qgst_p.h>
 #include <QtGstreamerMediaPluginImpl/private/qgstpipeline_p.h>
 #include <QtGstreamerMediaPluginImpl/private/qgstreamermetadata_p.h>
+#include <QtTest/qtest.h>
+#include <QtMultimedia/qmediaformat.h>
+#include <QtMultimedia/private/qmultimediautils_p.h>
+#include <QtGui/qimage.h>
+#include <QtCore/qtemporaryfile.h>
+
+#include <gst/gstversion.h>
 
 #include <array>
 #include <cstdlib>
 #include <set>
 #include <variant>
-
-#include <gst/gstversion.h>
-
 
 // NOLINTBEGIN(readability-convert-member-functions-to-static)
 

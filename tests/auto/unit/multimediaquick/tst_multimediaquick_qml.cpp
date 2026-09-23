@@ -2,13 +2,14 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include "qmockintegration.h"
+
+#include <QtQuickTest/quicktest.h>
+#include <QtQml/qqml.h>
+
 #include "tst_multimediaquick_qml_cameraformathelper.h"
 #include "tst_multimediaquick_qml_capturesessionhelper.h"
 #include "tst_multimediaquick_qml_screencapturehelper.h"
 #include "tst_multimediaquick_qml_testhelper.h"
-
-#include <QtQml/qqml.h>
-#include <QtQuickTest/quicktest.h>
 
 QT_USE_NAMESPACE
 

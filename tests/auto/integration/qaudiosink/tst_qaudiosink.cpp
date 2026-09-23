@@ -11,17 +11,6 @@
 #include <QtMultimediaTestLib/private/qmockiodevice_p.h>
 #include <QtTest/qsignalspy.h>
 #include <QtTest/qtest.h>
-#include <QtTest/qsignalspy.h>
-#include <QtCore/qchronotimer.h>
-#if QT_CONFIG(process)
-#  include <QtCore/qprocess.h>
-#endif
-#include <QtCore/qscopeguard.h>
-#include <QtCore/qsemaphore.h>
-#include <QtCore/qstandardpaths.h>
-#include <QtCore/qtemporarydir.h>
-#include <QtCore/quuid.h>
-
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qaudioformat.h>
@@ -31,6 +20,15 @@
 #include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtMultimedia/private/qplatformaudiodevices_p.h>
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
+#include <QtCore/qchronotimer.h>
+#if QT_CONFIG(process)
+#  include <QtCore/qprocess.h>
+#endif
+#include <QtCore/qscopeguard.h>
+#include <QtCore/qsemaphore.h>
+#include <QtCore/qstandardpaths.h>
+#include <QtCore/qtemporarydir.h>
+#include <QtCore/quuid.h>
 
 #include <atomic>
 #include <memory>

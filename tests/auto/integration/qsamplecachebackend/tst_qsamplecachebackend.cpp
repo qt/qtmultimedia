@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include <QtTest/qtest.h>
-#include <QtCore/qfile.h>
-#include <QtCore/qoperatingsystemversion.h>
 #include <QtMultimedia/qaudiodecoder.h>
 #include <QtMultimedia/private/qsamplecache_p.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qoperatingsystemversion.h>
 
 using namespace Qt::Literals;
 

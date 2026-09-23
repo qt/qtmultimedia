@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include <QtTest/qtest.h>
-#include <private/qmediastoragelocation_p.h>
-
+#include <QtMultimedia/private/qmediastoragelocation_p.h>
 
 class tst_qmediastoragelocation : public QObject
 {

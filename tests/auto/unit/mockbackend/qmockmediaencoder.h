@@ -4,10 +4,9 @@
 #ifndef MOCKRECORDERCONTROL_H
 #define MOCKRECORDERCONTROL_H
 
-#include <QUrl>
-#include <qaudiodevice.h>
-
-#include "private/qplatformmediarecorder_p.h"
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/private/qplatformmediarecorder_p.h>
+#include <QtCore/qurl.h>
 
 class QMockMediaEncoder : public QPlatformMediaRecorder
 {

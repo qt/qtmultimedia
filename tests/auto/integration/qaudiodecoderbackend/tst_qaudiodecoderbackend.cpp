@@ -1,22 +1,16 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtCore/qdebug.h>
-
-#include <QtMultimedia/qaudiodecoder.h>
-
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
-#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
 #include <QtMultimediaTestLib/private/mediafileselector_p.h>
-
+#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
 #include <QtTest/qtest.h>
+#include <QtMultimedia/qaudiodecoder.h>
+#include <QtCore/qdebug.h>
 
 #include <cmath>
 #include <optional>
 #include <vector>
-
-#include <private/mediafileselector_p.h>
-#include <private/mediabackendutils_p.h>
 
 namespace {
 

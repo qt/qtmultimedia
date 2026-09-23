@@ -1,26 +1,22 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtTest/qtest.h>
-#include <QtTest/qsignalspy.h>
-
-#include <QtCore/qdebug.h>
-#include <QtCore/qbuffer.h>
-
-#include <qvideosink.h>
-#include <qmediaplayer.h>
-#include <private/qplatformmediaplayer_p.h>
-#include <private/qmediaplayer_p.h>
-#include <qobject.h>
-
 #include "qmockintegration.h"
 #include "qmockmediaplayer.h"
 #include "qmockaudiooutput.h"
-#include "qvideosink.h"
-#include "qaudiooutput.h"
-#include <QtMultimedia/qplaybackoptions.h>
 
 #include <QtMultimediaTestLib/private/qmockresolvers_p.h>
+#include <QtTest/qsignalspy.h>
+#include <QtTest/qtest.h>
+#include <QtMultimedia/qaudiooutput.h>
+#include <QtMultimedia/qmediaplayer.h>
+#include <QtMultimedia/qplaybackoptions.h>
+#include <QtMultimedia/qvideosink.h>
+#include <QtMultimedia/private/qmediaplayer_p.h>
+#include <QtMultimedia/private/qplatformmediaplayer_p.h>
+#include <QtCore/qbuffer.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qobject.h>
 
 using namespace std::chrono_literals;
 

@@ -4,9 +4,8 @@
 #ifndef TST_QMEDIAFRAMEINPUTSBACKEND_H
 #define TST_QMEDIAFRAMEINPUTSBACKEND_H
 
-#include <QObject>
-
 #include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
+#include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE
 

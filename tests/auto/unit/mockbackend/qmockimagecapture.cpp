@@ -1,11 +1,13 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <qmockimagecapture.h>
+#include "qmockimagecapture.h"
+
 #include <qmockcamera.h>
 #include <qmockmediacapturesession.h>
-#include <qimagecapture.h>
-#include <qcamera.h>
+
+#include <QtMultimedia/qcamera.h>
+#include <QtMultimedia/qimagecapture.h>
 
 QT_BEGIN_NAMESPACE
 

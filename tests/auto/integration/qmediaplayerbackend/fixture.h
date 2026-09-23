@@ -4,14 +4,13 @@
 #ifndef FIXTURE_H
 #define FIXTURE_H
 
-#include <qmediaplayer.h>
-#include <qaudiooutput.h>
-#include <qtest.h>
-#include <qsignalspy.h>
+#include <QtMultimediaTestLib/private/testvideosink_p.h>
+#include <QtTest/qsignalspy.h>
+#include <QtTest/qtest.h>
+#include <QtMultimedia/qaudiooutput.h>
+#include <QtMultimedia/qmediaplayer.h>
 
 #include "fake.h"
-#include <private/testvideosink_p.h>
-
 
 struct Fixture : QObject
 {

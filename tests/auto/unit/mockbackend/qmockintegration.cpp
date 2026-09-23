@@ -1,8 +1,8 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtMultimedia/private/qplatformmediaplugin_p.h>
 #include "qmockintegration.h"
+
 #include "qmockmediaplayer.h"
 #include "qmockaudiodecoder.h"
 #include "qmockaudiodevices.h"
@@ -13,7 +13,9 @@
 #include "qmockimagecapture.h"
 #include "qmockaudiooutput.h"
 #include "qmocksurfacecapture.h"
-#include <private/qplatformmediaformatinfo_p.h>
+
+#include <QtMultimedia/private/qplatformmediaformatinfo_p.h>
+#include <QtMultimedia/private/qplatformmediaplugin_p.h>
 
 QT_BEGIN_NAMESPACE
 

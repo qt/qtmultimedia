@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include <QtTest/qtest.h>
-#include <private/qmultimedia_ranges_p.h>
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 
 #include <list>
 #include <map>
