@@ -15,6 +15,7 @@
 #include <spa/pod/builder.h>
 
 #include <thread>
+#include <utility>
 
 QT_BEGIN_NAMESPACE
 
@@ -166,7 +167,8 @@ void QPipewireAudioSinkStream::stop(ShutdownPolicy shutdownPolicy)
 
 void QPipewireAudioSinkStream::updateStreamIdle(bool idle)
 {
-    m_parent->updateStreamIdle(idle);
+    if (m_parent)
+        m_parent->updateStreamIdle(idle);
 }
 
 void QPipewireAudioSinkStream::createStream(StreamType streamType)
@@ -216,9 +218,11 @@ std::optional<ObjectSerial> QPipewireAudioSinkStream::findSinkNodeSerial()
 
 void QPipewireAudioSinkStream::handleDeviceRemoved()
 {
-    if (!isStopRequested())
-        // note: as long as the stream is not stopped, m_parent is valid
-        handleIOError(m_parent);
+    if (isStopRequested())
+        return;
+    requestStop();
+    disconnectQIODeviceConnections();
+    handleIOError(std::exchange(m_parent, nullptr));
 }
 
 static auto resolveHostBuffer(pw_buffer *b, const QAudioFormat &format)

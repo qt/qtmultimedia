@@ -3,8 +3,15 @@
 
 #include <QtTest/qtest.h>
 #include <QtTest/qsignalspy.h>
+#include <QtCore/qchronotimer.h>
+#if QT_CONFIG(process)
+#  include <QtCore/qprocess.h>
+#endif
+#include <QtCore/qscopeguard.h>
 #include <QtCore/qsemaphore.h>
+#include <QtCore/qstandardpaths.h>
 #include <QtCore/qtemporarydir.h>
+#include <QtCore/quuid.h>
 
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudiodevice.h>
@@ -26,6 +33,9 @@
 #include <memory>
 
 QT_WARNING_DISABLE_DEPRECATED; // Tests use QWaveDecoder
+
+using namespace Qt::StringLiterals;
+using namespace std::chrono_literals;
 
 using AudioSinkInitializer = bool (*)(QAudioSink &);
 
@@ -60,6 +70,8 @@ public:
     qint64 bytesAvailable() const override { return available; }
     bool atEnd() const override { return signalEnd && available == 0; }
 
+    void emitReadyRead() { Q_EMIT readyRead(); }
+
     qint64 available = 0;
     bool signalEnd = false;
 
@@ -82,6 +94,23 @@ static bool isQnxSndBackend()
 {
     return QPlatformMediaIntegration::audioBackendName() == "QNX-snd";
 }
+
+#if QT_CONFIG(process)
+// Runs "pactl", returning trimmed stdout on success or std::nullopt on any failure.
+static std::optional<QByteArray> runPactl(const QStringList &arguments)
+{
+    static const QString pactl = QStandardPaths::findExecutable(u"pactl"_s);
+    if (pactl.isEmpty())
+        return std::nullopt;
+
+    QProcess process;
+    process.start(pactl, arguments);
+    if (!process.waitForFinished(std::chrono::milliseconds(5s).count()) || process.exitCode() != 0)
+        return std::nullopt;
+
+    return process.readAllStandardOutput().trimmed();
+}
+#endif // QT_CONFIG(process)
 
 static bool underrunIsAnError()
 {
@@ -166,6 +195,7 @@ private slots:
     void start_afterStopAndReset_data() { generate_multiple_sinks_testrows(); }
     void start_afterStopAndReset();
 
+    void pipewire_deletedOnDeviceRemoval_doesNotUseAfterFree(); // QTBUG-150678
     void destroy_while_running(); // should be last test to catch crash on exit
 
 private:
@@ -1619,6 +1649,77 @@ void tst_QAudioSink::start_afterStopAndReset()
     source2.open(QIODeviceBase::ReadOnly);
     sink->start(&source2);
     QTRY_COMPARE_GT(sink->processedUSecs(), 0);
+}
+
+void tst_QAudioSink::pipewire_deletedOnDeviceRemoval_doesNotUseAfterFree()
+{
+#if !QT_CONFIG(process)
+    QSKIP("This test requires QProcess support");
+#else
+    // Regression test for QTBUG-150678: deleting the QAudioSink from its IOError notification,
+    // after the PipeWire output device was removed, used to leave a dangling pointer that got
+    // dereferenced on the next QIODevice activity. Without ASan/valgrind, a UAF may not reliably
+    // crash this process, but the test still exercises the code path from the bug report.
+
+    if (!isPipewireBackend())
+        QSKIP("This test is specific to the PipeWire backend (QTBUG-150678)");
+
+    const QString sinkName = u"tst_qaudiosink_%1"_s.arg(QUuid::createUuid().toString(QUuid::Id128));
+
+    std::optional<QByteArray> moduleId =
+            runPactl({ u"load-module"_s, u"module-null-sink"_s, u"sink_name=%1"_s.arg(sinkName) });
+    if (!moduleId || moduleId->isEmpty())
+        QSKIP("Could not create a PipeWire null sink via pactl; is a PipeWire session running?");
+
+    auto unloadModule = qScopeGuard([&] {
+        runPactl({ u"unload-module"_s, QString::fromLatin1(*moduleId) });
+    });
+
+    QAudioDevice nullSinkDevice;
+    auto findNullSinkDevice = [&] {
+        const QList<QAudioDevice> outputs = QMediaDevices::audioOutputs();
+        auto it = std::find_if(outputs.begin(), outputs.end(), [&](const QAudioDevice &d) {
+            return QString::fromLatin1(d.id()) == sinkName;
+        });
+        if (it == outputs.end())
+            return false;
+        nullSinkDevice = *it;
+        return true;
+    };
+    QTRY_VERIFY_WITH_TIMEOUT(findNullSinkDevice(), 5s);
+
+    AudioPullSource feeder(/*isContinuous=*/true, nullSinkDevice.preferredFormat());
+    feeder.open(QIODeviceBase::ReadOnly);
+
+    auto sink = std::make_unique<QAudioSink>(nullSinkDevice, nullSinkDevice.preferredFormat());
+    bool deletedFromErrorHandler = false;
+    connect(sink.get(), &QAudioSink::stateChanged, sink.get(), [&](QAudio::State state) {
+        if (state == QAudio::StoppedState && sink->error() == QAudio::IOError) {
+            // exactly what the app in QTBUG-150678 does
+            sink.reset();
+            deletedFromErrorHandler = true;
+        }
+    });
+
+    sink->start(&feeder);
+    QCOMPARE(sink->error(), QAudio::NoError);
+
+    // keep "feeding" the sink even after it has been deleted above, like the reporting app does
+    QChronoTimer feedTimer;
+    feedTimer.setInterval(10ms);
+    feedTimer.callOnTimeout(&feeder, [&] {
+        feeder.emitReadyRead();
+    });
+    feedTimer.start();
+
+    QVERIFY(runPactl({ u"unload-module"_s, QString::fromLatin1(*moduleId) }).has_value());
+    unloadModule.dismiss();
+
+    QTRY_VERIFY_WITH_TIMEOUT(deletedFromErrorHandler, 5s);
+
+    // give a regressed implementation time to use-after-free
+    QTest::qWait(2s);
+#endif // QT_CONFIG(process)
 }
 
 void tst_QAudioSink::destroy_while_running()
