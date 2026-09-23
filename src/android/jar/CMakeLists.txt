@@ -24,6 +24,7 @@ if (QT_FEATURE_ffmpeg)
         src/org/qtproject/qt/android/multimedia/qffmpeg/QtCameraAvailabilityListener.java
         src/org/qtproject/qt/android/multimedia/qffmpeg/QtScreenGrabber.java
         src/org/qtproject/qt/android/multimedia/qffmpeg/QtScreenCaptureService.java
+        src/org/qtproject/qt/android/multimedia/qffmpeg/QtSslCertificates.java
         src/org/qtproject/qt/android/multimedia/qffmpeg/QtVideoDeviceManager.java)
 endif()
 

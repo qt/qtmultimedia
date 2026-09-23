@@ -14,6 +14,10 @@
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/private/qminimalflatset_p.h>
 
+#if defined(Q_OS_ANDROID)
+#  include <QtFFmpegMediaPluginImpl/private/qandroidcacertificates_p.h>
+#endif
+
 #include <optional>
 
 QT_BEGIN_NAMESPACE
@@ -284,10 +288,24 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const QPlaybackOptions &playb
     if (avformat_version() < AV_VERSION_INT(62, 12, 100))
         av_dict_set_int(dict, "http_persistent", 0, 0);
 
+#ifdef Q_OS_ANDROID
     // QTBUG-150720: FFmpeg >= 9.0 defaults its tls protocol to peer certificate verification,
-    // but we do not yet supply a CA bundle on Android, so every https:// source fails to open.
-    // Disable verification as a temporary stopgap until a proper CA bundle is wired up.
-    av_dict_set_int(dict, "tls_verify", 0, 0);
+    // but we do not supply a CA bundle on Android by default, so every https:// source would
+    // otherwise fail to open.
+    // TODO: Apply the app's Network Security Configuration to media sources: domain-specific
+    // trust anchors, Certificate Transparency and cleartextTrafficPermitted="false". The CA
+    // bundle only carries the base-config trust anchors, so this requires verifying the peer
+    // chain per host through the same trust manager QtSslCertificates reads the anchors from
+    // (via X509TrustManagerExtensions.checkServerTrusted(chain, authType, host)), and rejecting
+    // cleartext protocols based on NetworkSecurityPolicy.isCleartextTrafficPermitted(host).
+    {
+        const QString caBundlePath = androidFFmpegCaBundlePath();
+        if (!caBundlePath.isEmpty())
+            av_dict_set(dict, "ca_file", caBundlePath.toUtf8().constData(), 0);
+    }
+#endif
+    // NOTE: For other platforms, CA bundles in default directories are OK,
+    // and one can set non-standard locations with SSL_CERT_DIR=<directory>
 
     context->interrupt_callback.opaque = cancelToken.get();
     context->interrupt_callback.callback = [](void *opaque) {
