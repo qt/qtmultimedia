@@ -10,8 +10,8 @@
 
 #include <QtMultimedia/private/qavfcameradebug_p.h>
 #include <QtMultimedia/private/qavfcamerautility_p.h>
-#include <QtMultimedia/private/qmemoryvideobuffer_p.h>
 #include <QtMultimedia/private/qmediastoragelocation_p.h>
+#include <QtMultimedia/private/qmemoryvideobuffer_p.h>
 #include <QtMultimedia/private/qplatformimagecapture_p.h>
 #include <QtMultimedia/private/qvideoframe_p.h>
 #include <QtConcurrent/qtconcurrentrun.h>
