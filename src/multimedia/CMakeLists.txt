@@ -14,8 +14,14 @@ if (QT_FEATURE_gstreamer_qt_api OR FEATURE_gstreamer_qt_api)
     set(spi_headers_arg SPI_HEADER_FILTERS "(^|/)qgstreamer(interface|videosource)\\.h$")
 endif()
 
+set(qt_multimedia_plugins multimedia)
+if(LINUX)
+    list(APPEND qt_multimedia_plugins libcamera)
+endif()
+
 qt_internal_add_module(Multimedia
-    PLUGIN_TYPES multimedia
+    PLUGIN_TYPES
+        ${qt_multimedia_plugins}
     SOURCES
         audio/qmemory_resource_tlsf_p.h
         audio/qmemory_resource_tlsf.cpp
@@ -56,6 +62,8 @@ qt_internal_add_module(Multimedia
         platform/qplatformaudiooutput_p.h
         platform/qplatformaudioresampler_p.h
         platform/qplatformcamera.cpp platform/qplatformcamera_p.h
+        platform/qplatformlibcameraintegration.cpp platform/qplatformlibcameraintegration_p.h
+        platform/qplatformlibcameraplugin.cpp platform/qplatformlibcameraplugin_p.h
         platform/qplatformcapturablewindows_p.h
         platform/qplatformimagecapture.cpp platform/qplatformimagecapture_p.h
         platform/qplatformmediacapture.cpp platform/qplatformmediacapture_p.h

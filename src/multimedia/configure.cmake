@@ -87,6 +87,7 @@ qt_find_package_extend_sbom(
 )
 qt_find_package(PipeWire PROVIDED_TARGETS PipeWire::PipeWire MODULE_NAME multimedia QMAKE_LIB pipewire)
 qt_find_package(VAAPI COMPONENTS VA DRM PROVIDED_TARGETS VAAPI::VAAPI MODULE_NAME multimedia QMAKE_LIB vaapi)
+qt_find_package(LibCamera PROVIDED_TARGETS LibCamera::LibCamera MODULE_NAME multimedia QMAKE_LIB libcamera)
 
 #### Tests
 
@@ -327,6 +328,13 @@ qt_feature("ffmpeg_stubs" PRIVATE
     CONDITION QT_FEATURE_ffmpeg AND FFMPEG_STUBS
 )
 
+qt_feature("libcamera" PRIVATE
+    LABEL "libcamera"
+    ENABLE INPUT_libcamera STREQUAL 'yes'
+    DISABLE INPUT_libcamera STREQUAL 'no'
+    CONDITION LINUX AND TARGET LibCamera::LibCamera AND QT_FEATURE_thread
+)
+
 qt_configure_add_summary_section(NAME "Qt Multimedia")
 qt_configure_add_summary_entry(ARGS "multimedia-quick")
 qt_configure_add_summary_entry(ARGS "spatialaudio")
@@ -352,6 +360,7 @@ qt_configure_add_summary_entry(ARGS "ffmpeg")
 qt_configure_add_summary_section(NAME "FFmpeg plugin features")
 qt_configure_add_summary_entry(ARGS "pipewire_screencapture")
 qt_configure_end_summary_section()
+qt_configure_add_summary_entry(ARGS "libcamera")
 qt_configure_add_summary_entry(ARGS "mmrenderer")
 qt_configure_add_summary_entry(ARGS "avfoundation")
 qt_configure_add_summary_entry(ARGS "native_android_backend")
