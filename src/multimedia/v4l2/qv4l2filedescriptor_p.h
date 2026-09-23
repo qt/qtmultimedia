@@ -4,33 +4,37 @@
 #ifndef QV4L2FILEDESCRIPTOR_P_H
 #define QV4L2FILEDESCRIPTOR_P_H
 
-#include <QtMultimedia/private/qtmultimediaglobal_p.h>
-
 //
 //  W A R N I N G
 //  -------------
 //
 // This file is not part of the Qt API.  It exists purely as an
-// implementation detail.  This header file may change from version to
+// implementation detail. This header file may change from version to
 // version without notice, or even be removed.
 //
 // We mean it.
 //
 
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#include <QtCore/private/quniquehandle_types_p.h>
+#include <QtCore/qtclasshelpermacros.h>
+
+#include <linux/videodev2.h>
+
 QT_BEGIN_NAMESPACE
 
-class QV4L2FileDescriptor
+namespace QtV4L2 {
+
+class QV4L2FileDescriptor : public QUniqueFileDescriptorHandle
 {
 public:
-    QV4L2FileDescriptor(int descriptor);
+    explicit QV4L2FileDescriptor(QUniqueFileDescriptorHandle descriptor);
 
-    ~QV4L2FileDescriptor();
+    Q_DISABLE_COPY_MOVE(QV4L2FileDescriptor)
 
     bool call(int request, void *arg) const;
 
-    int get() const { return m_descriptor; }
-
-    bool requestBuffers(quint32 memoryType, quint32 &buffersCount) const;
+    bool requestBuffers(v4l2_memory memoryType, quint32 &buffersCount) const;
 
     bool startStream();
 
@@ -39,9 +43,10 @@ public:
     bool streamStarted() const { return m_streamStarted; }
 
 private:
-    int m_descriptor;
     bool m_streamStarted = false;
 };
+
+} // namespace QtV4L2
 
 QT_END_NAMESPACE
 

@@ -45,8 +45,8 @@ extern "C" {
 #endif
 
 #if QT_CONFIG(linux_v4l)
-#include "qv4l2camera_p.h"
-#include "qv4l2cameradevices_p.h"
+#  include <QtMultimedia/private/qv4l2camera_p.h>
+#  include <QtMultimedia/private/qv4l2cameradevices_p.h>
 #endif
 
 #if QT_CONFIG(cpp_winrt)
@@ -223,7 +223,7 @@ q23::expected<QPlatformCamera *, QString> QFFmpegMediaIntegration::createCamera(
 #elif defined(Q_OS_ANDROID)
     return new QFFmpeg::QAndroidCamera(camera);
 #elif QT_CONFIG(linux_v4l)
-    return new QV4L2Camera(camera);
+    return new QtV4L2::QV4L2Camera(camera);
 #elif defined(Q_OS_WINDOWS)
     return new QFFmpeg::QWindowsCamera(camera);
 #else
@@ -348,7 +348,7 @@ QPlatformVideoDevices *QFFmpegMediaIntegration::createVideoDevices()
 #if defined(Q_OS_ANDROID)
     return new QFFmpeg::QAndroidVideoDevices(this);
 #elif QT_CONFIG(linux_v4l)
-    return new QV4L2CameraDevices(this);
+    return new QtV4L2::QV4L2CameraDevices(this);
 #elif defined Q_OS_DARWIN
     return makeQAvfVideoDevices(
         *this,
