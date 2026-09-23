@@ -4,11 +4,11 @@
 #ifndef MEDIAFRAMEINPUTQUEUE_H
 #define MEDIAFRAMEINPUTQUEUE_H
 
-#include <QVideoFrame>
-#include <QAudioBuffer>
-#include <QAudioBufferInput>
-#include <QVideoFrameInput>
-#include <QDebug>
+#include <QtMultimedia/qaudiobuffer.h>
+#include <QtMultimedia/qaudiobufferinput.h>
+#include <QtMultimedia/qvideoframe.h>
+#include <QtMultimedia/qvideoframeinput.h>
+#include <QtCore/qdebug.h>
 
 #include <queue>
 

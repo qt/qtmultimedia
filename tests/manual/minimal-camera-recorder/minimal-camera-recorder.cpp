@@ -1,26 +1,27 @@
 // Copyright (C) 2026 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtCore/QTimer>
-#include <QtCore/QCommandLineParser>
-#include <QtCore/QCoreApplication>
-#include <QtCore/QUrl>
-#include <QtCore/QDateTime>
-#include <QtCore/QStandardPaths>
-#include <QtCore/QDir>
-#include <QtMultimedia/QCameraDevice>
-#include <QtMultimedia/QCameraFormat>
-#include <QtMultimedia/QAudioDevice>
-#include <QtMultimedia/QMediaCaptureSession>
-#include <QtMultimedia/QMediaRecorder>
-#include <QtMultimedia/QMediaFormat>
-#include <QtMultimedia/QMediaDevices>
-#include <QtMultimedia/QCamera>
-#include <QtMultimedia/QAudioInput>
-#include <QtMultimedia/QVideoFrameFormat>
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qaudioinput.h>
+#include <QtMultimedia/qcamera.h>
+#include <QtMultimedia/qcameradevice.h>
+#include <QtMultimedia/qmediacapturesession.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/qmediaformat.h>
+#include <QtMultimedia/qmediarecorder.h>
+#include <QtMultimedia/qvideoframeformat.h>
+#include <QtCore/qcommandlineparser.h>
+#include <QtCore/qcoreapplication.h>
+#include <QtCore/qdatetime.h>
+#include <QtCore/qdir.h>
+#include <QtCore/qstandardpaths.h>
+#include <QtCore/qtimer.h>
+#include <QtCore/qurl.h>
+
+#include <signal.h>
+
 #include <algorithm>
 #include <chrono>
-#include <signal.h>
 #include <filesystem>
 #include <optional>
 

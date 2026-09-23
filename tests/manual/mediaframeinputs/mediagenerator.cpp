@@ -3,9 +3,9 @@
 
 #include "mediagenerator.h"
 
-#include <QVideoFrame>
-#include <QAudioBuffer>
-#include <QDebug>
+#include <QtMultimedia/qaudiobuffer.h>
+#include <QtMultimedia/qvideoframe.h>
+#include <QtCore/qdebug.h>
 
 namespace {
 

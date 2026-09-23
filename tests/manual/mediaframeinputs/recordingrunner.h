@@ -4,8 +4,8 @@
 #ifndef RECORDINGRUNNER_H
 #define RECORDINGRUNNER_H
 
-#include <QMediaRecorder>
-#include <QMediaCaptureSession>
+#include <QtMultimedia/qmediacapturesession.h>
+#include <QtMultimedia/qmediarecorder.h>
 
 #include "mediagenerator.h"
 #include "pushmodemediasource.h"

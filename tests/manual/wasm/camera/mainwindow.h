@@ -4,13 +4,13 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
-#include <QImageCapture>
-#include <QMediaCaptureSession>
-#include <QGraphicsVideoItem>
-#include <QCamera>
-#include <QMediaDevices>
-#include <QMediaRecorder>
+#include <QtMultimediaWidgets/qgraphicsvideoitem.h>
+#include <QtMultimedia/qcamera.h>
+#include <QtMultimedia/qimagecapture.h>
+#include <QtMultimedia/qmediacapturesession.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/qmediarecorder.h>
+#include <QtWidgets/qmainwindow.h>
 
 #include <memory>
 

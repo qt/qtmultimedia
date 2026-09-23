@@ -4,8 +4,8 @@
 #ifndef PUSHMODEMEDIASOURCE_H
 #define PUSHMODEMEDIASOURCE_H
 
-#include <QTimer>
-#include <QtNumeric>
+#include <QtCore/qnumeric.h>
+#include <QtCore/qtimer.h>
 
 template <typename Generator>
 class PushModeFrameSource

@@ -1,17 +1,17 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
+#include <QtMultimediaWidgets/qvideowidget.h>
+#include <QtMultimedia/qaudioinput.h>
+#include <QtMultimedia/qmediacapturesession.h>
+#include <QtMultimedia/qmediarecorder.h>
+#include <QtMultimedia/qscreencapture.h>
+#include <QtWidgets/qapplication.h>
+#include <QtCore/qdatetime.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qstandardpaths.h>
 #include <QtCore/qtimer.h>
 #include <QtCore/qurl.h>
-#include <QtCore/qdatetime.h>
-#include <QtWidgets/qapplication.h>
-#include <QtMultimedia/qmediacapturesession.h>
-#include <QtMultimedia/qmediarecorder.h>
-#include <QtMultimedia/qscreencapture.h>
-#include <QtMultimediaWidgets/qvideowidget.h>
-#include <QtMultimedia/qaudioinput.h>
 
 class Widget : public QVideoWidget
 {

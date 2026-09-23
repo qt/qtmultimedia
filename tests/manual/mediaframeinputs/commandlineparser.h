@@ -4,9 +4,10 @@
 #ifndef COMMANDLINEPARSER_H
 #define COMMANDLINEPARSER_H
 
+#include <QtCore/qcommandlineparser.h>
+
 #include "settings.h"
 
-#include <QCommandLineParser>
 #include <unordered_map>
 
 class CommandLineParser

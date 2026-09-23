@@ -1,13 +1,13 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtCore/QTimer>
-#include <QtCore/QCommandLineParser>
-#include <QtMultimedia/QAudioOutput>
-#include <QtMultimedia/QMediaPlayer>
-#include <QtMultimediaWidgets/QVideoWidget>
-#include <QtWidgets/QApplication>
-#include <QtWidgets/QWidget>
+#include <QtMultimediaWidgets/qvideowidget.h>
+#include <QtMultimedia/qaudiooutput.h>
+#include <QtMultimedia/qmediaplayer.h>
+#include <QtWidgets/qapplication.h>
+#include <QtWidgets/qwidget.h>
+#include <QtCore/qcommandlineparser.h>
+#include <QtCore/qtimer.h>
 
 #include <optional>
 

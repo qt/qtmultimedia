@@ -3,9 +3,8 @@
 
 #include "qtmultimediaprivateqmlhelper.h"
 
-#include <QtCore/qsettings.h>
-
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
+#include <QtCore/qsettings.h>
 
 using namespace Qt::StringLiterals;
 

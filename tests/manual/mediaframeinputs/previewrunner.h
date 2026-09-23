@@ -4,9 +4,9 @@
 #ifndef PREVIEWRUNNER_H
 #define PREVIEWRUNNER_H
 
-#include <QMediaPlayer>
-#include <QAudioOutput>
-#include <QVideoWidget>
+#include <QtMultimediaWidgets/qvideowidget.h>
+#include <QtMultimedia/qaudiooutput.h>
+#include <QtMultimedia/qmediaplayer.h>
 
 class PreviewRunner : public QObject
 {

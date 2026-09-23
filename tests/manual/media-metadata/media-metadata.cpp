@@ -1,10 +1,10 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtCore/QCoreApplication>
-#include <QtCore/QCommandLineParser>
-#include <QtMultimedia/QMediaPlayer>
-#include <QtMultimedia/QMediaMetaData>
+#include <QtMultimedia/qmediametadata.h>
+#include <QtMultimedia/qmediaplayer.h>
+#include <QtCore/qcommandlineparser.h>
+#include <QtCore/qcoreapplication.h>
 
 #include <cstdio>
 #include <optional>
