@@ -15,7 +15,8 @@
 // We mean it.
 //
 
-#include "private/qplatformcapturablewindows_p.h"
+#include <QtMultimedia/private/qplatformcapturablewindows_p.h>
+
 #include <emscripten/val.h>
 
 QT_BEGIN_NAMESPACE

@@ -2,21 +2,20 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qwasmmediacapturesession_p.h"
-#include "mediacapture/qwasmimagecapture_p.h"
-#include "private/qcapturablewindow_p.h"
-#include <QUuid>
-#include "private/qplatformcapturablewindows_p.h"
 
+#include "mediacapture/qwasmimagecapture_p.h"
 #include "qwasmcamera_p.h"
 #include "qwasmscreencapture_p.h"
 #include "qwasmwindowcapture_p.h"
 #include "qwasmaudioinput_p.h"
-#include <private/qplatformmediaintegration_p.h>
-#include <private/qwasmmediadevices_p.h>
 
-#include <private/qplatformaudioinput_p.h>
-#include <QAudioDevice>
-
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/private/qcapturablewindow_p.h>
+#include <QtMultimedia/private/qplatformaudioinput_p.h>
+#include <QtMultimedia/private/qplatformcapturablewindows_p.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
+#include <QtMultimedia/private/qwasmmediadevices_p.h>
+#include <QtCore/quuid.h>
 
 Q_LOGGING_CATEGORY(qWasmMediaCaptureSession, "qt.multimedia.wasm.capturesession")
 

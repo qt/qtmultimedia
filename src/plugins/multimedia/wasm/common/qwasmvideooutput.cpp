@@ -1,36 +1,35 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <QDebug>
-#include <QUrl>
-#include <QPoint>
-#include <QRect>
-#include <QMediaPlayer>
-#include <QVideoFrame>
-#include <QFile>
-#include <QBuffer>
-#include <QMimeDatabase>
-#include <QPointer>
-#include <QGuiApplication>
-#include <QOpenGLContext>
-
-#include <QtGui/rhi/qrhi_platform.h>
-#include <qpa/qplatformwindow_p.h>
-
-#include <GLES2/gl2.h>
-
 #include "qwasmvideooutput_p.h"
+#include "qwasmgltexturevideobuffer_p.h"
 
-#include <qvideosink.h>
-#include <private/qplatformvideosink_p.h>
-#include <private/qmemoryvideobuffer_p.h>
-#include <private/qvideotexturehelper_p.h>
-#include <private/qvideoframe_p.h>
-#include <private/qstdweb_p.h>
-#include <QTimer>
+#include <QtMultimedia/qmediaplayer.h>
+#include <QtMultimedia/qvideoframe.h>
+#include <QtMultimedia/qvideosink.h>
+#include <QtMultimedia/private/qplatformvideosink_p.h>
+#include <QtMultimedia/private/qmemoryvideobuffer_p.h>
+#include <QtMultimedia/private/qvideoframe_p.h>
+#include <QtMultimedia/private/qvideotexturehelper_p.h>
+#include <QtGui/qguiapplication.h>
+#include <QtGui/qopenglcontext.h>
+#include <QtGui/qpa/qplatformwindow_p.h>
+#include <QtGui/rhi/qrhi_platform.h>
+#include <QtCore/qbuffer.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qmimedatabase.h>
+#include <QtCore/qpoint.h>
+#include <QtCore/qpointer.h>
+#include <QtCore/qrect.h>
+#include <QtCore/qtimer.h>
+#include <QtCore/qurl.h>
+#include <QtCore/private/qstdweb_p.h>
 
 #include <emscripten/bind.h>
 #include <emscripten/val.h>
+
+#include <GLES2/gl2.h>
 
 // Upload the current video frame to the already-bound TEXTURE_2D.
 // The canvas is passed as an EM_VAL handle; Emval.toValue() here refers to

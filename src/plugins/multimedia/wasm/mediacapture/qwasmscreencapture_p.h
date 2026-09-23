@@ -15,12 +15,12 @@
 // We mean it.
 //
 
-#include <QObject>
-#include <private/qplatformsurfacecapture_p.h>
-#include <QScreenCapture>
-
-#include <QtCore/qloggingcategory.h>
 #include "qwasmvideooutput_p.h"
+
+#include <QtMultimedia/qscreencapture.h>
+#include <QtMultimedia/private/qplatformsurfacecapture_p.h>
+#include <QtCore/qloggingcategory.h>
+#include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE
 

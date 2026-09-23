@@ -15,7 +15,7 @@
 #ifndef QWASMVIDEOSINK_H
 #define QWASMVIDEOSINK_H
 
-#include <private/qplatformvideosink_p.h>
+#include <QtMultimedia/private/qplatformvideosink_p.h>
 
 QT_BEGIN_NAMESPACE
 

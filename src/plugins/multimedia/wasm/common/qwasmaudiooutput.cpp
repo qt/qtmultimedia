@@ -1,17 +1,16 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <qaudiodevice.h>
-#include <qaudiooutput.h>
-#include <qwasmaudiooutput_p.h>
+#include "qwasmaudiooutput_p.h"
 
-#include <QMimeDatabase>
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qaudiooutput.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qfileinfo.h>
 #include <QtCore/qloggingcategory.h>
-#include <QMediaDevices>
-#include <QUrl>
-#include <QFile>
-#include <QMimeDatabase>
-#include <QFileInfo>
+#include <QtCore/qmimedatabase.h>
+#include <QtCore/qurl.h>
 
 QT_BEGIN_NAMESPACE
 

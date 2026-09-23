@@ -2,18 +2,19 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qwasmmediarecorder_p.h"
+
 #include "qwasmmediacapturesession_p.h"
-#include <private/qplatformaudiodevices_p.h>
-#include <private/qplatformmediaintegration_p.h>
 #include "qwasmcamera_p.h"
 #include "qwasmaudioinput_p.h"
 
-#include <private/qstdweb_p.h>
-#include <QtCore/QIODevice>
-#include <QFile>
-#include <QDir>
-#include <QTimer>
-#include <QDebug>
+#include <QtMultimedia/private/qplatformaudiodevices_p.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qdir.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qiodevice.h>
+#include <QtCore/qtimer.h>
+#include <QtCore/private/qstdweb_p.h>
 
 QT_BEGIN_NAMESPACE
 
