@@ -1,18 +1,15 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtTest/qtest.h>
-#include <QtCore/qdebug.h>
-#include <QtCore/qbuffer.h>
-
-#include <qgraphicsvideoitem.h>
-#include <qvideosink.h>
-#include <qmediaplayer.h>
-#include <private/qplatformmediaplayer_p.h>
-
-#include "qvideosink.h"
 #include "qmockintegration.h"
 
+#include <QtMultimediaWidgets/qgraphicsvideoitem.h>
+#include <QtTest/qtest.h>
+#include <QtMultimedia/qmediaplayer.h>
+#include <QtMultimedia/qvideosink.h>
+#include <QtMultimedia/private/qplatformmediaplayer_p.h>
+#include <QtCore/qbuffer.h>
+#include <QtCore/qdebug.h>
 
 Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN
 

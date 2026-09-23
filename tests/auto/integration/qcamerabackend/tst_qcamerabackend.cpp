@@ -1,20 +1,10 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtCore/qlocale.h>
-#include <QtCore/qobject.h>
-#if QT_CONFIG(process)
-#include <QtCore/qprocess.h>
-#endif
-#include <QtCore/qscopeguard.h>
-#include <QtCore/qurl.h>
-
-#ifdef Q_OS_DARWIN
-#include <QtCore/private/qcore_mac_p.h>
-#endif
-
-#include <QtGui/qimagereader.h>
-
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
+#include <QtTest/qsignalspy.h>
+#include <QtTest/qtest.h>
 #include <QtMultimedia/qaudiooutput.h>
 #include <QtMultimedia/qcamera.h>
 #include <QtMultimedia/qcameradevice.h>
@@ -24,16 +14,20 @@
 #include <QtMultimedia/qmediaplayer.h>
 #include <QtMultimedia/qmediarecorder.h>
 #include <QtMultimedia/qvideosink.h>
-
 #include <QtMultimedia/private/qplatformcamera_p.h>
 #include <QtMultimedia/private/qplatformimagecapture_p.h>
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
-
-#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
-#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
-
-#include <QtTest/qtest.h>
-#include <QtTest/qsignalspy.h>
+#include <QtGui/qimagereader.h>
+#include <QtCore/qlocale.h>
+#include <QtCore/qobject.h>
+#include <QtCore/qscopeguard.h>
+#include <QtCore/qurl.h>
+#if QT_CONFIG(process)
+#  include <QtCore/qprocess.h>
+#endif
+#ifdef Q_OS_DARWIN
+#  include <QtCore/private/qcore_mac_p.h>
+#endif
 
 #include <chrono>
 #include <memory>

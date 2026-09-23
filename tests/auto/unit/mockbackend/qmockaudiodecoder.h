@@ -4,13 +4,11 @@
 #ifndef MOCKAUDIODECODERCONTROL_H
 #define MOCKAUDIODECODERCONTROL_H
 
-#include "private/qplatformaudiodecoder_p.h"
-
+#include <QtMultimedia/qaudiobuffer.h>
+#include <QtMultimedia/private/qplatformaudiodecoder_p.h>
+#include <QtCore/qiodevice.h>
+#include <QtCore/qtimer.h>
 #include <QtCore/qurl.h>
-
-#include "qaudiobuffer.h"
-#include <QTimer>
-#include <QIODevice>
 
 #define MOCK_DECODER_MAX_BUFFERS 10
 

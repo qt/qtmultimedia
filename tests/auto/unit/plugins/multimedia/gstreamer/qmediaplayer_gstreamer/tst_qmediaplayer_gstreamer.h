@@ -4,12 +4,12 @@
 #ifndef TST_GMEDIAPLAYER_GSTREAMER_H
 #define TST_GMEDIAPLAYER_GSTREAMER_H
 
-#include <QtCore/qtemporaryfile.h>
-#include <QtCore/qstandardpaths.h>
-#include <QtTest/qsignalspy.h>
-#include <QtMultimedia/qmediaplayer.h>
 #include <QtGstreamerMediaPluginImpl/private/qgstpipeline_p.h>
-#include <QtMultimedia/spi/qgstreamerinterface.h>
+#include <QtTest/qsignalspy.h>
+#include <QtMultimedia/qgstreamerinterface.h>
+#include <QtMultimedia/qmediaplayer.h>
+#include <QtCore/qstandardpaths.h>
+#include <QtCore/qtemporaryfile.h>
 
 #include <memory>
 #include <optional>

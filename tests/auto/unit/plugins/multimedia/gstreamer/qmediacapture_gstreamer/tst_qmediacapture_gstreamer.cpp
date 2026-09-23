@@ -1,18 +1,17 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtTest/qtest.h>
-#include <QtMultimedia/QAudioDevice>
-#include <QtMultimedia/QAudioInput>
-#include <QtMultimedia/QAudioOutput>
-#include <QtMultimedia/QCamera>
-#include <QtMultimedia/QMediaCaptureSession>
-#include <QtMultimedia/private/qplatformmediacapture_p.h>
-#include <QtMultimedia/spi/qgstreamerinterface.h>
-#include <QtMultimedia/spi/qgstreamervideosource.h>
 #include <QtGstreamerMediaPluginImpl/private/qgstpipeline_p.h>
-
-#include <private/qscopedenvironmentvariable_p.h>
+#include <QtMultimediaTestLib/private/qscopedenvironmentvariable_p.h>
+#include <QtTest/qtest.h>
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qaudioinput.h>
+#include <QtMultimedia/qaudiooutput.h>
+#include <QtMultimedia/qcamera.h>
+#include <QtMultimedia/qgstreamerinterface.h>
+#include <QtMultimedia/qgstreamervideosource.h>
+#include <QtMultimedia/qmediacapturesession.h>
+#include <QtMultimedia/private/qplatformmediacapture_p.h>
 
 #include <memory>
 

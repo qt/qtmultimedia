@@ -4,11 +4,10 @@
 #ifndef TST_MULTIMEDIAQUICK_QML_SCREENCAPTUREHELPER_H
 #define TST_MULTIMEDIAQUICK_QML_SCREENCAPTUREHELPER_H
 
+#include <QtMultimedia/qscreencapture.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qpointer.h>
 #include <QtCore/qstring.h>
-
-#include <QtMultimedia/qscreencapture.h>
 
 QT_BEGIN_NAMESPACE
 

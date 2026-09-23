@@ -2,10 +2,9 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include <QtTest/qtest.h>
-
+#include <QtMultimedia/qcameradevice.h>
 #include <QtMultimedia/private/qwindowsmediafoundation_p.h>
 #include <QtMultimedia/private/qwindowsmultimediautils_p.h>
-#include <QtMultimedia/qcameradevice.h>
 #include <QtCore/private/qcomptr_p.h>
 
 #include <mfapi.h>

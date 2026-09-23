@@ -1,14 +1,13 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtTest/qtest.h>
+#include <QtMultimediaTestLib/private/qsinewavevalidator_p.h>
 #include <QtTest/qsignalspy.h>
-#include <qwavedecoder.h>
-#include <private/qsinewavevalidator_p.h>
-
-#include <QNetworkAccessManager>
-#include <QNetworkRequest>
-#include <QNetworkReply>
+#include <QtTest/qtest.h>
+#include <QtMultimedia/qwavedecoder.h>
+#include <QtNetwork/qnetworkaccessmanager.h>
+#include <QtNetwork/qnetworkreply.h>
+#include <QtNetwork/qnetworkrequest.h>
 
 QT_WARNING_DISABLE_DEPRECATED; // QWaveDecoder is deprecated
 

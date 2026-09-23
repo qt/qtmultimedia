@@ -1,25 +1,22 @@
 // Copyright (C) 2026 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtTest/qtest.h>
+#include "qmockaudiodevices.h"
+#include "qmockintegration.h"
 
+#include <QtMultimediaTestLib/private/audiogenerationutils_p.h>
+#include <QtMultimediaTestLib/private/qmessagespy_p.h>
+#include <QtMultimediaTestLib/private/qsinewavevalidator_p.h>
 #include <QtSpatialAudio/qaudioengine.h>
 #include <QtSpatialAudio/qspatialsound.h>
 #include <QtSpatialAudio/private/qaudioengine_p.h>
 #include <QtSpatialAudio/private/qaudioengine_withplayer_p.h>
 #include <QtSpatialAudio/private/qtspatialaudioglobal_p.h>
-
+#include <QtTest/qtest.h>
 #include <QtMultimedia/private/qaudio_qspan_support_p.h>
 #include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtMultimedia/private/qrtaudioengine_p.h>
-#include <QtMultimediaTestLib/private/audiogenerationutils_p.h>
-#include <QtMultimediaTestLib/private/qmessagespy_p.h>
-#include <QtMultimediaTestLib/private/qsinewavevalidator_p.h>
-
 #include <QtCore/qregularexpression.h>
-
-#include "qmockaudiodevices.h"
-#include "qmockintegration.h"
 
 #include <cmath>
 #include <numeric>

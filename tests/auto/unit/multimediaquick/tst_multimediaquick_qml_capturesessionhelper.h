@@ -4,9 +4,8 @@
 #ifndef TST_MULTIMEDIAQUICK_QML_CAPTURESESSIONHELPER_H
 #define TST_MULTIMEDIAQUICK_QML_CAPTURESESSIONHELPER_H
 
-#include <QtCore/qobject.h>
-
 #include <QtMultimedia/qmediacapturesession.h>
+#include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE
 

@@ -1,12 +1,11 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtTest/qtest.h>
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/osdetection_p.h>
+#include <QtMultimediaTestLib/private/qmockiodevice_p.h>
 #include <QtTest/qsignalspy.h>
-#include <QtCore/qbuffer.h>
-#include <QtCore/qsemaphore.h>
-#include <QtCore/qtemporarydir.h>
-
+#include <QtTest/qtest.h>
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qaudioformat.h>
@@ -14,10 +13,9 @@
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/qwavedecoder.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
-
-#include <private/mediabackendutils_p.h>
-#include <private/osdetection_p.h>
-#include <private/qmockiodevice_p.h>
+#include <QtCore/qbuffer.h>
+#include <QtCore/qsemaphore.h>
+#include <QtCore/qtemporarydir.h>
 
 #include <memory>
 

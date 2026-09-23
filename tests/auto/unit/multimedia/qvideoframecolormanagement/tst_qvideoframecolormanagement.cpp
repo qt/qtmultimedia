@@ -1,26 +1,24 @@
 // Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/osdetection_p.h>
+#include <QtMultimediaTestLib/private/qfileutil_p.h>
 #include <QtTest/qtest.h>
-
-#include <qvideoframe.h>
-#include <qvideoframeformat.h>
-#include "private/qmemoryvideobuffer_p.h"
-#include "private/qvideoframeconverter_p.h"
-#include "private/qplatformmediaintegration_p.h"
-#include "private/qimagevideobuffer_p.h"
-#include "private/qvideoframe_p.h"
-#include "private/qvideotexturehelper_p.h"
-#include "private/qthreadlocalrhi_p.h"
-#include <private/qfileutil_p.h>
-#include <private/qmultimedia_enum_to_string_converter_p.h>
-#include <private/osdetection_p.h>
-#include <QtGui/QColorSpace>
-#include <QtGui/QImage>
-#include <QtCore/QPointer>
+#include <QtMultimedia/qvideoframe.h>
+#include <QtMultimedia/qvideoframeformat.h>
+#include <QtMultimedia/private/qimagevideobuffer_p.h>
+#include <QtMultimedia/private/qmemoryvideobuffer_p.h>
+#include <QtMultimedia/private/qmultimedia_enum_to_string_converter_p.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
+#include <QtMultimedia/private/qthreadlocalrhi_p.h>
+#include <QtMultimedia/private/qvideoframe_p.h>
+#include <QtMultimedia/private/qvideoframeconverter_p.h>
+#include <QtMultimedia/private/qvideotexturehelper_p.h>
+#include <QtGui/qcolorspace.h>
+#include <QtGui/qimage.h>
+#include <QtCore/qpointer.h>
 #include <QtCore/qset.h>
-
-#include <private/mediabackendutils_p.h>
 
 QT_BEGIN_NAMESPACE
 

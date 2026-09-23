@@ -3,11 +3,10 @@
 
 #include "tst_qmediaplayer_gstreamer.h"
 
+#include <QtMultimediaTestLib/private/qscopedenvironmentvariable_p.h>
 #include <QtTest/qtest.h>
 #include <QtMultimedia/private/qmediaplayer_p.h>
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
-
-#include <QtMultimediaTestLib/private/qscopedenvironmentvariable_p.h>
 
 using namespace Qt::Literals;
 

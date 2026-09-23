@@ -2,10 +2,9 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include <QtTest/qtest.h>
-#include <QDebug>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
+#include <QtCore/qdebug.h>
 #include <QtCore/qsysinfo.h>
-#include <private/qplatformmediaintegration_p.h>
-
 
 class tst_backends : public QObject
 {

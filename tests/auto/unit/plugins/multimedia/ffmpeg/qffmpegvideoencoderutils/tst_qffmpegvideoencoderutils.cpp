@@ -1,16 +1,13 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtTest/qtest.h>
-
-#include <qobject.h>
-
-#include <QtCore/qlist.h>
-#include <QtCore/qoperatingsystemversion.h>
-
 #include <QtFFmpegMediaPluginImpl/private/qffmpegcodec_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegvideoencoderutils_p.h>
+#include <QtTest/qtest.h>
+#include <QtCore/qlist.h>
+#include <QtCore/qobject.h>
+#include <QtCore/qoperatingsystemversion.h>
 
 extern "C" {
 #include <libavutil/pixdesc.h>

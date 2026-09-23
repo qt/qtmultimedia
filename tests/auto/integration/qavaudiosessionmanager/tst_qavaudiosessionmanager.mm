@@ -1,15 +1,14 @@
 // Copyright (C) 2026 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtTest/qtest.h>
 #include <QtTest/qsignalspy.h>
-
+#include <QtTest/qtest.h>
 #include <QtMultimedia/private/qavaudiosessionmanager_p.h>
-
-#include <optional>
 
 #import <AVFoundation/AVAudioSession.h>
 #import <Foundation/Foundation.h>
+
+#include <optional>
 
 using QtMultimediaPrivate::QAVAudioSessionManager;
 using QtMultimediaPrivate::SessionRequirement;

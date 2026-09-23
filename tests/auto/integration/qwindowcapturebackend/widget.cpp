@@ -2,15 +2,13 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include "widget.h"
-#include "fixture.h"
-
-#include <QtCore/qsystemsemaphore.h>
-
-#include <QtGui/qwindow.h>
 
 #include <QtTest/qtest.h>
-
 #include <QtWidgets/qapplication.h>
+#include <QtGui/qwindow.h>
+#include <QtCore/qsystemsemaphore.h>
+
+#include "fixture.h"
 
 TestWidget::TestWidget(const QString &uuid, QScreen *screen)
 {

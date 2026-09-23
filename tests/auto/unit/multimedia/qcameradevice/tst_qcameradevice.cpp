@@ -1,17 +1,14 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtTest/qtest.h>
-#include <QDebug>
-
-#include <qcamera.h>
-#include <qcameradevice.h>
-#include <qmediadevices.h>
-
-#include <private/qcameradevice_p.h>
-
 #include "qmockintegration.h"
 
+#include <QtTest/qtest.h>
+#include <QtMultimedia/qcamera.h>
+#include <QtMultimedia/qcameradevice.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/private/qcameradevice_p.h>
+#include <QtCore/qdebug.h>
 
 Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN
 

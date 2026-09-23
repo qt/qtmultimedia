@@ -1,8 +1,8 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtTest/qtest.h>
 #include <QtTest/qsignalspy.h>
+#include <QtTest/qtest.h>
 #include <QtMultimedia/private/qautoresetevent_p.h>
 
 #include <thread>

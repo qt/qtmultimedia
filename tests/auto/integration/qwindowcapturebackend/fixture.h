@@ -4,22 +4,19 @@
 #ifndef WINDOW_CAPTURE_FIXTURE_H
 #define WINDOW_CAPTURE_FIXTURE_H
 
-#include "grabber.h"
-#include "widget.h"
-
-#include <QtCore/qobject.h>
-#include <QtCore/qprocess.h>
-
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/surfacecapturetestutils_p.h>
+#include <QtTest/qsignalspy.h>
+#include <QtTest/qtest.h>
 #include <QtMultimedia/qmediacapturesession.h>
 #include <QtMultimedia/qmediarecorder.h>
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qwindowcapture.h>
+#include <QtCore/qobject.h>
+#include <QtCore/qprocess.h>
 
-#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
-#include <QtMultimediaTestLib/private/surfacecapturetestutils_p.h>
-
-#include <QtTest/qtest.h>
-#include <QtTest/qsignalspy.h>
+#include "grabber.h"
+#include "widget.h"
 
 #include <chrono>
 #include <memory>

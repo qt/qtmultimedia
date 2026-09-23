@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include <QtTest/qtest.h>
-#include <QDebug>
-#include <private/qmultimediautils_p.h>
-#include <qvideoframeformat.h>
-#include <qvideoframe.h>
+#include <QtMultimedia/qvideoframe.h>
+#include <QtMultimedia/qvideoframeformat.h>
+#include <QtMultimedia/private/qmultimediautils_p.h>
+#include <QtCore/qdebug.h>
 
 #ifdef Q_OS_APPLE
-#  include <private/qapple_utils_p.h>
+#  include <QtMultimedia/private/qapple_utils_p.h>
 #  include <CoreAudioTypes/CoreAudioBaseTypes.h>
 #endif
 

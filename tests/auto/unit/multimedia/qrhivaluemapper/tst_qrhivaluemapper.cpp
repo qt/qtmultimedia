@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include <QtTest/qtest.h>
-#include <private/qrhivaluemapper_p.h>
-#include <rhi/qrhi.h>
+#include <QtMultimedia/private/qrhivaluemapper_p.h>
+#include <QtGui/rhi/qrhi.h>
 
 #include <memory>
 

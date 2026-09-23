@@ -4,7 +4,8 @@
 // TESTED_COMPONENT=src/multimedia
 
 #include <QtTest/qtest.h>
-#include <private/qvideotransformation_p.h>
+#include <QtMultimedia/private/qvideotransformation_p.h>
+
 #include <map>
 
 

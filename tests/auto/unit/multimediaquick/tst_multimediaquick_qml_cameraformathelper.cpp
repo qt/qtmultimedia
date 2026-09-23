@@ -3,9 +3,8 @@
 
 #include "tst_multimediaquick_qml_cameraformathelper.h"
 
-#include <QtCore/qsize.h>
-
 #include <QtMultimedia/private/qcameradevice_p.h>
+#include <QtCore/qsize.h>
 
 QT_USE_NAMESPACE
 

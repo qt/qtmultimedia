@@ -4,24 +4,17 @@
 
 //TESTED_COMPONENT=plugins/declarative/multimedia
 
-#include <QtCore/qobject.h>
-
-#include <QtMultimedia/qmediaplayer.h>
-
-#include <QtMultimedia/private/qplatformvideosink_p.h>
-
 #include <QtMultimediaQuick/private/qquickvideooutput_p.h>
-
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
 #include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
-
-#include <QtQml/qqmlcomponent.h>
-#include <QtQml/qqmlengine.h>
-
+#include <QtTest/qtest.h>
+#include <QtMultimedia/qmediaplayer.h>
+#include <QtMultimedia/private/qplatformvideosink_p.h>
 #include <QtQuick/qquickitem.h>
 #include <QtQuick/qquickview.h>
-
-#include <QtTest/qtest.h>
+#include <QtQml/qqmlcomponent.h>
+#include <QtQml/qqmlengine.h>
+#include <QtCore/qobject.h>
 
 #include <memory>
 

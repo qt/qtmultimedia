@@ -15,10 +15,10 @@
 // We mean it.
 //
 
-#include <private/qplatformaudiodevices_p.h>
-#include <qelapsedtimer.h>
-#include <qaudiodevice.h>
-#include <qcameradevice.h>
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qcameradevice.h>
+#include <QtMultimedia/private/qplatformaudiodevices_p.h>
+#include <QtCore/qelapsedtimer.h>
 
 QT_BEGIN_NAMESPACE
 

@@ -3,22 +3,21 @@
 
 //TESTED_COMPONENT=plugins/declarative/multimedia
 
-#include <QtTest/qtest.h>
+#include <QtMultimediaQuick/private/qquickvideooutput_p.h>
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
 #include <QtTest/qsignalspy.h>
-
-#include <QtCore/qobject.h>
+#include <QtTest/qtest.h>
 #include <QtMultimedia/qmediaplayer.h>
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qvideoframeformat.h>
 #include <QtMultimedia/qvideosink.h>
-#include <QtMultimediaQuick/private/qquickvideooutput_p.h>
-#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
-#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
-#include <QtQml/qqmlcomponent.h>
-#include <QtQml/qqmlengine.h>
 #include <QtQuick/qquickview.h>
 #include <QtQuick/private/qsgrenderloop_p.h>
 #include <QtQuick/private/qsgthreadedrenderloop_p.h>
+#include <QtQml/qqmlcomponent.h>
+#include <QtQml/qqmlengine.h>
+#include <QtCore/qobject.h>
 
 void presentDummyFrame(QVideoSink *sink, const QSize &size)
 {

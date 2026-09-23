@@ -4,9 +4,9 @@
 #ifndef QMOCKCAMERA_H
 #define QMOCKCAMERA_H
 
-#include "private/qplatformcamera_p.h"
-#include "qcameradevice.h"
-#include <qtimer.h>
+#include <QtMultimedia/qcameradevice.h>
+#include <QtMultimedia/private/qplatformcamera_p.h>
+#include <QtCore/qtimer.h>
 
 QT_BEGIN_NAMESPACE
 

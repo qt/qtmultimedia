@@ -4,8 +4,8 @@
 #ifndef QMOCKMEDIAPLAYER_H
 #define QMOCKMEDIAPLAYER_H
 
-#include "private/qplatformmediaplayer_p.h"
-#include <qurl.h>
+#include <QtMultimedia/private/qplatformmediaplayer_p.h>
+#include <QtCore/qurl.h>
 
 QT_BEGIN_NAMESPACE
 

@@ -3,15 +3,14 @@
 
 // TESTED_COMPONENT=src/multimedia
 
-#include <QtTest/qtest.h>
-#include <QtTest/qsignalspy.h>
-#include <QDebug>
-
 #include "qmockintegration.h"
-#include "qscreencapture.h"
 #include "qmocksurfacecapture.h"
-#include "qatomic.h"
 
+#include <QtTest/qsignalspy.h>
+#include <QtTest/qtest.h>
+#include <QtMultimedia/qscreencapture.h>
+#include <QtCore/qatomic.h>
+#include <QtCore/qdebug.h>
 
 Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN
 

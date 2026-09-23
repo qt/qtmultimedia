@@ -1,13 +1,11 @@
 // Copyright (C) 2026 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
+#include <QtMultimediaTestLib/private/udmabuftestutils_p.h>
 #include <QtTest/qtest.h>
-
-#include <private/qdmabufvideobuffer_p.h>
-#include <private/qvideotexturehelper_p.h>
-#include <private/qmultimedia_drm_support_p.h>
-#include <private/udmabuftestutils_p.h>
-
+#include <QtMultimedia/private/qdmabufvideobuffer_p.h>
+#include <QtMultimedia/private/qmultimedia_drm_support_p.h>
+#include <QtMultimedia/private/qvideotexturehelper_p.h>
 #include <QtGui/qguiapplication.h>
 #include <QtGui/qoffscreensurface.h>
 #include <QtGui/qopenglfunctions.h>

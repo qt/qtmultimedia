@@ -2,8 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include <QtTest/qtest.h>
-
-#include <qvideoframeformat.h>
+#include <QtMultimedia/qvideoframeformat.h>
 
 // Adds an enum, and the stringized version
 #define ADD_ENUM_TEST(VALUE)            \

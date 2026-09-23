@@ -1,19 +1,16 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
+#include <QtMultimediaTestLib/private/testvideosink_p.h>
+#include <QtTest/qtest.h>
+#include <QtMultimedia/qaudiooutput.h>
+#include <QtMultimedia/qmediaplayer.h>
 #include <QtCore/qatomic.h>
 #include <QtCore/qoperatingsystemversion.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qthread.h>
-
-#include <QtMultimedia/qaudiooutput.h>
-#include <QtMultimedia/qmediaplayer.h>
-
-#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
-#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
-#include <QtMultimediaTestLib/private/testvideosink_p.h>
-
-#include <QtTest/QtTest>
 
 #include <chrono>
 

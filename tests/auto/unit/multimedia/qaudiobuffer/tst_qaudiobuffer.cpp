@@ -1,11 +1,10 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtCore/QString>
 #include <QtTest/qtest.h>
-
-#include <qaudiobuffer.h>
+#include <QtMultimedia/qaudiobuffer.h>
 #include <QtMultimedia/private/qaudiobuffer_support_p.h>
+#include <QtCore/qstring.h>
 
 class tst_QAudioBuffer : public QObject
 {

@@ -1,26 +1,23 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtGui/qpainter.h>
-#include <QtGui/qwindow.h>
-
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
+#include <QtMultimediaTestLib/private/surfacecapturetestutils_p.h>
+#include <QtMultimediaTestLib/private/testvideosink_p.h>
+#include <QtTest/qsignalspy.h>
+#include <QtTest/qtest.h>
 #include <QtMultimedia/qmediacapturesession.h>
 #include <QtMultimedia/qmediaplayer.h>
 #include <QtMultimedia/qmediarecorder.h>
 #include <QtMultimedia/qscreencapture.h>
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qvideosink.h>
+#include <QtGui/qpainter.h>
+#include <QtGui/qwindow.h>
 #if defined(Q_OS_MACOS)
 #include <QtMultimedia/private/qavfhelpers_p.h>
 #endif
-
-#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
-#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
-#include <QtMultimediaTestLib/private/surfacecapturetestutils_p.h>
-#include <QtMultimediaTestLib/private/testvideosink_p.h>
-
-#include <QtTest/qsignalspy.h>
-#include <QtTest/qtest.h>
 
 #include <chrono>
 #include <utility>

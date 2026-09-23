@@ -4,12 +4,10 @@
 #ifndef WINDOW_CAPTURE_WIDGET_H
 #define WINDOW_CAPTURE_WIDGET_H
 
-#include <QtCore/quuid.h>
-
+#include <QtWidgets/qwidget.h>
 #include <QtGui/qpainter.h>
 #include <QtGui/qscreen.h>
-
-#include <QtWidgets/qwidget.h>
+#include <QtCore/quuid.h>
 
 /*!
     Window capable of drawing test patterns used for capture tests

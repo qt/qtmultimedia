@@ -4,8 +4,8 @@
 #ifndef QMOCKVIDEOBUFFER_H
 #define QMOCKVIDEOBUFFER_H
 
-#include "qimage.h"
-#include "private/qhwvideobuffer_p.h"
+#include <QtMultimedia/private/qhwvideobuffer_p.h>
+#include <QtGui/qimage.h>
 
 class QMockVideoBuffer : public QHwVideoBuffer
 {

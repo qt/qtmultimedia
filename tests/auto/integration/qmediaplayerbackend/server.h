@@ -4,7 +4,7 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include <private/qglobal_p.h>
+#include <QtCore/private/qglobal_p.h>
 
 #ifdef QT_FEATURE_network
 

@@ -1,23 +1,22 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/osdetection_p.h>
 #include <QtTest/qtest.h>
-
-#include <qvideoframe.h>
-#include <qvideoframeformat.h>
-#include "QtTest/qtestcase.h"
-#include "private/qmemoryvideobuffer_p.h"
-#include "private/qhwvideobuffer_p.h"
-#include "private/qimagevideobuffer_p.h"
-#include "private/qvideoframe_p.h"
-#include <QtGui/QImage>
-#include <QtCore/QPointer>
-#include <QtCore/qset.h>
+#include <QtTest/qtestcase.h>
+#include <QtMultimedia/qvideoframe.h>
+#include <QtMultimedia/qvideoframeformat.h>
+#include <QtMultimedia/private/qhwvideobuffer_p.h>
+#include <QtMultimedia/private/qimagevideobuffer_p.h>
+#include <QtMultimedia/private/qmemoryvideobuffer_p.h>
+#include <QtMultimedia/private/qthreadlocalrhi_p.h>
 #include <QtMultimedia/private/qtmultimedia-config_p.h>
-#include "private/qvideoframeconverter_p.h"
-#include "private/qthreadlocalrhi_p.h"
-#include <private/mediabackendutils_p.h>
-#include <private/osdetection_p.h>
+#include <QtMultimedia/private/qvideoframe_p.h>
+#include <QtMultimedia/private/qvideoframeconverter_p.h>
+#include <QtGui/qimage.h>
+#include <QtCore/qpointer.h>
+#include <QtCore/qset.h>
 
 // Adds an enum, and the stringized version
 #define ADD_ENUM_TEST(x) \

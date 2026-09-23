@@ -1,10 +1,9 @@
 // Copyright (C) 2025 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtTest/QtTest>
-
-#include <QtMultimedia/private/qwindowsresampler_p.h>
+#include <QtTest/qtest.h>
 #include <QtMultimedia/private/qmultimedia_ranges_p.h>
+#include <QtMultimedia/private/qwindowsresampler_p.h>
 
 namespace ranges = QtMultimediaPrivate::ranges;
 

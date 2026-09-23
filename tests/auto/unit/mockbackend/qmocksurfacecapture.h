@@ -4,11 +4,11 @@
 #ifndef QMOCKSURFACECAPTURE_H
 #define QMOCKSURFACECAPTURE_H
 
-#include "private/qplatformsurfacecapture_p.h"
-#include "private/qvideoframe_p.h"
-
 #include "qmockvideobuffer.h"
-#include "qthread.h"
+
+#include <QtMultimedia/private/qplatformsurfacecapture_p.h>
+#include <QtMultimedia/private/qvideoframe_p.h>
+#include <QtCore/qthread.h>
 
 QT_BEGIN_NAMESPACE
 

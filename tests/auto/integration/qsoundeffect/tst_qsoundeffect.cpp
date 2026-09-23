@@ -1,6 +1,8 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/qmockresolvers_p.h>
 #include <QtTest/qsignalspy.h>
 #include <QtTest/qtest.h>
 #include <QtTest/qtesteventloop.h>
@@ -8,13 +10,9 @@
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/qsoundeffect.h>
-
+#include <QtMultimedia/private/qsamplecache_p.h>
 #include <QtMultimedia/private/qsoundeffectsynchronous_p.h>
 #include <QtMultimedia/private/qsoundeffectwithplayer_p.h>
-#include <QtMultimedia/private/qsamplecache_p.h>
-
-#include <QtMultimediaTestLib/private/qmockresolvers_p.h>
-#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
 
 using namespace Qt::Literals;
 using namespace std::chrono_literals;

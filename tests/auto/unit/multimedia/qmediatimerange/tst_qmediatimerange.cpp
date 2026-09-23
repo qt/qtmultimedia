@@ -2,11 +2,8 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include <QtTest/qtest.h>
+#include <QtMultimedia/qmediatimerange.h>
 #include <QtCore/qdebug.h>
-
-#include <qmediatimerange.h>
-#include <qmediatimerange.h>
-
 
 class tst_QMediaTimeRange: public QObject
 {

@@ -1,24 +1,20 @@
 // Copyright (C) 2026 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
+#include <QtMultimediaTestLib/private/qmessagespy_p.h>
+#include <QtSpatialAudio/qambientsound.h>
+#include <QtSpatialAudio/qaudioengine.h>
+#include <QtSpatialAudio/qaudiolistener.h>
+#include <QtSpatialAudio/qaudioroom.h>
+#include <QtSpatialAudio/qspatialsound.h>
+#include <QtSpatialAudio/private/qtspatialaudioglobal_p.h>
 #include <QtTest/qsignalspy.h>
 #include <QtTest/qtest.h>
 #include <QtTest/qtesteventloop.h>
-
 #include <QtMultimedia/qaudio.h>
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qmediadevices.h>
-
 #include <QtCore/qglobal.h>
-
-#include <QtSpatialAudio/qspatialsound.h>
-#include <QtSpatialAudio/qaudioengine.h>
-#include <QtSpatialAudio/qaudioroom.h>
-#include <QtSpatialAudio/qaudiolistener.h>
-#include <QtSpatialAudio/qambientsound.h>
-#include <QtSpatialAudio/private/qtspatialaudioglobal_p.h>
-
-#include <QtMultimediaTestLib/private/qmessagespy_p.h>
 
 #include <memory>
 

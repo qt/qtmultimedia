@@ -2,14 +2,13 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include "grabber.h"
-#include "fixture.h"
 
+#include <QtTest/qtest.h>
+#include <QtMultimedia/qvideoframe.h>
 #include <QtCore/q20vector.h>
 #include <QtCore/qelapsedtimer.h>
 
-#include <QtMultimedia/qvideoframe.h>
-
-#include <QtTest/qtest.h>
+#include "fixture.h"
 
 #include <utility>
 

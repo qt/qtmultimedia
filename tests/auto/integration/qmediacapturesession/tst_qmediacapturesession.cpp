@@ -1,13 +1,11 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtCore/qdebug.h>
-#include <QtCore/qrandom.h>
-#include <QtCore/qsysinfo.h>
-#include <QtCore/qurl.h>
-
-#include <QtGui/qimagereader.h>
-
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
+#include <QtMultimediaWidgets/qvideowidget.h>
+#include <QtTest/qsignalspy.h>
+#include <QtTest/qtest.h>
 #include <QtMultimedia/qaudiobuffer.h>
 #include <QtMultimedia/qaudiobufferinput.h>
 #include <QtMultimedia/qaudiodecoder.h>
@@ -26,14 +24,11 @@
 #include <QtMultimedia/qvideoframeinput.h>
 #include <QtMultimedia/qvideosink.h>
 #include <QtMultimedia/qwindowcapture.h>
-
-#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
-#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
-
-#include <QtMultimediaWidgets/qvideowidget.h>
-
-#include <QtTest/qsignalspy.h>
-#include <QtTest/qtest.h>
+#include <QtGui/qimagereader.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qrandom.h>
+#include <QtCore/qsysinfo.h>
+#include <QtCore/qurl.h>
 
 using namespace Qt::StringLiterals;
 

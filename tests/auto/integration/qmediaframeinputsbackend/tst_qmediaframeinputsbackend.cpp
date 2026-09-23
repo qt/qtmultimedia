@@ -3,20 +3,20 @@
 
 #include "tst_qmediaframeinputsbackend.h"
 
+#include <QtMultimediaTestLib/private/audiogenerationutils_p.h>
+#include <QtMultimediaTestLib/private/capturesessionfixture_p.h>
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/mediainfo_p.h>
+#include <QtMultimediaTestLib/private/qcolorutil_p.h>
+#include <QtMultimediaTestLib/private/testvideosink_p.h>
+#include <QtTest/qsignalspy.h>
 #include <QtTest/qtest.h>
-#include <qvideoframeinput.h>
-#include <qaudiobufferinput.h>
-#include <qsignalspy.h>
-#include <qmediarecorder.h>
-#include <qmediaplayer.h>
-#include <private/capturesessionfixture_p.h>
-#include <private/qplatformmediaintegration_p.h>
-#include <private/qplatformaudioresampler_p.h>
-#include <private/mediainfo_p.h>
-#include <private/testvideosink_p.h>
-#include <private/mediabackendutils_p.h>
-#include <private/audiogenerationutils_p.h>
-#include <private/qcolorutil_p.h>
+#include <QtMultimedia/qaudiobufferinput.h>
+#include <QtMultimedia/qmediaplayer.h>
+#include <QtMultimedia/qmediarecorder.h>
+#include <QtMultimedia/qvideoframeinput.h>
+#include <QtMultimedia/private/qplatformaudioresampler_p.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
 
 QT_BEGIN_NAMESPACE
 
