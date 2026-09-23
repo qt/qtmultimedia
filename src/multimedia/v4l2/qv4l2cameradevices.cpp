@@ -2,23 +2,24 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qv4l2cameradevices_p.h"
-#include "qv4l2filedescriptor_p.h"
-#include "qv4l2camera_p.h"
 
+#include <QtMultimedia/private/qcameradevice_p.h>
 #include <QtMultimedia/private/qmultimediautils_p.h>
-#include <private/qcameradevice_p.h>
-#include <private/qcore_unix_p.h>
-
-#include <qdir.h>
-#include <qfile.h>
-#include <qdebug.h>
-#include <qloggingcategory.h>
+#include <QtMultimedia/private/qv4l2camera_p.h>
+#include <QtMultimedia/private/qv4l2filedescriptor_p.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qdir.h>
+#include <QtCore/qfile.h>
+#include <QtCore/qloggingcategory.h>
+#include <QtCore/private/qcore_unix_p.h>
 
 #include <linux/videodev2.h>
 
 QT_BEGIN_NAMESPACE
 
-Q_STATIC_LOGGING_CATEGORY(qLcV4L2CameraDevices, "qt.multimedia.ffmpeg.v4l2cameradevices");
+namespace QtV4L2 {
+
+Q_STATIC_LOGGING_CATEGORY(qLcV4L2CameraDevices, "qt.multimedia.v4l2.cameradevices");
 
 static bool areCamerasEqual(QSpan<const QCameraDevice> a, QSpan<const QCameraDevice> b)
 {
@@ -72,7 +73,9 @@ bool QV4L2CameraDevices::doCheckCameras()
         if (fd < 0)
             continue;
 
-        auto fileCloseGuard = qScopeGuard([fd]() { close(fd); });
+        auto fileCloseGuard = qScopeGuard([fd]() {
+            close(fd);
+        });
 
         v4l2_fmtdesc formatDesc = {};
 
@@ -111,13 +114,12 @@ bool QV4L2CameraDevices::doCheckCameras()
             while (!qt_safe_ioctl(fd, VIDIOC_ENUM_FRAMESIZES, &frameSize)) {
                 QList<QSize> resolutions;
                 if (frameSize.type == V4L2_FRMSIZE_TYPE_DISCRETE) {
-                    resolutions.append(QSize(frameSize.discrete.width,
-                                             frameSize.discrete.height));
+                    resolutions.append(QSize(frameSize.discrete.width, frameSize.discrete.height));
                 } else {
-                    resolutions.append(QSize(frameSize.stepwise.max_width,
-                                             frameSize.stepwise.max_height));
-                    resolutions.append(QSize(frameSize.stepwise.min_width,
-                                             frameSize.stepwise.min_height));
+                    resolutions.append(
+                            QSize(frameSize.stepwise.max_width, frameSize.stepwise.max_height));
+                    resolutions.append(
+                            QSize(frameSize.stepwise.min_width, frameSize.stepwise.min_height));
                 }
 
                 for (auto resolution : resolutions) {
@@ -125,7 +127,7 @@ bool QV4L2CameraDevices::doCheckCameras()
                     float max = 0;
                     auto updateMaxMinFrameRate = [&max, &min](auto discreteFrameRate) {
                         const float rate = float(discreteFrameRate.denominator)
-                                           / float(discreteFrameRate.numerator);
+                                / float(discreteFrameRate.numerator);
                         if (rate > max)
                             max = rate;
                         if (rate < min)
@@ -179,6 +181,8 @@ bool QV4L2CameraDevices::doCheckCameras()
     m_cameras = std::move(newCameras);
     return true;
 }
+
+} // namespace QtV4L2
 
 QT_END_NAMESPACE
 

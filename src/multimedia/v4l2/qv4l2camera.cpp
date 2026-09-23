@@ -2,46 +2,48 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qv4l2camera_p.h"
-#include "qv4l2filedescriptor_p.h"
-#include "qv4l2memorytransfer_p.h"
 
-#include <private/qcameradevice_p.h>
-#include <private/qmultimediautils_p.h>
-#include <private/qmemoryvideobuffer_p.h>
-#include <private/qvideoframe_p.h>
-#include <private/qcore_unix_p.h>
-
-#include <qsocketnotifier.h>
-#include <qloggingcategory.h>
+#include <QtMultimedia/private/qcameradevice_p.h>
+#include <QtMultimedia/private/qmemoryvideobuffer_p.h>
+#include <QtMultimedia/private/qmultimediautils_p.h>
+#include <QtMultimedia/private/qv4l2filedescriptor_p.h>
+#include <QtMultimedia/private/qv4l2memorytransfer_p.h>
+#include <QtMultimedia/private/qvideoframe_p.h>
+#include <QtCore/qloggingcategory.h>
+#include <QtCore/qsocketnotifier.h>
+#include <QtCore/private/qcore_unix_p.h>
 
 QT_BEGIN_NAMESPACE
 
-Q_STATIC_LOGGING_CATEGORY(qLcV4L2Camera, "qt.multimedia.ffmpeg.v4l2camera");
+namespace QtV4L2 {
 
-static const struct {
+Q_STATIC_LOGGING_CATEGORY(qLcV4L2Camera, "qt.multimedia.v4l2.camera");
+
+static const struct
+{
     QVideoFrameFormat::PixelFormat fmt;
     uint32_t v4l2Format;
 } formatMap[] = {
     // ### How do we handle V4L2_PIX_FMT_H264 and V4L2_PIX_FMT_MPEG4?
-    { QVideoFrameFormat::Format_YUV420P,  V4L2_PIX_FMT_YUV420  },
-    { QVideoFrameFormat::Format_YUV422P,  V4L2_PIX_FMT_YUV422P },
-    { QVideoFrameFormat::Format_YUYV,     V4L2_PIX_FMT_YUYV    },
-    { QVideoFrameFormat::Format_UYVY,     V4L2_PIX_FMT_UYVY    },
-    { QVideoFrameFormat::Format_XBGR8888, V4L2_PIX_FMT_XBGR32  },
-    { QVideoFrameFormat::Format_XRGB8888, V4L2_PIX_FMT_XRGB32  },
-    { QVideoFrameFormat::Format_ABGR8888, V4L2_PIX_FMT_ABGR32  },
-    { QVideoFrameFormat::Format_ARGB8888, V4L2_PIX_FMT_ARGB32  },
-    { QVideoFrameFormat::Format_BGRX8888, V4L2_PIX_FMT_BGR32   },
-    { QVideoFrameFormat::Format_RGBX8888, V4L2_PIX_FMT_RGB32   },
-    { QVideoFrameFormat::Format_BGRA8888, V4L2_PIX_FMT_BGRA32  },
-    { QVideoFrameFormat::Format_RGBA8888, V4L2_PIX_FMT_RGBA32  },
-    { QVideoFrameFormat::Format_Y8,       V4L2_PIX_FMT_GREY    },
-    { QVideoFrameFormat::Format_Y16,      V4L2_PIX_FMT_Y16     },
-    { QVideoFrameFormat::Format_NV12,     V4L2_PIX_FMT_NV12    },
-    { QVideoFrameFormat::Format_NV21,     V4L2_PIX_FMT_NV21    },
-    { QVideoFrameFormat::Format_Jpeg,     V4L2_PIX_FMT_MJPEG   },
-    { QVideoFrameFormat::Format_Jpeg,     V4L2_PIX_FMT_JPEG    },
-    { QVideoFrameFormat::Format_Invalid,  0                    },
+    { QVideoFrameFormat::Format_YUV420P, V4L2_PIX_FMT_YUV420 },
+    { QVideoFrameFormat::Format_YUV422P, V4L2_PIX_FMT_YUV422P },
+    { QVideoFrameFormat::Format_YUYV, V4L2_PIX_FMT_YUYV },
+    { QVideoFrameFormat::Format_UYVY, V4L2_PIX_FMT_UYVY },
+    { QVideoFrameFormat::Format_XBGR8888, V4L2_PIX_FMT_XBGR32 },
+    { QVideoFrameFormat::Format_XRGB8888, V4L2_PIX_FMT_XRGB32 },
+    { QVideoFrameFormat::Format_ABGR8888, V4L2_PIX_FMT_ABGR32 },
+    { QVideoFrameFormat::Format_ARGB8888, V4L2_PIX_FMT_ARGB32 },
+    { QVideoFrameFormat::Format_BGRX8888, V4L2_PIX_FMT_BGR32 },
+    { QVideoFrameFormat::Format_RGBX8888, V4L2_PIX_FMT_RGB32 },
+    { QVideoFrameFormat::Format_BGRA8888, V4L2_PIX_FMT_BGRA32 },
+    { QVideoFrameFormat::Format_RGBA8888, V4L2_PIX_FMT_RGBA32 },
+    { QVideoFrameFormat::Format_Y8, V4L2_PIX_FMT_GREY },
+    { QVideoFrameFormat::Format_Y16, V4L2_PIX_FMT_Y16 },
+    { QVideoFrameFormat::Format_NV12, V4L2_PIX_FMT_NV12 },
+    { QVideoFrameFormat::Format_NV21, V4L2_PIX_FMT_NV21 },
+    { QVideoFrameFormat::Format_Jpeg, V4L2_PIX_FMT_MJPEG },
+    { QVideoFrameFormat::Format_Jpeg, V4L2_PIX_FMT_JPEG },
+    { QVideoFrameFormat::Format_Invalid, 0 },
 };
 
 QVideoFrameFormat::PixelFormat formatForV4L2Format(uint32_t v4l2Format)
@@ -66,10 +68,7 @@ uint32_t v4l2FormatForPixelFormat(QVideoFrameFormat::PixelFormat format)
     return 0;
 }
 
-QV4L2Camera::QV4L2Camera(QCamera *camera)
-    : QPlatformCamera(camera)
-{
-}
+QV4L2Camera::QV4L2Camera(QCamera *camera) : QPlatformCamera(camera) { }
 
 QV4L2Camera::~QV4L2Camera()
 {
@@ -211,8 +210,9 @@ void QV4L2Camera::zoomTo(float factor, float)
 
 bool QV4L2Camera::isFocusModeSupported(QCamera::FocusMode mode) const
 {
-    if (supportedFeatures() & QCamera::Feature::FocusDistance &&
-        (mode == QCamera::FocusModeManual || mode == QCamera::FocusModeAutoNear || mode == QCamera::FocusModeInfinity))
+    if (supportedFeatures() & QCamera::Feature::FocusDistance
+        && (mode == QCamera::FocusModeManual || mode == QCamera::FocusModeAutoNear
+            || mode == QCamera::FocusModeInfinity))
         return true;
 
     return mode == QCamera::FocusModeAuto;
@@ -222,7 +222,9 @@ void QV4L2Camera::setFlashMode(QCamera::FlashMode mode)
 {
     if (!m_v4l2Info.flashSupported || mode == QCamera::FlashOn)
         return;
-    setV4L2Parameter(V4L2_CID_FLASH_LED_MODE, mode == QCamera::FlashAuto ? V4L2_FLASH_LED_MODE_FLASH : V4L2_FLASH_LED_MODE_NONE);
+    setV4L2Parameter(V4L2_CID_FLASH_LED_MODE,
+                     mode == QCamera::FlashAuto ? V4L2_FLASH_LED_MODE_FLASH
+                                                : V4L2_FLASH_LED_MODE_NONE);
     flashModeChanged(mode);
 }
 
@@ -246,7 +248,9 @@ void QV4L2Camera::setTorchMode(QCamera::TorchMode mode)
 {
     if (!m_v4l2Info.torchSupported || mode == QCamera::TorchOn)
         return;
-    setV4L2Parameter(V4L2_CID_FLASH_LED_MODE, mode == QCamera::TorchOn ? V4L2_FLASH_LED_MODE_TORCH : V4L2_FLASH_LED_MODE_NONE);
+    setV4L2Parameter(V4L2_CID_FLASH_LED_MODE,
+                     mode == QCamera::TorchOn ? V4L2_FLASH_LED_MODE_TORCH
+                                              : V4L2_FLASH_LED_MODE_NONE);
     torchModeChanged(mode);
 }
 
@@ -284,7 +288,7 @@ void QV4L2Camera::setExposureCompensation(float compensation)
         int value = qBound(m_v4l2Info.minExposureAdjustment, (int)(compensation * 1000),
                            m_v4l2Info.maxExposureAdjustment);
         setV4L2Parameter(V4L2_CID_AUTO_EXPOSURE_BIAS, value);
-        exposureCompensationChanged(value/1000.);
+        exposureCompensationChanged(value / 1000.);
         return;
     }
 }
@@ -293,7 +297,8 @@ void QV4L2Camera::setManualIsoSensitivity(int iso)
 {
     if (!(supportedFeatures() & QCamera::Feature::IsoSensitivity))
         return;
-    setV4L2Parameter(V4L2_CID_ISO_SENSITIVITY_AUTO, iso <= 0 ? V4L2_ISO_SENSITIVITY_AUTO : V4L2_ISO_SENSITIVITY_MANUAL);
+    setV4L2Parameter(V4L2_CID_ISO_SENSITIVITY_AUTO,
+                     iso <= 0 ? V4L2_ISO_SENSITIVITY_AUTO : V4L2_ISO_SENSITIVITY_MANUAL);
     if (iso > 0) {
         iso = qBound(minIso(), iso, maxIso());
         setV4L2Parameter(V4L2_CID_ISO_SENSITIVITY, iso);
@@ -313,14 +318,14 @@ void QV4L2Camera::setManualExposureTime(float secs)
         int exposure =
                 qBound(m_v4l2Info.minExposure, qRound(secs * 10000.), m_v4l2Info.maxExposure);
         setV4L2Parameter(V4L2_CID_EXPOSURE_ABSOLUTE, exposure);
-        exposureTimeChanged(exposure/10000.);
+        exposureTimeChanged(exposure / 10000.);
         return;
     }
 }
 
 float QV4L2Camera::exposureTime() const
 {
-    return getV4L2Parameter(V4L2_CID_EXPOSURE_ABSOLUTE)/10000.;
+    return getV4L2Parameter(V4L2_CID_EXPOSURE_ABSOLUTE) / 10000.;
 }
 
 bool QV4L2Camera::isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const
@@ -382,7 +387,7 @@ void QV4L2Camera::readFrame()
         m_firstFrameTime = v4l2Buffer.timestamp;
     qint64 secs = v4l2Buffer.timestamp.tv_sec - m_firstFrameTime.tv_sec;
     qint64 usecs = v4l2Buffer.timestamp.tv_usec - m_firstFrameTime.tv_usec;
-    frame.setStartTime(secs*1000000 + usecs);
+    frame.setStartTime(secs * 1000000 + usecs);
     frame.setEndTime(frame.startTime() + m_frameDuration);
 
     Q_EMIT newVideoFrame(frame);
@@ -416,7 +421,8 @@ void QV4L2Camera::initV4L2Controls()
         return;
     }
 
-    m_v4l2FileDescriptor = std::make_shared<QV4L2FileDescriptor>(descriptor);
+    m_v4l2FileDescriptor =
+            std::make_shared<QV4L2FileDescriptor>(QUniqueFileDescriptorHandle{ descriptor });
 
     qCDebug(qLcV4L2Camera) << "FD=" << descriptor;
 
@@ -546,7 +552,8 @@ bool QV4L2Camera::setV4L2Parameter(quint32 id, qint32 value)
 {
     v4l2_control control{ id, value };
     if (!m_v4l2FileDescriptor->call(VIDIOC_S_CTRL, &control)) {
-        qWarning() << "Unable to set the V4L2 Parameter" << Qt::hex << id << "to" << value << qt_error_string(errno);
+        qWarning() << "Unable to set the V4L2 Parameter" << Qt::hex << id << "to" << value
+                   << qt_error_string(errno);
         return false;
     }
     return true;
@@ -554,7 +561,7 @@ bool QV4L2Camera::setV4L2Parameter(quint32 id, qint32 value)
 
 int QV4L2Camera::getV4L2Parameter(quint32 id) const
 {
-    struct v4l2_control control{id, 0};
+    struct v4l2_control control{ id, 0 };
     if (!m_v4l2FileDescriptor->call(VIDIOC_G_CTRL, &control)) {
         qWarning() << "Unable to get the V4L2 Parameter" << Qt::hex << id << qt_error_string(errno);
         return 0;
@@ -620,7 +627,7 @@ void QV4L2Camera::setV4L2CameraFormat()
     streamParam.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
     streamParam.parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
-    auto [num, den] = qRealToFraction(1./m_cameraFormat.maxFrameRate());
+    auto [num, den] = qRealToFraction(1. / m_cameraFormat.maxFrameRate());
     streamParam.parm.capture.timeperframe = { (uint)num, (uint)den };
     m_v4l2FileDescriptor->call(VIDIOC_S_PARM, &streamParam);
 
@@ -701,6 +708,8 @@ QVideoFrameFormat QV4L2Camera::frameFormat() const
     result.setColorSpace(m_colorSpace);
     return result;
 }
+
+} // namespace QtV4L2
 
 QT_END_NAMESPACE
 

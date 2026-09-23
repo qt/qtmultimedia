@@ -231,13 +231,6 @@ endif()
 set_source_files_properties(qx11surfacecapture.cpp qx11capturablewindows.cpp # X headers
                             PROPERTIES SKIP_UNITY_BUILD_INCLUSION ON)
 
-qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION QT_FEATURE_linux_v4l
-    SOURCES
-        qv4l2camera.cpp qv4l2camera_p.h
-        qv4l2filedescriptor.cpp qv4l2filedescriptor_p.h
-        qv4l2memorytransfer.cpp qv4l2memorytransfer_p.h
-        qv4l2cameradevices.cpp qv4l2cameradevices_p.h
-)
 
 if (ANDROID)
     qt_internal_extend_target(FFmpegMediaPluginImplPrivate

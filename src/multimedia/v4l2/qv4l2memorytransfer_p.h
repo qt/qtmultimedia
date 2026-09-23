@@ -4,14 +4,6 @@
 #ifndef QV4L2MEMORYTRANSFER_P_H
 #define QV4L2MEMORYTRANSFER_P_H
 
-#include <QtMultimedia/private/qtmultimediaglobal_p.h>
-#include <qbytearray.h>
-#include <linux/videodev2.h>
-
-#include <memory>
-
-QT_BEGIN_NAMESPACE
-
 //
 //  W A R N I N G
 //  -------------
@@ -22,6 +14,17 @@ QT_BEGIN_NAMESPACE
 //
 // We mean it.
 //
+
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#include <QtCore/qbytearray.h>
+
+#include <linux/videodev2.h>
+
+#include <memory>
+
+QT_BEGIN_NAMESPACE
+
+namespace QtV4L2 {
 
 class QV4L2FileDescriptor;
 using QV4L2FileDescriptorPtr = std::shared_ptr<QV4L2FileDescriptor>;
@@ -60,6 +63,8 @@ QV4L2MemoryTransferUPtr makeUserPtrMemoryTransfer(QV4L2FileDescriptorPtr fileDes
                                                   quint32 imageSize);
 
 QV4L2MemoryTransferUPtr makeMMapMemoryTransfer(QV4L2FileDescriptorPtr fileDescriptor);
+
+} // namespace QtV4L2
 
 QT_END_NAMESPACE
 

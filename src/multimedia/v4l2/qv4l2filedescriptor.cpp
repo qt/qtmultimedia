@@ -6,26 +6,22 @@
 #include <QtMultimedia/private/qmultimediautils_p.h>
 #include <QtCore/private/qcore_unix_p.h>
 
-#include <linux/videodev2.h>
-
 QT_BEGIN_NAMESPACE
 
-QV4L2FileDescriptor::QV4L2FileDescriptor(int descriptor) : m_descriptor(descriptor)
-{
-    Q_ASSERT(descriptor >= 0);
-}
+namespace QtV4L2 {
 
-QV4L2FileDescriptor::~QV4L2FileDescriptor()
+QV4L2FileDescriptor::QV4L2FileDescriptor(QUniqueFileDescriptorHandle descriptor)
+    : QUniqueFileDescriptorHandle(std::move(descriptor))
 {
-    qt_safe_close(m_descriptor);
+    Q_ASSERT(isValid());
 }
 
 bool QV4L2FileDescriptor::call(int request, void *arg) const
 {
-    return QtMultimediaPrivate::qt_safe_ioctl(m_descriptor, request, arg) >= 0;
+    return QtMultimediaPrivate::qt_safe_ioctl(get(), request, arg) >= 0;
 }
 
-bool QV4L2FileDescriptor::requestBuffers(quint32 memoryType, quint32 &buffersCount) const
+bool QV4L2FileDescriptor::requestBuffers(v4l2_memory memoryType, quint32 &buffersCount) const
 {
     v4l2_requestbuffers req = {};
     req.count = buffersCount;
@@ -56,5 +52,7 @@ bool QV4L2FileDescriptor::stopStream()
     m_streamStarted = false;
     return result;
 }
+
+} // namespace QtV4L2
 
 QT_END_NAMESPACE

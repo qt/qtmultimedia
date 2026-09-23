@@ -16,13 +16,17 @@
 //
 
 #include <QtMultimedia/private/qplatformcamera_p.h>
+
 #include <sys/time.h>
 
 QT_BEGIN_NAMESPACE
 
+class QSocketNotifier;
+
+namespace QtV4L2 {
+
 class QV4L2FileDescriptor;
 class QV4L2MemoryTransfer;
-class QSocketNotifier;
 
 struct V4L2CameraInfo
 {
@@ -51,7 +55,7 @@ struct V4L2CameraInfo
 QVideoFrameFormat::PixelFormat formatForV4L2Format(uint32_t v4l2Format);
 uint32_t v4l2FormatForPixelFormat(QVideoFrameFormat::PixelFormat format);
 
-class QV4L2Camera : public QPlatformCamera
+class Q_MULTIMEDIA_EXPORT QV4L2Camera : public QPlatformCamera
 {
     Q_OBJECT
 
@@ -69,7 +73,7 @@ public:
     bool isFocusModeSupported(QCamera::FocusMode mode) const override;
     void setFocusMode(QCamera::FocusMode /*mode*/) override;
 
-//    void setCustomFocusPoint(const QPointF &/*point*/) override;
+    //    void setCustomFocusPoint(const QPointF &/*point*/) override;
     void setFocusDistance(float) override;
     void zoomTo(float /*newZoomFactor*/, float /*rate*/ = -1.) override;
 
@@ -127,6 +131,8 @@ private:
     qint64 m_frameDuration = -1;
     bool m_cameraBusy = false;
 };
+
+} // namespace QtV4L2
 
 QT_END_NAMESPACE
 

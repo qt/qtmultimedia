@@ -17,12 +17,13 @@
 
 #include <QtMultimedia/private/qplatformvideodevices_p.h>
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
-
-#include <qfilesystemwatcher.h>
+#include <QtCore/qfilesystemwatcher.h>
 
 QT_BEGIN_NAMESPACE
 
-class QV4L2CameraDevices : public QPlatformVideoDevices
+namespace QtV4L2 {
+
+class Q_MULTIMEDIA_EXPORT QV4L2CameraDevices : public QPlatformVideoDevices
 {
     Q_OBJECT
 public:
@@ -41,6 +42,8 @@ private:
     QList<QCameraDevice> m_cameras;
     QFileSystemWatcher m_deviceWatcher;
 };
+
+} // namespace QtV4L2
 
 QT_END_NAMESPACE
 

@@ -2,16 +2,20 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qv4l2memorytransfer_p.h"
-#include "qv4l2filedescriptor_p.h"
 
-#include <qloggingcategory.h>
-#include <qdebug.h>
+#include <QtMultimedia/private/qv4l2filedescriptor_p.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qloggingcategory.h>
+
 #include <sys/mman.h>
+
 #include <optional>
 
 QT_BEGIN_NAMESPACE
 
-Q_STATIC_LOGGING_CATEGORY(qLcV4L2MemoryTransfer, "qt.multimedia.ffmpeg.v4l2camera.memorytransfer");
+namespace QtV4L2 {
+
+Q_STATIC_LOGGING_CATEGORY(qLcV4L2MemoryTransfer, "qt.multimedia.v4l2.memorytransfer");
 
 namespace {
 
@@ -229,5 +233,7 @@ QV4L2MemoryTransferUPtr makeMMapMemoryTransfer(QV4L2FileDescriptorPtr fileDescri
 {
     return MMapMemoryTransfer::create(std::move(fileDescriptor));
 }
+
+} // namespace QtV4L2
 
 QT_END_NAMESPACE
