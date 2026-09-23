@@ -13,7 +13,6 @@
 #include <QtCore/qsize.h>
 
 #include <QtGui/qguiapplication.h>
-#include <QtGui/qoffscreensurface.h>
 #include <QtGui/qopenglfunctions.h>
 #include <QtGui/qsurfaceformat.h>
 #include <QtGui/rhi/qrhi.h>
@@ -144,10 +143,11 @@ private slots:
 
 void tst_QVaapiTextureConverter::create_succeedsAndKeepsRhi_whenVaapiAndEglAreAvailable()
 {
-    std::unique_ptr<QOffscreenSurface> fallbackSurface;
-    std::unique_ptr<QRhi> rhi = createOffscreenGlRhi(fallbackSurface);
-    if (!rhi)
-        QSKIP("Could not create an OpenGL ES2 QRhi backend on this system");
+    q23::expected<OffscreenGlRhi, QString> offscreenRhi = createOffscreenGlRhi();
+    if (!offscreenRhi)
+        QSKIP(qPrintable(u"Could not create an OpenGL ES2 QRhi backend on this system: "_s
+                         + offscreenRhi.error()));
+    auto &[fallbackSurface, rhi] = *offscreenRhi;
 
     std::shared_ptr<VAAPITextureConverter> converter = VAAPITextureConverter::create(rhi.get());
     QVERIFY(converter);
@@ -189,10 +189,11 @@ void tst_QVaapiTextureConverter::createTextureHandles_roundTripsPixelData_forHwF
         Q_UNREACHABLE();
     }
 
-    std::unique_ptr<QOffscreenSurface> fallbackSurface;
-    std::unique_ptr<QRhi> rhi = createOffscreenGlRhi(fallbackSurface);
-    if (!rhi)
-        QSKIP("Could not create an OpenGL ES2 QRhi backend on this system");
+    q23::expected<OffscreenGlRhi, QString> offscreenRhi = createOffscreenGlRhi();
+    if (!offscreenRhi)
+        QSKIP(qPrintable(u"Could not create an OpenGL ES2 QRhi backend on this system: "_s
+                         + offscreenRhi.error()));
+    auto &[fallbackSurface, rhi] = *offscreenRhi;
 
     std::shared_ptr<VAAPITextureConverter> converter = VAAPITextureConverter::create(rhi.get());
     if (!converter->rhi)
@@ -265,10 +266,11 @@ void tst_QVaapiTextureConverter::map_returnsRealPixelData_forHwFrame()
 void tst_QVaapiTextureConverter::
         createTextureHandles_outlivesSourceFrame_afterFrameContextIsDestroyed()
 {
-    std::unique_ptr<QOffscreenSurface> fallbackSurface;
-    std::unique_ptr<QRhi> rhi = createOffscreenGlRhi(fallbackSurface);
-    if (!rhi)
-        QSKIP("Could not create an OpenGL ES2 QRhi backend on this system");
+    q23::expected<OffscreenGlRhi, QString> offscreenRhi = createOffscreenGlRhi();
+    if (!offscreenRhi)
+        QSKIP(qPrintable(u"Could not create an OpenGL ES2 QRhi backend on this system: "_s
+                         + offscreenRhi.error()));
+    auto &[fallbackSurface, rhi] = *offscreenRhi;
 
     std::shared_ptr<VAAPITextureConverter> converter = VAAPITextureConverter::create(rhi.get());
     if (!converter->rhi)
@@ -304,10 +306,11 @@ void tst_QVaapiTextureConverter::
 
 void tst_QVaapiTextureConverter::createTextureHandles_acceptsOldHandles_onSecondCall()
 {
-    std::unique_ptr<QOffscreenSurface> fallbackSurface;
-    std::unique_ptr<QRhi> rhi = createOffscreenGlRhi(fallbackSurface);
-    if (!rhi)
-        QSKIP("Could not create an OpenGL ES2 QRhi backend on this system");
+    q23::expected<OffscreenGlRhi, QString> offscreenRhi = createOffscreenGlRhi();
+    if (!offscreenRhi)
+        QSKIP(qPrintable(u"Could not create an OpenGL ES2 QRhi backend on this system: "_s
+                         + offscreenRhi.error()));
+    auto &[fallbackSurface, rhi] = *offscreenRhi;
 
     std::shared_ptr<VAAPITextureConverter> converter = VAAPITextureConverter::create(rhi.get());
     if (!converter->rhi)

@@ -14,13 +14,25 @@ std::unique_ptr<QRhi> createNullRhi()
 }
 
 #if QT_CONFIG(opengl)
-std::unique_ptr<QRhi> createOffscreenGlRhi(std::unique_ptr<QOffscreenSurface> &fallbackSurface)
+q23::expected<OffscreenGlRhi, QString> createOffscreenGlRhi()
 {
+    std::unique_ptr<QOffscreenSurface> fallbackSurface{
+        QRhiGles2InitParams::newFallbackSurface(),
+    };
+
     QRhiGles2InitParams glParams;
     glParams.format = QSurfaceFormat::defaultFormat();
-    fallbackSurface.reset(QRhiGles2InitParams::newFallbackSurface());
     glParams.fallbackSurface = fallbackSurface.get();
-    return std::unique_ptr<QRhi>(QRhi::create(QRhi::OpenGLES2, &glParams));
+    std::unique_ptr<QRhi> rhi{
+        QRhi::create(QRhi::OpenGLES2, &glParams),
+    };
+    if (!rhi)
+        return q23::unexpected(u"QRhi::create failed"_s);
+
+    return OffscreenGlRhi{
+        std::move(fallbackSurface),
+        std::move(rhi),
+    };
 }
 #endif
 

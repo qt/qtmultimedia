@@ -30,7 +30,14 @@ namespace QtMultimediaTest {
 std::unique_ptr<QRhi> createNullRhi();
 
 #if QT_CONFIG(opengl)
-std::unique_ptr<QRhi> createOffscreenGlRhi(std::unique_ptr<QOffscreenSurface> &fallbackSurface);
+struct OffscreenGlRhi
+{
+    // the QRhi must be destroyed before the QOffscreenSurface it was built from.
+    std::unique_ptr<QOffscreenSurface> fallbackSurface;
+    std::unique_ptr<QRhi> rhi;
+};
+
+q23::expected<OffscreenGlRhi, QString> createOffscreenGlRhi();
 #endif
 
 #if QT_CONFIG(metal)
