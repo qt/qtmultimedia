@@ -1,18 +1,40 @@
 // Copyright (C) 2020 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QAudioDevice>
-#include <QAudioFormat>
-#include <QCameraDevice>
-#include <QCommandLineOption>
-#include <QCommandLineParser>
-#include <QCoreApplication>
-#include <QMediaDevices>
-#include <QString>
-#include <QTextStream>
-#include <QThread>
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qaudioformat.h>
+#include <QtMultimedia/qcameradevice.h>
+#include <QtMultimedia/qmediadevices.h>
+
+#include <QtGui/qguiapplication.h>
+
+#include <QtCore/qcommandlineoption.h>
+#include <QtCore/qcommandlineparser.h>
+#include <QtCore/qcoreapplication.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qset.h>
+#include <QtCore/qstring.h>
+#include <QtCore/qtextstream.h>
+#include <QtCore/qthread.h>
+
+#include <optional>
 
 using namespace Qt::Literals;
+
+struct CLIArgs
+{
+    bool audio; // covers both audio input and audio output
+    bool video;
+    bool monitor;
+    bool listInThread;
+};
+
+struct DeviceSnapshot
+{
+    QList<QAudioDevice> audioInputs;
+    QList<QAudioDevice> audioOutputs;
+    QList<QCameraDevice> videoInputs;
+};
 
 static QString formatToString(QAudioFormat::SampleFormat sampleFormat)
 {
@@ -124,51 +146,189 @@ static void printVideoDeviceInfo(QTextStream &out, const QCameraDevice &cameraDe
     out << Qt::endl;
 }
 
-void listDevices()
+static DeviceSnapshot listDevices(QTextStream &out, bool audio, bool video)
 {
-    QTextStream out(stdout);
-    const auto audioInputDevices = QMediaDevices::audioInputs();
-    const auto audioOutputDevices = QMediaDevices::audioOutputs();
-    const auto videoInputDevices = QMediaDevices::videoInputs();
+    DeviceSnapshot snapshot;
 
-    out << "Audio devices detected: " << Qt::endl;
-    out << Qt::endl << "Input" << Qt::endl;
-    for (auto &deviceInfo : audioInputDevices)
-        printAudioDeviceInfo(out, deviceInfo);
-    out << Qt::endl << "Output" << Qt::endl;
-    for (auto &deviceInfo : audioOutputDevices)
-        printAudioDeviceInfo(out, deviceInfo);
+    if (audio) {
+        snapshot.audioInputs = QMediaDevices::audioInputs();
+        snapshot.audioOutputs = QMediaDevices::audioOutputs();
 
-    out << Qt::endl << "Video devices detected: " << Qt::endl;
-    for (auto &cameraDevice : videoInputDevices)
-        printVideoDeviceInfo(out, cameraDevice);
+        out << "Audio devices detected: " << Qt::endl;
+        out << Qt::endl << "Input" << Qt::endl;
+        for (auto &deviceInfo : snapshot.audioInputs)
+            printAudioDeviceInfo(out, deviceInfo);
+        out << Qt::endl << "Output" << Qt::endl;
+        for (auto &deviceInfo : snapshot.audioOutputs)
+            printAudioDeviceInfo(out, deviceInfo);
+    }
+
+    if (video) {
+        snapshot.videoInputs = QMediaDevices::videoInputs();
+
+        out << Qt::endl << "Video devices detected: " << Qt::endl;
+        for (auto &cameraDevice : snapshot.videoInputs)
+            printVideoDeviceInfo(out, cameraDevice);
+    }
+
+    return snapshot;
 }
 
-int main(int argc, char *argv[])
+// Diffs `previous` against `current` by device id, prints what was added
+// (full info, via printAdded) and removed (id/description only), then
+// updates `previous` to `current` as the baseline for the next change.
+template <typename Device, typename PrintAddedFn>
+static void reportDeviceListChange(QTextStream &out, QLatin1StringView label,
+                                    QList<Device> &previous, const QList<Device> &current,
+                                    PrintAddedFn printAdded)
 {
-    QCoreApplication app(argc, argv); // QtMultimedia needs an application singleton
+    QSet<QByteArray> oldIds;
+    for (const auto &device : previous)
+        oldIds.insert(device.id());
+    QSet<QByteArray> newIds;
+    for (const auto &device : current)
+        newIds.insert(device.id());
 
+    out << label << " changed:" << Qt::endl;
+    bool any = false;
+
+    for (const auto &device : current) {
+        if (!oldIds.contains(device.id())) {
+            out << "  Added:" << Qt::endl;
+            printAdded(out, device);
+            any = true;
+        }
+    }
+    for (const auto &device : previous) {
+        if (!newIds.contains(device.id())) {
+            out << "  Removed: " << device.description() << " ("
+                << QString::fromLatin1(device.id()) << ")" << Qt::endl;
+            any = true;
+        }
+    }
+    // defaultAudioInput/Output/VideoInput notify via these same *Changed
+    // signals, so a pure default-device switch reports no added/removed ids.
+    if (!any)
+        out << "  (no additions/removals -- likely a default-device change)" << Qt::endl;
+    out << Qt::endl;
+
+    previous = current;
+}
+
+std::optional<CLIArgs> parseArgs(QCoreApplication &app)
+{
     QCommandLineParser parser;
     parser.setApplicationDescription(u"List multimedia devices"_s);
     parser.addHelpOption();
-    parser.addOption(QCommandLineOption(u"list-devices-in-thread"_s,
-                                        u"List devices from a worker thread"_s));
-    parser.process(app);
-    const bool listInThread = parser.isSet(u"list-devices-in-thread"_s);
 
-    if (listInThread) {
+    QCommandLineOption listInThreadOption{
+        u"list-devices-in-thread"_s,
+        u"List devices from a worker thread."_s,
+    };
+    parser.addOption(listInThreadOption);
+
+    QCommandLineOption noAudioOption{
+        u"no-audio"_s,
+        u"Disable audio input/output device listing and monitoring."_s,
+    };
+    parser.addOption(noAudioOption);
+
+    QCommandLineOption noVideoOption{
+        u"no-video"_s,
+        u"Disable video input device listing and monitoring."_s,
+    };
+    parser.addOption(noVideoOption);
+
+    QCommandLineOption monitorOption{
+        u"monitor"_s,
+        u"Watch for device changes after the initial listing, until interrupted (Ctrl-C)."_s,
+    };
+    parser.addOption(monitorOption);
+
+    parser.process(app);
+
+    const bool noAudio = parser.isSet(noAudioOption);
+    const bool noVideo = parser.isSet(noVideoOption);
+
+    if (noAudio && noVideo) {
+        qInfo() << "Cannot disable both audio and video";
+        return std::nullopt;
+    }
+
+    return CLIArgs{
+        !noAudio, !noVideo, parser.isSet(monitorOption), parser.isSet(listInThreadOption),
+    };
+}
+
+int run(const CLIArgs &args)
+{
+    QTextStream out(stdout);
+    DeviceSnapshot snapshot;
+
+    if (args.listInThread) {
         QThread t;
         t.start();
         QObject o;
         o.moveToThread(&t);
 
-        QMetaObject::invokeMethod(&o, [] {
-            listDevices();
-        }, Qt::BlockingQueuedConnection);
+        QMetaObject::invokeMethod(&o, [&] {
+            return listDevices(out, args.audio, args.video);
+        }, Qt::BlockingQueuedConnection, &snapshot);
 
         t.quit();
         t.wait();
     } else {
-        listDevices();
+        snapshot = listDevices(out, args.audio, args.video);
     }
+
+    if (!args.monitor)
+        return 0;
+
+    // Constructed here, on the main thread, after any worker thread above has
+    // already been joined. Connecting each signal lazily activates backend
+    // device-change monitoring for that category only, so this also verifies
+    // that off-thread enumeration above didn't leave that activation broken.
+    QMediaDevices devices;
+
+    if (args.audio) {
+        QObject::connect(&devices, &QMediaDevices::audioInputsChanged, &devices, [&] {
+            reportDeviceListChange(out, "Audio inputs"_L1, snapshot.audioInputs,
+                                    QMediaDevices::audioInputs(), printAudioDeviceInfo);
+        });
+        QObject::connect(&devices, &QMediaDevices::audioOutputsChanged, &devices, [&] {
+            reportDeviceListChange(out, "Audio outputs"_L1, snapshot.audioOutputs,
+                                    QMediaDevices::audioOutputs(), printAudioDeviceInfo);
+        });
+    }
+    if (args.video) {
+        QObject::connect(&devices, &QMediaDevices::videoInputsChanged, &devices, [&] {
+            reportDeviceListChange(out, "Video inputs"_L1, snapshot.videoInputs,
+                                    QMediaDevices::videoInputs(), printVideoDeviceInfo);
+        });
+    }
+
+    qInfo() << "Monitoring device changes. Press Ctrl-C to quit.";
+    return QCoreApplication::exec();
+}
+
+int main(int argc, char *argv[])
+{
+#ifdef Q_OS_MACOS
+    // QGuiApplication (not QCoreApplication) so the Cocoa platform plugin
+    // loads a CFRunLoop-integrated event dispatcher on macOS -- without it,
+    // AVFoundation/CoreAudio device hotplug callbacks (which are delivered
+    // via the main run loop / main dispatch queue) are silently never
+    // invoked, and --monitor never fires.
+    using AppType = QGuiApplication;
+#else
+    using AppType = QCoreApplication;
+#endif
+
+    AppType app(argc, argv);
+
+    std::optional<CLIArgs> args = parseArgs(app);
+    if (!args)
+        return 1;
+
+    return run(*args);
 }
