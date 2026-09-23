@@ -2,24 +2,24 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qwasmvideoframegrabber_p.h"
+
 #include "qwasmvideooutput_p.h"
 #include "qwasmgltexturevideobuffer_p.h"
 
-#include <QDebug>
-#include <QOpenGLContext>
+#include <QtMultimedia/qvideosink.h>
+#include <QtMultimedia/private/qmemoryvideobuffer_p.h>
+#include <QtMultimedia/private/qvideoframe_p.h>
+#include <QtGui/qopenglcontext.h>
 #include <QtGui/rhi/qrhi_platform.h>
-
-#include <GLES2/gl2.h>
-
-#include <qvideosink.h>
-#include <private/qmemoryvideobuffer_p.h>
-#include <private/qvideoframe_p.h>
-#include <private/qstdweb_p.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/private/qstdweb_p.h>
 
 #include <emscripten/emscripten.h>
 #include <emscripten/em_js.h>
 #include <emscripten/html5.h>
 #include <emscripten/val.h>
+
+#include <GLES2/gl2.h>
 
 QT_BEGIN_NAMESPACE
 

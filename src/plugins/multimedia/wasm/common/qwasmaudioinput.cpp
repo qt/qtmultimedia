@@ -3,8 +3,8 @@
 
 #include "qwasmaudioinput_p.h"
 
-#include <qaudioinput.h>
-#include <private/qstdweb_p.h>
+#include <QtMultimedia/qaudioinput.h>
+#include <QtCore/private/qstdweb_p.h>
 
 QT_BEGIN_NAMESPACE
 

@@ -15,25 +15,21 @@
 #ifndef QWASMVIDEOOUTPUT_H
 #define QWASMVIDEOOUTPUT_H
 
-#include <QObject>
+#include "qwasmmediaplayer_p.h"
+#include "qwasmvideoframegrabber_p.h"
+
+#include <QtMultimedia/qmediaplayer.h>
+#include <QtMultimedia/qtvideo.h>
+#include <QtMultimedia/qvideoframe.h>
+#include <QtMultimedia/private/qwasmjs_p.h>
+#include <QtMultimedia/private/qwasmmediadevices_p.h>
+#include <QtCore/qloggingcategory.h>
+#include <QtCore/qobject.h>
+#include <QtCore/private/qstdweb_p.h>
+#include <QtCore/private/qwasmsuspendresumecontrol_p.h>
 
 #include <emscripten/val.h>
 #include <emscripten/html5.h>
-
-#include <QMediaPlayer>
-#include <QVideoFrame>
-#include <QtMultimedia/qtvideo.h>
-
-#include "qwasmmediaplayer_p.h"
-#include "private/qwasmmediadevices_p.h"
-#include "qwasmvideoframegrabber_p.h"
-
-#include <private/qwasmjs_p.h>
-
-#include <QtCore/qloggingcategory.h>
-
-#include <private/qstdweb_p.h>
-#include <private/qwasmsuspendresumecontrol_p.h>
 
 QT_BEGIN_NAMESPACE
 

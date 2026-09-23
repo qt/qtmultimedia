@@ -15,12 +15,11 @@
 // We mean it.
 //
 
-#include <QtCore/qobject.h>
+#include <QtMultimedia/private/qplatformaudioinput_p.h>
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#include <QtMultimedia/private/qwasmmediadevices_p.h>
 #include <QtCore/qloggingcategory.h>
-
-#include <private/qtmultimediaglobal_p.h>
-#include <private/qplatformaudioinput_p.h>
-#include "private/qwasmmediadevices_p.h"
+#include <QtCore/qobject.h>
 
 #include <emscripten.h>
 #include <emscripten/val.h>

@@ -15,14 +15,15 @@
 // We mean it.
 //
 
-#include <private/qplatformaudiooutput_p.h>
 #include "qwasmmediaplayer_p.h"
 
+#include <QtMultimedia/private/qplatformaudiooutput_p.h>
+#include <QtMultimedia/private/qwasmwebaudiosink_p.h>
+#include <QtCore/qiodevice.h>
+#include <QtCore/qobject.h>
+#include <QtCore/private/qstdweb_p.h>
+
 #include <emscripten/val.h>
-#include <private/qstdweb_p.h>
-#include <private/qwasmwebaudiosink_p.h>
-#include <QIODevice>
-#include <QObject>
 
 QT_BEGIN_NAMESPACE
 

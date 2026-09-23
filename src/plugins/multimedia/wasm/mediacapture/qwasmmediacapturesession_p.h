@@ -16,17 +16,15 @@
 //
 
 #include "qwasmimagecapture_p.h"
-
-#include <private/qplatformmediacapture_p.h>
-#include <private/qplatformmediaintegration_p.h>
 #include "qwasmmediarecorder_p.h"
 #include "qwasmvideooutput_p.h"
-
-#include "private/qcapturablewindow_p.h"
-
-#include <QScopedPointer>
-#include <QtCore/qloggingcategory.h>
 #include <common/qwasmvideooutput_p.h>
+
+#include <QtMultimedia/private/qcapturablewindow_p.h>
+#include <QtMultimedia/private/qplatformmediacapture_p.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
+#include <QtCore/qloggingcategory.h>
+#include <QtCore/qscopedpointer.h>
 
 QT_BEGIN_NAMESPACE
 

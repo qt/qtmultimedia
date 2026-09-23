@@ -2,10 +2,12 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qwasmscreencapture_p.h"
+
 #include "qwasmmediacapturesession_p.h"
 #include "qwasmcamera_p.h"
 #include "qwasmvideosink_p.h"
-#include <QMediaCaptureSession>
+
+#include <QtMultimedia/qmediacapturesession.h>
 
 QT_BEGIN_NAMESPACE
 

@@ -2,13 +2,13 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qwasmcapturablewindows_p.h"
-#include "private/qcapturablewindow_p.h"
-#include <QtCore/private/qstdweb_p.h>
-#include <QGuiApplication>
-#include <QWindow>
-#include <QUuid>
 
-#include <QDebug>
+#include <QtMultimedia/private/qcapturablewindow_p.h>
+#include <QtGui/qguiapplication.h>
+#include <QtGui/qwindow.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/quuid.h>
+#include <QtCore/private/qstdweb_p.h>
 
 QT_BEGIN_NAMESPACE
 

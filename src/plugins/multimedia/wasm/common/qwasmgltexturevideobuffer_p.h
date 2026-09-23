@@ -4,17 +4,16 @@
 #ifndef QWASMGLTEXTUREVIDEOBUFFER_H
 #define QWASMGLTEXTUREVIDEOBUFFER_H
 
-#include <QtGui/rhi/qrhi.h>
-#include <QSize>
-#include <QThread>
-
+#include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/private/qhwvideobuffer_p.h>
-#include "qvideoframe.h"
-
+#include <QtGui/rhi/qrhi.h>
+#include <QtCore/qsize.h>
+#include <QtCore/qthread.h>
 #include <QtCore/private/quniquehandle_p.h>
 
 #include <emscripten/val.h>
 #include <emscripten/html5.h>
+
 #include <GLES2/gl2.h>
 
 //

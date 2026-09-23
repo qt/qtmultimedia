@@ -15,14 +15,13 @@
 // We mean it.
 //
 
-#include <private/qplatformmediarecorder_p.h>
-#include <private/qplatformmediacapture_p.h>
+#include <QtMultimedia/private/qplatformmediacapture_p.h>
+#include <QtMultimedia/private/qplatformmediarecorder_p.h>
+#include <QtMultimedia/private/qwasmjs_p.h>
+#include <QtCore/qelapsedtimer.h>
 #include <QtCore/qglobal.h>
 #include <QtCore/qloggingcategory.h>
-#include <QElapsedTimer>
-#include <QObject>
-
-#include <private/qwasmjs_p.h>
+#include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE
 

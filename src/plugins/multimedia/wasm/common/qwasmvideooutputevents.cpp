@@ -7,8 +7,8 @@
 
 #include "qwasmvideooutput_p.h"
 
-#include <QDebug>
-#include <QRect>
+#include <QtCore/qdebug.h>
+#include <QtCore/qrect.h>
 
 #include <emscripten/val.h>
 #include <emscripten/html5.h>

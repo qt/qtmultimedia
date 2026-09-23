@@ -2,26 +2,26 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qwasmcamera_p.h"
-#include "qmediadevices.h"
-#include <qcameradevice.h>
-#include <private/qplatformvideosink_p.h>
-#include <private/qplatformvideodevices_p.h>
-#include <private/qmemoryvideobuffer_p.h>
-#include <private/qcameradevice_p.h>
-#include <private/qvideotexturehelper_p.h>
-#include <private/qwasmmediadevices_p.h>
-#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 
 #include "qwasmmediacapturesession_p.h"
 #include <common/qwasmvideooutput_p.h>
 
+#include <QtMultimedia/qcameradevice.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/private/qcameradevice_p.h>
+#include <QtMultimedia/private/qmemoryvideobuffer_p.h>
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
+#include <QtMultimedia/private/qplatformvideodevices_p.h>
+#include <QtMultimedia/private/qplatformvideosink_p.h>
+#include <QtMultimedia/private/qvideotexturehelper_p.h>
+#include <QtMultimedia/private/qwasmmediadevices_p.h>
+#include <QtCore/qtimer.h>
+#include <QtCore/quuid.h>
+#include <QtCore/private/qstdweb_p.h>
+
 #include <emscripten/val.h>
 #include <emscripten/bind.h>
 #include <emscripten/html5.h>
-#include <QUuid>
-#include <QTimer>
-
-#include <private/qstdweb_p.h>
 
 Q_LOGGING_CATEGORY(qWasmCamera, "qt.multimedia.wasm.camera")
 

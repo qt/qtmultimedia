@@ -15,9 +15,9 @@
 #ifndef QWASMVIDEOFRAMEGRABBER_H
 #define QWASMVIDEOFRAMEGRABBER_H
 
-#include <emscripten/html5_webgl.h>
-
 #include <QtMultimedia/qvideoframeformat.h>
+
+#include <emscripten/html5_webgl.h>
 
 #include <string_view>
 

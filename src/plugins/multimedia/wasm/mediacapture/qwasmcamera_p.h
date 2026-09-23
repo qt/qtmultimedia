@@ -15,11 +15,11 @@
 // We mean it.
 //
 
-#include <private/qplatformcamera_p.h>
-#include <private/qplatformvideodevices_p.h>
 #include <common/qwasmvideooutput_p.h>
 
-#include <QCameraDevice>
+#include <QtMultimedia/qcameradevice.h>
+#include <QtMultimedia/private/qplatformcamera_p.h>
+#include <QtMultimedia/private/qplatformvideodevices_p.h>
 #include <QtCore/qloggingcategory.h>
 
 #include <emscripten/val.h>

@@ -2,15 +2,16 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qwasmmediaplayer_p.h"
+
 #include <common/qwasmvideooutput_p.h>
 #include <common/qwasmaudiooutput_p.h>
-#include "qaudiooutput.h"
 
+#include <QtMultimedia/qaudiooutput.h>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qglobal.h>
 #include <QtCore/qloggingcategory.h>
-#include <QUuid>
-#include <QtGlobal>
-#include <QMimeDatabase>
-#include <QFileInfo>
+#include <QtCore/qmimedatabase.h>
+#include <QtCore/quuid.h>
 
 QT_BEGIN_NAMESPACE
 

@@ -2,12 +2,14 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qwasmimagecapture_p.h"
-#include <qimagewriter.h>
+
 #include "qwasmmediacapturesession_p.h"
 #include "qwasmcamera_p.h"
 #include "qwasmvideosink_p.h"
-#include <private/qstdweb_p.h>
-#include <QDir>
+
+#include <QtGui/qimagewriter.h>
+#include <QtCore/qdir.h>
+#include <QtCore/private/qstdweb_p.h>
 
 #include <emscripten/val.h>
 

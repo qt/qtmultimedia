@@ -15,9 +15,8 @@
 // We mean it.
 //
 
-#include <private/qplatformmediaintegration_p.h>
-
-#include <private/qwasmmediadevices_p.h>
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
+#include <QtMultimedia/private/qwasmmediadevices_p.h>
 
 QT_BEGIN_NAMESPACE
 

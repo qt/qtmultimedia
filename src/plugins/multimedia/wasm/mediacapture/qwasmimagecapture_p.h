@@ -15,9 +15,9 @@
 // We mean it.
 //
 
-#include <QObject>
-#include <private/qplatformimagecapture_p.h>
+#include <QtMultimedia/private/qplatformimagecapture_p.h>
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/qobject.h>
 
 QT_BEGIN_NAMESPACE
 

@@ -2,29 +2,26 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qwasmmediaintegration_p.h"
-#include <QLoggingCategory>
-
-#include <QCamera>
-#include <QCameraDevice>
-
-#include <private/qplatformmediaformatinfo_p.h>
-#include <private/qplatformmediaplugin_p.h>
-#include <private/qplatformaudiodevices_p.h>
-#include <private/qplatformvideodevices_p.h>
 
 #include "mediaplayer/qwasmmediaplayer_p.h"
 #include "mediaplayer/qwasmvideosink_p.h"
 #include "qwasmaudioinput_p.h"
 #include "common/qwasmaudiooutput_p.h"
-
 #include "mediacapture/qwasmmediacapturesession_p.h"
 #include "mediacapture/qwasmmediarecorder_p.h"
 #include "mediacapture/qwasmcamera_p.h"
-#include "mediacapture/qwasmmediacapturesession_p.h"
 #include "mediacapture/qwasmimagecapture_p.h"
 #include "mediacapture/qwasmscreencapture_p.h"
 #include "mediacapture/qwasmwindowcapture_p.h"
 #include "mediacapture/qwasmcapturablewindows_p.h"
+
+#include <QtMultimedia/qcamera.h>
+#include <QtMultimedia/qcameradevice.h>
+#include <QtMultimedia/private/qplatformaudiodevices_p.h>
+#include <QtMultimedia/private/qplatformmediaformatinfo_p.h>
+#include <QtMultimedia/private/qplatformmediaplugin_p.h>
+#include <QtMultimedia/private/qplatformvideodevices_p.h>
+#include <QtCore/qloggingcategory.h>
 
 QT_BEGIN_NAMESPACE
 
