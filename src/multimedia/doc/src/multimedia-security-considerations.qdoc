@@ -76,6 +76,17 @@ defined in \l{Qt Shared Security Model}.
     application running on a backend that was never tested for it. If no backend can be
     loaded at all, only \l{QMediaDevices}, \l{QAudioDevice}, \l{QSoundEffect},
     \l{QAudioSink}, and \l{QAudioSource} remain functional.
+\li On Android, the FFmpeg media backend verifies \c{https} media sources against the CA
+    certificates of the application's default trust configuration, but does not otherwise
+    apply the application's \l{https://developer.android.com/privacy-and-security/security-config}
+    {Network Security Configuration}. Domain-specific trust anchors (\c{<domain-config>}),
+    Certificate Transparency requirements, and \c{cleartextTrafficPermitted="false"} are
+    ignored for media sources. To prevent cleartext media traffic, accept only \c{https}
+    URLs and restrict the allowed protocols as described in
+    \l{Configuring allowed network protocols}. If the application needs domain-specific
+    trust anchors or Certificate Transparency for its media hosts, it has to download the
+    media itself using an Android network API that applies the Network Security
+    Configuration, and pass the data to \l{QMediaPlayer::setSourceDevice}.
 \endlist
 
 \section2 Risks that depend on the operating environment

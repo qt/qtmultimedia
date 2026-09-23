@@ -13,6 +13,7 @@ qt_internal_add_module(FFmpegMediaPluginImplPrivate
         qffmpeg.cpp qffmpeg_p.h
         qffmpeg_ranges_p.h
         qffmpegdefs_p.h
+        qffmpegcertificateutils.cpp qffmpegcertificateutils_p.h
         qffmpegcodecstorage.cpp qffmpegcodecstorage_p.h
         qffmpegioutils.cpp qffmpegioutils_p.h
         qffmpegavaudioformat.cpp qffmpegavaudioformat_p.h
@@ -249,6 +250,7 @@ if (ANDROID)
             android/qandroidvideoframefactory_p.h android/qandroidvideoframefactory.cpp
             android/qandroidimagecapture_p.h android/qandroidimagecapture.cpp
             android/qandroidscreencapture_p.h android/qandroidscreencapture.cpp
+            android/qandroidcacertificates_p.h android/qandroidcacertificates.cpp
             ../android/wrappers/jni/androidsurfacetexture_p.h
             ../android/wrappers/jni/androidsurfacetexture.cpp
         NO_UNITY_BUILD_SOURCES

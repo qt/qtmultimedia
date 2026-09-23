@@ -5,6 +5,7 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qdebug.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpeg_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegcertificateutils_p.h>
 
 extern "C" {
 #include <libavcodec/avcodec.h>
@@ -103,6 +104,45 @@ private slots:
         QVERIFY(!result.isEmpty());
         QVERIFY(result.contains("DRAW_HORIZ_BAND"));
         QVERIFY(result.contains("EXPERIMENTAL"));
+    }
+
+    void derToPem_wrapsAndRoundtrips()
+    {
+        QByteArray der(100, '\x7f');
+        QByteArray pem = QFFmpeg::derToPem(der);
+
+        QVERIFY(pem.startsWith("-----BEGIN CERTIFICATE-----\n"));
+        QVERIFY(pem.endsWith("-----END CERTIFICATE-----\n"));
+
+        const QList<QByteArray> lines = pem.split('\n');
+        for (qsizetype i = 1; i < lines.size() - 3; ++i)
+            QCOMPARE(lines.at(i).size(), 64);
+
+        QByteArray body = pem;
+        body = body.mid(sizeof("-----BEGIN CERTIFICATE-----\n") - 1);
+        body.chop(sizeof("-----END CERTIFICATE-----\n") - 1);
+        body.replace("\n", "");
+        QCOMPARE(QByteArray::fromBase64(body), der);
+    }
+
+    void derToPem_empty()
+    {
+        QCOMPARE(QFFmpeg::derToPem({}),
+                 QByteArray("-----BEGIN CERTIFICATE-----\n-----END CERTIFICATE-----\n"));
+    }
+
+    void certificatesToPemBundle_concatenatesInOrder()
+    {
+        const QByteArray der1(10, '\x01');
+        const QByteArray der2(20, '\x02');
+
+        const QByteArray bundle = QFFmpeg::certificatesToPemBundle({ der1, der2 });
+        QCOMPARE(bundle, QFFmpeg::derToPem(der1) + QFFmpeg::derToPem(der2));
+    }
+
+    void certificatesToPemBundle_empty()
+    {
+        QCOMPARE(QFFmpeg::certificatesToPemBundle({}), QByteArray());
     }
 };
 
