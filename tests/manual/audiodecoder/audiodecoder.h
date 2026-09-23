@@ -4,10 +4,10 @@
 #ifndef AUDIODECODER_H
 #define AUDIODECODER_H
 
-#include <QAudioDecoder>
-#include <QSoundEffect>
-#include <QTextStream>
-#include <QWaveDecoder>
+#include <QtMultimedia/qaudiodecoder.h>
+#include <QtMultimedia/qsoundeffect.h>
+#include <QtMultimedia/qwavedecoder.h>
+#include <QtCore/qtextstream.h>
 
 class AudioDecoder : public QObject
 {

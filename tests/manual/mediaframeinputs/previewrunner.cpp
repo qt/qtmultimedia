@@ -3,7 +3,7 @@
 
 #include "previewrunner.h"
 
-#include <QEvent>
+#include <QtCore/qcoreevent.h>
 
 PreviewRunner::PreviewRunner()
 {

@@ -4,10 +4,10 @@
 #ifndef SETTINGS_H
 #define SETTINGS_H
 
-#include <QAudioFormat>
-#include <QMediaRecorder>
-#include <QMediaFormat>
-#include <QUrl>
+#include <QtMultimedia/qaudioformat.h>
+#include <QtMultimedia/qmediaformat.h>
+#include <QtMultimedia/qmediarecorder.h>
+#include <QtCore/qurl.h>
 
 #include <optional>
 #include <vector>

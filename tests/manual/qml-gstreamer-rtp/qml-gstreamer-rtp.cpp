@@ -1,10 +1,10 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QGuiApplication>
-#include <QProcess>
-#include <QQmlApplicationEngine>
-#include <QtEnvironmentVariables>
+#include <QtQml/qqmlapplicationengine.h>
+#include <QtGui/qguiapplication.h>
+#include <QtCore/qprocess.h>
+#include <QtCore/qtenvironmentvariables.h>
 
 int main(int argc, char *argv[])
 {

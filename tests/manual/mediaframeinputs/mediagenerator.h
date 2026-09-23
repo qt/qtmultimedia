@@ -4,10 +4,11 @@
 #ifndef MEDIAGENERATOR_H
 #define MEDIAGENERATOR_H
 
+#include <QtMultimedia/qaudioformat.h>
+#include <QtCore/qsize.h>
+
 #include "settings.h"
 
-#include <QAudioFormat>
-#include <QSize>
 #include <chrono>
 #include <vector>
 #include <optional>

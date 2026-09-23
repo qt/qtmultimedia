@@ -3,7 +3,7 @@
 
 #include "commandlineparser.h"
 
-#include <QApplication>
+#include <QtWidgets/qapplication.h>
 
 namespace {
 bool contains(const QStringList &list, const QStringView &str)

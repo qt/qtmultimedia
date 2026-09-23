@@ -1,20 +1,20 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtCore/QCommandLineOption>
-#include <QtCore/QCommandLineParser>
-#include <QtCore/QCoreApplication>
-#include <QtCore/QDebug>
-#include <QtCore/QDir>
-#include <QtCore/QUuid>
-#include <QtCore/private/qexpected_p.h>
-#include <QtMultimedia/QAudioDevice>
-#include <QtMultimedia/QAudioSink>
-#include <QtMultimedia/QAudioSource>
-#include <QtMultimedia/QMediaDevices>
-#include <QtMultimedia/private/qaudiosystem_p.h>
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qaudiosink.h>
+#include <QtMultimedia/qaudiosource.h>
+#include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/private/qaudioringbuffer_p.h>
+#include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtMultimedia/private/qautoresetevent_p.h>
+#include <QtCore/qcommandlineoption.h>
+#include <QtCore/qcommandlineparser.h>
+#include <QtCore/qcoreapplication.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qdir.h>
+#include <QtCore/quuid.h>
+#include <QtCore/private/qexpected_p.h>
 
 #include <ranges>
 #include <variant>

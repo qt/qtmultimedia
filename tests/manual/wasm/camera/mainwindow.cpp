@@ -2,28 +2,28 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
 #include "mainwindow.h"
-#include "ui_mainwindow.h"
 
-#include <QAudioInput>
-#include <QCamera>
-#include <QCameraDevice>
-#include <QGraphicsScene>
-#include <QGraphicsVideoItem>
-#include <QImageCapture>
-#include <QMediaCaptureSession>
-#include <QMediaDevices>
-#include <QMediaFormat>
-#include <QApplication>
-#include <QTimer>
-#include <QVideoWidget>
-#include <QLabel>
-#include <QFileDialog>
-#include <QScreen>
-#include <QMediaPlayer>
-
+#include <QtMultimediaWidgets/qgraphicsvideoitem.h>
+#include <QtMultimediaWidgets/qvideowidget.h>
+#include <QtMultimedia/qaudioinput.h>
+#include <QtMultimedia/qcamera.h>
+#include <QtMultimedia/qcameradevice.h>
+#include <QtMultimedia/qimagecapture.h>
+#include <QtMultimedia/qmediacapturesession.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/qmediaformat.h>
+#include <QtMultimedia/qmediaplayer.h>
+#include <QtWidgets/qapplication.h>
+#include <QtWidgets/qfiledialog.h>
+#include <QtWidgets/qgraphicsscene.h>
+#include <QtWidgets/qlabel.h>
+#include <QtGui/qscreen.h>
+#include <QtCore/qtimer.h>
 #if QT_CONFIG(permissions)
-  #include <QPermission>
+#  include <QtCore/qpermissions.h>
 #endif
+
+#include "ui_mainwindow.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),

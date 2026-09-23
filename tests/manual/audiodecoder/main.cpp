@@ -1,18 +1,18 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include "audiodecoder.h"
-
-#include <QCoreApplication>
-#include <QDir>
-#include <QFileInfo>
-#include <QTextStream>
+#include <QtCore/qcoreapplication.h>
+#include <QtCore/qdir.h>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qtextstream.h>
 #ifdef Q_OS_ANDROID
-#    include <QApplication>
-#    include <QFileDialog>
-#    include <QMessageBox>
-#    include <QStandardPaths>
+#  include <QtWidgets/qapplication.h>
+#  include <QtWidgets/qfiledialog.h>
+#  include <QtWidgets/qmessagebox.h>
+#  include <QtCore/qstandardpaths.h>
 #endif
+
+#include "audiodecoder.h"
 
 #include <stdio.h>
 

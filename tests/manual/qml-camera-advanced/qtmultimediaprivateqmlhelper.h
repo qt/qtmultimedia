@@ -4,11 +4,10 @@
 #ifndef QTMULTIMEDIAPRIVATEQMLHELPER_H
 #define QTMULTIMEDIAPRIVATEQMLHELPER_H
 
+#include <QtQml/qqmlregistration.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qstringlist.h>
-
-#include <QtQml/qqmlregistration.h>
 
 class QtMultimediaPrivateQmlHelper : public QObject
 {
