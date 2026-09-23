@@ -283,6 +283,11 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const QPlaybackOptions &playb
     if (avformat_version() < AV_VERSION_INT(62, 12, 100))
         av_dict_set_int(dict, "http_persistent", 0, 0);
 
+    // QTBUG-150720: FFmpeg >= 9.0 defaults its tls protocol to peer certificate verification,
+    // but we do not yet supply a CA bundle on Android, so every https:// source fails to open.
+    // Disable verification as a temporary stopgap until a proper CA bundle is wired up.
+    av_dict_set_int(dict, "tls_verify", 0, 0);
+
     context->interrupt_callback.opaque = cancelToken.get();
     context->interrupt_callback.callback = [](void *opaque) {
         const auto *cancelToken = static_cast<const ICancelToken *>(opaque);
