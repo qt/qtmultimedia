@@ -4,19 +4,17 @@
 #include "qaudioengine.h"
 #include "qaudioengine_p.h"
 
-#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtSpatialAudio/private/qaudioengine_threaded_p.h>
 #include <QtSpatialAudio/private/qaudioengine_withplayer_p.h>
 #include <QtSpatialAudio/private/qaudioroom_p.h>
-#include <QtCore/qspan.h>
-
 #include <QtMultimedia/qaudiosink.h>
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtMultimedia/private/qplatformaudiodevices_p.h>
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
-
-#include <q20vector.h>
+#include <QtCore/q20vector.h>
+#include <QtCore/qspan.h>
 
 #include <resonance_audio.h>
 

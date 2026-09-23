@@ -1,11 +1,11 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-3.0-only
 
-#include <QtQml/qqmlextensionplugin.h>
+#include <QtQuick3DSpatialAudio/private/qtquick3daudioglobal_p.h>
 #include <QtQml/qqml.h>
-#include <QtQml/qqmlengine.h>
 #include <QtQml/qqmlcomponent.h>
-#include "qtquick3daudioglobal_p.h"
+#include <QtQml/qqmlengine.h>
+#include <QtQml/qqmlextensionplugin.h>
 
 QT_BEGIN_NAMESPACE
 

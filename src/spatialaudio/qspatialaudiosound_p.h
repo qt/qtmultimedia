@@ -15,13 +15,13 @@
 // We mean it.
 //
 
+#include <QtSpatialAudio/private/qtspatialaudioglobal_p.h>
 #include <QtMultimedia/qaudiobuffer.h>
 #include <QtMultimedia/qaudioformat.h>
 #include <QtMultimedia/private/qmultimedia_source_resolver_p.h>
 #include <QtMultimedia/private/qsamplecache_p.h>
-#include <QtSpatialAudio/private/qtspatialaudioglobal_p.h>
-#include <QtCore/qurl.h>
 #include <QtCore/qfuture.h>
+#include <QtCore/qurl.h>
 #include <QtCore/private/qobject_p.h>
 
 #include <atomic>

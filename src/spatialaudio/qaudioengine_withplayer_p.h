@@ -15,8 +15,8 @@
 // We mean it.
 //
 
-#include <QtSpatialAudio/private/qtspatialaudioglobal_p.h>
 #include <QtSpatialAudio/private/qaudioengine_p.h>
+#include <QtSpatialAudio/private/qtspatialaudioglobal_p.h>
 #include <QtMultimedia/qaudiodevice.h>
 
 namespace vraudio {

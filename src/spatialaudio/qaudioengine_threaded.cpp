@@ -3,26 +3,26 @@
 
 #include "qaudioengine_threaded_p.h"
 
-#include <QtMultimedia/qmediadevices.h>
+#include <QtSpatialAudio/qambientsound.h>
+#include <QtSpatialAudio/qaudiolistener.h>
+#include <QtSpatialAudio/private/qambisonicdecoder_p.h>
+#include <QtSpatialAudio/private/qaudioroom_p.h>
+#include <QtSpatialAudio/private/qspatialaudiosound_p.h>
 #include <QtMultimedia/qaudiosink.h>
+#include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/private/qaudio_qspan_support_p.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
+#include <QtCore/q20vector.h>
+#include <QtCore/qdebug.h>
+#include <QtCore/qelapsedtimer.h>
+#include <QtCore/qiodevice.h>
 #ifdef Q_OS_WIN
 #  include <QtMultimedia/private/qwindows_wasapi_warmup_client_p.h>
 #endif
-#include <QtSpatialAudio/qambientsound.h>
-#include <QtSpatialAudio/qaudiolistener.h>
-#include <QtSpatialAudio/private/qaudioroom_p.h>
-#include <QtSpatialAudio/private/qambisonicdecoder_p.h>
-#include <QtSpatialAudio/private/qspatialaudiosound_p.h>
-#include <QtCore/qiodevice.h>
-#include <QtCore/qdebug.h>
-#include <QtCore/qelapsedtimer.h>
 
 #include <resonance_audio.h>
 
 #include <memory>
-#include <q20vector.h>
 
 QT_BEGIN_NAMESPACE
 

@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-3.0-only
 #include "qquick3daudiolistener_p.h"
 
-#include <QtQuick3DSpatialAudio/private/qquick3dspatialsound_p.h>
 #include <QtQuick3DSpatialAudio/private/qquick3daudioengine_p.h>
+#include <QtQuick3DSpatialAudio/private/qquick3dspatialsound_p.h>
 
 QT_BEGIN_NAMESPACE
 

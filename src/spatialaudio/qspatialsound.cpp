@@ -3,11 +3,11 @@
 
 #include "qspatialsound.h"
 
-#include <QtMultimedia/qaudiosink.h>
 #include <QtSpatialAudio/qaudiolistener.h>
-#include <QtSpatialAudio/private/qaudioroom_p.h>
 #include <QtSpatialAudio/private/qaudioengine_p.h>
+#include <QtSpatialAudio/private/qaudioroom_p.h>
 #include <QtSpatialAudio/private/qspatialaudiosound_p.h>
+#include <QtMultimedia/qaudiosink.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qurl.h>
 

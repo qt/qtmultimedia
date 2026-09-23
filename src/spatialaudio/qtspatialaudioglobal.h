@@ -4,7 +4,7 @@
 #ifndef QTSPATIALAUDIOGLOBAL_H
 #define QTSPATIALAUDIOGLOBAL_H
 
-#include <QtMultimedia/qtmultimediaglobal.h>
 #include <QtSpatialAudio/qtspatialaudioexports.h>
+#include <QtMultimedia/qtmultimediaglobal.h>
 
 #endif // QTMULTIMEDIAGLOBAL_H
