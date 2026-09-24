@@ -4,9 +4,11 @@
 #ifndef WINDOW_CAPTURE_GRABBER_H
 #define WINDOW_CAPTURE_GRABBER_H
 
+#include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qvideosink.h>
 
 #include <chrono>
+#include <optional>
 #include <vector>
 
 /*!
@@ -30,6 +32,17 @@ public:
     */
     std::vector<QVideoFrame> waitAndTakeFrames(size_t minCount, qint64 noOlderThanTime = 0);
 
+    /*!
+        Waits for the first frame of the current stream and consumes it, so that
+        subsequent calls wait for the first frame of the next stream. A null-frame,
+        or the capture becoming active, marks the start of a new stream, so the
+        next valid frame after it is the first frame of that stream.
+
+        Returns std::nullopt if no first frame arrived before the global timeout,
+        or if the grabber was stopped. Can never return an invalid frame.
+    */
+    [[nodiscard]] std::optional<QVideoFrame> consumeFirstFrame();
+
     std::chrono::milliseconds durationBetweenFrames(qsizetype frameCount = 1);
 
     bool isStopped() const;
@@ -37,8 +50,22 @@ public:
 public slots:
     void stop();
 
+    /*!
+        Starts tracking a new stream when the capture becomes active, so that
+        consumeFirstFrame() waits for the first frame of it.
+    */
+    void onCaptureActiveChanged(bool active);
+
 private:
+    void onFrameReceived(const QVideoFrame &frame);
+
     std::vector<QVideoFrame> m_frames;
+
+    // The first frame of the current stream, until it is consumed.
+    std::optional<QVideoFrame> m_firstFrame;
+    // Whether we have received the first frame of the current stream.
+    bool m_streamStarted = false;
+
     bool m_stopped = false;
 };
 

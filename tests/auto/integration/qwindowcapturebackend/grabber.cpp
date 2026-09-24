@@ -11,11 +11,25 @@
 
 #include <QtTest/qtest.h>
 
+#include <utility>
+
 FrameGrabber::FrameGrabber()
 {
-    const auto addFrame = [this](const QVideoFrame &frame) { m_frames.push_back(frame); };
+    connect(this, &QVideoSink::videoFrameChanged, this, &FrameGrabber::onFrameReceived);
+}
 
-    connect(this, &QVideoSink::videoFrameChanged, this, addFrame);
+void FrameGrabber::onFrameReceived(const QVideoFrame &frame)
+{
+    m_frames.push_back(frame);
+
+    if (!frame.isValid()) {
+        // A null-frame ends the stream, and the next valid frame starts a new one.
+        m_firstFrame.reset();
+        m_streamStarted = false;
+    } else if (!m_streamStarted) {
+        m_firstFrame = frame;
+        m_streamStarted = true;
+    }
 }
 
 const std::vector<QVideoFrame> &FrameGrabber::getFrames() const
@@ -53,6 +67,21 @@ std::vector<QVideoFrame> FrameGrabber::waitAndTakeFrames(size_t minCount, qint64
     return std::move(m_frames);
 }
 
+std::optional<QVideoFrame> FrameGrabber::consumeFirstFrame()
+{
+    const auto firstFrameReceivedOrStopped = [this] {
+        return m_stopped || m_firstFrame;
+    };
+
+    if (!QTest::qWaitFor(firstFrameReceivedOrStopped, globalTestTimeout()))
+        return std::nullopt;
+
+    if (m_stopped)
+        return std::nullopt;
+
+    return std::exchange(m_firstFrame, std::nullopt);
+}
+
 std::chrono::milliseconds FrameGrabber::durationBetweenFrames(qsizetype frameCount)
 {
     Q_ASSERT(frameCount > 0);
@@ -86,6 +115,16 @@ std::chrono::milliseconds FrameGrabber::durationBetweenFrames(qsizetype frameCou
 bool FrameGrabber::isStopped() const
 {
     return m_stopped;
+}
+
+void FrameGrabber::onCaptureActiveChanged(bool active)
+{
+    // Not all backends end the stream with a null-frame, so treat activation
+    // as the start of a new stream as well.
+    if (active) {
+        m_firstFrame.reset();
+        m_streamStarted = false;
+    }
 }
 
 void FrameGrabber::stop()

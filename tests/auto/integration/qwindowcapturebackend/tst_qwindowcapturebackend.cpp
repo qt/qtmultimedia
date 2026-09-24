@@ -202,7 +202,7 @@ private slots:
         fixture.m_capture.setWindow(capturable);
         fixture.m_capture.setActive(true);
 
-        QVERIFY(fixture.waitForFrame().isValid());
+        QVERIFY(fixture.consumeFirstFrame());
         QVERIFY(fixture.m_capture.isActive());
         QVERIFY(fixture.m_errors.empty());
     }
@@ -254,7 +254,7 @@ private slots:
     {
         WindowCaptureWithWidgetFixture fixture;
         QVERIFY(fixture.start());
-        QVERIFY(fixture.waitForFrame().isValid());
+        QVERIFY(fixture.consumeFirstFrame());
 
         QWindowCapture &windowCapture = fixture.m_capture;
         QVERIFY(windowCapture.isActive());
@@ -274,7 +274,7 @@ private slots:
         QVERIFY(fixture.start());
 
         // Ensure that we have received a frame
-        QVERIFY(fixture.waitForFrame().isValid());
+        QVERIFY(fixture.consumeFirstFrame());
 
         QCOMPARE(fixture.m_activations.size(), 1);
         QVERIFY(fixture.m_activations.at(0).at(0).toBool());
@@ -292,7 +292,7 @@ private slots:
         QCOMPARE(fixture.m_activations.size(), 1);
 
         // Ensure capture is actually running before stopping it
-        QVERIFY(fixture.waitForFrame().isValid());
+        QVERIFY(fixture.consumeFirstFrame());
 
         windowCapture.setActive(false);
 
@@ -313,7 +313,7 @@ private slots:
         QWindowCapture &windowCapture = fixture.m_capture;
 
         // Ensure capture is actually running before stopping it
-        QVERIFY(fixture.waitForFrame().isValid());
+        QVERIFY(fixture.consumeFirstFrame());
 
         for (int i = 0; i < restartCount; ++i) {
             windowCapture.setActive(false);
@@ -321,7 +321,7 @@ private slots:
 
             windowCapture.setActive(true);
 
-            QVERIFY(fixture.waitForFrame().isValid());
+            QVERIFY(fixture.consumeFirstFrame());
             QVERIFY(windowCapture.isActive());
         }
 
@@ -334,7 +334,7 @@ private slots:
     {
         WindowCaptureWithWidgetFixture fixture;
         QVERIFY(fixture.start({ 60, 40 }));
-        QVERIFY(fixture.waitForFrame().isValid());
+        QVERIFY(fixture.consumeFirstFrame());
 
         QWindowCapture &windowCapture = fixture.m_capture;
 
@@ -383,7 +383,7 @@ private slots:
         QWindowCapture &windowCapture = fixture.m_capture;
 
         // Ensure capture is actually running before switching window
-        QVERIFY(fixture.waitForFrame().isValid());
+        QVERIFY(fixture.consumeFirstFrame());
         QCOMPARE(fixture.m_activations.size(), 1);
         QVERIFY(windowCapture.isActive());
 
@@ -514,7 +514,10 @@ private slots:
         QVERIFY(fixture.start(windowSize));
 
         const QImage expected = fixture.m_widget.grabImage();
-        const QImage actual = fixture.waitForFrame().toImage();
+
+        const std::optional<QVideoFrame> frame = fixture.consumeFirstFrame();
+        QVERIFY(frame);
+        const QImage actual = frame->toImage();
 
         QVERIFY(fixture.compareImages(actual, expected));
     }
@@ -731,7 +734,7 @@ private slots:
         WindowCaptureWithWidgetFixture fixture;
         QVERIFY(fixture.start());
 
-        QVERIFY(fixture.waitForFrame().isValid());
+        QVERIFY(fixture.consumeFirstFrame());
 
         fixture.m_widget.setDisplayPattern(TestWidget::Pattern::Grid);
 
@@ -862,7 +865,9 @@ private slots:
         const QImage expected = fixture.m_widget.grabImage();
 
         // Get actual image grabbed from out-of-process widget
-        const QImage actual = fixture.waitForFrame().toImage();
+        const std::optional<QVideoFrame> frame = fixture.consumeFirstFrame();
+        QVERIFY(frame);
+        const QImage actual = frame->toImage();
 
         QVERIFY(fixture.compareImages(actual, expected));
     }
@@ -883,7 +888,7 @@ private slots:
         QVERIFY(fixture.start());
 
         // Get capturing started
-        QVERIFY(fixture.waitForFrame().isValid());
+        QVERIFY(fixture.consumeFirstFrame());
 
         // Closing the process waits for it to exit
         fixture.m_windowProcess.close();
