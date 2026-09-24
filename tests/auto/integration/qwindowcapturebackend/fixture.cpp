@@ -30,6 +30,17 @@ WindowCaptureFixture::WindowCaptureFixture()
 {
     m_session.setWindowCapture(&m_capture);
     m_session.setVideoSink(&m_grabber);
+
+    connect(
+        &m_capture,
+        &QWindowCapture::activeChanged,
+        &m_grabber,
+        &FrameGrabber::onCaptureActiveChanged);
+}
+
+std::optional<QVideoFrame> WindowCaptureFixture::consumeFirstFrame()
+{
+    return m_grabber.consumeFirstFrame();
 }
 
 void WindowCaptureFixture::waitForWindowGeometryToSettle(FirstFrameSizePolicy policy) const
@@ -80,15 +91,6 @@ bool WindowCaptureFixture::compareImages(QImage actual, const QImage &expected,
         qWarning() << "Failed to save expected file to " << expectedName;
 
     return false;
-}
-
-QVideoFrame WindowCaptureFixture::waitForFrame(qint64 noOlderThanTime)
-{
-    const std::vector<QVideoFrame> frames = m_grabber.waitAndTakeFrames(1u, noOlderThanTime);
-    if (frames.empty())
-        return QVideoFrame{};
-
-    return frames.back();
 }
 
 bool WindowCaptureWithWidgetFixture::start(QSize size, FirstFrameSizePolicy firstFrameSizePolicy)

@@ -77,9 +77,10 @@ public:
                               const QString &fileSuffix = "");
 
     /*!
-        Waits until the a captured frame is received and returns it
+        Waits for the first frame of the current stream and consumes it.
+        See FrameGrabber::consumeFirstFrame().
     */
-    QVideoFrame waitForFrame(qint64 noOlderThanTime = 0);
+    [[nodiscard]] std::optional<QVideoFrame> consumeFirstFrame();
 
     void waitForWindowGeometryToSettle(FirstFrameSizePolicy policy) const;
 
