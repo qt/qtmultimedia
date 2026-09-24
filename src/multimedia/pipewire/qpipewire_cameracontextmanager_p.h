@@ -64,6 +64,12 @@ private:
     void startDeviceMonitor();
     void stopDeviceMonitor();
 
+    bool connectToDaemon();
+
+#if QT_CONFIG(dbus)
+    bool connectViaPortal();
+#endif
+
     const std::shared_ptr<QPipeWireInstance> m_pwInstance;
 
     PwCoreConnectionHandle m_coreConnection;

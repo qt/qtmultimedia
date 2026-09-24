@@ -8,6 +8,12 @@
 #include <QtCore/qapplicationstatic.h>
 #include <QtCore/qloggingcategory.h>
 
+#if QT_CONFIG(dbus)
+#  include <QtMultimedia/private/qpipewire_cameraportalclient_p.h>
+#  include <QtMultimedia/private/qpipewire_portal_p.h>
+#  include <QtDBus/qdbusunixfiledescriptor.h>
+#endif
+
 #include <pipewire/pipewire.h>
 
 #if !PW_CHECK_VERSION(0, 3, 75)
@@ -31,17 +37,69 @@ QCameraContextManager::QCameraContextManager()
           std::make_unique<QCameraDeviceMonitor>(),
       }
 {
-    m_pwInstance->runWithEventLoopLock([&] {
+    static const bool forcePortal =
+            qEnvironmentVariableIntValue("QT_PIPEWIRE_CAMERA_FORCE_PORTAL") != 0;
+
+    if (!forcePortal) {
+        bool daemonConnected = connectToDaemon();
+        if (daemonConnected)
+            return;
+    }
+
+#if QT_CONFIG(dbus)
+    connectViaPortal();
+#else
+    qCWarning(lcPipewireCameraRegistry)
+            << "Cannot fall back to the camera portal: built without D-Bus support";
+#endif
+}
+
+bool QCameraContextManager::connectToDaemon()
+{
+    return m_pwInstance->runWithEventLoopLock([&] {
         auto connection = m_pwInstance->connectToDaemon();
         if (!connection) {
-            qCWarning(lcPipewireCameraRegistry)
-                    << "Failed to connect to pipewire instance" << connection.error().message();
-            return;
+            qCDebug(lcPipewireCameraRegistry) << "Failed to connect to pipewire instance directly:"
+                                              << connection.error().message();
+            return false;
         }
         m_coreConnection = std::move(*connection);
         startDeviceMonitor();
+        return true;
     });
 }
+
+#if QT_CONFIG(dbus)
+bool QCameraContextManager::connectViaPortal()
+{
+    using namespace std::chrono_literals;
+
+    if (!portalInterfaceVersion(QLatin1StringView("org.freedesktop.portal.Camera"))) {
+        qCWarning(lcPipewireCameraRegistry) << "No camera portal available either";
+        return false;
+    }
+
+    // brings up a dialog for the user to approve camera access
+    auto fd = requestCameraPortalFd(20s);
+    if (!fd) {
+        qCWarning(lcPipewireCameraRegistry)
+                << "Failed to obtain a camera file descriptor from the portal:" << fd.error();
+        return false;
+    }
+
+    return m_pwInstance->runWithEventLoopLock([&] {
+        auto connection = m_pwInstance->connectToPortal(fd->takeFileDescriptor());
+        if (!connection) {
+            qCWarning(lcPipewireCameraRegistry)
+                    << "Failed to connect via the camera portal" << connection.error().message();
+            return false;
+        }
+        m_coreConnection = std::move(*connection);
+        startDeviceMonitor();
+        return true;
+    });
+}
+#endif
 
 QCameraContextManager::~QCameraContextManager()
 {

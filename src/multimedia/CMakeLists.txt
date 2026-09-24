@@ -288,7 +288,8 @@ if (QT_FEATURE_pipewire)
     if (QT_FEATURE_dbus AND QT_FEATURE_pipewire)
         qt_internal_extend_target(Multimedia
             SOURCES
-                pipewire/qpipewire_portal.cpp pipewire/qpipewire_portal_p.h
+                pipewire/qpipewire_portal.cpp             pipewire/qpipewire_portal_p.h
+                pipewire/qpipewire_cameraportalclient.cpp pipewire/qpipewire_cameraportalclient_p.h
             LIBRARIES
                 Qt::DBus
         )
