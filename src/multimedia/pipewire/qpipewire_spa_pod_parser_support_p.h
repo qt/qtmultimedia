@@ -23,6 +23,7 @@
 
 #include <spa/pod/pod.h>
 #include <spa/pod/parser.h>
+#include <spa/utils/defs.h>
 
 #include <optional>
 #include <vector>
@@ -93,6 +94,8 @@ struct SpaEnum
         return m_values.front();
     }
 
+    size_t size() const { return m_values.size(); }
+
     QSpan<const T> values() const
     {
         Q_ASSERT(m_values.size() > 1);
@@ -125,6 +128,12 @@ std::optional<T> spaParsePodPropertyScalar(const spa_pod &pod, unsigned spaObjec
         } else if constexpr (std::is_same_v<T, int>) {
             return spa_pod_parse_object(&pod, spaObjectType, nullptr, objectProperty,
                                         SPA_POD_Int(&value));
+        } else if constexpr (std::is_same_v<T, spa_rectangle>) {
+            return spa_pod_parse_object(&pod, spaObjectType, nullptr, objectProperty,
+                                        SPA_POD_Rectangle(&value));
+        } else if constexpr (std::is_same_v<T, spa_fraction>) {
+            return spa_pod_parse_object(&pod, spaObjectType, nullptr, objectProperty,
+                                        SPA_POD_Fraction(&value));
         } else {
 #if !(Q_CC_GNU_ONLY && Q_CC_GNU < 1300) // P2593R1
             static_assert(false);

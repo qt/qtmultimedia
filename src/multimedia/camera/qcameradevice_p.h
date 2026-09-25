@@ -47,6 +47,10 @@ public:
         return format.d.get();
     }
 
+    static QCameraFormat create(std::unique_ptr<QCameraFormatPrivate> formatInfo)
+    {
+        return QCameraFormat(formatInfo.release());
+    }
     QCameraFormat create() { return QCameraFormat(this); }
 };
 

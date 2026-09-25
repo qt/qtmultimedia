@@ -262,8 +262,9 @@ if (QT_FEATURE_pipewire)
             pipewire/qpipewire_spa_compat_p.h
             pipewire/qpipewire_spa_pod_support.cpp     pipewire/qpipewire_spa_pod_support_p.h
             pipewire/qpipewire_spa_pod_parser_support_p.h
-            pipewire/qpipewire_videoformat_support.cpp pipewire/qpipewire_videoformat_support_p.h
+            pipewire/qpipewire_spa_video_format_support.cpp pipewire/qpipewire_spa_video_format_support_p.h
             pipewire/qpipewire_support.cpp             pipewire/qpipewire_support_p.h
+            pipewire/qpipewire_videoformat_support.cpp pipewire/qpipewire_videoformat_support_p.h
     )
 
     if(QT_FEATURE_pipewire_symbolloader)

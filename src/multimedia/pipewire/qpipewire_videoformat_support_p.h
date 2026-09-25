@@ -36,7 +36,7 @@ Q_MULTIMEDIA_EXPORT FrameRate rateFromFps(qreal fps);
 Q_MULTIMEDIA_EXPORT QVideoFrameFormat::PixelFormat toQtPixelFormat(spa_video_format);
 Q_MULTIMEDIA_EXPORT spa_video_format toSpaVideoFormat(QVideoFrameFormat::PixelFormat);
 
-inline QSize toQSize(spa_rectangle rect)
+constexpr QSize toQSize(spa_rectangle rect)
 {
     return QSize{
         int(rect.width),
