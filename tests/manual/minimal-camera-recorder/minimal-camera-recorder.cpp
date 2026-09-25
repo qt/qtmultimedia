@@ -37,6 +37,8 @@ struct CommandLineArgs
     std::optional<QMediaFormat::VideoCodec> videoCodec;
     std::optional<QVideoFrameFormat::PixelFormat> cameraPixelFormat;
     std::optional<QSize> resolution;
+    bool listCameras = false;
+    std::optional<QString> cameraSpec;
 };
 
 QString generateOutputPath()
@@ -45,6 +47,42 @@ QString generateOutputPath()
     QString filename = u"recording_%1.mp4"_s.arg(now.toString(u"yyyyMMdd_HHmmss"_s));
     QString moviesPath = QStandardPaths::writableLocation(QStandardPaths::MoviesLocation);
     return QDir(moviesPath).filePath(filename);
+}
+
+void printCameraDevices(const QList<QCameraDevice> &devices)
+{
+    for (qsizetype i = 0; i < devices.size(); ++i) {
+        const QCameraDevice &device = devices[i];
+        qInfo().noquote() << u"  [%1] %2 - %3%4"_s.arg(i)
+                                      .arg(QString::fromUtf8(device.id()))
+                                      .arg(device.description())
+                                      .arg(device.isDefault() ? u" (default)"_s : QString());
+    }
+}
+
+// Resolves --camera against the available devices: first as an exact device
+// id, then, if the spec parses as an integer, as an index into the list, and
+// otherwise as a case-insensitive substring of the description.
+std::optional<QCameraDevice> findCameraDevice(const QList<QCameraDevice> &devices,
+                                              const QString &spec)
+{
+    const QByteArray specUtf8 = spec.toUtf8();
+    for (const QCameraDevice &device : devices) {
+        if (device.id() == specUtf8)
+            return device;
+    }
+
+    bool isIndex = false;
+    const qsizetype index = spec.toLongLong(&isIndex);
+    if (isIndex && index >= 0 && index < devices.size())
+        return devices[index];
+
+    for (const QCameraDevice &device : devices) {
+        if (device.description().contains(spec, Qt::CaseInsensitive))
+            return device;
+    }
+
+    return std::nullopt;
 }
 
 } // namespace
@@ -93,9 +131,27 @@ std::optional<CommandLineArgs> parseCommandLine(QCoreApplication &app)
     };
     parser.addOption(resolutionOption);
 
+    const QCommandLineOption listCamerasOption{
+        u"list-cameras"_s,
+        u"List the available cameras and exit"_s,
+    };
+    parser.addOption(listCamerasOption);
+
+    const QCommandLineOption cameraOption{
+        u"camera"_s,
+        u"Camera to use: its id, its index in --list-cameras, or a substring of its "
+        u"description. Defaults to the system default camera."_s,
+        u"camera"_s,
+    };
+    parser.addOption(cameraOption);
+
     parser.process(app);
 
     CommandLineArgs args;
+
+    args.listCameras = parser.isSet(listCamerasOption);
+    if (parser.isSet(cameraOption))
+        args.cameraSpec = parser.value(cameraOption);
 
     // Parse duration
     bool ok = false;
@@ -198,6 +254,25 @@ int main(int argc, char **argv)
     if (!args)
         return 1;
 
+    const QList<QCameraDevice> videoInputs = QMediaDevices::videoInputs();
+
+    if (args->listCameras) {
+        qInfo() << "Available cameras:";
+        printCameraDevices(videoInputs);
+        return 0;
+    }
+
+    QCameraDevice cameraDevice = QMediaDevices::defaultVideoInput();
+    if (args->cameraSpec) {
+        std::optional<QCameraDevice> found = findCameraDevice(videoInputs, *args->cameraSpec);
+        if (!found) {
+            qInfo() << "No camera matches" << *args->cameraSpec << ". Available cameras:";
+            printCameraDevices(videoInputs);
+            return 1;
+        }
+        cameraDevice = *found;
+    }
+
     std::chrono::seconds duration = args->recordingDuration.value_or(std::chrono::seconds(5));
     std::filesystem::path outputPath =
             args->outputPath.value_or(std::filesystem::path(generateOutputPath().toStdString()));
@@ -205,10 +280,11 @@ int main(int argc, char **argv)
     QString outputPathStr = QString::fromStdString(outputPath.string());
     QUrl mediaUrl = QUrl::fromLocalFile(outputPathStr);
 
-    auto camera = QCamera(QMediaDevices::defaultVideoInput());
+    auto camera = QCamera(cameraDevice);
     auto audioInput = QAudioInput(QMediaDevices::defaultAudioInput());
 
-    qInfo() << "recording from camera:" << camera.cameraDevice().description();
+    qInfo() << "recording from camera:" << camera.cameraDevice().description() << "id:"
+            << camera.cameraDevice().id();
     qInfo() << "recording from audio device:" << audioInput.device().description();
 
     if (args->cameraPixelFormat || args->resolution) {
