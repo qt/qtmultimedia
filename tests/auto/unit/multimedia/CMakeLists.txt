@@ -71,6 +71,7 @@ add_subdirectory(qrhivaluemapper)
 add_subdirectory(qmultimedia_drm_support)
 add_subdirectory(ranges)
 add_subdirectory(iteratorfacade)
+add_subdirectory(captureslotregistry)
 
 if(WIN32)
     add_subdirectory(qwindowsmultimediautils)

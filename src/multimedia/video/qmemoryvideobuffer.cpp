@@ -3,7 +3,14 @@
 
 #include "qmemoryvideobuffer_p.h"
 
+#include <QtMultimedia/private/qcaptureslotregistry_p.h>
+
+#include <QtCore/qloggingcategory.h>
+
 QT_BEGIN_NAMESPACE
+
+Q_LOGGING_CATEGORY(qLcCaptureSlots, "qt.multimedia.captureslots")
+Q_LOGGING_CATEGORY(qLcCaptureSlotsTrace, "qt.multimedia.captureslots.trace")
 
 /*!
     \class QMemoryVideoBuffer

@@ -107,6 +107,7 @@ qt_internal_add_module(Multimedia
         recording/qwindowcapture.cpp recording/qwindowcapture.h recording/qwindowcapture_p.h
         recording/qcapturablewindow.cpp recording/qcapturablewindow.h recording/qcapturablewindow_p.h
         recording/qvideoframeinput.cpp recording/qvideoframeinput.h
+        support/qcaptureslotregistry_p.h
         support/qiteratorfacade_p.h
         support/qautoresetevent_p.h
         support/qtmm_alignment_support_p.h
@@ -115,6 +116,7 @@ qt_internal_add_module(Multimedia
         video/qabstractvideobuffer.cpp video/qabstractvideobuffer.h
         video/qhwvideobuffer.cpp video/qhwvideobuffer_p.h
         video/qimagevideobuffer.cpp video/qimagevideobuffer_p.h
+        video/qmaterializingvideobuffer_p.h
         video/qmemoryvideobuffer.cpp video/qmemoryvideobuffer_p.h
         video/qmultimedia_drm_support.cpp video/qmultimedia_drm_support_p.h
         video/qtvideo.cpp video/qtvideo.h
