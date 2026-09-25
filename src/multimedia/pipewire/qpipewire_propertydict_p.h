@@ -48,6 +48,14 @@ Q_MULTIMEDIA_EXPORT std::optional<std::string_view> getMediaClass(const PwProper
 Q_MULTIMEDIA_EXPORT std::optional<std::string_view> getNodeName(const PwPropertyDict &);
 // PW_KEY_NODE_DESCRIPTION
 Q_MULTIMEDIA_EXPORT std::optional<std::string_view> getNodeDescription(const PwPropertyDict &);
+// PW_KEY_NODE_NICK
+Q_MULTIMEDIA_EXPORT std::optional<std::string_view> getNodeNick(const PwPropertyDict &);
+// PW_KEY_MEDIA_ROLE
+Q_MULTIMEDIA_EXPORT std::optional<std::string_view> getMediaRole(const PwPropertyDict &);
+// PW_KEY_DEVICE_API
+Q_MULTIMEDIA_EXPORT std::optional<std::string_view> getDeviceApi(const PwPropertyDict &);
+// PW_KEY_OBJECT_PATH
+Q_MULTIMEDIA_EXPORT std::optional<std::string_view> getObjectPath(const PwPropertyDict &);
 // PW_KEY_DEVICE_SYSFS_PATH
 Q_MULTIMEDIA_EXPORT std::optional<std::string_view> getDeviceSysfsPath(const PwPropertyDict &);
 // PW_KEY_DEVICE_NAME

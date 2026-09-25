@@ -118,6 +118,26 @@ std::optional<std::string_view> getNodeDescription(const PwPropertyDict &dict)
     return resolveInDictionary(dict, PW_KEY_NODE_DESCRIPTION);
 }
 
+std::optional<std::string_view> getNodeNick(const PwPropertyDict &dict)
+{
+    return resolveInDictionary(dict, PW_KEY_NODE_NICK);
+}
+
+std::optional<std::string_view> getMediaRole(const PwPropertyDict &dict)
+{
+    return resolveInDictionary(dict, PW_KEY_MEDIA_ROLE);
+}
+
+std::optional<std::string_view> getDeviceApi(const PwPropertyDict &dict)
+{
+    return resolveInDictionary(dict, PW_KEY_DEVICE_API);
+}
+
+std::optional<std::string_view> getObjectPath(const PwPropertyDict &dict)
+{
+    return resolveInDictionary(dict, PW_KEY_OBJECT_PATH);
+}
+
 std::optional<ObjectId> getDeviceId(const PwPropertyDict &dict)
 {
     auto resolvedUint32 = resolveInDictionary<uint32_t>(dict, PW_KEY_DEVICE_ID);
