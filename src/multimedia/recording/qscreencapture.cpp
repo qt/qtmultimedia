@@ -348,6 +348,13 @@ void QScreenCapturePrivate::setIgnoreCursor(bool ignore)
     platformScreenCapture->setIgnoreCursor(ignore);
 }
 
+bool QScreenCapturePrivate::ignoreCursor() const
+{
+    if (!platformScreenCapture)
+        return false;
+    return platformScreenCapture->ignoreCursor();
+}
+
 QT_END_NAMESPACE
 
 #include "moc_qscreencapture.cpp"

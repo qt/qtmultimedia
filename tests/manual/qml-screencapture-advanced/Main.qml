@@ -40,6 +40,10 @@ ApplicationWindow {
                     text: "ScreenCapture"
                     width: implicitWidth + 20
                 }
+                TabButton {
+                    text: "Settings"
+                    width: implicitWidth + 20
+                }
             }
 
             Pane {
@@ -73,6 +77,13 @@ ApplicationWindow {
                         ScreenCapturePanel {
                             useLandscapeLayout: root.useLandscapeLayout
                             recorderCaptureTracker: root.recordingTracker
+                            preferredLeftWidth: root.preferredLeftWidth
+
+                            Layout.fillWidth: true
+                            Layout.fillHeight: true
+                        }
+
+                        BackendsPanel {
                             preferredLeftWidth: root.preferredLeftWidth
 
                             Layout.fillWidth: true
