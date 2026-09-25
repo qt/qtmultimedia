@@ -3,11 +3,25 @@
 
 #include "qpipewire_async_support_p.h"
 
-#include <QtMultimedia/private/qpipewire_audiocontextmanager_p.h>
+#include <QtMultimedia/private/qpipewire_instance_p.h>
 
 QT_BEGIN_NAMESPACE
 
 namespace QtPipeWire {
+
+namespace {
+
+template <typename Closure>
+auto runWithEventLoopLock(Closure &&closure)
+{
+    auto instance = QPipeWireInstance::instance();
+    if (instance)
+        return instance->runWithEventLoopLock(std::forward<Closure>(closure));
+    else
+        return closure();
+}
+
+} // namespace
 
 // SpaListenerBase
 
@@ -44,7 +58,7 @@ NodeEventListener::NodeEventListener(PwNodeHandle node, NodeHandler handler)
 NodeEventListener::~NodeEventListener()
 {
     removeHooks();
-    QAudioContextManager::withEventLoopLock([&] {
+    runWithEventLoopLock([&] {
         m_node = {};
     });
 }
@@ -82,7 +96,7 @@ CoreEventListener::CoreEventListener()
 
 CoreEventListener::~CoreEventListener()
 {
-    QAudioContextManager::withEventLoopLock([&] {
+    runWithEventLoopLock([&] {
         removeHooks();
     });
 }
@@ -94,7 +108,7 @@ CoreEventListener::~CoreEventListener()
 CoreEventDoneListener::CoreEventDoneListener()
 {
     coreEvents.done = [](void *self, uint32_t id, int seq) {
-        Q_ASSERT(QAudioContextManager::isInPwThreadLoop());
+        Q_ASSERT(QPipeWireInstance::instance()->isInPwThreadLoop());
         CoreEventDoneListener *listener = reinterpret_cast<CoreEventDoneListener *>(self);
         if (id == PW_ID_CORE && listener->m_seqnum == seq) {
             listener->m_seqnum = -1;
@@ -109,7 +123,7 @@ q23::expected<void, int> CoreEventDoneListener::asyncWait(pw_core *coreConnectio
 {
     m_handler = std::move(handler);
 
-    return QAudioContextManager::withEventLoopLock([&]() -> q23::expected<void, int> {
+    return runWithEventLoopLock([&]() -> q23::expected<void, int> {
         int status = pw_core_add_listener(coreConnection, &m_listenerHook, &coreEvents, this);
         if (status < 0) {
             qFatal() << "pw_core_add_listener failed" << make_error_code(-status).message();
