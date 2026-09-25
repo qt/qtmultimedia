@@ -375,6 +375,13 @@ void QWindowCapturePrivate::setIgnoreCursor(bool ignore)
     platformWindowCapture->setIgnoreCursor(ignore);
 }
 
+bool QWindowCapturePrivate::ignoreCursor() const
+{
+    if (!platformWindowCapture)
+        return false;
+    return platformWindowCapture->ignoreCursor();
+}
+
 QT_END_NAMESPACE
 
 #include "moc_qwindowcapture.cpp"

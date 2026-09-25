@@ -39,6 +39,7 @@ public:
 
     // Only applied when next stream starts.
     void setIgnoreCursor(bool);
+    [[nodiscard]] bool ignoreCursor() const;
 };
 
 QT_END_NAMESPACE

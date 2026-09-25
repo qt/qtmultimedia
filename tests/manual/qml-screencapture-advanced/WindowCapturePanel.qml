@@ -121,20 +121,6 @@ GridLayout {
             onClicked: root.refreshCapturableWindowsList()
         }
 
-        Button {
-            text: mediaRecorder.recorderState === MediaRecorder.StoppedState
-                ? "Start recording"
-                : "Stop recording"
-            onClicked: {
-                if (mediaRecorder.recorderState === MediaRecorder.StoppedState) {
-                    root.recorderCaptureTracker += 1
-                    mediaRecorder.record()
-                } else {
-                    mediaRecorder.stop()
-                }
-            }
-        }
-
         RowLayout {
             Label {
                 text: "Framerate:"
@@ -176,6 +162,18 @@ GridLayout {
         }
 
         CheckBox {
+            text: "Capture cursor"
+            // The flag has no change signal, so the state is read back after setting it.
+            Component.onCompleted: () => {
+                checked = QmlScreencaptureAdvanced.windowCaptureCursorEnabled(capture)
+            }
+            onToggled: () => {
+                QmlScreencaptureAdvanced.setWindowCaptureCursorEnabled(capture, checked)
+                checked = QmlScreencaptureAdvanced.windowCaptureCursorEnabled(capture)
+            }
+        }
+
+        CheckBox {
             text: "Periodically refresh windows"
             checkState: root.periodicallyRefreshWindows === true ? Qt.Checked : Qt.Unchecked
             onClicked: () => {
@@ -203,6 +201,50 @@ GridLayout {
             Layout.preferredWidth: root.preferredLeftWidth
             wrapMode: Text.WordWrap
             text: "Error: " + capture.errorLabel
+        }
+
+        SettingsButton {
+            title: "MediaRecorder settings"
+            previewItem: windowCaptureVideoOutput
+            settings: Component {
+                MediaRecorderControls {
+                    recorder: mediaRecorder
+                    onAboutToStartRecording: () => {
+                        root.recorderCaptureTracker += 1
+                    }
+                }
+            }
+        }
+
+        // The recording controls are in the settings, so show the state here too.
+        RecorderStatusIndicator {
+            recorder: mediaRecorder
+        }
+
+        // Plays the file of the last recording. Disabled while recording, since the
+        // file is only complete once the recording stops.
+        SettingsButton {
+            title: "Play last recording"
+            enabled: mediaRecorder.recorderState === MediaRecorder.StoppedState
+                && mediaRecorder.actualLocation.toString() !== ""
+            scrollable: false
+            windowWidth: 800
+            windowHeight: 600
+            settings: Component {
+                RecordingPlayer {
+                    source: mediaRecorder.actualLocation
+                }
+            }
+        }
+
+        SettingsButton {
+            title: "VideoOutput settings"
+            previewItem: windowCaptureVideoOutput
+            settings: Component {
+                VideoOutputControls {
+                    videoOutput: windowCaptureVideoOutput
+                }
+            }
         }
 
         Label {
@@ -249,9 +291,18 @@ GridLayout {
         Layout.alignment: Qt.AlignTop
         Layout.fillWidth: true
         Layout.preferredHeight: 400
+        // Kept even while hidden, since the settings refer to it.
         VideoOutput {
             anchors.fill: parent
             id: windowCaptureVideoOutput
+            visible: QmlScreencaptureAdvanced.screenCapturePermissionGranted
+        }
+
+        ScreenCapturePermissionPrompt {
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            visible: !QmlScreencaptureAdvanced.screenCapturePermissionGranted
         }
     }
 }
