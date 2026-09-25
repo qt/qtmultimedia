@@ -72,10 +72,15 @@ QT_BEGIN_NAMESPACE
 
 Q_STATIC_LOGGING_CATEGORY(qLcFFmpeg, "qt.multimedia.ffmpeg");
 
-bool thread_local FFmpegLogsEnabledInThread = true;
-static bool UseCustomFFmpegLogger = false;
+using namespace Qt::Literals;
 
-static void qffmpegLogCallback(void *ptr, int level, const char *fmt, va_list vl)
+bool thread_local FFmpegLogsEnabledInThread = true;
+
+namespace {
+
+bool UseCustomFFmpegLogger = false;
+
+void qffmpegLogCallback(void *ptr, int level, const char *fmt, va_list vl)
 {
     if (!FFmpegLogsEnabledInThread)
         return;
@@ -101,7 +106,7 @@ static void qffmpegLogCallback(void *ptr, int level, const char *fmt, va_list vl
         qCritical() << message;
 }
 
-static void setupFFmpegLogger()
+void setupFFmpegLogger()
 {
     if (qEnvironmentVariableIsSet("QT_FFMPEG_DEBUG")) {
         av_log_set_level(AV_LOG_DEBUG);
@@ -111,7 +116,39 @@ static void setupFFmpegLogger()
     av_log_set_callback(&qffmpegLogCallback);
 }
 
-static QPlatformSurfaceCapture *createScreenCaptureByBackend(const QString& backend)
+#ifdef Q_OS_LINUX
+
+enum class CameraBackend {
+    V4L2,
+};
+
+std::optional<CameraBackend> requestedBackend()
+{
+    const QByteArray requested = qgetenv("QT_CAMERA_BACKEND").toLower();
+    if (requested.isEmpty())
+        return std::nullopt;
+    if (requested == "v4l2"_ba)
+        return CameraBackend::V4L2;
+    qWarning() << "Unknown QT_CAMERA_BACKEND:" << requested << "... Using default.";
+    return std::nullopt;
+}
+
+[[maybe_unused]] CameraBackend selectedCameraBackend()
+{
+    static const CameraBackend backend = [] {
+        std::optional<CameraBackend> requested = requestedBackend();
+        if (!requested || requested == CameraBackend::V4L2)
+            return CameraBackend::V4L2;
+
+        Q_UNREACHABLE_RETURN(CameraBackend::V4L2);
+    }();
+
+    return backend;
+}
+
+#endif
+
+QPlatformSurfaceCapture *createScreenCaptureByBackend(const QString &backend)
 {
     if (backend == u"grabwindow")
         return new QGrabWindowSurfaceCapture(QPlatformSurfaceCapture::ScreenSource{});
@@ -141,7 +178,7 @@ static QPlatformSurfaceCapture *createScreenCaptureByBackend(const QString& back
     return nullptr;
 }
 
-static QPlatformSurfaceCapture *createWindowCaptureByBackend(const QString& backend)
+QPlatformSurfaceCapture *createWindowCaptureByBackend(const QString &backend)
 {
     if (backend == u"grabwindow")
         return new QGrabWindowSurfaceCapture(QPlatformSurfaceCapture::WindowSource{});
@@ -162,6 +199,8 @@ static QPlatformSurfaceCapture *createWindowCaptureByBackend(const QString& back
 #endif
     return nullptr;
 }
+
+} // namespace
 
 QFFmpegMediaIntegration::QFFmpegMediaIntegration()
     : QPlatformMediaIntegration(QLatin1String("ffmpeg"))
@@ -218,14 +257,21 @@ QFFmpegMediaIntegration::createPlayer(QMediaPlayer *player)
 q23::expected<QPlatformCamera *, QString> QFFmpegMediaIntegration::createCamera(QCamera *camera)
 {
     Q_ASSERT(camera);
+
 #ifdef Q_OS_DARWIN
     return QFFmpeg::makeQAvfCamera(*camera).release();
 #elif defined(Q_OS_ANDROID)
     return new QFFmpeg::QAndroidCamera(camera);
-#elif QT_CONFIG(linux_v4l)
-    return new QV4L2Camera(camera);
 #elif defined(Q_OS_WINDOWS)
     return new QFFmpeg::QWindowsCamera(camera);
+#elif defined(Q_OS_LINUX)
+    auto backend = selectedCameraBackend();
+    switch (backend) {
+    case CameraBackend::V4L2:
+        return new QV4L2Camera(camera);
+    default:
+        return q23::unexpected{ notAvailable };
+    }
 #else
     Q_UNUSED(camera);
     return q23::unexpected{ notAvailable };
@@ -347,14 +393,20 @@ QPlatformVideoDevices *QFFmpegMediaIntegration::createVideoDevices()
 {
 #if defined(Q_OS_ANDROID)
     return new QFFmpeg::QAndroidVideoDevices(this);
-#elif QT_CONFIG(linux_v4l)
-    return new QV4L2CameraDevices(this);
 #elif defined Q_OS_DARWIN
     return makeQAvfVideoDevices(
         *this,
         &QFFmpeg::isCVFormatSupported).release();
 #elif defined(Q_OS_WINDOWS)
     return new QWindowsVideoDevices(this);
+#elif defined(Q_OS_LINUX)
+    auto backend = selectedCameraBackend();
+    switch (backend) {
+    case CameraBackend::V4L2:
+        return new QV4L2CameraDevices(this);
+    default:
+        return nullptr;
+    }
 #else
     return nullptr;
 #endif
