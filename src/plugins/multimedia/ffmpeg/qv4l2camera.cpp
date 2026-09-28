@@ -587,7 +587,7 @@ void QV4L2Camera::setV4L2CameraFormat()
             setCameraBusy();
             return;
         }
-        qWarning() << "Couldn't set video format on v4l2 camera" << strerror(errno);
+        qWarning() << "Couldn't set video format on v4l2 camera" << qt_error_string(errno);
     }
 
     m_v4l2Info.formatInitialized = true;
