@@ -49,8 +49,8 @@ QDmaBufVideoBuffer::QDmaBufVideoBuffer(QVideoFrameFormat::PixelFormat format, QS
         if (m_planes[i].fd >= 0) {
             const int dupped = ::fcntl(m_planes[i].fd, F_DUPFD_CLOEXEC, 0);
             if (dupped < 0) {
-                qCWarning(qLcDmaBufVideoBuffer)
-                        << "Failed to dup DMABUF fd for plane" << i << ':' << strerror(errno);
+                qCWarning(qLcDmaBufVideoBuffer) << "Failed to dup DMABUF fd for plane" << i << ':'
+                                                << qt_error_string(errno);
                 m_planes[i].fd = -1;
             } else {
                 m_planes[i].fd = dupped;
@@ -153,7 +153,7 @@ QAbstractVideoBuffer::MapData QDmaBufVideoBuffer::map(QVideoFrame::MapMode mode)
             void *mapped = ::mmap(nullptr, size_t(len), PROT_READ, MAP_SHARED, plane.fd, 0);
             if (mapped == MAP_FAILED) {
                 qCWarning(qLcDmaBufVideoBuffer)
-                        << "mmap failed for plane" << i << ':' << strerror(errno);
+                        << "mmap failed for plane" << i << ':' << qt_error_string(errno);
                 for (const auto &entry : mappedByFd)
                     ::munmap(entry.second.first, entry.second.second);
                 return {};

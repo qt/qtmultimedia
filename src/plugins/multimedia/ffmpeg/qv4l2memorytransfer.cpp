@@ -73,7 +73,7 @@ public:
         buf.length = m_byteArrays[index].size();
 
         if (!fileDescriptor().call(VIDIOC_QBUF, &buf)) {
-            qWarning() << "Couldn't add V4L2 buffer" << errno << strerror(errno) << index;
+            qWarning() << "Couldn't add V4L2 buffer" << errno << qt_error_string(errno) << index;
             return false;
         }
 
