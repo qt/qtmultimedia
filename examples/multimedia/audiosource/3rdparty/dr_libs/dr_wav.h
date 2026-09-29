@@ -1732,8 +1732,18 @@ static DRWAV_INLINE void drwav__bswap_samples(void* pSamples, drwav_uint64 sampl
         } break;
         default:
         {
-            /* Unsupported format. */
-            DRWAV_ASSERT(DRWAV_FALSE);
+            drwav_uint64 iSample;
+
+            for (iSample = 0; iSample < sampleCount; iSample += 1) {
+                drwav_uint8* pSample = (drwav_uint8*)pSamples + (iSample * bytesPerSample);
+                drwav_uint32 iByte;
+
+                for (iByte = 0; iByte < bytesPerSample / 2; iByte += 1) {
+                    drwav_uint8 temp = pSample[iByte];
+                    pSample[iByte] = pSample[bytesPerSample - iByte - 1];
+                    pSample[bytesPerSample - iByte - 1] = temp;
+                }
+            }
         } break;
     }
 }
@@ -3624,13 +3634,9 @@ DRWAV_PRIVATE drwav_bool32 drwav_init__internal(drwav* pWav, drwav_chunk_proc on
             fmt.formatTag      = compressionFormat;
             fmt.channels       = channels;
             fmt.sampleRate     = (drwav_uint32)sampleRate;
-            fmt.bitsPerSample  = sampleSizeInBits;
+            fmt.bitsPerSample  = (sampleSizeInBits + 7) & ~7;   /* In AIFF, samples are padded to 8-bit boundaries. We need to round up our bits per sample here. */
             fmt.blockAlign     = (drwav_uint16)((drwav_uint32)fmt.channels * fmt.bitsPerSample / 8);
             fmt.avgBytesPerSec = fmt.blockAlign * fmt.sampleRate;
-
-            if (fmt.blockAlign == 0 && compressionFormat == DR_WAVE_FORMAT_DVI_ADPCM) {
-                fmt.blockAlign = 34 * fmt.channels;
-            }
 
             /*
             Weird one. I've seen some alaw and ulaw encoded files that for some reason set the bits per sample to 16 when
@@ -3642,23 +3648,6 @@ DRWAV_PRIVATE drwav_bool32 drwav_init__internal(drwav* pWav, drwav_chunk_proc on
                     fmt.blockAlign = fmt.channels;
                 }
             }
-
-            /* In AIFF, samples are padded to 8 byte boundaries. We need to round up our bits per sample here. */
-            fmt.bitsPerSample += (fmt.bitsPerSample & 7);
-
-            /*
-            Only specific byte widths per sample are supported by the decoding backend (1, 2, 3, 4 and 8 bytes). A
-            COMM chunk can declare a bits-per-sample value that doesn't map to one of these (e.g. 40 bits = 5 bytes)
-            which would otherwise be discovered much later as an unsupported format. Reject it here instead.
-            */
-            if (fmt.bitsPerSample == 0 || (fmt.bitsPerSample % 8) != 0) {
-                return DRWAV_FALSE; /* Invalid bits per sample. */
-            }
-            switch (fmt.bitsPerSample / 8) {
-                case 1: case 2: case 3: case 4: case 8: break;
-                default: return DRWAV_FALSE; /* Unsupported bytes per sample. */
-            }
-
 
             /* If the form type is AIFC there will be some additional data in the chunk. We need to seek past it. */
             if (isAIFCFormType) {
@@ -7203,37 +7192,35 @@ DRWAV_API void drwav_s32_to_s16(drwav_int16* pOut, const drwav_int32* pIn, size_
 
 DRWAV_API void drwav_f32_to_s16(drwav_int16* pOut, const float* pIn, size_t sampleCount)
 {
-    int r;
     size_t i;
     for (i = 0; i < sampleCount; ++i) {
         float x = pIn[i];
-        float c;
-        if (x != x) { /* NaN check. Comparisons against NaN are always false, so this is safe even without <math.h>. */
-            x = 0;
+        if (x != x) {
+            pOut[i] = 0;    /* NaN */
+        } else if (x <= -1) {
+            pOut[i] = (-32767 - 1);
+        } else if (x >= 1) {
+            pOut[i] = 32767;
+        } else {
+            pOut[i] = (drwav_int16)(x * 32768.0f);
         }
-        c = ((x < -1) ? -1 : ((x > 1) ? 1 : x));
-        c = c + 1;
-        r = (int)(c * 32767.5f);
-        r = r - 32768;
-        pOut[i] = (short)r;
     }
 }
 
 DRWAV_API void drwav_f64_to_s16(drwav_int16* pOut, const double* pIn, size_t sampleCount)
 {
-    int r;
     size_t i;
     for (i = 0; i < sampleCount; ++i) {
         double x = pIn[i];
-        double c;
-        if (x != x) { /* NaN check. Comparisons against NaN are always false, so this is safe even without <math.h>. */
-            x = 0;
+        if (x != x) {
+            pOut[i] = 0;    /* NaN */
+        } else if (x <= -1) {
+            pOut[i] = (-32767 - 1);
+        } else if (x >= 1) {
+            pOut[i] = 32767;
+        } else {
+            pOut[i] = (drwav_int16)(x * 32768.0);
         }
-        c = ((x < -1) ? -1 : ((x > 1) ? 1 : x));
-        c = c + 1;
-        r = (int)(c * 32767.5);
-        r = r - 32768;
-        pOut[i] = (short)r;
     }
 }
 
@@ -8156,26 +8143,34 @@ DRWAV_API void drwav_s24_to_s32(drwav_int32* pOut, const drwav_uint8* pIn, size_
 DRWAV_API void drwav_f32_to_s32(drwav_int32* pOut, const float* pIn, size_t sampleCount)
 {
     size_t i;
-
-    if (pOut == NULL || pIn == NULL) {
-        return;
-    }
-
     for (i = 0; i < sampleCount; ++i) {
-        *pOut++ = (drwav_int32)(2147483648.0f * pIn[i]);
+        float x = pIn[i];
+        if (x != x) {
+            pOut[i] = 0;    /* NaN */
+        } else if (x <= -1) {
+            pOut[i] = (-2147483647 - 1);
+        } else if (x >= 1) {
+            pOut[i] = 2147483647;
+        } else {
+            pOut[i] = (drwav_int32)(x * 2147483648.0f);
+        }
     }
 }
 
 DRWAV_API void drwav_f64_to_s32(drwav_int32* pOut, const double* pIn, size_t sampleCount)
 {
     size_t i;
-
-    if (pOut == NULL || pIn == NULL) {
-        return;
-    }
-
     for (i = 0; i < sampleCount; ++i) {
-        *pOut++ = (drwav_int32)(2147483648.0 * pIn[i]);
+        double x = pIn[i];
+        if (x != x) {
+            pOut[i] = 0;    /* NaN */
+        } else if (x <= -1) {
+            pOut[i] = (-2147483647 - 1);
+        } else if (x >= 1) {
+            pOut[i] = 2147483647;
+        } else {
+            pOut[i] = (drwav_int32)(x * 2147483648.0);
+        }
     }
 }
 
@@ -8707,6 +8702,8 @@ v0.14.6 - TBD
   - Fix an underflow error with badly formed W64 files.
   - Fix an error when converting from >32 bit samples to s16/f32/s32 on big-endian architectures.
   - Fix an error with conversion from u8, 16, alaw and mulaw to s32.
+  - Fix an error with AIFF files with an unusual bit depth.
+  - Fix some NaN conversion errors when converting from floating point to s16 and s32.
   - Add some bound checking when processing metadata chunks.
 
 v0.14.5 - 2026-03-03
