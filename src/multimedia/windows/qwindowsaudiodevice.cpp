@@ -278,6 +278,8 @@ struct WindowsFormatResult
 
 WindowsFormatResult performFormatProbe(ComPtr<IMMDevice> immDev)
 {
+    qt_win_ensureComInitializedOnThisThread();
+
     QAudioDevicePrivate::AudioDeviceFormat format;
     QtWASAPI::WindowsProbeData probeData{
         { 1, 2 },
