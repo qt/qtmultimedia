@@ -7,8 +7,8 @@
     "SecurityCritical": true,
 
     "Homepage": "https://github.com/mackron/dr_libs",
-    "Version": "0.14.6-snapshot-ee937527",
-    "DownloadLocation": "https://github.com/mackron/dr_libs/commit/ee93752fec1274be42dda95baabcd9d9fb8efc29",
+    "Version": "0.14.6-snapshot-019e75ba",
+    "DownloadLocation": "https://github.com/mackron/dr_libs/commit/019e75ba8e9ac47222dfb87671029812069f68dc",
 
     "License": "The Unlicense or MIT No Attribution",
     "LicenseId": "Unlicense OR MIT-0",
@@ -16,5 +16,5 @@
         "LICENSE"
     ],
     "Copyright": "Copyright 2023 David Reid",
-    "PURL": "pkg:github/mackron/dr_libs@ee93752fec1274be42dda95baabcd9d9fb8efc29"
+    "PURL": "pkg:github/mackron/dr_libs@019e75ba8e9ac47222dfb87671029812069f68dc"
 }
