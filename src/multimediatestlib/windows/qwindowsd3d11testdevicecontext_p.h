@@ -26,7 +26,9 @@
 
 #include <d3d11_1.h>
 
+QT_BEGIN_NAMESPACE
 class QRhi;
+QT_END_NAMESPACE
 
 template <typename T>
 using ComResult = q23::expected<T, HRESULT>;
