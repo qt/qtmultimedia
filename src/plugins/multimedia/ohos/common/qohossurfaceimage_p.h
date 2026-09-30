@@ -45,7 +45,7 @@ public:
 
     quint64 index() const { return m_index; }
 
-signals:
+Q_SIGNALS:
     void frameAvailable(quint64 index);
 
 private:

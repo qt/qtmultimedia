@@ -53,7 +53,7 @@ public:
     void setFrameRate(std::optional<qreal>);
     qreal frameRate() const;
 
-signals:
+Q_SIGNALS:
     void frameGrabbed(const QVideoFrame&);
     void errorUpdated(QPlatformSurfaceCapture::Error error, const QString &description);
 

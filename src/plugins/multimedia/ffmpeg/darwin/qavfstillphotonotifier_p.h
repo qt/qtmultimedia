@@ -31,7 +31,7 @@ namespace QFFmpeg {
 // in thread-safe manner.
 class QAVFStillPhotoNotifier : public QObject {
     Q_OBJECT
-signals:
+Q_SIGNALS:
     void succeeded(QVideoFrame);
     void failed(QImageCapture::Error, QString);
 };

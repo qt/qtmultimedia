@@ -44,7 +44,7 @@ public:
     // Maximum number of frames that we are allowed to keep in render queue
     static qint32 maxQueueSize(TrackType type);
 
-public slots:
+public Q_SLOTS:
 
     void decode(Packet);
 
@@ -52,7 +52,7 @@ public slots:
 
     void onFrameProcessed(const Frame &frame);
 
-signals:
+Q_SIGNALS:
     void requestHandleFrame(Frame frame);
 
     void packetProcessed(Packet);

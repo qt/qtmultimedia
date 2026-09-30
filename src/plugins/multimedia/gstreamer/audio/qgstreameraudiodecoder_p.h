@@ -61,7 +61,7 @@ public:
 
     bool canReadQrc() const override;
 
-private slots:
+private Q_SLOTS:
     void updateDuration();
 
 private:

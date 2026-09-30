@@ -33,12 +33,12 @@ public:
     Decoder();
     ~Decoder();
 
-public slots:
+public Q_SLOTS:
     void setSource(const QUrl &source);
     void doDecode();
     void stop();
 
-signals:
+Q_SIGNALS:
     void positionChanged(const QAudioBuffer &buffer, std::chrono::milliseconds position);
     void durationChanged(std::chrono::milliseconds duration);
     void error(const QAudioDecoder::Error error, const QString &errorString);
@@ -80,10 +80,10 @@ public:
     QAudioBuffer read() override;
     bool bufferAvailable() const override;
 
-signals:
+Q_SIGNALS:
     void setSourceUrl(const QUrl &source);
 
-private slots:
+private Q_SLOTS:
     void positionChanged(QAudioBuffer audioBuffer, std::chrono::milliseconds position);
     void durationChanged(std::chrono::milliseconds duration);
     void error(const QAudioDecoder::Error error, const QString &errorString);

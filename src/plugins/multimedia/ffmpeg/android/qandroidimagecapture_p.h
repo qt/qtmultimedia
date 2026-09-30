@@ -30,7 +30,7 @@ protected:
     void setupVideoSourceConnections() override;
     int doCapture(const QString &fileName) override;
 
-private slots:
+private Q_SLOTS:
     void updateExif(int id, const QString &filename);
 };
 } // namespace QFFmpeg

@@ -57,7 +57,7 @@ public:
 
     [[nodiscard]] q23::expected<void, QString> requestStillPhotoCapture();
 
-signals:
+Q_SIGNALS:
     void stillPhotoSucceeded(QVideoFrame image);
     void stillPhotoFailed(QImageCapture::Error error, QString errorMsg);
 

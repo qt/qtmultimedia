@@ -86,7 +86,7 @@ private:
 
     void mediaStatusChanged(QMediaPlayer::MediaStatus);
 
-private slots:
+private Q_SLOTS:
     void updatePosition();
     void endOfStream();
     void error(QMediaPlayer::Error error, const QString &errorString)

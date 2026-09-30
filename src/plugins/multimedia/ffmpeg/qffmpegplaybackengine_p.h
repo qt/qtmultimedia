@@ -126,7 +126,7 @@ public:
 
     void setPitchCompensation(bool enabled);
 
-signals:
+Q_SIGNALS:
     void endOfStream();
     void errorOccured(QMediaPlayer::Error, const QString &);
     void loopChanged();

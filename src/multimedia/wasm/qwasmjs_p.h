@@ -114,7 +114,7 @@ public:
     void registerConsumer() { ++m_consumerCount; }
     void unregisterConsumer();
 
-signals:
+Q_SIGNALS:
     void mediaStreamReady();
     void mediaAudioStreamReady();
     void mediaVideoStreamReady();

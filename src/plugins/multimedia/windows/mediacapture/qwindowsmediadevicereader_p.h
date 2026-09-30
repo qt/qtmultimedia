@@ -87,7 +87,7 @@ Q_SIGNALS:
     void durationChanged(qint64 duration);
     void videoFrameChanged(const QVideoFrame &frame);
 
-private slots:
+private Q_SLOTS:
     void updateDuration();
 
 private:

@@ -48,10 +48,10 @@ public:
 
     QVideoSink *sink() const { return m_sink; }
 
-signals:
+Q_SIGNALS:
     void surfaceReady();
 
-private slots:
+private Q_SLOTS:
     void onNewFrame(const QVideoFrame &frame);
     void onRhiChanged();
     void updateDisplayRotation();

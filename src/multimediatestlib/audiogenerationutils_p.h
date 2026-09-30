@@ -225,23 +225,23 @@ public:
         return QAudioBuffer(data, m_format);
     }
 
-signals:
+Q_SIGNALS:
     void done();
     void audioBufferCreated(const QAudioBuffer &buffer);
 
-public slots:
+public Q_SLOTS:
     void nextBuffer()
     {
         if (m_bufferIndex == m_maxBufferCount) {
-            emit done();
+            Q_EMIT done();
             if (m_emitEmptyBufferOnStop)
-                emit audioBufferCreated({});
+                Q_EMIT audioBufferCreated({});
             return;
         }
 
         const QAudioBuffer buffer = createAudioBuffer();
 
-        emit audioBufferCreated(buffer);
+        Q_EMIT audioBufferCreated(buffer);
         ++m_bufferIndex;
     }
 

@@ -78,10 +78,10 @@ public:
     int getNextTextureId();
     BufferView getNextBuffer();
 
-signals:
+Q_SIGNALS:
     void updateScene(const QSize &size);
 
-private slots:
+private Q_SLOTS:
     void triggerUpdate();
 
 private:

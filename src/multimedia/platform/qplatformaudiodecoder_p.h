@@ -63,7 +63,7 @@ public:
         if (m_isDecoding == running)
             return;
         m_isDecoding = running;
-        emit q->isDecodingChanged(m_isDecoding);
+        Q_EMIT q->isDecodingChanged(m_isDecoding);
     }
     void finished();
     bool isDecoding() const { return m_isDecoding; }

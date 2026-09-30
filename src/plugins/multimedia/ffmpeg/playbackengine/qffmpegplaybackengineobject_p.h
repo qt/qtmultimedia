@@ -72,7 +72,7 @@ public:
 
     quint64 objectID() const { return m_id.objectID; }
 
-signals:
+Q_SIGNALS:
     void atEnd(PlaybackEngineObjectID id);
 
     void error(QMediaPlayer::Error, const QString &errorString);
@@ -132,7 +132,7 @@ protected:
 
     virtual void doNextStep() { }
 
-private slots:
+private Q_SLOTS:
     void onTimeout();
 
 private:
