@@ -8,7 +8,6 @@
 #include <QDebug>
 #include <QOpenGLContext>
 #include <QtGui/rhi/qrhi_platform.h>
-#include <qpa/qplatformwindow_p.h>
 
 #include <GLES2/gl2.h>
 
@@ -27,29 +26,22 @@ QT_BEGIN_NAMESPACE
 using namespace emscripten;
 using namespace Qt::Literals;
 
+// EM_JS pointer arguments are BigInt on wasm64, Number() makes them usable on both targets.
+
 // Upload the current video frame to the already-bound TEXTURE_2D.
-// The canvas is passed as an EM_VAL handle; Emval.toValue() here refers to
-// Emscripten's internal Emval object, not Module.Emval — no EXPORTED_RUNTIME_METHODS entry needed.
-EM_JS(void, em_texImage2DFromVideo, (const char *videoId, int *pW, int *pH), {
+EM_JS(void, em_texImage2DFromVideo, (const char *videoId, int *widthOut, int *heightOut), {
+    videoId = Number(videoId);
+    widthOut = Number(widthOut);
+    heightOut = Number(heightOut);
     var gl = GL.currentContext.GLctx;
     var video = document.getElementById(UTF8ToString(videoId));
     if (!video) { return; }
     var frame;
     try { frame = new VideoFrame(video); } catch(e) { return; }
-    HEAP32[pW >> 2] = frame.displayWidth;
-    HEAP32[pH >> 2] = frame.displayHeight;
+    HEAP32[widthOut / 4] = frame.displayWidth;
+    HEAP32[heightOut / 4] = frame.displayHeight;
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, frame);
     frame.close();
-});
-
-EM_JS(EMSCRIPTEN_WEBGL_CONTEXT_HANDLE, qwasm_find_webgl_context_for_canvas, (EM_VAL canvasHandle), {
-    var canvas = Emval.toValue(canvasHandle);
-    for (var id in GL.contexts) {
-        var entry = GL.contexts[id];
-        if (entry && entry.GLctx && entry.GLctx.canvas === canvas)
-            return parseInt(id);
-    }
-    return 0;
 });
 
 QWasmVideoFrameGrabber::QWasmVideoFrameGrabber(QWasmVideoOutput *videoOutput)
@@ -73,27 +65,21 @@ void QWasmVideoFrameGrabber::detectWebGLContext()
 
     auto tryGetHandleFromSurface = [&]() -> bool {
         QSurface *surface = openGLContext->surface();
-        if (!surface || surface->surfaceClass() != QSurface::Window)
+        if (!surface)
             return false;
-        QWindow *window = static_cast<QWindow *>(surface);
-        if (!window->handle())
+        // QWasmOpenGLContext::makeCurrent() ends in
+        // emscripten_webgl_make_context_current(), so the handle we want is the
+        // one that is current afterwards.
+        if (QOpenGLContext::currentContext() != openGLContext
+            && !openGLContext->makeCurrent(surface))
             return false;
-        auto *wasmIface = window->nativeInterface<QNativeInterface::Private::QWasmWindow>();
-        if (!wasmIface)
-            return false;
-        emscripten::val canvas = wasmIface->canvas();
-        emscripten::val glCtx = canvas.call<emscripten::val>("getContext", std::string("webgl2"));
-        if (glCtx.isNull() || glCtx.isUndefined())
-            glCtx = canvas.call<emscripten::val>("getContext", std::string("webgl"));
-        if (glCtx.isNull() || glCtx.isUndefined())
-            return false;
-        m_glContextHandle = qwasm_find_webgl_context_for_canvas(canvas.as_handle());
-        m_hasWebGLContext = (m_glContextHandle > 0);
+        m_glContextHandle = emscripten_webgl_get_current_context();
+        m_hasWebGLContext = (m_glContextHandle != 0);
         return m_hasWebGLContext;
     };
 
     if (!tryGetHandleFromSurface())
-        qWarning() << Q_FUNC_INFO << "could not locate WebGL canvas for the current RHI context";
+        qWarning() << Q_FUNC_INFO << "could not determine the WebGL context for the current RHI";
 }
 
 // software path, copies VideoFrame data into a QMemoryVideoBuffer
@@ -106,13 +92,13 @@ void QWasmVideoFrameGrabber::processVideoFrame()
     // videoWidth > 0. Use a JS try-catch so the exception does not propagate into
     // the wasm runtime and abort the application.
     emscripten::val oneVideoFrame = emscripten::val::take_ownership(
-            (EM_VAL)EM_ASM_INT({
+            static_cast<EM_VAL>(EM_ASM_PTR({
                 try {
                     return Emval.toHandle(new VideoFrame(Emval.toValue($0)));
                 } catch(e) {
                     return Emval.toHandle(null);
                 }
-            }, videoElement.as_handle()));
+            }, videoElement.as_handle())));
 
     if (oneVideoFrame.isNull() || oneVideoFrame.isUndefined()) {
         qCDebug(qWasmMediaVideoOutput) << Q_FUNC_INFO << "VideoFrame not ready yet, skipping";
