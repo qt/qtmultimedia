@@ -112,7 +112,7 @@ void Demuxer::doNextStep()
             qCDebug(qLcDemuxer) << "finish demuxing";
 
             if (!std::exchange(m_sessionCtx.buffered, true))
-                emit packetsBuffered();
+                Q_EMIT packetsBuffered();
 
             setAtEnd(true);
         } else {
@@ -154,7 +154,7 @@ void Demuxer::doNextStep()
             // disconnected while playing a network stream, where av_read_frame may return
             // ETIMEDOUT.
             // TODO: Demuxer errors should likely stop playback in media player examples.
-            emit error(QMediaPlayer::ResourceError,
+            Q_EMIT error(QMediaPlayer::ResourceError,
                        QLatin1StringView("Demuxing failed"));
         }
 
@@ -180,18 +180,18 @@ void Demuxer::doNextStep()
 
         if (!m_sessionCtx.buffered && streamData.isDataLimitReached) {
             m_sessionCtx.buffered = true;
-            emit packetsBuffered();
+            Q_EMIT packetsBuffered();
         }
 
         if (!m_sessionCtx.firstPacketFound) {
             m_sessionCtx.firstPacketFound = true;
-            emit firstPacketFound(id(),
+            Q_EMIT firstPacketFound(id(),
                                   m_sessionCtx.posInLoopUs
                                           + m_sessionCtx.loopOffset.loopStartTimeUs.asDuration());
         }
 
         auto signal = signalByTrackType(streamData.trackType);
-        emit (this->*signal)(std::move(packet));
+        Q_EMIT (this->*signal)(std::move(packet));
     }
 
     scheduleNextStep();
@@ -279,7 +279,7 @@ void Demuxer::ensureSeeked()
             // Drop an error of seeking to initial position of streams with undefined duration.
             // This needs improvements.
             if (m_sessionCtx.posInLoopUs != TrackPosition{ 0 } || m_context->duration > 0)
-                emit error(QMediaPlayer::ResourceError,
+                Q_EMIT error(QMediaPlayer::ResourceError,
                            QLatin1StringView("Failed to seek: ") + err2str(err));
         }
     }

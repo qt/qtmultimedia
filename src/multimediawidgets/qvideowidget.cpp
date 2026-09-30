@@ -168,7 +168,7 @@ bool QVideoWidget::event(QEvent *event)
     if (event->type() == QEvent::WindowStateChange) {
         bool fullScreen = bool(windowState() & Qt::WindowFullScreen);
         if (fullScreen != d->wasFullScreen) {
-            emit fullScreenChanged(fullScreen);
+            Q_EMIT fullScreenChanged(fullScreen);
             d->wasFullScreen = fullScreen;
         }
     }

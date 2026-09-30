@@ -79,7 +79,7 @@ void QOhosSurfaceImage::onFrameAvailableTrampoline(void *context)
         return;
     // Native producer thread — emit the signal so the GL context thread can
     // pick it up via a queued connection.
-    emit self->frameAvailable(self->m_index);
+    Q_EMIT self->frameAvailable(self->m_index);
 }
 
 QT_END_NAMESPACE

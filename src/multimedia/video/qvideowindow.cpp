@@ -476,7 +476,7 @@ void QVideoWindow::setAspectRatioMode(Qt::AspectRatioMode mode)
     if (d->aspectRatioMode == mode)
         return;
     d->aspectRatioMode = mode;
-    emit aspectRatioModeChanged(mode);
+    Q_EMIT aspectRatioModeChanged(mode);
 }
 
 bool QVideoWindow::event(QEvent *e)

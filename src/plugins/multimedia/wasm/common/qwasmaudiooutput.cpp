@@ -52,7 +52,7 @@ void QWasmAudioOutput::setMuted(bool muted)
     if (m_audio.isUndefined() || m_audio.isNull()) {
         qCDebug(qWasmMediaAudioOutput) << "Error"
                                        << "Audio element could not be created";
-        emit errorOccured(QMediaPlayer::ResourceError,
+        Q_EMIT errorOccured(QMediaPlayer::ResourceError,
                           QStringLiteral("Media file could not be opened"));
         return;
     }
@@ -70,7 +70,7 @@ void QWasmAudioOutput::setVolume(float volume)
     if (m_audio.isUndefined() || m_audio.isNull()) {
         qCDebug(qWasmMediaAudioOutput) << "Error"
                                        << "Audio element not available";
-        emit errorOccured(QMediaPlayer::ResourceError,
+        Q_EMIT errorOccured(QMediaPlayer::ResourceError,
                           QStringLiteral("Media file could not be opened"));
         return;
     }
@@ -91,7 +91,7 @@ void QWasmAudioOutput::setSource(const QUrl &url)
     if (m_audio.isUndefined() || m_audio.isNull()) {
         qCDebug(qWasmMediaAudioOutput) << "Error"
                                        << "Audio element could not be created";
-        emit errorOccured(QMediaPlayer::ResourceError,
+        Q_EMIT errorOccured(QMediaPlayer::ResourceError,
                           QStringLiteral("Audio element could not be created"));
         return;
     }
@@ -122,7 +122,7 @@ void QWasmAudioOutput::setSource(const QUrl &url)
         if (!mediaFile.open(QIODevice::ReadOnly)) {
             qCDebug(qWasmMediaAudioOutput) << "Error"
                                            << "Media file could not be opened";
-            emit errorOccured(QMediaPlayer::ResourceError,
+            Q_EMIT errorOccured(QMediaPlayer::ResourceError,
                               QStringLiteral("Media file could not be opened"));
             return;
         }
@@ -172,7 +172,7 @@ void QWasmAudioOutput::start()
 {
     if (m_audio.isNull() || m_audio.isUndefined()) {
         qCDebug(qWasmMediaAudioOutput) << "audio failed to start";
-        emit errorOccured(QMediaPlayer::ResourceError,
+        Q_EMIT errorOccured(QMediaPlayer::ResourceError,
                           QStringLiteral("Audio element resource error"));
         return;
     }
@@ -184,7 +184,7 @@ void QWasmAudioOutput::stop()
 {
     if (m_audio.isNull() || m_audio.isUndefined()) {
         qCDebug(qWasmMediaAudioOutput) << "audio failed to start";
-        emit errorOccured(QMediaPlayer::ResourceError,
+        Q_EMIT errorOccured(QMediaPlayer::ResourceError,
                           QStringLiteral("Audio element resource error"));
         return;
     }
@@ -203,7 +203,7 @@ void QWasmAudioOutput::pause()
 {
     if (m_audio.isNull() || m_audio.isUndefined()) {
         qCDebug(qWasmMediaAudioOutput) << "audio failed to start";
-        emit errorOccured(QMediaPlayer::ResourceError,
+        Q_EMIT errorOccured(QMediaPlayer::ResourceError,
                           QStringLiteral("Audio element resource error"));
         return;
     }
@@ -258,7 +258,7 @@ void QWasmAudioOutput::doElementCallbacks()
         qCDebug(qWasmMediaAudioOutput) << "error";
         if (event.isUndefined() || event.isNull())
             return;
-        emit errorOccured(m_audio["error"]["code"].as<int>(),
+        Q_EMIT errorOccured(m_audio["error"]["code"].as<int>(),
                           QString::fromStdString(m_audio["error"]["message"].as<std::string>()));
 
         QString errorMessage =
@@ -281,7 +281,7 @@ void QWasmAudioOutput::doElementCallbacks()
         }
         qCDebug(qWasmMediaAudioOutput) << m_audio["error"]["code"].as<int>() << errorMessage;
 
-        emit errorOccured(m_audio["error"]["code"].as<int>(), errorMessage);
+        Q_EMIT errorOccured(m_audio["error"]["code"].as<int>(), errorMessage);
     };
     m_errorChangeEvent.reset(new qstdweb::EventCallback(m_audio, "error", errorCallback));
 
@@ -298,15 +298,15 @@ void QWasmAudioOutput::doElementCallbacks()
         if (event.isUndefined() || event.isNull())
             return;
         qCDebug(qWasmMediaAudioOutput) << "can play";
-        emit readyChanged(true);
-        emit stateChanged(QWasmMediaPlayer::Preparing);
+        Q_EMIT readyChanged(true);
+        Q_EMIT stateChanged(QWasmMediaPlayer::Preparing);
     };
     m_canPlayChangeEvent.reset(new qstdweb::EventCallback(m_audio, "canplay", canPlayCallback));
 
     // canplaythrough
     auto canPlayThroughCallback = [&](emscripten::val event) {
         Q_UNUSED(event)
-        emit stateChanged(QWasmMediaPlayer::Prepared);
+        Q_EMIT stateChanged(QWasmMediaPlayer::Prepared);
     };
     m_canPlayThroughChangeEvent.reset(
             new qstdweb::EventCallback(m_audio, "canplaythrough", canPlayThroughCallback));
@@ -315,7 +315,7 @@ void QWasmAudioOutput::doElementCallbacks()
     auto playCallback = [&](emscripten::val event) {
         Q_UNUSED(event)
         qCDebug(qWasmMediaAudioOutput) << "play";
-        emit stateChanged(QWasmMediaPlayer::Started);
+        Q_EMIT stateChanged(QWasmMediaPlayer::Started);
     };
     m_playEvent.reset(new qstdweb::EventCallback(m_audio, "play", playCallback));
 
@@ -324,7 +324,7 @@ void QWasmAudioOutput::doElementCallbacks()
         qCDebug(qWasmMediaAudioOutput) << "durationChange";
 
         // duration in ms
-        emit durationChanged(event["target"]["duration"].as<double>() * 1000);
+        Q_EMIT durationChanged(event["target"]["duration"].as<double>() * 1000);
     };
     m_durationChangeEvent.reset(
             new qstdweb::EventCallback(m_audio, "durationchange", durationChangeCallback));
@@ -334,7 +334,7 @@ void QWasmAudioOutput::doElementCallbacks()
         Q_UNUSED(event)
         qCDebug(qWasmMediaAudioOutput) << "ended";
         m_currentMediaStatus = QMediaPlayer::EndOfMedia;
-        emit statusChanged(m_currentMediaStatus);
+        Q_EMIT statusChanged(m_currentMediaStatus);
     };
     m_endedEvent.reset(new qstdweb::EventCallback(m_audio, "ended", endedCallback));
 
@@ -360,13 +360,13 @@ void QWasmAudioOutput::doElementCallbacks()
                     float bufferedValue = (bufferedEnd / duration * 100);
                     qCDebug(qWasmMediaAudioOutput) << "progress buffered" << bufferedValue;
 
-                    emit bufferingChanged(m_currentBufferedValue);
+                    Q_EMIT bufferingChanged(m_currentBufferedValue);
                     if (bufferedEnd == duration)
                         m_currentMediaStatus = QMediaPlayer::BufferedMedia;
                     else
                         m_currentMediaStatus = QMediaPlayer::BufferingMedia;
 
-                    emit statusChanged(m_currentMediaStatus);
+                    Q_EMIT statusChanged(m_currentMediaStatus);
                 }
             }
         }
@@ -379,7 +379,7 @@ void QWasmAudioOutput::doElementCallbacks()
                 << "timeupdate" << (event["target"]["currentTime"].as<double>() * 1000);
 
         // qt progress is ms
-        emit progressChanged(event["target"]["currentTime"].as<double>() * 1000);
+        Q_EMIT progressChanged(event["target"]["currentTime"].as<double>() * 1000);
     };
     m_timeUpdateEvent.reset(new qstdweb::EventCallback(m_audio, "timeupdate", timeUpdateCallback));
 
@@ -391,9 +391,9 @@ void QWasmAudioOutput::doElementCallbacks()
         int currentTime = m_audio["currentTime"].as<int>(); // in seconds
         int duration = m_audio["duration"].as<int>(); // in seconds
         if ((currentTime > 0 && currentTime < duration)) {
-            emit stateChanged(QWasmMediaPlayer::Paused);
+            Q_EMIT stateChanged(QWasmMediaPlayer::Paused);
         } else {
-            emit stateChanged(QWasmMediaPlayer::Stopped);
+            Q_EMIT stateChanged(QWasmMediaPlayer::Stopped);
         }
     };
     m_pauseChangeEvent.reset(new qstdweb::EventCallback(m_audio, "pause", pauseCallback));

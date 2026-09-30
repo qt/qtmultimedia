@@ -206,7 +206,7 @@ QAVFCamera::~QAVFCamera()
     // removed. We emit a signal that still-photo capture failed, so
     // that QImageCapture can cancel any pending still-photo capture jobs.
     if (stillPhotoCaptureInProgress()) {
-        emit stillPhotoFailed(
+        Q_EMIT stillPhotoFailed(
             QImageCapture::Error::ResourceError,
             u"Camera object was destroyed before still photo capture was completed"_s);
     }
@@ -294,7 +294,7 @@ q23::expected<void, QString> QAVFCamera::setupAvCaptureVideoDataOutput(
     // reference.
     auto frameHandler = [this](QVideoFrame frame) {
         dispatch_assert_queue(m_delegateQueue);
-        emit newVideoFrame(frame);
+        Q_EMIT newVideoFrame(frame);
     };
 
     QAVFSampleBufferDelegate *sampleBufferDelegate = [[[QAVFSampleBufferDelegate alloc]
@@ -807,14 +807,14 @@ void QAVFCamera::onStillPhotoDelegateSucceeded(const QVideoFrame &image)
 {
     Q_ASSERT(stillPhotoCaptureInProgress());
     m_qAvfCapturePhotoOutputDelegate.reset();
-    emit stillPhotoSucceeded(image);
+    Q_EMIT stillPhotoSucceeded(image);
 }
 
 void QAVFCamera::onStillPhotoDelegateFailed(QImageCapture::Error errType, const QString &errMsg)
 {
     Q_ASSERT(stillPhotoCaptureInProgress());
     m_qAvfCapturePhotoOutputDelegate.reset();
-    emit stillPhotoFailed(errType, errMsg);
+    Q_EMIT stillPhotoFailed(errType, errMsg);
 }
 
 } // namespace QFFmpeg

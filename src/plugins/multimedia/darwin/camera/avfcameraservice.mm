@@ -52,7 +52,7 @@ void AVFCameraService::setCamera(QPlatformCamera *camera)
     if (m_cameraControl)
         m_cameraControl->setCaptureSession(this);
 
-    emit cameraChanged();
+    Q_EMIT cameraChanged();
 }
 
 QPlatformImageCapture *AVFCameraService::imageCapture()
@@ -92,7 +92,7 @@ void AVFCameraService::setMediaRecorder(QPlatformMediaRecorder *recorder)
     if (m_encoder)
         m_encoder->setCaptureSession(this);
 
-    emit encoderChanged();
+    Q_EMIT encoderChanged();
 }
 
 void AVFCameraService::setAudioInput(QPlatformAudioInput *input)

@@ -72,7 +72,7 @@ void QWindowsImageCapture::setCaptureSession(QPlatformMediaCaptureSession *sessi
     m_captureService = captureService;
     if (!m_captureService) {
         if (readyForCapture)
-            emit readyForCaptureChanged(false);
+            Q_EMIT readyForCaptureChanged(false);
         m_mediaDeviceSession = nullptr;
         return;
     }
@@ -81,7 +81,7 @@ void QWindowsImageCapture::setCaptureSession(QPlatformMediaCaptureSession *sessi
     Q_ASSERT(m_mediaDeviceSession);
 
     if (isReadyForCapture() != readyForCapture)
-        emit readyForCaptureChanged(isReadyForCapture());
+        Q_EMIT readyForCaptureChanged(isReadyForCapture());
 
     connect(m_mediaDeviceSession, &QWindowsMediaDeviceSession::readyForCaptureChanged,
             this, &QWindowsImageCapture::readyForCaptureChanged);
@@ -106,15 +106,15 @@ void QWindowsImageCapture::handleVideoFrameChanged(const QVideoFrame &frame)
             }
         }
 
-        emit imageExposed(m_captureId);
-        emit imageAvailable(m_captureId, frame);
-        emit imageCaptured(m_captureId, image);
+        Q_EMIT imageExposed(m_captureId);
+        Q_EMIT imageAvailable(m_captureId, frame);
+        Q_EMIT imageCaptured(m_captureId, image);
 
         QMediaMetaData metaData = this->metaData();
         metaData.insert(QMediaMetaData::Date, QDateTime::currentDateTime());
         metaData.insert(QMediaMetaData::Resolution, size);
 
-        emit imageMetadataAvailable(m_captureId, metaData);
+        Q_EMIT imageMetadataAvailable(m_captureId, metaData);
 
         if (!m_fileName.isEmpty()) {
 
@@ -148,7 +148,7 @@ void QWindowsImageCapture::saveImage(int captureId, const QString &fileName,
     imageWriter.write(image);
 
     QMetaObject::invokeMethod(this, [this, captureId, fileName] {
-        emit imageSaved(captureId, fileName);
+        Q_EMIT imageSaved(captureId, fileName);
     }, Qt::QueuedConnection);
 }
 

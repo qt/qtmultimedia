@@ -46,7 +46,7 @@ void QWasmMediaCaptureSession::setCamera(QPlatformCamera *camera)
         m_camera = wasmCamera;
         m_camera->setCaptureSession(this);
     }
-    emit cameraChanged();
+    Q_EMIT cameraChanged();
 }
 
 QPlatformImageCapture *QWasmMediaCaptureSession::imageCapture()
@@ -70,7 +70,7 @@ void QWasmMediaCaptureSession::setImageCapture(QPlatformImageCapture *imageCaptu
         if (m_camera && m_camera->isActive())
             m_imageCapture->setReadyForCapture(true);
 
-        emit imageCaptureChanged();
+        Q_EMIT imageCaptureChanged();
     }
 }
 
@@ -258,7 +258,7 @@ void QWasmMediaCaptureSession::setVideoSource(std::string surfacetype)
                     QString::fromStdString(stream["id"].as<std::string>())));
 
                 wasmWindowCapture->setVideoStream(stream);
-                emit windowCaptureChanged();
+                Q_EMIT windowCaptureChanged();
             } else {
 
                 QWasmScreenCapture *wasmScreenCapture =
@@ -266,7 +266,7 @@ void QWasmMediaCaptureSession::setVideoSource(std::string surfacetype)
                 wasmScreenCapture->setVideoOutput(m_videoOutput.get());
 
                 wasmScreenCapture->setVideoStream(stream);
-                emit screenCaptureChanged();
+                Q_EMIT screenCaptureChanged();
             }
         },
         .catchFunc =

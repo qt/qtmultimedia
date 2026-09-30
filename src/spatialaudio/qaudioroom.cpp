@@ -230,7 +230,7 @@ void QAudioRoom::setPosition(QVector3D pos)
         return;
     toFloats(pos, d->roomProperties.position);
     d->requestUpdate();
-    emit positionChanged();
+    Q_EMIT positionChanged();
 }
 
 QVector3D QAudioRoom::position() const
@@ -265,7 +265,7 @@ void QAudioRoom::setDimensions(QVector3D dim)
         return;
     toFloats(dim, d->roomProperties.dimensions);
     d->requestUpdate();
-    emit dimensionsChanged();
+    Q_EMIT dimensionsChanged();
 }
 
 QVector3D QAudioRoom::dimensions() const
@@ -293,7 +293,7 @@ void QAudioRoom::setRotation(const QQuaternion &q)
         return;
     toFloats(q, d->roomProperties.rotation);
     d->requestUpdate();
-    emit rotationChanged();
+    Q_EMIT rotationChanged();
 }
 
 QQuaternion QAudioRoom::rotation() const
@@ -327,7 +327,7 @@ void QAudioRoom::setWallMaterial(Wall wall, Material material)
         return;
     d->roomProperties.material_names[int(wall)] = vraudio::MaterialName(int(material));
     d->requestUpdate();
-    emit wallsChanged();
+    Q_EMIT wallsChanged();
 }
 
 /*!
@@ -361,7 +361,7 @@ void QAudioRoom::setReflectionGain(float factor)
         return;
     d->roomProperties.reflection_scalar = factor;
     d->requestUpdate();
-    emit reflectionGainChanged();
+    Q_EMIT reflectionGainChanged();
 }
 
 float QAudioRoom::reflectionGain() const
@@ -390,7 +390,7 @@ void QAudioRoom::setReverbGain(float factor)
         return;
     d->roomProperties.reverb_gain = factor;
     d->requestUpdate();
-    emit reverbGainChanged();
+    Q_EMIT reverbGainChanged();
 }
 
 float QAudioRoom::reverbGain() const
@@ -419,7 +419,7 @@ void QAudioRoom::setReverbTime(float factor)
         return;
     d->roomProperties.reverb_time = factor;
     d->requestUpdate();
-    emit reverbTimeChanged();
+    Q_EMIT reverbTimeChanged();
 }
 
 float QAudioRoom::reverbTime() const
@@ -446,7 +446,7 @@ void QAudioRoom::setReverbBrightness(float factor)
         return;
     d->roomProperties.reverb_brightness = factor;
     d->requestUpdate();
-    emit reverbBrightnessChanged();
+    Q_EMIT reverbBrightnessChanged();
 }
 
 float QAudioRoom::reverbBrightness() const

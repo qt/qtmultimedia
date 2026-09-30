@@ -694,7 +694,7 @@ void QWindowsMediaDeviceReader::stopRecording()
             m_sinkWriter = nullptr;
 
             QMetaObject::invokeMethod(this, [this, hr] {
-                emit recordingError(hr);
+                Q_EMIT recordingError(hr);
             }, Qt::QueuedConnection);
         }
     }
@@ -786,7 +786,7 @@ void QWindowsMediaDeviceReader::updateDuration()
 {
     if (m_currentDuration >= 0 && m_lastDuration != m_currentDuration) {
         m_lastDuration = m_currentDuration;
-        emit durationChanged(m_currentDuration);
+        Q_EMIT durationChanged(m_currentDuration);
     }
 }
 
@@ -798,7 +798,7 @@ STDMETHODIMP QWindowsMediaDeviceReader::OnReadSample(HRESULT hrStatus, DWORD dwS
     QMutexLocker locker(&m_mutex);
 
     if (FAILED(hrStatus)) {
-        emit streamingError(hrStatus);
+        Q_EMIT streamingError(hrStatus);
         return hrStatus;
     }
 
@@ -806,12 +806,12 @@ STDMETHODIMP QWindowsMediaDeviceReader::OnReadSample(HRESULT hrStatus, DWORD dwS
 
     if ((dwStreamFlags & MF_SOURCE_READERF_ENDOFSTREAM) == MF_SOURCE_READERF_ENDOFSTREAM) {
         m_streaming = false;
-        emit streamingStopped();
+        Q_EMIT streamingStopped();
     } else {
 
         if (!m_streaming) {
             m_streaming = true;
-            emit streamingStarted();
+            Q_EMIT streamingStarted();
         }
         if (pSample) {
 
@@ -823,7 +823,7 @@ STDMETHODIMP QWindowsMediaDeviceReader::OnReadSample(HRESULT hrStatus, DWORD dwS
                 if (m_firstFrame) {
                     m_timeOffset = llTimestamp;
                     m_firstFrame = false;
-                    emit recordingStarted();
+                    Q_EMIT recordingStarted();
                 }
 
                 if (m_pauseChanging) {
@@ -899,7 +899,7 @@ STDMETHODIMP QWindowsMediaDeviceReader::OnReadSample(HRESULT hrStatus, DWORD dwS
                         if (SUCCEEDED(pSample->GetSampleDuration(&duration)))
                             frame.setEndTime((llTimestamp + duration) * 0.1);
 
-                        emit videoFrameChanged(frame);
+                        Q_EMIT videoFrameChanged(frame);
 
                         mediaBuffer->Unlock();
                     }
@@ -930,7 +930,7 @@ STDMETHODIMP QWindowsMediaDeviceReader::OnFinalize(HRESULT)
 {
     QMutexLocker locker(&m_mutex);
     m_sinkWriter = nullptr;
-    emit recordingStopped();
+    Q_EMIT recordingStopped();
     m_hasFinalized.notify_one();
     return S_OK;
 }

@@ -105,7 +105,7 @@ public:
         qRegisterMetaType<ComPtr<IMMDevice>>();
     }
 
-signals:
+Q_SIGNALS:
     void audioDeviceAdded(ComPtr<IMMDevice>);
     void audioDeviceRemoved(ComPtr<IMMDevice>);
     void audioDevicePropertyChanged(ComPtr<IMMDevice>);
@@ -126,15 +126,15 @@ private:
         if (role == ERole::eMultimedia) {
             switch (flow) {
             case EDataFlow::eCapture:
-                emit audioDeviceDefaultChanged(QAudioDevice::Input, device);
+                Q_EMIT audioDeviceDefaultChanged(QAudioDevice::Input, device);
                 break;
             case EDataFlow::eRender:
-                emit audioDeviceDefaultChanged(QAudioDevice::Output, device);
+                Q_EMIT audioDeviceDefaultChanged(QAudioDevice::Output, device);
                 break;
             case EDataFlow::eAll:
                 // Not expected, but handle it anyway
-                emit audioDeviceDefaultChanged(QAudioDevice::Input, device);
-                emit audioDeviceDefaultChanged(QAudioDevice::Output, device);
+                Q_EMIT audioDeviceDefaultChanged(QAudioDevice::Input, device);
+                Q_EMIT audioDeviceDefaultChanged(QAudioDevice::Output, device);
                 break;
             default:
                 Q_UNREACHABLE_RETURN(S_OK);
@@ -155,7 +155,7 @@ private:
             m_deviceMap.emplace(QString::fromWCharArray(deviceID), *enumerateResult);
 
             if (enumerateResult->state == DeviceState::active)
-                emit audioDeviceAdded(enumerateResult->device);
+                Q_EMIT audioDeviceAdded(enumerateResult->device);
         }
 
         return S_OK;
@@ -167,7 +167,7 @@ private:
         auto it = m_deviceMap.find(key);
         if (it != std::end(m_deviceMap)) {
             if (it->second.state == DeviceState::active)
-                emit audioDeviceRemoved(it->second.device);
+                Q_EMIT audioDeviceRemoved(it->second.device);
             m_deviceMap.erase(key);
         }
 
@@ -184,9 +184,9 @@ private:
                 return S_OK;
 
             if (newState == DeviceState::active && it->second.state != DeviceState::active)
-                emit audioDeviceAdded(it->second.device);
+                Q_EMIT audioDeviceAdded(it->second.device);
             else if (newState != DeviceState::active && it->second.state == DeviceState::active)
-                emit audioDeviceRemoved(it->second.device);
+                Q_EMIT audioDeviceRemoved(it->second.device);
 
             it->second.state = newState;
         }
@@ -198,7 +198,7 @@ private:
     {
         if (auto it = m_deviceMap.find(QString::fromWCharArray(deviceID));
             it != std::end(m_deviceMap)) {
-            emit audioDevicePropertyChanged(it->second.device);
+            Q_EMIT audioDevicePropertyChanged(it->second.device);
         }
 
         return S_OK;

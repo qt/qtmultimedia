@@ -80,7 +80,7 @@ void RecordingEngine::addAudioInput(QFFmpegAudioInput *input)
     Q_ASSERT(m_state == State::FormatsInitializing);
 
     if (input->device.isNull()) {
-        emit streamInitializationError(QMediaRecorder::ResourceError,
+        Q_EMIT streamInitializationError(QMediaRecorder::ResourceError,
                                        QLatin1StringView("Audio device is null"));
         return;
     }
@@ -88,7 +88,7 @@ void RecordingEngine::addAudioInput(QFFmpegAudioInput *input)
     const QAudioFormat format = input->device.preferredFormat();
 
     if (!format.isValid()) {
-        emit streamInitializationError(
+        Q_EMIT streamInitializationError(
                 QMediaRecorder::FormatError,
                 QLatin1StringView("Audio device has invalid preferred format"));
         return;
@@ -171,7 +171,7 @@ bool RecordingEngine::startEncoders()
     m_formatsInitializer.reset();
 
     if (m_audioEncoders.empty() && m_videoEncoders.empty()) {
-        emit sessionError(QMediaRecorder::ResourceError,
+        Q_EMIT sessionError(QMediaRecorder::ResourceError,
                           QLatin1StringView("No valid stream found for encoding"));
         return false;
     }
@@ -224,7 +224,7 @@ void RecordingEngine::EncodingFinalizer::run()
         const int res = av_write_trailer(m_recordingEngine.avFormatContext());
         if (res < 0) {
             qCWarning(qLcFFmpegEncoder) << "could not write trailer" << res << AVError(res);
-            emit m_recordingEngine.sessionError(QMediaRecorder::FormatError,
+            Q_EMIT m_recordingEngine.sessionError(QMediaRecorder::FormatError,
                                                 QLatin1String("Cannot write trailer: ")
                                                         + err2str(res));
         }
@@ -235,7 +235,7 @@ void RecordingEngine::EncodingFinalizer::run()
     m_recordingEngine.m_formatContext->closeAVIO();
 
     qCDebug(qLcFFmpegEncoder) << "Media recording finalized";
-    emit m_recordingEngine.finalizationDone();
+    Q_EMIT m_recordingEngine.finalizationDone();
     m_recordingEngine.deleteLater(); // defer destruction to m_recordingEngine's thread
 }
 
@@ -283,7 +283,7 @@ void RecordingEngine::newTimeStamp(qint64 time)
     QMutexLocker locker(&m_timeMutex);
     if (time > m_timeRecorded) {
         m_timeRecorded = time;
-        emit durationChanged(time);
+        Q_EMIT durationChanged(time);
     }
 }
 
@@ -295,7 +295,7 @@ bool RecordingEngine::isEndOfSourceStreams() const
 void RecordingEngine::handleSourceEndOfStream()
 {
     if (m_autoStop && isEndOfSourceStreams())
-        emit autoStopped();
+        Q_EMIT autoStopped();
 }
 
 void RecordingEngine::handleEncodersResolved(const QList<QFuture<bool>> &resolutions)
@@ -319,7 +319,7 @@ void RecordingEngine::handleEncodersResolved(const QList<QFuture<bool>> &resolut
         if (res < 0) {
             qWarning() << "could not write header, error:" << res << AVError(res);
             allEncodersSucceeded = false;
-            emit sessionError(QMediaRecorder::ResourceError,
+            Q_EMIT sessionError(QMediaRecorder::ResourceError,
                               QStringLiteral("Cannot start writing the stream"));
         } else {
             qCDebug(qLcFFmpegEncoder) << "Stream header is successfully written";

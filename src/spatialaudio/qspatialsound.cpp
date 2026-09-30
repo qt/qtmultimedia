@@ -283,7 +283,7 @@ void QSpatialSound::setPosition(QVector3D pos)
     pos *= ep->distanceScale();
     d->pos = pos;
     ep->resonanceAudio->api->SetSourcePosition(d->sourceId, pos.x(), pos.y(), pos.z());
-    emit positionChanged();
+    Q_EMIT positionChanged();
 }
 
 QVector3D QSpatialSound::position() const
@@ -313,7 +313,7 @@ void QSpatialSound::setRotation(const QQuaternion &q)
 
     d->rotation = q;
     ep->resonanceAudio->api->SetSourceRotation(d->sourceId, q.x(), q.y(), q.z(), q.scalar());
-    emit rotationChanged();
+    Q_EMIT rotationChanged();
 }
 
 QQuaternion QSpatialSound::rotation() const
@@ -335,7 +335,7 @@ void QSpatialSound::setVolume(float volume)
     Q_D(QSpatialSound);
     if (volume != d->volume()) {
         d->setVolume(volume);
-        emit volumeChanged();
+        Q_EMIT volumeChanged();
     }
 }
 
@@ -374,7 +374,7 @@ void QSpatialSound::setDistanceModel(DistanceModel model)
     d->distanceModel = model;
 
     d->updateDistanceModel();
-    emit distanceModelChanged();
+    Q_EMIT distanceModelChanged();
 }
 
 QSpatialSound::DistanceModel QSpatialSound::distanceModel() const
@@ -403,7 +403,7 @@ void QSpatialSound::setSize(float size)
     d->size = size;
 
     d->updateDistanceModel();
-    emit sizeChanged();
+    Q_EMIT sizeChanged();
 }
 
 float QSpatialSound::size() const
@@ -436,7 +436,7 @@ void QSpatialSound::setDistanceCutoff(float cutoff)
     d->distanceCutoff = cutoff;
 
     d->updateDistanceModel();
-    emit distanceCutoffChanged();
+    Q_EMIT distanceCutoffChanged();
 }
 
 float QSpatialSound::distanceCutoff() const
@@ -466,7 +466,7 @@ void QSpatialSound::setManualAttenuation(float attenuation)
         return;
     d->manualAttenuation = attenuation;
     ep->resonanceAudio->api->SetSourceDistanceAttenuation(d->sourceId, d->manualAttenuation);
-    emit manualAttenuationChanged();
+    Q_EMIT manualAttenuationChanged();
 }
 
 float QSpatialSound::manualAttenuation() const
@@ -502,7 +502,7 @@ void QSpatialSound::setOcclusionIntensity(float occlusion)
         return;
     d->occlusionIntensity = occlusion;
     ep->resonanceAudio->api->SetSoundObjectOcclusionIntensity(d->sourceId, d->occlusionIntensity + d->wallOcclusion);
-    emit occlusionIntensityChanged();
+    Q_EMIT occlusionIntensityChanged();
 }
 
 float QSpatialSound::occlusionIntensity() const
@@ -535,7 +535,7 @@ void QSpatialSound::setDirectivity(float alpha)
 
     ep->resonanceAudio->api->SetSoundObjectDirectivity(d->sourceId, d->directivity, d->directivityOrder);
 
-    emit directivityChanged();
+    Q_EMIT directivityChanged();
 }
 
 float QSpatialSound::directivity() const
@@ -566,7 +566,7 @@ void QSpatialSound::setDirectivityOrder(float order)
 
     ep->resonanceAudio->api->SetSoundObjectDirectivity(d->sourceId, d->directivity, d->directivityOrder);
 
-    emit directivityOrderChanged();
+    Q_EMIT directivityOrderChanged();
 }
 
 float QSpatialSound::directivityOrder() const
@@ -597,7 +597,7 @@ void QSpatialSound::setNearFieldGain(float gain)
 
     ep->resonanceAudio->api->SetSoundObjectNearFieldEffectGain(d->sourceId, d->nearFieldGain*9.f);
 
-    emit nearFieldGainChanged();
+    Q_EMIT nearFieldGainChanged();
 
 }
 
@@ -621,7 +621,7 @@ void QSpatialSound::setSource(const QUrl &url)
         return;
     d->loadUrl(url);
 
-    emit sourceChanged();
+    Q_EMIT sourceChanged();
 }
 
 QUrl QSpatialSound::source() const
@@ -658,7 +658,7 @@ void QSpatialSound::setLoops(int loops)
     Q_D(QSpatialSound);
     if (loops != d->loops()) {
         d->setLoops(loops);
-        emit loopsChanged();
+        Q_EMIT loopsChanged();
     }
 }
 
@@ -681,7 +681,7 @@ void QSpatialSound::setAutoPlay(bool autoPlay)
     Q_D(QSpatialSound);
     if (autoPlay != d->autoPlay()) {
         d->setAutoPlay(autoPlay);
-        emit autoPlayChanged();
+        Q_EMIT autoPlayChanged();
     }
 }
 

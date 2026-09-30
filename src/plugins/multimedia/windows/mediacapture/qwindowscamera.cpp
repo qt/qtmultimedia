@@ -32,7 +32,7 @@ void QWindowsCamera::setActive(bool active)
     if (m_mediaDeviceSession)
         m_mediaDeviceSession->setActive(active);
 
-    emit activeChanged(m_active);
+    Q_EMIT activeChanged(m_active);
 }
 
 void QWindowsCamera::setCamera(const QCameraDevice &camera)
@@ -94,7 +94,7 @@ void QWindowsCamera::onActiveChanged(bool active)
     if (m_cameraDevice.isNull() && active)
         return;
     m_active = active;
-    emit activeChanged(m_active);
+    Q_EMIT activeChanged(m_active);
 }
 
 QT_END_NAMESPACE

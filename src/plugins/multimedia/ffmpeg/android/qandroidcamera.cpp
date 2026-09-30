@@ -261,9 +261,9 @@ void QAndroidCamera::frameAvailable(QJniObject image, bool takePhoto)
     videoFrame.setMirrored(m_cameraDevice.position() == QCameraDevice::Position::FrontFace);
 
     if (!takePhoto)
-        emit newVideoFrame(videoFrame);
+        Q_EMIT newVideoFrame(videoFrame);
     else
-        emit onStillPhotoCaptured(videoFrame);
+        Q_EMIT onStillPhotoCaptured(videoFrame);
 }
 
 QtVideo::Rotation QAndroidCamera::rotation() const
@@ -394,7 +394,7 @@ void QAndroidCamera::setState(QAndroidCamera::State newState)
         m_state = State::WaitingStart;
 
     if (wasActive != isActive())
-        emit activeChanged(isActive());
+        Q_EMIT activeChanged(isActive());
 }
 
 bool QAndroidCamera::setCameraFormat(const QCameraFormat &format)
@@ -756,7 +756,7 @@ void QAndroidCamera::onStillPhotoCaptureFailed()
 {
     // TODO: Emit a more descriptive error signal. At the time of writing, there is no
     // suitable QImageCapture::Error enumerator for this scenario.
-    emit onImageCaptureFailed(
+    Q_EMIT onImageCaptureFailed(
         QImageCapture::Error::ResourceError,
         QStringLiteral("Unknown error"));
 }

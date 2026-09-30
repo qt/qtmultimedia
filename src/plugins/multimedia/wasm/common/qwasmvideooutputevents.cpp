@@ -25,7 +25,7 @@ void QWasmVideoOutput::doElementCallbacks()
        qCDebug(qWasmMediaVideoOutput) << "timeupdate";
 
         // qt progress is ms
-        emit progressChanged(event["target"]["currentTime"].as<double>() * 1000);
+        Q_EMIT progressChanged(event["target"]["currentTime"].as<double>() * 1000);
     };
     m_timeUpdateEvent.reset(new QWasmEventHandler(m_video, "timeupdate", timeUpdateCallback));
 
@@ -34,7 +34,7 @@ void QWasmVideoOutput::doElementCallbacks()
         Q_UNUSED(event)
         qCDebug(qWasmMediaVideoOutput) << "play" << m_video["src"].as<std::string>();
         if (!m_isSeeking)
-            emit stateChanged(QWasmMediaPlayer::Preparing);
+            Q_EMIT stateChanged(QWasmMediaPlayer::Preparing);
     };
     m_playEvent.reset(new QWasmEventHandler(m_video, "play", playCallback));
 
@@ -43,7 +43,7 @@ void QWasmVideoOutput::doElementCallbacks()
         Q_UNUSED(event)
         qCDebug(qWasmMediaVideoOutput) << "ended";
         m_currentMediaStatus = MediaStatus::EndOfMedia;
-        emit statusChanged(m_currentMediaStatus);
+        Q_EMIT statusChanged(m_currentMediaStatus);
     };
     m_endedEvent.reset(new QWasmEventHandler(m_video, "ended", endedCallback));
 
@@ -53,7 +53,7 @@ void QWasmVideoOutput::doElementCallbacks()
 
         // qt duration is in milliseconds.
         qint64 dur = event["target"]["duration"].as<double>() * 1000;
-        emit durationChanged(dur);
+        Q_EMIT durationChanged(dur);
     };
     m_durationChangeEvent.reset(
             new QWasmEventHandler(m_video, "durationchange", durationChangeCallback));
@@ -63,10 +63,10 @@ void QWasmVideoOutput::doElementCallbacks()
         Q_UNUSED(event)
         qCDebug(qWasmMediaVideoOutput) << "loaded data";
 
-        emit stateChanged(QWasmMediaPlayer::Prepared);
+        Q_EMIT stateChanged(QWasmMediaPlayer::Prepared);
         if (m_isSeekable != isVideoSeekable()) {
             m_isSeekable = isVideoSeekable();
-            emit seekableChanged(m_isSeekable);
+            Q_EMIT seekableChanged(m_isSeekable);
         }
     };
     m_loadedDataEvent.reset(new QWasmEventHandler(m_video, "loadeddata", loadedDataCallback));
@@ -76,7 +76,7 @@ void QWasmVideoOutput::doElementCallbacks()
         qCDebug(qWasmMediaVideoOutput) << "error";
         if (event.isUndefined() || event.isNull())
             return;
-        emit errorOccured(m_video["error"]["code"].as<int>(),
+        Q_EMIT errorOccured(m_video["error"]["code"].as<int>(),
                           QString::fromStdString(m_video["error"]["message"].as<std::string>()));
     };
     m_errorChangeEvent.reset(new QWasmEventHandler(m_video, "error", errorCallback));
@@ -88,7 +88,7 @@ void QWasmVideoOutput::doElementCallbacks()
 
         updateVideoElementGeometry(
                 QRect(0, 0, m_video["videoWidth"].as<int>(), m_video["videoHeight"].as<int>()));
-        emit sizeChange(m_video["videoWidth"].as<int>(), m_video["videoHeight"].as<int>());
+        Q_EMIT sizeChange(m_video["videoWidth"].as<int>(), m_video["videoHeight"].as<int>());
 
     };
     m_resizeChangeEvent.reset(new QWasmEventHandler(m_video, "resize", resizeCallback));
@@ -98,7 +98,7 @@ void QWasmVideoOutput::doElementCallbacks()
         Q_UNUSED(event)
         qCDebug(qWasmMediaVideoOutput) << "loaded meta data";
 
-        emit metaDataLoaded();
+        Q_EMIT metaDataLoaded();
     };
     m_loadedMetadataChangeEvent.reset(
             new QWasmEventHandler(m_video, "loadedmetadata", loadedMetadataCallback));
@@ -108,7 +108,7 @@ void QWasmVideoOutput::doElementCallbacks()
         Q_UNUSED(event)
         qCDebug(qWasmMediaVideoOutput) << "load started";
         m_currentMediaStatus = MediaStatus::LoadingMedia;
-        emit statusChanged(m_currentMediaStatus);
+        Q_EMIT statusChanged(m_currentMediaStatus);
         m_isStopped = false;
     };
     m_loadStartChangeEvent.reset(new QWasmEventHandler(m_video, "loadstart", loadStartCallback));
@@ -122,7 +122,7 @@ void QWasmVideoOutput::doElementCallbacks()
                                        << "m_requestedPosition" << m_requestedPosition;
 
         if (!m_isStopped)
-            emit readyChanged(true); // sets video available
+            Q_EMIT readyChanged(true); // sets video available
     };
     m_canPlayChangeEvent.reset(new QWasmEventHandler(m_video, "canplay", canPlayCallback));
 
@@ -137,7 +137,7 @@ void QWasmVideoOutput::doElementCallbacks()
         bool seekable = isVideoSeekable();
         if (m_isSeekable != seekable) {
             m_isSeekable = seekable;
-            emit seekableChanged(m_isSeekable);
+            Q_EMIT seekableChanged(m_isSeekable);
         }
         if (!m_isSeeking && !m_isStopped) {
             emscripten::val timeRanges = m_video["buffered"];
@@ -148,13 +148,13 @@ void QWasmVideoOutput::doElementCallbacks()
 
                 if (duration == buffered) {
                     m_currentBufferedValue = 100;
-                    emit bufferingChanged(m_currentBufferedValue);
+                    Q_EMIT bufferingChanged(m_currentBufferedValue);
                 }
             }
             constexpr int hasEnoughData = 4;
             if (m_video["readyState"].as<int>() == hasEnoughData) {
                 m_currentMediaStatus = MediaStatus::LoadedMedia;
-                emit statusChanged(m_currentMediaStatus);
+                Q_EMIT statusChanged(m_currentMediaStatus);
                 m_frameGrabber.startFrameLoop();
             }
         } else {
@@ -177,7 +177,7 @@ void QWasmVideoOutput::doElementCallbacks()
     auto seekedCallback = [=](emscripten::val event) {
         Q_UNUSED(event)
         qCDebug(qWasmMediaVideoOutput) << "seeked" << (m_video["currentTime"].as<double>() * 1000);
-        emit progressChanged(m_video["currentTime"].as<double>() * 1000);
+        Q_EMIT progressChanged(m_video["currentTime"].as<double>() * 1000);
         m_isSeeking = false;
     };
     m_seekedChangeEvent.reset(new QWasmEventHandler(m_video, "seeked", seekedCallback));
@@ -186,9 +186,9 @@ void QWasmVideoOutput::doElementCallbacks()
     auto emptiedCallback = [=](emscripten::val event) {
         Q_UNUSED(event)
         qCDebug(qWasmMediaVideoOutput) << "emptied";
-        emit readyChanged(false);
+        Q_EMIT readyChanged(false);
         m_currentMediaStatus = MediaStatus::EndOfMedia;
-        emit statusChanged(m_currentMediaStatus);
+        Q_EMIT statusChanged(m_currentMediaStatus);
     };
     m_emptiedChangeEvent.reset(new QWasmEventHandler(m_video, "emptied", emptiedCallback));
 
@@ -197,7 +197,7 @@ void QWasmVideoOutput::doElementCallbacks()
         Q_UNUSED(event)
         qCDebug(qWasmMediaVideoOutput) << "stalled";
         m_currentMediaStatus = MediaStatus::StalledMedia;
-        emit statusChanged(m_currentMediaStatus);
+        Q_EMIT statusChanged(m_currentMediaStatus);
     };
     m_stalledChangeEvent.reset(new QWasmEventHandler(m_video, "stalled", stalledCallback));
 
@@ -218,7 +218,7 @@ void QWasmVideoOutput::doElementCallbacks()
         qCDebug(qWasmMediaVideoOutput) << "playing";
         if (m_isSeeking)
             return;
-        emit stateChanged(QWasmMediaPlayer::Started);
+        Q_EMIT stateChanged(QWasmMediaPlayer::Started);
         if (m_toBePaused) { // paused
             m_toBePaused = false;
             m_frameGrabber.startFrameLoop();
@@ -247,12 +247,12 @@ void QWasmVideoOutput::doElementCallbacks()
                     const double bufferedValue = (bufferedEnd / duration * 100);
                     qCDebug(qWasmMediaVideoOutput) << "progress buffered";
                     m_currentBufferedValue = bufferedValue;
-                    emit bufferingChanged(m_currentBufferedValue);
+                    Q_EMIT bufferingChanged(m_currentBufferedValue);
                     if (bufferedEnd == duration)
                         m_currentMediaStatus = MediaStatus::BufferedMedia;
                     else
                         m_currentMediaStatus = MediaStatus::BufferingMedia;
-                    emit statusChanged(m_currentMediaStatus);
+                    Q_EMIT statusChanged(m_currentMediaStatus);
                 }
             }
         }
@@ -267,11 +267,11 @@ void QWasmVideoOutput::doElementCallbacks()
         const double currentTime = m_video["currentTime"].as<double>(); // in seconds
         const double duration = m_video["duration"].as<double>(); // in seconds
         if ((currentTime > 0 && currentTime < duration) && (!m_isStopped)) {
-            emit stateChanged(QWasmMediaPlayer::Paused);
+            Q_EMIT stateChanged(QWasmMediaPlayer::Paused);
         } else {
             // stop this crazy thing!
             m_video.set("currentTime", emscripten::val(0));
-            emit stateChanged(QWasmMediaPlayer::Stopped);
+            Q_EMIT stateChanged(QWasmMediaPlayer::Stopped);
         }
     };
     m_pauseChangeEvent.reset(new QWasmEventHandler(m_video, "pause", pauseCallback));
@@ -321,7 +321,7 @@ bool QWasmVideoOutput::orientationchangeCallback(int eventType,
     Q_UNUSED(eventType)
 
     QWasmVideoOutput *videoOutput = static_cast<QWasmVideoOutput *>(userData);
-    emit videoOutput->orientationChanged(event->orientationIndex);
+    Q_EMIT videoOutput->orientationChanged(event->orientationIndex);
 
     return true;
 }

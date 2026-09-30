@@ -263,7 +263,7 @@ void QQnxWindowGrabber::triggerUpdate()
     if (m_size.width() != size[0] || m_size.height() != size[1])
         m_size = QSize(size[0], size[1]);
 
-    emit updateScene(m_size);
+    Q_EMIT updateScene(m_size);
 }
 
 bool QQnxWindowGrabber::selectBuffer()

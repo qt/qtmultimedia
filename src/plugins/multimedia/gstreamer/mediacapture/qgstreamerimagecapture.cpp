@@ -197,7 +197,7 @@ int QGstreamerImageCapture::doCapture(QString fileName)
         QMutexLocker guard(&m_mutex);
         if (!m_session) {
             invokeDeferred([this] {
-                emit error(-1, QImageCapture::ResourceError,
+                Q_EMIT error(-1, QImageCapture::ResourceError,
                            QPlatformImageCapture::msgImageCaptureNotSet());
             });
 
@@ -206,7 +206,7 @@ int QGstreamerImageCapture::doCapture(QString fileName)
         }
         if (!m_session->camera()) {
             invokeDeferred([this] {
-                emit error(-1, QImageCapture::ResourceError, tr("No camera available."));
+                Q_EMIT error(-1, QImageCapture::ResourceError, tr("No camera available."));
             });
 
             qCDebug(qLcImageCaptureGst) << "error 2";
@@ -214,7 +214,7 @@ int QGstreamerImageCapture::doCapture(QString fileName)
         }
         if (m_captureNextBuffer) {
             invokeDeferred([this] {
-                emit error(-1, QImageCapture::NotReadyError,
+                Q_EMIT error(-1, QImageCapture::NotReadyError,
                            QPlatformImageCapture::msgCameraNotReady());
             });
 
@@ -228,7 +228,7 @@ int QGstreamerImageCapture::doCapture(QString fileName)
         m_captureNextBuffer = true;
     }
 
-    emit readyForCaptureChanged(false);
+    Q_EMIT readyForCaptureChanged(false);
     return m_lastId;
 }
 
@@ -255,7 +255,7 @@ void QGstreamerImageCapture::saveBufferToFile(QGstBufferHandle buffer, QString f
         f.close();
 
         QMetaObject::invokeMethod(this, [this, taskId, filename = std::move(filename)]() mutable {
-            emit imageSaved(taskId, filename);
+            Q_EMIT imageSaved(taskId, filename);
         });
     });
 }
@@ -296,11 +296,11 @@ void QGstreamerImageCapture::convertBufferToImage(const QMutexLocker<QRecursiveM
                 return;
             }
 
-            emit imageExposed(taskId);
+            Q_EMIT imageExposed(taskId);
             qCDebug(qLcImageCaptureGst) << "Image available!";
-            emit imageAvailable(taskId, frame);
-            emit imageCaptured(taskId, img);
-            emit imageMetadataAvailable(taskId, metadata);
+            Q_EMIT imageAvailable(taskId, frame);
+            Q_EMIT imageCaptured(taskId, img);
+            Q_EMIT imageMetadataAvailable(taskId, metadata);
         });
     } else {
         runInThreadPool([this, taskId, buffer = std::move(buffer), caps = std::move(caps),
@@ -333,11 +333,11 @@ void QGstreamerImageCapture::convertBufferToImage(const QMutexLocker<QRecursiveM
 
             invokeDeferred([this, taskId, metadata = std::move(metadata), frame = std::move(frame),
                             img = std::move(img)]() mutable {
-                emit imageExposed(taskId);
+                Q_EMIT imageExposed(taskId);
                 qCDebug(qLcImageCaptureGst) << "Image available!";
-                emit imageAvailable(taskId, frame);
-                emit imageCaptured(taskId, img);
-                emit imageMetadataAvailable(taskId, metadata);
+                Q_EMIT imageAvailable(taskId, frame);
+                Q_EMIT imageCaptured(taskId, img);
+                Q_EMIT imageMetadataAvailable(taskId, metadata);
             });
         });
     }
@@ -376,7 +376,7 @@ bool QGstreamerImageCapture::probeBuffer(GstBuffer *buffer)
 
     bool ready = isReadyForCapture();
     invokeDeferred([this, ready] {
-        emit readyForCaptureChanged(ready);
+        Q_EMIT readyForCaptureChanged(ready);
     });
 
     // save file
@@ -413,7 +413,7 @@ void QGstreamerImageCapture::setCaptureSession(QPlatformMediaCaptureSession *ses
     m_session = captureSession;
     if (!m_session) {
         if (readyForCapture)
-            emit readyForCaptureChanged(false);
+            Q_EMIT readyForCaptureChanged(false);
         return;
     }
 
@@ -440,7 +440,7 @@ void QGstreamerImageCapture::cameraActiveChanged(bool active)
         return;
     cameraActive = active;
     qCDebug(qLcImageCaptureGst) << "isReady" << isReadyForCapture();
-    emit readyForCaptureChanged(isReadyForCapture());
+    Q_EMIT readyForCaptureChanged(isReadyForCapture());
 }
 
 void QGstreamerImageCapture::onCameraChanged()

@@ -29,7 +29,7 @@ void QPlatformMediaRecorder::stateChanged(QMediaRecorder::RecorderState state)
     if (m_state == state)
         return;
     m_state = state;
-    emit q->recorderStateChanged(state);
+    Q_EMIT q->recorderStateChanged(state);
 }
 
 void QPlatformMediaRecorder::durationChanged(qint64 duration)
@@ -37,7 +37,7 @@ void QPlatformMediaRecorder::durationChanged(qint64 duration)
     if (m_duration == duration)
         return;
     m_duration = duration;
-    emit q->durationChanged(duration);
+    Q_EMIT q->durationChanged(duration);
 }
 
 void QPlatformMediaRecorder::actualLocationChanged(const QUrl &location)
@@ -45,7 +45,7 @@ void QPlatformMediaRecorder::actualLocationChanged(const QUrl &location)
     if (m_actualLocation == location)
         return;
     m_actualLocation = location;
-    emit q->actualLocationChanged(location);
+    Q_EMIT q->actualLocationChanged(location);
 }
 
 void QPlatformMediaRecorder::updateError(QMediaRecorder::Error error, const QString &errorString)
@@ -55,7 +55,7 @@ void QPlatformMediaRecorder::updateError(QMediaRecorder::Error error, const QStr
 
 void QPlatformMediaRecorder::metaDataChanged()
 {
-    emit q->metaDataChanged();
+    Q_EMIT q->metaDataChanged();
 }
 
 QString QPlatformMediaRecorder::findActualLocation(const QMediaEncoderSettings &settings) const

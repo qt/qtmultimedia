@@ -42,7 +42,7 @@ void QAudioEnginePrivate::setDistanceScale(float scale)
         return;
     m_distanceScale = scale;
     Q_Q(QAudioEngine);
-    emit q->distanceScaleChanged();
+    Q_EMIT q->distanceScaleChanged();
 }
 
 float QAudioEnginePrivate::distanceScale() const
@@ -57,7 +57,7 @@ void QAudioEnginePrivate::setMasterVolume(float volume)
     m_masterVolume = volume;
     resonanceAudio->api->SetMasterVolume(volume);
     Q_Q(QAudioEngine);
-    emit q->masterVolumeChanged();
+    Q_EMIT q->masterVolumeChanged();
 }
 
 float QAudioEnginePrivate::masterVolume() const
@@ -104,7 +104,7 @@ void QAudioEnginePrivate::setOutputMode(QAudioEngine::OutputMode mode)
     resonanceAudio->api->SetStereoSpeakerMode(mode != QAudioEngine::Headphone);
 
     Q_Q(QAudioEngine);
-    emit q->outputModeChanged();
+    Q_EMIT q->outputModeChanged();
 }
 
 QAudioEngine::OutputMode QAudioEnginePrivate::outputMode() const

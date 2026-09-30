@@ -68,9 +68,9 @@ struct ImageCaptureErrorPair {
         nsError);
 
     if (processResult) {
-        emit self->m_notifier.succeeded(std::move(*processResult));
+        Q_EMIT self->m_notifier.succeeded(std::move(*processResult));
     } else {
-        emit self->m_notifier.failed(
+        Q_EMIT self->m_notifier.failed(
             processResult.error().type,
             std::move(processResult.error().message));
     }

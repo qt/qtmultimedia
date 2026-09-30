@@ -104,14 +104,14 @@ static void notifyError(JNIEnv* , jobject, jlong id, jint what, jint extra)
 {
     AndroidMediaRecorder *obj = mediaRecorders->value(id, 0);
     if (obj)
-        emit obj->error(what, extra);
+        Q_EMIT obj->error(what, extra);
 }
 
 static void notifyInfo(JNIEnv* , jobject, jlong id, jint what, jint extra)
 {
     AndroidMediaRecorder *obj = mediaRecorders->value(id, 0);
     if (obj)
-        emit obj->info(what, extra);
+        Q_EMIT obj->info(what, extra);
 }
 
 AndroidMediaRecorder::AndroidMediaRecorder()

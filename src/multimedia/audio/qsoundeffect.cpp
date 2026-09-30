@@ -182,7 +182,7 @@ void QSoundEffect::setSource(const QUrl &url)
 
     d->resolveAndSetSource(url, *QSampleCache::instance());
 
-    emit sourceChanged();
+    Q_EMIT sourceChanged();
 }
 
 /*!
@@ -241,7 +241,7 @@ void QSoundEffect::setLoopCount(int loopCount)
     }
 
     if (d->setLoopCount(loopCount))
-        emit loopCountChanged();
+        Q_EMIT loopCountChanged();
 }
 
 /*!
@@ -262,7 +262,7 @@ void QSoundEffect::setAudioDevice(const QAudioDevice &device)
     qCDebug(qLcSoundEffect) << this << "setAudioDevice:" << device.description();
 
     if (d->setAudioDevice(device))
-        emit audioDeviceChanged();
+        Q_EMIT audioDeviceChanged();
 }
 
 /*!
@@ -329,7 +329,7 @@ void QSoundEffect::setVolume(float volume)
 {
     Q_D(QSoundEffect);
     if (d->setVolume(volume))
-        emit volumeChanged();
+        Q_EMIT volumeChanged();
 }
 
 /*!
@@ -362,7 +362,7 @@ void QSoundEffect::setMuted(bool muted)
 {
     Q_D(QSoundEffect);
     if (d->setMuted(muted))
-        emit mutedChanged();
+        Q_EMIT mutedChanged();
 }
 
 /*!

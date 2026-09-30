@@ -62,7 +62,7 @@ bool QPlatformMediaPlayer::pitchCompensation() const
 
 void QPlatformMediaPlayer::pitchCompensationChanged(bool enabled) const
 {
-    emit player->pitchCompensationChanged(enabled);
+    Q_EMIT player->pitchCompensationChanged(enabled);
 }
 
 QPlaybackOptions QPlatformMediaPlayer::playbackOptions() const

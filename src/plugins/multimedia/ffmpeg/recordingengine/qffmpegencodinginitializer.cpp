@@ -126,7 +126,7 @@ bool EncodingInitializer::tryStartRecordingEngine()
 
 void EncodingInitializer::emitStreamInitializationError(QString error)
 {
-    emit m_recordingEngine.streamInitializationError(
+    Q_EMIT m_recordingEngine.streamInitializationError(
             QMediaRecorder::ResourceError,
             QStringLiteral("Video steam initialization error. ") + error);
 }

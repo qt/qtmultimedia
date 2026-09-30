@@ -38,7 +38,7 @@ void QQnxMediaCaptureSession::setCamera(QPlatformCamera *camera)
     if (m_camera)
         m_camera->setCaptureSession(this);
 
-    emit cameraChanged();
+    Q_EMIT cameraChanged();
 }
 
 QPlatformImageCapture *QQnxMediaCaptureSession::imageCapture()
@@ -59,7 +59,7 @@ void QQnxMediaCaptureSession::setImageCapture(QPlatformImageCapture *imageCaptur
     if (m_imageCapture)
         m_imageCapture->setCaptureSession(this);
 
-    emit imageCaptureChanged();
+    Q_EMIT imageCaptureChanged();
 }
 
 QPlatformMediaRecorder *QQnxMediaCaptureSession::mediaRecorder()
@@ -80,7 +80,7 @@ void QQnxMediaCaptureSession::setMediaRecorder(QPlatformMediaRecorder *mediaReco
     if (m_mediaRecorder)
         m_mediaRecorder->setCaptureSession(this);
 
-    emit encoderChanged();
+    Q_EMIT encoderChanged();
 }
 
 void QQnxMediaCaptureSession::setAudioInput(QPlatformAudioInput *input)

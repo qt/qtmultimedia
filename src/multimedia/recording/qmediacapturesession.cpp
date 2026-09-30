@@ -37,7 +37,7 @@ void QMediaCaptureSessionPrivate::setVideoSink(QVideoSink *sink)
         sink->setSource(q);
     if (captureSession)
         captureSession->setVideoPreview(sink);
-    emit q->videoOutputChanged();
+    Q_EMIT q->videoOutputChanged();
 }
 
 /*!
@@ -256,7 +256,7 @@ void QMediaCaptureSession::setObject(Object *object) {
         object->setCaptureSession(this);
     }
 
-    emit (this->*Traits::ChangeNotifier)();
+    Q_EMIT (this->*Traits::ChangeNotifier)();
 }
 
 /*!
@@ -341,7 +341,7 @@ void QMediaCaptureSession::setAudioInput(QAudioInput *input)
             d->captureSession->setAudioInput(input->handle());
     }
     d->audioInput = input;
-    emit audioInputChanged();
+    Q_EMIT audioInputChanged();
 }
 
 /*!
@@ -682,7 +682,7 @@ void QMediaCaptureSession::setAudioOutput(QAudioOutput *output)
             d->captureSession->setAudioOutput(output->handle());
     }
     d->audioOutput = output;
-    emit audioOutputChanged();
+    Q_EMIT audioOutputChanged();
 }
 /*!
     \qmlproperty AudioOutput QtMultimedia::CaptureSession::audioOutput

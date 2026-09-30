@@ -61,7 +61,7 @@ QPlatformCamera *QFFmpegMediaCaptureSession::camera()
 void QFFmpegMediaCaptureSession::setCamera(QPlatformCamera *camera)
 {
     if (setVideoSource(m_camera, camera))
-        emit cameraChanged();
+        Q_EMIT cameraChanged();
 }
 
 QPlatformSurfaceCapture *QFFmpegMediaCaptureSession::screenCapture()
@@ -72,7 +72,7 @@ QPlatformSurfaceCapture *QFFmpegMediaCaptureSession::screenCapture()
 void QFFmpegMediaCaptureSession::setScreenCapture(QPlatformSurfaceCapture *screenCapture)
 {
     if (setVideoSource(m_screenCapture, screenCapture))
-        emit screenCaptureChanged();
+        Q_EMIT screenCaptureChanged();
 }
 
 QPlatformSurfaceCapture *QFFmpegMediaCaptureSession::windowCapture()
@@ -83,7 +83,7 @@ QPlatformSurfaceCapture *QFFmpegMediaCaptureSession::windowCapture()
 void QFFmpegMediaCaptureSession::setWindowCapture(QPlatformSurfaceCapture *windowCapture)
 {
     if (setVideoSource(m_windowCapture, windowCapture))
-        emit windowCaptureChanged();
+        Q_EMIT windowCaptureChanged();
 }
 
 QPlatformVideoFrameInput *QFFmpegMediaCaptureSession::videoFrameInput()
@@ -94,7 +94,7 @@ QPlatformVideoFrameInput *QFFmpegMediaCaptureSession::videoFrameInput()
 void QFFmpegMediaCaptureSession::setVideoFrameInput(QPlatformVideoFrameInput *input)
 {
     if (setVideoSource(m_videoFrameInput, input))
-        emit videoFrameInputChanged();
+        Q_EMIT videoFrameInputChanged();
 }
 
 QPlatformImageCapture *QFFmpegMediaCaptureSession::imageCapture()
@@ -115,7 +115,7 @@ void QFFmpegMediaCaptureSession::setImageCapture(QPlatformImageCapture *imageCap
     if (m_imageCapture)
         m_imageCapture->setCaptureSession(this);
 
-    emit imageCaptureChanged();
+    Q_EMIT imageCaptureChanged();
 }
 
 void QFFmpegMediaCaptureSession::setMediaRecorder(QPlatformMediaRecorder *recorder)
@@ -130,7 +130,7 @@ void QFFmpegMediaCaptureSession::setMediaRecorder(QPlatformMediaRecorder *record
     if (m_mediaRecorder)
         m_mediaRecorder->setCaptureSession(this);
 
-    emit encoderChanged();
+    Q_EMIT encoderChanged();
 }
 
 QPlatformMediaRecorder *QFFmpegMediaCaptureSession::mediaRecorder()
@@ -324,7 +324,7 @@ void QFFmpegMediaCaptureSession::updatePrimaryActiveVideoSource()
 {
     QPlatformVideoSource *source = primaryVideoSource(nullptr);
     if (std::exchange(m_primaryActiveVideoSource, source) != source)
-        emit primaryActiveVideoSourceChanged();
+        Q_EMIT primaryActiveVideoSourceChanged();
 }
 
 template<typename VideoSource>

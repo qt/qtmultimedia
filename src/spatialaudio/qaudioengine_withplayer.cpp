@@ -340,7 +340,7 @@ void QAudioEngineWithPlayer::setOutputDevice(const QAudioDevice &device)
     }
     m_device = device;
     Q_Q(QAudioEngine);
-    emit q->outputDeviceChanged();
+    Q_EMIT q->outputDeviceChanged();
 }
 
 QAudioDevice QAudioEngineWithPlayer::outputDevice() const

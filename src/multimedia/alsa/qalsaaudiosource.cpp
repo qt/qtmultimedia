@@ -140,7 +140,7 @@ void QAlsaAudioSource::start(QIODevice* device)
     if( !open() )
         return;
 
-    emit stateChanged(deviceState);
+    Q_EMIT stateChanged(deviceState);
 }
 
 QIODevice* QAlsaAudioSource::start()
@@ -160,7 +160,7 @@ QIODevice* QAlsaAudioSource::start()
     if( !open() )
         return 0;
 
-    emit stateChanged(deviceState);
+    Q_EMIT stateChanged(deviceState);
 
     return audioSource;
 }
@@ -173,7 +173,7 @@ void QAlsaAudioSource::stop()
     deviceState = QAudio::StoppedState;
 
     close();
-    emit stateChanged(deviceState);
+    Q_EMIT stateChanged(deviceState);
 }
 
 bool QAlsaAudioSource::open()
@@ -198,7 +198,7 @@ bool QAlsaAudioSource::open()
     if (( err < 0)||(handle == 0)) {
         setError(QAudio::OpenError);
         deviceState = QAudio::StoppedState;
-        emit stateChanged(deviceState);
+        Q_EMIT stateChanged(deviceState);
         return false;
     }
     snd_pcm_nonblock( handle, 0 );
@@ -282,7 +282,7 @@ bool QAlsaAudioSource::open()
         qWarning()<<errMessage;
         setError(QAudio::OpenError);
         deviceState = QAudio::StoppedState;
-        emit stateChanged(deviceState);
+        Q_EMIT stateChanged(deviceState);
         return false;
     }
     snd_pcm_hw_params_get_buffer_size(hwparams,&buffer_frames);
@@ -382,7 +382,7 @@ qint64 QAlsaAudioSource::read(char* data, qint64 len)
                 close();
                 setError(QAudio::IOError);
                 deviceState = QAudio::StoppedState;
-                emit stateChanged(deviceState);
+                Q_EMIT stateChanged(deviceState);
                 return 0;
             }
         }
@@ -460,12 +460,12 @@ qint64 QAlsaAudioSource::read(char* data, qint64 len)
                 close();
                 setError(QAudio::IOError);
                 deviceState = QAudio::StoppedState;
-                emit stateChanged(deviceState);
+                Q_EMIT stateChanged(deviceState);
             } else if (l == 0 && bytesWritten == 0) {
                 if (deviceState != QAudio::IdleState) {
                     setError(QAudio::NoError);
                     deviceState = QAudio::IdleState;
-                    emit stateChanged(deviceState);
+                    Q_EMIT stateChanged(deviceState);
                 }
             } else {
                 bytesAvailable -= bytesWritten;
@@ -474,7 +474,7 @@ qint64 QAlsaAudioSource::read(char* data, qint64 len)
                 if (deviceState != QAudio::ActiveState) {
                     setError(QAudio::NoError);
                     deviceState = QAudio::ActiveState;
-                    emit stateChanged(deviceState);
+                    Q_EMIT stateChanged(deviceState);
                 }
             }
 
@@ -493,7 +493,7 @@ qint64 QAlsaAudioSource::read(char* data, qint64 len)
             if (deviceState != QAudio::ActiveState) {
                 setError(QAudio::NoError);
                 deviceState = QAudio::ActiveState;
-                emit stateChanged(deviceState);
+                Q_EMIT stateChanged(deviceState);
             }
 
             return bytesRead;
@@ -523,7 +523,7 @@ void QAlsaAudioSource::resume()
         deviceState = QAudio::ActiveState;
         int chunks = buffer_size/period_size;
         timer->start(period_time*chunks/2000);
-        emit stateChanged(deviceState);
+        Q_EMIT stateChanged(deviceState);
     }
 }
 
@@ -552,7 +552,7 @@ void QAlsaAudioSource::suspend()
         snd_pcm_drain(handle);
         timer->stop();
         deviceState = QAudio::SuspendedState;
-        emit stateChanged(deviceState);
+        Q_EMIT stateChanged(deviceState);
     }
 }
 
@@ -591,7 +591,7 @@ bool QAlsaAudioSource::deviceReady()
             close();
             setError(QAudio::IOError);
             deviceState = QAudio::StoppedState;
-            emit stateChanged(deviceState);
+            Q_EMIT stateChanged(deviceState);
             return 0;
         }
     }
@@ -636,7 +636,7 @@ qint64 AlsaInputPrivate::writeData(const char* data, qint64 len)
 
 void AlsaInputPrivate::trigger()
 {
-    emit readyRead();
+    Q_EMIT readyRead();
 }
 
 RingBuffer::RingBuffer() :

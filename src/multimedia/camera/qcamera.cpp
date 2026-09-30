@@ -431,7 +431,7 @@ void QCamera::setCameraDevice(const QCameraDevice &cameraDevice)
     d->cameraDevice = dev;
     if (d->control)
         d->control->setCamera(d->cameraDevice);
-    emit cameraDeviceChanged();
+    Q_EMIT cameraDeviceChanged();
     setCameraFormat({});
 }
 
@@ -501,7 +501,7 @@ void QCamera::setCameraFormat(const QCameraFormat &format)
         return;
 
     d->cameraFormat = format;
-    emit cameraFormatChanged();
+    Q_EMIT cameraFormatChanged();
 }
 
 /*!

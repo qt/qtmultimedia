@@ -37,7 +37,7 @@ QAutoResetEventKQueue::QAutoResetEventKQueue(QObject *parent):
         struct kevent ev;
         int nev = kevent(m_kqueue, nullptr, 0, &ev, 1, nullptr);
         if (nev > 0)
-            emit activated();
+            Q_EMIT activated();
     });
     m_notifier.setSocket(m_kqueue);
     m_notifier.setEnabled(true);

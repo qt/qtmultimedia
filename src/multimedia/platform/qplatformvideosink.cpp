@@ -25,7 +25,7 @@ void QPlatformVideoSink::setNativeSize(QSize s)
             return;
         m_nativeSize = s;
     }
-    emit m_sink->videoSizeChanged();
+    Q_EMIT m_sink->videoSizeChanged();
 }
 
 void QPlatformVideoSink::setVideoFrame(const QVideoFrame &frame)
@@ -50,8 +50,8 @@ void QPlatformVideoSink::setVideoFrame(const QVideoFrame &frame)
 
     // emit signals outside the mutex to avoid deadlocks on the user side
     if (sizeChanged)
-        emit m_sink->videoSizeChanged();
-    emit m_sink->videoFrameChanged(frame);
+        Q_EMIT m_sink->videoSizeChanged();
+    Q_EMIT m_sink->videoFrameChanged(frame);
 }
 
 QVideoFrame QPlatformVideoSink::currentVideoFrame() const
@@ -68,7 +68,7 @@ void QPlatformVideoSink::setSubtitleText(const QString &subtitleText)
             return;
         m_subtitleText = subtitleText;
     }
-    emit m_sink->subtitleTextChanged(subtitleText);
+    Q_EMIT m_sink->subtitleTextChanged(subtitleText);
 }
 
 QString QPlatformVideoSink::subtitleText() const

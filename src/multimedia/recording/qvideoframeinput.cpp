@@ -17,7 +17,7 @@ public:
 
     bool sendVideoFrame(const QVideoFrame &frame)
     {
-        return sendMediaFrame([&]() { emit m_platfromVideoFrameInput->newVideoFrame(frame); });
+        return sendMediaFrame([&]() { Q_EMIT m_platfromVideoFrameInput->newVideoFrame(frame); });
     }
 
     void initialize(QVideoFrameFormat format = {})
@@ -58,7 +58,7 @@ protected:
         return captureSession()->videoOutput() || captureSession()->videoSink();
     }
 
-    void emitReadyToSendMediaFrame() override { emit q->readyToSendVideoFrame(); }
+    void emitReadyToSendMediaFrame() override { Q_EMIT q->readyToSendVideoFrame(); }
 
 private:
     QVideoFrameInput *q = nullptr;

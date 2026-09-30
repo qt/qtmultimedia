@@ -65,8 +65,8 @@ void QImageCapturePrivate::_q_error(int id, int error, const QString &errorStrin
     this->error = QImageCapture::Error(error);
     this->errorString = errorString;
 
-    emit q->errorChanged();
-    emit q->errorOccurred(id, this->error, errorString);
+    Q_EMIT q->errorChanged();
+    Q_EMIT q->errorOccurred(id, this->error, errorString);
 }
 
 /*!
@@ -229,7 +229,7 @@ void QImageCapture::setMetaData(const QMediaMetaData &metaData)
     d->metaData = metaData;
     if (d->control)
         d->control->setMetaData(d->metaData);
-    emit metaDataChanged();
+    Q_EMIT metaDataChanged();
 }
 
 /*!
@@ -434,7 +434,7 @@ void QImageCapture::setFileFormat(QImageCapture::FileFormat format)
     d->control->setImageSettings(fmt);
     // Only fire the signal if the format was applied.
     if (oldFormat != fileFormat())
-        emit fileFormatChanged();
+        Q_EMIT fileFormatChanged();
 }
 
 /*!
@@ -545,7 +545,7 @@ void QImageCapture::setResolution(const QSize &resolution)
         return;
     fmt.setResolution(resolution);
     d->control->setImageSettings(fmt);
-    emit resolutionChanged();
+    Q_EMIT resolutionChanged();
 }
 
 /*!
@@ -606,7 +606,7 @@ void QImageCapture::setQuality(Quality quality)
         return;
     fmt.setQuality(quality);
     d->control->setImageSettings(fmt);
-    emit qualityChanged();
+    Q_EMIT qualityChanged();
 }
 
 /*!

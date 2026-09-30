@@ -342,7 +342,7 @@ public:
                 this, [&]() { m_size = size; }, Qt::BlockingQueuedConnection);
     }
 
-public slots:
+public Q_SLOTS:
     void tearDown()
     {
         m_surfaceImage.reset();
@@ -390,10 +390,10 @@ public slots:
         QVideoFrameFormat format(outSize, QVideoFrameFormat::Format_RGBA8888);
         format.setRotation(displayRotation);
         QVideoFrame frame = QVideoFramePrivate::createFrame(std::move(buffer), format);
-        emit newFrame(frame);
+        Q_EMIT newFrame(frame);
     }
 
-signals:
+Q_SIGNALS:
     void newFrame(const QVideoFrame &frame);
 
 private:
@@ -518,7 +518,7 @@ void QOhosVideoOutput::onRhiChanged()
         tearDownTextureThread();
         m_surfaceCreatedWithoutRhi = false;
     }
-    emit surfaceReady();
+    Q_EMIT surfaceReady();
 }
 
 QOhosVideoOutput::~QOhosVideoOutput()

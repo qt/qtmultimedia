@@ -70,12 +70,12 @@ void JsMediaRecorder::audioDataAvailable(emscripten::val aBlob, double timeCodeD
     auto fileReader = std::make_shared<qstdweb::FileReader>();
 
     fileReader->onError([=](emscripten::val theError) {
-        emit streamError(QMediaRecorder::ResourceError,
+        Q_EMIT streamError(QMediaRecorder::ResourceError,
                          QString::fromStdString(theError["message"].as<std::string>()));
     });
 
     fileReader->onAbort([=](emscripten::val) {
-        emit streamError(QMediaRecorder::ResourceError, QStringLiteral("File read aborted"));
+        Q_EMIT streamError(QMediaRecorder::ResourceError, QStringLiteral("File read aborted"));
     });
 
     fileReader->onLoad([=](emscripten::val) {
@@ -86,7 +86,7 @@ void JsMediaRecorder::audioDataAvailable(emscripten::val aBlob, double timeCodeD
             return;
 
         m_buffer.append(qstdweb::Uint8Array(result).copyToQByteArray());
-        emit readyRead();
+        Q_EMIT readyRead();
     });
 
     fileReader->readAsArrayBuffer(qstdweb::Blob(aBlob));
@@ -152,7 +152,7 @@ void JsMediaRecorder::setTrackContraints(QMediaEncoderSettings &settings, emscri
                                                qWarning()
                                                << theError["code"].as<int>()
                                                << theError["message"].as<std::string>();
-                                               emit streamError(QMediaRecorder::ResourceError,
+                                               Q_EMIT streamError(QMediaRecorder::ResourceError,
                                                             QString::fromStdString(theError["message"].as<std::string>()));
                                     },
                                         .finallyFunc = []() {},
@@ -290,7 +290,7 @@ void JsMediaRecorder::setStream(emscripten::val stream)
             m_currentState = QMediaRecorder::StoppedState;
         JsMediaRecorder *recorder = reinterpret_cast<JsMediaRecorder *>(
             event["target"]["data-mediarecordercontext"].as<quintptr>());
-        emit recorder->stopped();
+        Q_EMIT recorder->stopped();
     };
 
     m_mediaStreamStopped.reset(
@@ -303,7 +303,7 @@ void JsMediaRecorder::setStream(emscripten::val stream)
             return;
         }
 
-        emit streamError(QMediaRecorder::ResourceError,
+        Q_EMIT streamError(QMediaRecorder::ResourceError,
                          QString::fromStdString(theError["message"].as<std::string>()));
     };
 
@@ -319,7 +319,7 @@ void JsMediaRecorder::setStream(emscripten::val stream)
         JsMediaRecorder *recorder = reinterpret_cast<JsMediaRecorder *>(
             event["target"]["data-mediarecordercontext"].as<quintptr>());
             m_currentState = QMediaRecorder::RecordingState;
-        emit recorder->started();
+        Q_EMIT recorder->started();
     };
 
     m_mediaStreamStart.reset(new qstdweb::EventCallback(m_mediaRecorder, "start", startCallback));
@@ -334,7 +334,7 @@ void JsMediaRecorder::setStream(emscripten::val stream)
         JsMediaRecorder *recorder = reinterpret_cast<JsMediaRecorder *>(
             event["target"]["data-mediarecordercontext"].as<quintptr>());
             m_currentState = QMediaRecorder::PausedState;
-        emit recorder->paused();
+        Q_EMIT recorder->paused();
     };
 
     m_mediaStreamPause.reset(new qstdweb::EventCallback(m_mediaRecorder, "pause", pauseCallback));
@@ -349,7 +349,7 @@ void JsMediaRecorder::setStream(emscripten::val stream)
 
         JsMediaRecorder *recorder = reinterpret_cast<JsMediaRecorder *>(
             event["target"]["data-mediarecordercontext"].as<quintptr>());
-        emit recorder->resumed();
+        Q_EMIT recorder->resumed();
     };
 
     m_mediaStreamResume.reset(
@@ -456,9 +456,9 @@ void JsMediaInputStream::replaceMediaTrack(const std::string &id)
 
                   // stopMediaStream(stream); stopping this stream causes the track  to stop :(
                   if (m_needsAudio)
-                      emit mediaAudioStreamReady();
+                      Q_EMIT mediaAudioStreamReady();
                   else
-                      emit mediaVideoStreamReady();
+                      Q_EMIT mediaVideoStreamReady();
                 }
             }
         } else { // we still need to add this track
@@ -548,9 +548,9 @@ void JsMediaInputStream::setStreamDevice(const std::string &id)
         // start() synchronously.
         QTimer::singleShot(0, this, [this]() {
             if (m_needsVideo)
-                emit mediaVideoStreamReady();
+                Q_EMIT mediaVideoStreamReady();
             if (m_needsAudio)
-                emit mediaAudioStreamReady();
+                Q_EMIT mediaAudioStreamReady();
         });
         return;
     }
@@ -583,20 +583,20 @@ void JsMediaInputStream::setupMediaStream(emscripten::val mStream)
 
     auto activeStreamCallback = [=](emscripten::val) {
         m_active = true;
-        emit activated(m_active);
+        Q_EMIT activated(m_active);
     };
     m_activeStreamEvent.reset(new qstdweb::EventCallback(m_mediaStream, "active", activeStreamCallback));
 
     auto inactiveStreamCallback = [=](emscripten::val) {
         m_active = false;
-        emit activated(m_active);
+        Q_EMIT activated(m_active);
     };
     m_inactiveStreamEvent.reset(new qstdweb::EventCallback(m_mediaStream, "inactive", inactiveStreamCallback));
 
     if (m_needsAudio)
-        emit mediaAudioStreamReady();
+        Q_EMIT mediaAudioStreamReady();
     if (m_needsVideo)
-        emit mediaVideoStreamReady();
+        Q_EMIT mediaVideoStreamReady();
 }
 
 void JsMediaInputStream::stopMediaStream(emscripten::val mediaStream)

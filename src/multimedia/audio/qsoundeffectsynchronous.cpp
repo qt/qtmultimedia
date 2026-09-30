@@ -106,7 +106,7 @@ void QSoundEffectPrivateSynchronous::setLoopsRemaining(int loopsRemaining)
         return;
     qCDebug(qLcSoundEffect) << this << "setLoopsRemaining " << loopsRemaining;
     m_runningCount = loopsRemaining;
-    emit q_ptr->loopsRemainingChanged();
+    Q_EMIT q_ptr->loopsRemainingChanged();
 }
 
 void QSoundEffectPrivateSynchronous::setStatus(QSoundEffect::Status status)
@@ -116,9 +116,9 @@ void QSoundEffectPrivateSynchronous::setStatus(QSoundEffect::Status status)
         return;
     bool oldLoaded = q_ptr->isLoaded();
     m_status = status;
-    emit q_ptr->statusChanged();
+    Q_EMIT q_ptr->statusChanged();
     if (oldLoaded != q_ptr->isLoaded())
-        emit q_ptr->loadedChanged();
+        Q_EMIT q_ptr->loadedChanged();
 }
 
 void QSoundEffectPrivateSynchronous::setPlaying(bool playing)
@@ -141,7 +141,7 @@ void QSoundEffectPrivateSynchronous::setPlaying(bool playing)
 #endif
     }
 
-    emit q_ptr->playingChanged();
+    Q_EMIT q_ptr->playingChanged();
 }
 
 bool QSoundEffectPrivateSynchronous::updateAudioOutput()

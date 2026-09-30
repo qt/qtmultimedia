@@ -33,7 +33,7 @@ QAutoResetEventEventFD::QAutoResetEventEventFD(QObject *parent)
 
         std::ignore = qt_safe_read(m_fd, &payload, sizeof(payload));
 
-        emit activated();
+        Q_EMIT activated();
     });
     m_notifier.setSocket(m_fd);
     m_notifier.setEnabled(true);

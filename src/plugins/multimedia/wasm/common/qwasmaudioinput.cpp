@@ -34,7 +34,7 @@ void QWasmAudioInput::setMuted(bool muted)
         return;
     audioTracks[0].set("muted", muted);
 
-    emit mutedChanged(muted);
+    Q_EMIT mutedChanged(muted);
     m_wasMuted = muted;
 
 }

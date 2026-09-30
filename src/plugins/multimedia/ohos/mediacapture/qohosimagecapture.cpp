@@ -22,7 +22,7 @@ bool QOhosImageCapture::isReadyForCapture() const
 int QOhosImageCapture::capture(const QString &fileName)
 {
     if (!m_session) {
-        emit error(-1, QImageCapture::ResourceError, msgImageCaptureNotSet());
+        Q_EMIT error(-1, QImageCapture::ResourceError, msgImageCaptureNotSet());
         return -1;
     }
     return m_session->capture(fileName, /*toBuffer=*/false);
@@ -31,7 +31,7 @@ int QOhosImageCapture::capture(const QString &fileName)
 int QOhosImageCapture::captureToBuffer()
 {
     if (!m_session) {
-        emit error(-1, QImageCapture::ResourceError, msgImageCaptureNotSet());
+        Q_EMIT error(-1, QImageCapture::ResourceError, msgImageCaptureNotSet());
         return -1;
     }
     return m_session->capture(QString(), /*toBuffer=*/true);
@@ -75,7 +75,7 @@ void QOhosImageCapture::notifyReadyForCaptureChanged(bool ready)
     if (m_lastReady == ready)
         return;
     m_lastReady = ready;
-    emit readyForCaptureChanged(ready);
+    Q_EMIT readyForCaptureChanged(ready);
 }
 
 void QOhosImageCapture::connectToSession()
@@ -95,13 +95,13 @@ void QOhosImageCapture::connectToSession()
 
 void QOhosImageCapture::onSessionImageCaptured(int id, const QImage &preview)
 {
-    emit imageCaptured(id, preview);
+    Q_EMIT imageCaptured(id, preview);
 
     QMediaMetaData md = metaData();
     md.insert(QMediaMetaData::Date, QDateTime::currentDateTime());
     if (!preview.isNull())
         md.insert(QMediaMetaData::Resolution, preview.size());
-    emit imageMetadataAvailable(id, md);
+    Q_EMIT imageMetadataAvailable(id, md);
 }
 
 void QOhosImageCapture::disconnectFromSession()

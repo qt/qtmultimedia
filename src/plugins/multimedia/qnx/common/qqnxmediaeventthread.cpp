@@ -54,7 +54,7 @@ void QQnxMediaEventThread::run()
 {
     int armResult = mmr_event_arm(m_mmrContext, &m_mmrEvent);
     if (armResult > 0)
-        emit eventPending();
+        Q_EMIT eventPending();
 
     while (1) {
         struct _pulse msg;
@@ -62,11 +62,11 @@ void QQnxMediaEventThread::run()
         int receiveId = MsgReceive(m_channelId, &msg, sizeof(msg), nullptr);
         if (receiveId == 0) {
             if (msg.code == c_mmrCode) {
-                emit eventPending();
+                Q_EMIT eventPending();
             } else if (msg.code == c_readCode) {
                 armResult = mmr_event_arm(m_mmrContext, &m_mmrEvent);
                 if (armResult > 0)
-                    emit eventPending();
+                    Q_EMIT eventPending();
             } else if (msg.code == c_quitCode) {
                 break;
             } else {

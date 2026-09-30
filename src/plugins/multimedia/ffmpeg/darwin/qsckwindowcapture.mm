@@ -66,7 +66,7 @@ void setupQMacScreenCaptureKitConnections(
         &QMacScreenCaptureKit::newVideoFrameGenerated,
         &windowCapture,
         [&windowCapture](QMacScreenCaptureKit::StreamId, QVideoFrame videoFrame) {
-            emit windowCapture.newVideoFrame(videoFrame);
+            Q_EMIT windowCapture.newVideoFrame(videoFrame);
         },
         Qt::DirectConnection);
 

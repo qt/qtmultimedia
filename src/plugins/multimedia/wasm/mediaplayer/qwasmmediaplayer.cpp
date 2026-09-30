@@ -131,7 +131,7 @@ void QWasmMediaPlayer::setPosition(qint64 position)
     if (m_videoAvailable)
         return m_videoOutput->seekTo(position);
 
-    emit positionChanged(seekPosition);
+    Q_EMIT positionChanged(seekPosition);
 }
 
 void QWasmMediaPlayer::volumeChanged(float gain)
@@ -201,7 +201,7 @@ void QWasmMediaPlayer::setPlaybackRate(qreal rate)
         return;
 
     m_videoOutput->setPlaybackRate(rate);
-    emit playbackRateChanged(rate);
+    Q_EMIT playbackRateChanged(rate);
 }
 
 QUrl QWasmMediaPlayer::media() const
@@ -368,7 +368,7 @@ void QWasmMediaPlayer::errorOccured(qint32 code, const QString &message)
         break;
     };
 
-    emit QPlatformMediaPlayer::error(error, errorString);
+    Q_EMIT QPlatformMediaPlayer::error(error, errorString);
 }
 
 void QWasmMediaPlayer::bufferingChanged(qint32 percent)
@@ -377,7 +377,7 @@ void QWasmMediaPlayer::bufferingChanged(qint32 percent)
     m_bufferPercent = percent;
 
     updateAvailablePlaybackRanges();
-    emit bufferProgressChanged(bufferProgress());
+    Q_EMIT bufferProgressChanged(bufferProgress());
 }
 
 void QWasmMediaPlayer::videoSizeChanged(qint32 width, qint32 height)
@@ -444,7 +444,7 @@ void QWasmMediaPlayer::setMediaStatus(QMediaPlayer::MediaStatus status)
     switch (status) {
     case QMediaPlayer::NoMedia:
     case QMediaPlayer::InvalidMedia:
-        emit durationChanged(0);
+        Q_EMIT durationChanged(0);
         break;
     case QMediaPlayer::EndOfMedia:
         setPositionChanged(position());
@@ -459,7 +459,7 @@ void QWasmMediaPlayer::setAudioAvailable(bool available)
         return;
 
     m_audioAvailable = available;
-    emit audioAvailableChanged(m_audioAvailable);
+    Q_EMIT audioAvailableChanged(m_audioAvailable);
 }
 
 void QWasmMediaPlayer::setVideoAvailable(bool available)
@@ -471,7 +471,7 @@ void QWasmMediaPlayer::setVideoAvailable(bool available)
         m_videoSize = QSize();
 
     m_videoAvailable = available;
-    emit videoAvailableChanged(m_videoAvailable);
+    Q_EMIT videoAvailableChanged(m_videoAvailable);
 }
 
 void QWasmMediaPlayer::resetBufferingProgress()

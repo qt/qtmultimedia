@@ -98,9 +98,9 @@ void QV4L2Camera::setActive(bool active)
     else
         stopCapturing();
 
-    emit newVideoFrame({});
+    Q_EMIT newVideoFrame({});
 
-    emit activeChanged(active);
+    Q_EMIT activeChanged(active);
 }
 
 void QV4L2Camera::setCamera(const QCameraDevice &camera)
@@ -385,7 +385,7 @@ void QV4L2Camera::readFrame()
     frame.setStartTime(secs*1000000 + usecs);
     frame.setEndTime(frame.startTime() + m_frameDuration);
 
-    emit newVideoFrame(frame);
+    Q_EMIT newVideoFrame(frame);
 
     if (!m_memoryTransfer->enqueueBuffer(v4l2Buffer.index))
         qCWarning(qLcV4L2Camera) << "Cannot add buffer";

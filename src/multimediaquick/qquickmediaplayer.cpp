@@ -50,7 +50,7 @@ bool QQuickMediaPlayer::autoPlay() const
 void QQuickMediaPlayer::setAutoPlay(bool autoPlay)
 {
     if (std::exchange(m_autoPlay, autoPlay) != autoPlay)
-        emit autoPlayChanged(autoPlay);
+        Q_EMIT autoPlayChanged(autoPlay);
 }
 
 QT_END_NAMESPACE

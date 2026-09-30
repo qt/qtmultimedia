@@ -34,7 +34,7 @@ void EncoderThread::setEndOfSourceStream()
         m_endOfSourceStream = true;
     }
 
-    emit endOfSourceStream();
+    Q_EMIT endOfSourceStream();
 }
 
 bool EncoderThread::init()

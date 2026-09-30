@@ -248,7 +248,7 @@ public:
                 });
 
                 if (result)
-                    emit m_windowsCamera.newVideoFrame(result.value());
+                    Q_EMIT m_windowsCamera.newVideoFrame(result.value());
             }
         }
 
@@ -336,7 +336,7 @@ void QWindowsCamera::setActive(bool active)
 
     } else {
         m_active.reset();
-        emit activeChanged(false);
+        Q_EMIT activeChanged(false);
     }
 }
 

@@ -20,7 +20,7 @@ void QFFmpegVideoSink::setRhi(QRhi *rhi)
         m_rhi = rhi;
     }
 
-    emit rhiChanged();
+    Q_EMIT rhiChanged();
 }
 
 void QFFmpegVideoSink::onVideoFrameChanged(const QVideoFrame &frame)

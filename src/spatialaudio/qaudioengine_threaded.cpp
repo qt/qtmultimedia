@@ -264,7 +264,7 @@ void QAudioEngineThreaded::setPaused(bool paused)
         if (outputStream)
             outputStream->setPaused(paused);
         Q_Q(QAudioEngine);
-        emit q->pausedChanged();
+        Q_EMIT q->pausedChanged();
     }
 }
 
@@ -283,7 +283,7 @@ void QAudioEngineThreaded::setOutputDevice(const QAudioDevice &device)
     }
     m_device = device;
     Q_Q(QAudioEngine);
-    emit q->outputDeviceChanged();
+    Q_EMIT q->outputDeviceChanged();
 }
 
 void QAudioEngineThreaded::addSound(QSpatialAudioSoundPrivate *sound)

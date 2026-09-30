@@ -137,7 +137,7 @@ void QAlsaAudioSink::start(QIODevice* device)
 
     open();
 
-    emit stateChanged(deviceState);
+    Q_EMIT stateChanged(deviceState);
 }
 
 QIODevice* QAlsaAudioSink::start()
@@ -163,7 +163,7 @@ QIODevice* QAlsaAudioSink::start()
 
     open();
 
-    emit stateChanged(deviceState);
+    Q_EMIT stateChanged(deviceState);
 
     return audioSource;
 }
@@ -175,7 +175,7 @@ void QAlsaAudioSink::stop()
     errorState = QAudio::NoError;
     deviceState = QAudio::StoppedState;
     close();
-    emit stateChanged(deviceState);
+    Q_EMIT stateChanged(deviceState);
 }
 
 bool QAlsaAudioSink::open()
@@ -441,7 +441,7 @@ qint64 QAlsaAudioSink::write( const char *data, qint64 len )
         errorState = QAudio::NoError;
         if (deviceState != QAudio::ActiveState) {
             deviceState = QAudio::ActiveState;
-            emit stateChanged(deviceState);
+            Q_EMIT stateChanged(deviceState);
         }
         return snd_pcm_frames_to_bytes( handle, err );
     } else
@@ -452,7 +452,7 @@ qint64 QAlsaAudioSink::write( const char *data, qint64 len )
         errorState = QAudio::FatalError;
         setError(errorState);
         deviceState = QAudio::StoppedState;
-        emit stateChanged(deviceState);
+        Q_EMIT stateChanged(deviceState);
     }
     return 0;
 }
@@ -494,7 +494,7 @@ void QAlsaAudioSink::resume()
         deviceState = suspendedInState;
         errorState = QAudio::NoError;
         timer->start(period_time/1000);
-        emit stateChanged(deviceState);
+        Q_EMIT stateChanged(deviceState);
     }
 }
 
@@ -506,7 +506,7 @@ void QAlsaAudioSink::suspend()
         timer->stop();
         deviceState = QAudio::SuspendedState;
         errorState = QAudio::NoError;
-        emit stateChanged(deviceState);
+        Q_EMIT stateChanged(deviceState);
     }
 }
 
@@ -566,7 +566,7 @@ bool QAlsaAudioSink::deviceReady()
                     errorState = audioSource->atEnd() ? QAudio::NoError : QAudio::UnderrunError;
                     setError(errorState);
                     deviceState = QAudio::IdleState;
-                    emit stateChanged(deviceState);
+                    Q_EMIT stateChanged(deviceState);
                 }
             }
 
@@ -575,7 +575,7 @@ bool QAlsaAudioSink::deviceReady()
             deviceState = QAudio::StoppedState;
             errorState = QAudio::IOError;
             setError(errorState);
-            emit stateChanged(deviceState);
+            Q_EMIT stateChanged(deviceState);
         }
     } else {
         bytesAvailable = bytesFree();
@@ -585,7 +585,7 @@ bool QAlsaAudioSink::deviceReady()
                 errorState = QAudio::UnderrunError;
                 setError(errorState);
                 deviceState = QAudio::IdleState;
-                emit stateChanged(deviceState);
+                Q_EMIT stateChanged(deviceState);
             }
         }
     }

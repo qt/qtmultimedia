@@ -31,7 +31,7 @@ void setEncoderInterface(QObject *source, QMediaInputEncoderInterface *encoderIn
             // upon handling 'readyToSendFrame'
             QMetaObject::invokeMethod(source, &Source::encoderUpdated, Qt::QueuedConnection);
         else
-            emit source->encoderUpdated();
+            Q_EMIT source->encoderUpdated();
     });
 }
 

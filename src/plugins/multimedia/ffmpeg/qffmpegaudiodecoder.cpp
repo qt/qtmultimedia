@@ -36,12 +36,12 @@ public:
             m_resampler = QFFmpegResampler::createFromCodecContext(frame.codecContext(), m_format);
 
         if (m_resampler)
-            emit newAudioBuffer(m_resampler->resample(frame.avFrame()));
+            Q_EMIT newAudioBuffer(m_resampler->resample(frame.avFrame()));
 
         return {};
     }
 
-signals:
+Q_SIGNALS:
     void newAudioBuffer(QAudioBuffer);
 
 private:
@@ -81,7 +81,7 @@ public:
         // updateObjectsPausedState();
     }
 
-signals:
+Q_SIGNALS:
     void newAudioBuffer(QAudioBuffer);
 
 private:

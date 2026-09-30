@@ -91,7 +91,7 @@ void QAmbientSound::setVolume(float volume)
     Q_D(QAmbientSound);
     if (volume != d->volume()) {
         d->setVolume(volume);
-        emit volumeChanged();
+        Q_EMIT volumeChanged();
     }
 }
 
@@ -108,7 +108,7 @@ void QAmbientSound::setSource(const QUrl &url)
         return;
     d->loadUrl(url);
 
-    emit sourceChanged();
+    Q_EMIT sourceChanged();
 }
 
 /*!
@@ -149,7 +149,7 @@ void QAmbientSound::setLoops(int loops)
     Q_D(QAmbientSound);
     if (loops != d->loops()) {
         d->setLoops(loops);
-        emit loopsChanged();
+        Q_EMIT loopsChanged();
     }
 }
 
@@ -172,7 +172,7 @@ void QAmbientSound::setAutoPlay(bool autoPlay)
     Q_D(QAmbientSound);
     if (autoPlay != d->autoPlay()) {
         d->setAutoPlay(autoPlay);
-        emit autoPlayChanged();
+        Q_EMIT autoPlayChanged();
     }
 }
 

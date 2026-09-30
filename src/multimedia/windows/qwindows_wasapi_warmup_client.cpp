@@ -134,7 +134,7 @@ public:
     SleepTimeoutMonitor();
     ~SleepTimeoutMonitor();
 
-signals:
+Q_SIGNALS:
     void sleepTimeoutChanged(std::chrono::seconds);
 
 private:
@@ -225,7 +225,7 @@ LRESULT SleepTimeoutMonitor::handlePowerSettingsChanged(HWND hwnd, POWERBROADCAS
         std::copy_n(pbs->Data, pbs->DataLength, helper.data);
         auto self = reinterpret_cast<SleepTimeoutMonitor *>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 
-        emit self->sleepTimeoutChanged(std::chrono::seconds{ helper.sleepTimeoutInSeconds });
+        Q_EMIT self->sleepTimeoutChanged(std::chrono::seconds{ helper.sleepTimeoutInSeconds });
     }
     return 0;
 }

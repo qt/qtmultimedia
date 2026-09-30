@@ -81,7 +81,7 @@ void PlaybackEngine::onRendererFinished(const PlaybackEngineObjectID &id)
 
     qCDebug(qLcPlaybackEngine) << "Playback engine end of stream";
 
-    emit endOfStream();
+    Q_EMIT endOfStream();
 }
 
 void PlaybackEngine::onRendererLoopChanged(const PlaybackEngineObjectID &id, TrackPosition offset,
@@ -92,7 +92,7 @@ void PlaybackEngine::onRendererLoopChanged(const PlaybackEngineObjectID &id, Tra
 
     if (loopIndex > m_currentLoopOffset.loopIndex) {
         m_currentLoopOffset = { offset, loopIndex };
-        emit loopChanged();
+        Q_EMIT loopChanged();
     } else if (loopIndex == m_currentLoopOffset.loopIndex && offset != m_currentLoopOffset.loopStartTimeUs) {
         qWarning() << "Unexpected offset for loop" << loopIndex << ":" << offset.get() << "vs"
                    << m_currentLoopOffset.loopStartTimeUs.get();
@@ -408,7 +408,7 @@ std::optional<CodecContext> PlaybackEngine::codecContextForTrack(TrackType track
                                                       m_media.avContext(), m_options);
 
         if (!maybeCodecContext) {
-            emit errorOccured(QMediaPlayer::FormatError,
+            Q_EMIT errorOccured(QMediaPlayer::FormatError,
                               u"Cannot create codec," + maybeCodecContext.error());
             return {};
         }
