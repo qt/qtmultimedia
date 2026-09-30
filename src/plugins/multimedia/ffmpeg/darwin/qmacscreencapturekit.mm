@@ -35,7 +35,7 @@ namespace {
 
 struct QMacScreenCaptureStreamDelegateHelper : public QObject {
     Q_OBJECT
-signals:
+Q_SIGNALS:
     void didStopWithError(QMacScreenCaptureKit::StreamId streamId, QString);
 };
 
@@ -50,7 +50,7 @@ signals:
 
 - (void)stream:(SCStream *)stream didStopWithError:(NSError *)error
 {
-    emit m_helper.didStopWithError(
+    Q_EMIT m_helper.didStopWithError(
         m_streamId,
         QString::fromNSString(error.localizedDescription));
 }
@@ -283,7 +283,7 @@ static void handleFrameOutput(
         return;
     }
 
-    emit streamOutput.m_qScreenCaptureKit->newVideoFrameGenerated(
+    Q_EMIT streamOutput.m_qScreenCaptureKit->newVideoFrameGenerated(
         streamOutput.m_qScreenCaptureKit->streamId(),
         std::move(*videoFrameResult));
 }

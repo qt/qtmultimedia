@@ -134,25 +134,25 @@ QList<QAudioDevice> QPlatformAudioDevices::audioOutputs() const
 void QPlatformAudioDevices::onAudioInputsChanged()
 {
     m_audioInputs.reset();
-    emit audioInputsChanged(PrivateTag{});
+    Q_EMIT audioInputsChanged(PrivateTag{});
 }
 
 void QPlatformAudioDevices::onAudioOutputsChanged()
 {
     m_audioOutputs.reset();
-    emit audioOutputsChanged(PrivateTag{});
+    Q_EMIT audioOutputsChanged(PrivateTag{});
 }
 
 void QPlatformAudioDevices::updateAudioInputsCache()
 {
     if (m_audioInputs.update(findAudioInputs()))
-        emit audioInputsChanged(PrivateTag{});
+        Q_EMIT audioInputsChanged(PrivateTag{});
 }
 
 void QPlatformAudioDevices::updateAudioOutputsCache()
 {
     if (m_audioOutputs.update(findAudioOutputs()))
-        emit audioOutputsChanged(PrivateTag{});
+        Q_EMIT audioOutputsChanged(PrivateTag{});
 }
 
 QPlatformAudioSource *QPlatformAudioDevices::createAudioSource(const QAudioDevice &,

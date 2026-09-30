@@ -147,7 +147,7 @@ private:
         QAudioFormat fmt = m_audioSource->format();
         qint64 time = fmt.durationForBytes(m_processed);
         QAudioBuffer buffer(pcmData, fmt, time);
-        emit m_input->newAudioBuffer(buffer);
+        Q_EMIT m_input->newAudioBuffer(buffer);
         m_processed += pcmData.size();
     }
 

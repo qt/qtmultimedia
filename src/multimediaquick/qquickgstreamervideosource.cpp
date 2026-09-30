@@ -24,7 +24,7 @@ void QQuickGStreamerVideoSource::qmlSetActive(bool active)
     if (!m_pendingProperties)
         QGStreamerVideoSource::setActive(active);
     else if (std::exchange(m_pendingProperties->active, active) != active)
-        emit activeChanged(active);
+        Q_EMIT activeChanged(active);
 }
 
 void QQuickGStreamerVideoSource::setQmlGstBinDescription(QString gstBinDescription)

@@ -95,7 +95,7 @@ void Renderer::render(Frame frame)
         qCDebug(qLcRenderer) << "frame outdated! absEnd:" << frame.absoluteEnd().get() << "absPts"
                              << frame.absolutePts().get() << "seekPos:" << seekPosition().get();
 
-        emit frameProcessed(std::move(frame));
+        Q_EMIT frameProcessed(std::move(frame));
         return;
     }
 
@@ -155,7 +155,7 @@ bool Renderer::setForceStepDone()
         return false;
 
     m_sessionCtx.explicitNextFrameTime.reset();
-    emit forceStepDone();
+    Q_EMIT forceStepDone();
     return true;
 }
 
@@ -188,10 +188,10 @@ void Renderer::doNextStep()
             const auto loopIndex = frame.loopOffset().loopIndex;
             if (m_sessionCtx.loopIndex < loopIndex) {
                 m_sessionCtx.loopIndex = loopIndex;
-                emit loopChanged(id(), frame.loopOffset().loopStartTimeUs, m_sessionCtx.loopIndex);
+                Q_EMIT loopChanged(id(), frame.loopOffset().loopStartTimeUs, m_sessionCtx.loopIndex);
             }
 
-            emit frameProcessed(std::move(frame));
+            Q_EMIT frameProcessed(std::move(frame));
         } else {
             m_sessionCtx.lastPosition.storeRelease(
                     std::max(m_sessionCtx.lastFrameEnd, lastPosition()).get());
@@ -216,7 +216,7 @@ void Renderer::changeRendererTime(std::chrono::microseconds offset)
     const auto now = SteadyClock::now();
     const auto pos = m_sessionCtx.timeController.positionFromTime(now);
     m_sessionCtx.timeController.sync(now + offset, pos);
-    emit synchronized(id(), now + offset, pos);
+    Q_EMIT synchronized(id(), now + offset, pos);
 }
 
 } // namespace QFFmpeg

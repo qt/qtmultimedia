@@ -16,7 +16,7 @@ void QOhosVideoSink::setRhi(QRhi *rhi)
     if (m_rhi == rhi)
         return;
     m_rhi = rhi;
-    emit rhiChanged();
+    Q_EMIT rhiChanged();
 }
 
 QT_END_NAMESPACE

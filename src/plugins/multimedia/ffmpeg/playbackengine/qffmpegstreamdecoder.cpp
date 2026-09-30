@@ -85,7 +85,7 @@ void StreamDecoder::doNextStep()
     setAtEnd(!packet.isValid());
 
     if (packet.isValid())
-        emit packetProcessed(std::move(packet));
+        Q_EMIT packetProcessed(std::move(packet));
 
     scheduleNextStep();
 }
@@ -136,7 +136,7 @@ void StreamDecoder::onFrameFound(const Frame &frame)
 
     Q_ASSERT(m_sessionCtx.pendingFramesCount >= 0);
     ++m_sessionCtx.pendingFramesCount;
-    emit requestHandleFrame(frame);
+    Q_EMIT requestHandleFrame(frame);
 }
 
 void StreamDecoder::decodeMedia(const Packet &packet)
@@ -190,7 +190,7 @@ void StreamDecoder::receiveAVFrames(bool flushPacket)
         }
 
         if (receiveFrameResult < 0) {
-            emit error(QMediaPlayer::FormatError, err2str(receiveFrameResult));
+            Q_EMIT error(QMediaPlayer::FormatError, err2str(receiveFrameResult));
             break;
         }
 

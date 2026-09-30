@@ -94,7 +94,7 @@ QWindowCapture::QWindowCapture(QObject *parent) : QObject(*new QWindowCapturePri
                 &QWindowCapture::errorChanged);
         connect(platformCapture, &QPlatformSurfaceCapture::errorOccurred, this,
                 [this](QPlatformSurfaceCapture::Error error, const QString &errorString) {
-            emit errorOccurred(toWindowCaptureError(error), errorString);
+            Q_EMIT errorOccurred(toWindowCaptureError(error), errorString);
         });
         connect(platformCapture,
                 qOverload<QCapturableWindow>(&QPlatformSurfaceCapture::sourceChanged), this,

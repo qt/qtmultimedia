@@ -88,7 +88,7 @@ void QAndroidCameraSession::setActive(bool active)
     m_isStateSaved = false;
     m_active = active;
     setActiveHelper(m_active);
-    emit activeChanged(m_active);
+    Q_EMIT activeChanged(m_active);
 }
 
 void QAndroidCameraSession::setActiveHelper(bool active)
@@ -98,7 +98,7 @@ void QAndroidCameraSession::setActiveHelper(bool active)
         close();
     } else {
         if (!m_camera && !open()) {
-            emit error(QCamera::CameraError, QStringLiteral("Failed to open camera"));
+            Q_EMIT error(QCamera::CameraError, QStringLiteral("Failed to open camera"));
             return;
         }
         startPreview();
@@ -168,7 +168,7 @@ bool QAndroidCameraSession::open()
 
         m_camera->notifyNewFrames(m_previewCallback);
 
-        emit opened();
+        Q_EMIT opened();
         setActive(true);
     }
 
@@ -568,7 +568,7 @@ void QAndroidCameraSession::setReadyForCapture(bool ready)
         return;
 
     m_readyForCapture = ready;
-    emit readyForCaptureChanged(ready);
+    Q_EMIT readyForCaptureChanged(ready);
 }
 
 int QAndroidCameraSession::captureImage()
@@ -576,7 +576,7 @@ int QAndroidCameraSession::captureImage()
     const int newImageCaptureId = m_currentImageCaptureId + 1;
 
     if (!isReadyForCapture()) {
-        emit imageCaptureError(newImageCaptureId, QImageCapture::NotReadyError,
+        Q_EMIT imageCaptureError(newImageCaptureId, QImageCapture::NotReadyError,
                                QPlatformImageCapture::msgCameraNotReady());
         return newImageCaptureId;
     }
@@ -607,7 +607,7 @@ int QAndroidCameraSession::captureToBuffer()
 
 void QAndroidCameraSession::onCameraTakePictureFailed()
 {
-    emit imageCaptureError(m_currentImageCaptureId, QImageCapture::ResourceError,
+    Q_EMIT imageCaptureError(m_currentImageCaptureId, QImageCapture::ResourceError,
                            tr("Failed to capture image"));
 
     // Preview needs to be restarted and the preview call back must be setup again
@@ -619,7 +619,7 @@ void QAndroidCameraSession::onCameraPictureExposed()
     if (!m_camera)
         return;
 
-    emit imageExposed(m_currentImageCaptureId);
+    Q_EMIT imageExposed(m_currentImageCaptureId);
     m_camera->fetchLastPreviewFrame();
 }
 
@@ -645,7 +645,7 @@ void QAndroidCameraSession::processPreviewImage(int id, const QVideoFrame &frame
     if (m_camera->getFacing() == AndroidCamera::CameraFacingFront)
         transform.scale(-1, 1);
 
-    emit imageCaptured(id, frame.toImage().transformed(transform));
+    Q_EMIT imageCaptured(id, frame.toImage().transformed(transform));
 }
 
 void QAndroidCameraSession::onNewPreviewFrame(const QVideoFrame &frame)
@@ -715,13 +715,13 @@ void QAndroidCameraSession::processCapturedImage(int id, const QByteArray &bytes
     QFile writer(actualFileName);
     if (!writer.open(QIODeviceBase::WriteOnly)) {
         const QString errorMessage = tr("File is not available: %1").arg(writer.errorString());
-        emit imageCaptureError(id, QImageCapture::Error::ResourceError, errorMessage);
+        Q_EMIT imageCaptureError(id, QImageCapture::Error::ResourceError, errorMessage);
         return;
     }
 
     if (writer.write(bytes) < 0) {
         const QString errorMessage = tr("Could not save to file: %1").arg(writer.errorString());
-        emit imageCaptureError(id, QImageCapture::Error::ResourceError, errorMessage);
+        Q_EMIT imageCaptureError(id, QImageCapture::Error::ResourceError, errorMessage);
         return;
     }
 
@@ -729,7 +729,7 @@ void QAndroidCameraSession::processCapturedImage(int id, const QByteArray &bytes
     if (fileName.isEmpty() || QFileInfo(fileName).isRelative())
         AndroidMultimediaUtils::registerMediaFile(actualFileName);
 
-    emit imageSaved(id, actualFileName);
+    Q_EMIT imageSaved(id, actualFileName);
 }
 
 void QAndroidCameraSession::processCapturedImageToBuffer(int id, const QByteArray &bytes,
@@ -738,7 +738,7 @@ void QAndroidCameraSession::processCapturedImageToBuffer(int id, const QByteArra
     QVideoFrame frame = QVideoFramePrivate::createFrame(
             std::make_unique<QMemoryVideoBuffer>(bytes, bytesPerLine),
             QVideoFrameFormat(size, format));
-    emit imageAvailable(id, frame);
+    Q_EMIT imageAvailable(id, frame);
 }
 
 void QAndroidCameraSession::onVideoOutputReady(bool ready)

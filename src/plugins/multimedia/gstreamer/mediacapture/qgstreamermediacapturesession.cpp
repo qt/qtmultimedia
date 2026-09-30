@@ -175,7 +175,7 @@ void QGstreamerMediaCaptureSession::setCamera(QPlatformCamera *platformCamera)
             setCameraActive(true);
     }
 
-    emit cameraChanged();
+    Q_EMIT cameraChanged();
 }
 
 void QGstreamerMediaCaptureSession::setCameraActive(bool activate)
@@ -259,7 +259,7 @@ void QGstreamerMediaCaptureSession::setImageCapture(QPlatformImageCapture *image
 
     m_capturePipeline.dumpGraph("imageCapture");
 
-    emit imageCaptureChanged();
+    Q_EMIT imageCaptureChanged();
 }
 
 void QGstreamerMediaCaptureSession::setMediaRecorder(QPlatformMediaRecorder *recorder)
@@ -274,7 +274,7 @@ void QGstreamerMediaCaptureSession::setMediaRecorder(QPlatformMediaRecorder *rec
     if (m_mediaRecorder)
         m_mediaRecorder->setCaptureSession(this);
 
-    emit encoderChanged();
+    Q_EMIT encoderChanged();
     m_capturePipeline.dumpGraph("encoder");
 }
 

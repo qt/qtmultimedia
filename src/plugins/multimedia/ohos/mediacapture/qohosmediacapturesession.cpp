@@ -28,7 +28,7 @@ void QOhosMediaCaptureSession::setCamera(QPlatformCamera *camera)
         m_imageCapture->setCaptureSession(this);
     if (m_recorder)
         m_recorder->setCaptureSession(this);
-    emit cameraChanged();
+    Q_EMIT cameraChanged();
 }
 
 QOhosCameraSession *QOhosMediaCaptureSession::cameraSession() const
@@ -50,7 +50,7 @@ void QOhosMediaCaptureSession::setImageCapture(QPlatformImageCapture *imageCaptu
     m_imageCapture = static_cast<QOhosImageCapture *>(imageCapture);
     if (m_imageCapture)
         m_imageCapture->setCaptureSession(this);
-    emit imageCaptureChanged();
+    Q_EMIT imageCaptureChanged();
 }
 
 QPlatformMediaRecorder *QOhosMediaCaptureSession::mediaRecorder()
@@ -67,7 +67,7 @@ void QOhosMediaCaptureSession::setMediaRecorder(QPlatformMediaRecorder *recorder
     m_recorder = static_cast<QOhosMediaRecorder *>(recorder);
     if (m_recorder)
         m_recorder->setCaptureSession(this);
-    emit encoderChanged();
+    Q_EMIT encoderChanged();
 }
 
 void QOhosMediaCaptureSession::setAudioInput(QPlatformAudioInput *input)

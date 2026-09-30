@@ -75,7 +75,7 @@ void QGstreamerCamera::setActive(bool active)
 
     m_active = active;
 
-    emit activeChanged(active);
+    Q_EMIT activeChanged(active);
 }
 
 void QGstreamerCamera::setCamera(const QCameraDevice &camera)
@@ -754,7 +754,7 @@ void QGstreamerCustomCamera::setActive(bool active)
 
     m_active = active;
 
-    emit activeChanged(active);
+    Q_EMIT activeChanged(active);
 }
 
 QT_END_NAMESPACE

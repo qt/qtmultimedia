@@ -854,7 +854,7 @@ void QAndroidMediaPlayer::setActiveTrack(TrackType trackType, int streamNumber)
     const auto &trackNumber = trackInfo.androidTrackNumber();
     mMediaPlayer->selectTrack(trackNumber);
 
-    emit activeTracksChanged();
+    Q_EMIT activeTracksChanged();
 }
 
 void QAndroidMediaPlayer::positionChanged(qint64 position)
@@ -961,7 +961,7 @@ void QAndroidMediaPlayer::updateBufferStatus()
     if (mBufferFilled != bufferFilled)
         mBufferFilled = bufferFilled;
 
-    emit bufferProgressChanged(bufferProgress());
+    Q_EMIT bufferProgressChanged(bufferProgress());
 }
 
 void QAndroidMediaPlayer::updateTrackInfo()
@@ -987,7 +987,7 @@ void QAndroidMediaPlayer::updateTrackInfo()
         tracks.append(metadata);
     }
 
-    emit tracksChanged();
+    Q_EMIT tracksChanged();
 }
 
 QT_END_NAMESPACE

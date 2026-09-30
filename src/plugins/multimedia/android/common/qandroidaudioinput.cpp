@@ -30,7 +30,7 @@ void QAndroidAudioInput::setMuted(bool muted)
                     "setInputMuted",
                     "(Z)V",
                     muted);
-        emit mutedChanged(muted);
+        Q_EMIT mutedChanged(muted);
     }
 }
 

@@ -171,12 +171,12 @@ void QPulseAudioContextManager::serverInfoCallback(pa_context *context, const pa
     if (defaultSinkChanged
         && updateDevicesMap(pulseEngine->m_sinkLock, pulseEngine->m_defaultSink,
                             pulseEngine->m_sinks))
-        emit pulseEngine->audioOutputsChanged();
+        Q_EMIT pulseEngine->audioOutputsChanged();
 
     if (defaultSourceChanged
         && updateDevicesMap(pulseEngine->m_sourceLock, pulseEngine->m_defaultSource,
                             pulseEngine->m_sources))
-        emit pulseEngine->audioInputsChanged();
+        Q_EMIT pulseEngine->audioInputsChanged();
 
     pa_threaded_mainloop_signal(pulseEngine->mainloop(), 0);
 }
@@ -220,7 +220,7 @@ void QPulseAudioContextManager::sinkInfoCallback(pa_context *context, const pa_s
 
     if (updateDevicesMap(pulseEngine->m_sinkLock, pulseEngine->m_defaultSink, pulseEngine->m_sinks,
                          QAudioDevice::Output, *info))
-        emit pulseEngine->audioOutputsChanged();
+        Q_EMIT pulseEngine->audioOutputsChanged();
 }
 
 void QPulseAudioContextManager::sourceInfoCallback(pa_context *context, const pa_source_info *info,
@@ -261,7 +261,7 @@ void QPulseAudioContextManager::sourceInfoCallback(pa_context *context, const pa
 
     if (updateDevicesMap(pulseEngine->m_sourceLock, pulseEngine->m_defaultSource,
                          pulseEngine->m_sources, QAudioDevice::Input, *info))
-        emit pulseEngine->audioInputsChanged();
+        Q_EMIT pulseEngine->audioInputsChanged();
 }
 
 void QPulseAudioContextManager::eventCallback(pa_context *context, pa_subscription_event_type_t t,

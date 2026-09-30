@@ -427,7 +427,7 @@ void QWasmAudioSink::connectWorklet()
     m_workletNode.call<void>("connect", m_audioContext["destination"]);
     deliverData();
 #endif
-    emit stateChanged(m_suspended ? QAudio::SuspendedState : QAudio::ActiveState);
+    Q_EMIT stateChanged(m_suspended ? QAudio::SuspendedState : QAudio::ActiveState);
 }
 
 // ---------------------------------------------------------------------------
@@ -570,7 +570,7 @@ void QWasmAudioSink::stop()
     if (!m_pullMode && m_device)
         delete m_device;
     m_device = nullptr;
-    emit stateChanged(QAudio::StoppedState);
+    Q_EMIT stateChanged(QAudio::StoppedState);
 }
 
 void QWasmAudioSink::reset()
@@ -580,7 +580,7 @@ void QWasmAudioSink::reset()
     teardownPipeline();
     m_processed.store(0, std::memory_order_relaxed);
     setError(QAudio::NoError);
-    emit stateChanged(QAudio::StoppedState);
+    Q_EMIT stateChanged(QAudio::StoppedState);
 }
 
 void QWasmAudioSink::suspend()
@@ -589,7 +589,7 @@ void QWasmAudioSink::suspend()
         return;
     m_suspended = true;
     m_audioContext.call<emscripten::val>("suspend");
-    emit stateChanged(QAudio::SuspendedState);
+    Q_EMIT stateChanged(QAudio::SuspendedState);
 }
 
 void QWasmAudioSink::resume()
@@ -598,7 +598,7 @@ void QWasmAudioSink::resume()
         return;
     m_suspended = false;
     m_audioContext.call<emscripten::val>("resume");
-    emit stateChanged(QAudio::ActiveState);
+    Q_EMIT stateChanged(QAudio::ActiveState);
 }
 
 qsizetype QWasmAudioSink::bytesFree() const

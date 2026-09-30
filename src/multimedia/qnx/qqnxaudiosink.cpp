@@ -295,7 +295,7 @@ void QQnxAudioSink::changeState(QAudio::State state, QAudio::Error error)
 {
     if (m_state != state) {
         m_state = state;
-        emit stateChanged(state);
+        Q_EMIT stateChanged(state);
     }
 
     setError(error);

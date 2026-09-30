@@ -142,14 +142,14 @@ QVideoFrame VideoGenerator::createFrame()
 void VideoGenerator::nextFrame()
 {
     if (m_frameIndex == m_maxFrameCount) {
-        emit done();
+        Q_EMIT done();
         if (m_emitEmptyFrameOnStop)
-            emit frameCreated({});
+            Q_EMIT frameCreated({});
         return;
     }
 
     const QVideoFrame frame = createFrame();
-    emit frameCreated(frame);
+    Q_EMIT frameCreated(frame);
     ++m_frameIndex;
 }
 

@@ -131,7 +131,7 @@ static void notifyPictureCaptured(JNIEnv *env, jobject, int id, jbyteArray data)
 
     auto pictureFormat = qt_pixelFormatFromAndroidImageFormat(format);
 
-    emit camera->pictureCaptured(bytes, pictureFormat, pictureSize, bytesPerLine);
+    Q_EMIT camera->pictureCaptured(bytes, pictureFormat, pictureSize, bytesPerLine);
 }
 
 static void notifyNewPreviewFrame(JNIEnv *env, jobject, int id, jbyteArray data,
@@ -1181,7 +1181,7 @@ void AndroidCameraPrivate::updatePreviewSize()
         applyParameters();
     }
 
-    emit previewSizeChanged();
+    Q_EMIT previewSizeChanged();
 }
 
 bool AndroidCameraPrivate::setPreviewTexture(void *surfaceTexture)
@@ -1402,7 +1402,7 @@ void AndroidCameraPrivate::autoFocus()
     env->CallVoidMethod(m_camera.object(), methodId, m_cameraListener.object());
 
     if (!env.checkAndClearExceptions())
-        emit autoFocusStarted();
+        Q_EMIT autoFocusStarted();
 }
 
 void AndroidCameraPrivate::cancelAutoFocus()
@@ -1581,7 +1581,7 @@ void AndroidCameraPrivate::setWhiteBalance(const QString &value)
                                   QJniObject::fromString(value).object());
     applyParameters();
 
-    emit whiteBalanceChanged();
+    Q_EMIT whiteBalanceChanged();
 }
 
 void AndroidCameraPrivate::updateRotation()
@@ -1669,9 +1669,9 @@ void AndroidCameraPrivate::startPreview()
     env->CallVoidMethod(m_camera.object(), methodId);
 
     if (env.checkAndClearExceptions())
-        emit previewFailedToStart();
+        Q_EMIT previewFailedToStart();
     else
-        emit previewStarted();
+        Q_EMIT previewStarted();
 }
 
 void AndroidCameraPrivate::stopPreview()
@@ -1679,7 +1679,7 @@ void AndroidCameraPrivate::stopPreview()
     // cancel any pending new frame notification
     m_cameraListener.callMethod<void>("notifyWhenFrameAvailable", "(Z)V", false);
     m_camera.callMethod<void>("stopPreview");
-    emit previewStopped();
+    Q_EMIT previewStopped();
 }
 
 void AndroidCameraPrivate::takePicture()
@@ -1698,7 +1698,7 @@ void AndroidCameraPrivate::takePicture()
                         jobject(0), m_cameraListener.object());
 
     if (env.checkAndClearExceptions())
-        emit takePictureFailed();
+        Q_EMIT takePictureFailed();
 }
 
 void AndroidCameraPrivate::setupPreviewFrameCallback()
@@ -1744,7 +1744,7 @@ void AndroidCameraPrivate::fetchLastPreviewFrame()
     QVideoFrame frame = QVideoFramePrivate::createFrame(
             std::make_unique<QMemoryVideoBuffer>(std::move(bytes), bpl), std::move(frameFormat));
 
-    emit lastPreviewFrameFetched(frame);
+    Q_EMIT lastPreviewFrameFetched(frame);
 }
 
 void AndroidCameraPrivate::applyParameters()

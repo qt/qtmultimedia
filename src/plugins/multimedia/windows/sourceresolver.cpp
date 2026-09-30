@@ -53,17 +53,17 @@ HRESULT STDMETHODCALLTYPE SourceResolver::Invoke(IMFAsyncResult *pAsyncResult)
     m_cancelCookie = nullptr;
 
     if (FAILED(hr)) {
-        emit error(hr);
+        Q_EMIT error(hr);
         return S_OK;
     }
 
     hr = pSource.As(&m_mediaSource);
     if (FAILED(hr)) {
-        emit error(hr);
+        Q_EMIT error(hr);
         return S_OK;
     }
 
-    emit mediaSourceReady();
+    Q_EMIT mediaSourceReady();
 
     return S_OK;
 }
@@ -84,7 +84,7 @@ void SourceResolver::load(const QUrl &url, QIODevice* stream)
 
     if (FAILED(hr)) {
         qWarning() << "Failed to create Source Resolver!";
-        emit error(hr);
+        Q_EMIT error(hr);
     } else if (stream) {
         QString urlString = url.toString();
         m_stream = makeComObject<MFStream>(stream, false);
@@ -94,7 +94,7 @@ void SourceResolver::load(const QUrl &url, QIODevice* stream)
                     , NULL, &m_cancelCookie, this, makeComObject<State>(m_sourceResolver, true).Get());
         if (FAILED(hr)) {
             qWarning() << "Unsupported stream!";
-            emit error(hr);
+            Q_EMIT error(hr);
         }
     } else {
 #ifdef DEBUG_MEDIAFOUNDATION
@@ -113,11 +113,11 @@ void SourceResolver::load(const QUrl &url, QIODevice* stream)
                             NULL, &m_cancelCookie, this, makeComObject<State>(m_sourceResolver, true).Get());
                 if (FAILED(hr)) {
                     qWarning() << "Unsupported stream!";
-                    emit error(hr);
+                    Q_EMIT error(hr);
                 }
             } else {
                 delete stream;
-                emit error(QMediaPlayer::FormatError);
+                Q_EMIT error(QMediaPlayer::FormatError);
             }
         } else
 #endif
@@ -133,11 +133,11 @@ void SourceResolver::load(const QUrl &url, QIODevice* stream)
                             NULL, &m_cancelCookie, this, makeComObject<State>(m_sourceResolver, true).Get());
                 if (FAILED(hr)) {
                     qWarning() << "Unsupported stream!";
-                    emit error(hr);
+                    Q_EMIT error(hr);
                 }
             } else {
                 delete stream;
-                emit error(QMediaPlayer::FormatError);
+                Q_EMIT error(QMediaPlayer::FormatError);
             }
         } else {
             hr = m_sourceResolver->BeginCreateObjectFromURL(
@@ -146,7 +146,7 @@ void SourceResolver::load(const QUrl &url, QIODevice* stream)
                         NULL, &m_cancelCookie, this, makeComObject<State>(m_sourceResolver, false).Get());
             if (FAILED(hr)) {
                 qWarning() << "Unsupported url scheme!";
-                emit error(hr);
+                Q_EMIT error(hr);
             }
         }
     }

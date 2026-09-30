@@ -131,7 +131,7 @@ void QAVFCameraBase::setActive(bool active)
 
     onActiveChanged(active);
 
-    emit activeChanged(m_active);
+    Q_EMIT activeChanged(m_active);
 }
 
 void QAVFCameraBase::setCamera(const QCameraDevice &camera)

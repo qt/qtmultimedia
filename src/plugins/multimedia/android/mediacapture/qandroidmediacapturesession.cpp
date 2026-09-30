@@ -50,7 +50,7 @@ void QAndroidMediaCaptureSession::setCamera(QPlatformCamera *camera)
         if (m_cameraControl)
             m_cameraControl->setCaptureSession(this);
 
-        emit cameraChanged();
+        Q_EMIT cameraChanged();
 }
 
 QPlatformImageCapture *QAndroidMediaCaptureSession::imageCapture()
@@ -91,7 +91,7 @@ void QAndroidMediaCaptureSession::setMediaRecorder(QPlatformMediaRecorder *recor
     if (m_encoder)
         m_encoder->setCaptureSession(this);
 
-    emit encoderChanged();
+    Q_EMIT encoderChanged();
 
 }
 

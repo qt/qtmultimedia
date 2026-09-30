@@ -79,14 +79,14 @@ void Decoder::setSource(const QUrl &source)
 
     QFile file(source.path());
     if (!file.open(QFile::ReadOnly)) {
-        emit error(QAudioDecoder::ResourceError, tr("Cannot open the file"));
+        Q_EMIT error(QAudioDecoder::ResourceError, tr("Cannot open the file"));
         return;
      }
 
     const int fd = file.handle();
 
     if (fd < 0) {
-        emit error(QAudioDecoder::ResourceError, tr("Invalid fileDescriptor for source."));
+        Q_EMIT error(QAudioDecoder::ResourceError, tr("Invalid fileDescriptor for source."));
         return;
     }
     const int size = file.size();
@@ -116,7 +116,7 @@ void Decoder::createDecoder()
             AMediaExtractor_delete(m_extractor);
             m_extractor = nullptr;
         }
-        emit error(QAudioDecoder::FormatError, tr("Format not supported by Audio Decoder."));
+        Q_EMIT error(QAudioDecoder::FormatError, tr("Format not supported by Audio Decoder."));
 
         return;
     }
@@ -124,7 +124,7 @@ void Decoder::createDecoder()
     // get audio duration from source
     int64_t durationUs;
     AMediaFormat_getInt64(m_format, AMEDIAFORMAT_KEY_DURATION, &durationUs);
-    emit durationChanged(round<milliseconds>(microseconds{ durationUs }));
+    Q_EMIT durationChanged(round<milliseconds>(microseconds{ durationUs }));
 
     // set default output audio format from input file
     if (!m_outputFormat.isValid()) {
@@ -144,19 +144,19 @@ void Decoder::doDecode()
 {
     using namespace std::chrono;
     if (!m_formatError.isEmpty()) {
-        emit error(QAudioDecoder::FormatError, m_formatError);
+        Q_EMIT error(QAudioDecoder::FormatError, m_formatError);
         return;
     }
 
     if (!m_extractor) {
-        emit error(QAudioDecoder::ResourceError, tr("Cannot decode, source not set."));
+        Q_EMIT error(QAudioDecoder::ResourceError, tr("Cannot decode, source not set."));
         return;
     }
 
     createDecoder();
 
     if (!m_codec) {
-        emit error(QAudioDecoder::ResourceError, tr("Audio Decoder could not be created."));
+        Q_EMIT error(QAudioDecoder::ResourceError, tr("Audio Decoder could not be created."));
         return;
     }
 
@@ -164,19 +164,19 @@ void Decoder::doDecode()
                                         nullptr /* crypto */, 0);
 
     if (status != AMEDIA_OK) {
-        emit error(QAudioDecoder::ResourceError, tr("Audio Decoder failed configuration."));
+        Q_EMIT error(QAudioDecoder::ResourceError, tr("Audio Decoder failed configuration."));
         return;
     }
 
     status = AMediaCodec_start(m_codec);
     if (status != AMEDIA_OK) {
-        emit error(QAudioDecoder::ResourceError, tr("Audio Decoder failed to start."));
+        Q_EMIT error(QAudioDecoder::ResourceError, tr("Audio Decoder failed to start."));
         return;
     }
 
     AMediaExtractor_selectTrack(m_extractor, 0);
 
-    emit decodingChanged(true);
+    Q_EMIT decodingChanged(true);
     m_inputEOS = false;
     while (!m_inputEOS) {
         // handle input buffer
@@ -219,7 +219,7 @@ void Decoder::doDecode()
                     const QByteArray data((const char*)(bufferData + info.offset), info.size);
                     auto audioBuffer = QAudioBuffer(data, m_outputFormat, presentationTimeUs);
                     if (presentationTimeUs >= 0)
-                        emit positionChanged(std::move(audioBuffer),
+                        Q_EMIT positionChanged(std::move(audioBuffer),
                                              round<milliseconds>(microseconds{ presentationTimeUs }));
 
                     AMediaCodec_releaseOutputBuffer(m_codec, idx, false);
@@ -235,7 +235,7 @@ void Decoder::doDecode()
             qCWarning(adLogger) <<  "dequeueInputBuffer() status: invalid buffer idx " << bufferIdx;
         }
     }
-    emit finished();
+    Q_EMIT finished();
 }
 
 QAndroidAudioDecoder::QAndroidAudioDecoder(QAudioDecoder *parent)
@@ -271,7 +271,7 @@ void QAndroidAudioDecoder::setSource(const QUrl &fileName)
 
     if (m_source != fileName) {
         m_source = fileName;
-        emit setSourceUrl(m_source);
+        Q_EMIT setSourceUrl(m_source);
         sourceChanged();
     }
 }
@@ -298,7 +298,7 @@ void QAndroidAudioDecoder::start()
         return;
 
     if (m_device && (!m_device->isOpen() || !m_device->isReadable())) {
-        emit error(QAudioDecoder::ResourceError,
+        Q_EMIT error(QAudioDecoder::ResourceError,
                    QString::fromUtf8("Unable to read from the specified device"));
         return;
     }
@@ -323,7 +323,7 @@ void QAndroidAudioDecoder::stop()
     QPlatformAudioDecoder::positionChanged(kInvalidPosition);
     durationChanged(kInvalidDuration);
 
-    emit bufferAvailableChanged(false);
+    Q_EMIT bufferAvailableChanged(false);
 }
 
 QAudioBuffer QAndroidAudioDecoder::read()
@@ -346,7 +346,7 @@ void QAndroidAudioDecoder::positionChanged(QAudioBuffer audioBuffer, std::chrono
 {
     m_audioBuffer.append({ audioBuffer, position });
     QPlatformAudioDecoder::positionChanged(position);
-    emit bufferReady();
+    Q_EMIT bufferReady();
 }
 
 void QAndroidAudioDecoder::durationChanged(std::chrono::milliseconds duration)
@@ -357,19 +357,19 @@ void QAndroidAudioDecoder::durationChanged(std::chrono::milliseconds duration)
 void QAndroidAudioDecoder::error(const QAudioDecoder::Error err, const QString &errorString)
 {
     stop();
-    emit QPlatformAudioDecoder::error(err, errorString);
+    Q_EMIT QPlatformAudioDecoder::error(err, errorString);
 }
 
 void QAndroidAudioDecoder::finished()
 {
-    emit bufferAvailableChanged(m_audioBuffer.size() > 0);
+    Q_EMIT bufferAvailableChanged(m_audioBuffer.size() > 0);
 
     if (QPlatformAudioDecoder::duration() >= 0ms)
         QPlatformAudioDecoder::durationChanged(QPlatformAudioDecoder::duration());
 
     // remove temp file when decoding is finished
     QFile(QString(QDir::tempPath()).append(QString::fromUtf8(tempFile))).remove();
-    emit QPlatformAudioDecoder::finished();
+    Q_EMIT QPlatformAudioDecoder::finished();
 }
 
 bool QAndroidAudioDecoder::requestPermissions()
@@ -398,11 +398,11 @@ bool QAndroidAudioDecoder::createTempFile()
 
     bool success = file.open(QIODevice::QIODevice::ReadWrite);
     if (!success)
-        emit error(QAudioDecoder::ResourceError, tr("Error opening temporary file: %1").arg(file.errorString()));
+        Q_EMIT error(QAudioDecoder::ResourceError, tr("Error opening temporary file: %1").arg(file.errorString()));
 
     success &= (file.write(m_deviceBuffer) == m_deviceBuffer.size());
     if (!success)
-        emit error(QAudioDecoder::ResourceError, tr("Error while writing data to temporary file"));
+        Q_EMIT error(QAudioDecoder::ResourceError, tr("Error while writing data to temporary file"));
 
     file.close();
     m_deviceBuffer.clear();

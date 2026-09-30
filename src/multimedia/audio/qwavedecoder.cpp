@@ -286,7 +286,7 @@ void QWaveDecoder::parsingFailed()
 
     Q_ASSERT(device);
     disconnect(device, &QIODevice::readyRead, this, &QWaveDecoder::handleData);
-    emit parsingError();
+    Q_EMIT parsingError();
 }
 
 void QWaveDecoder::handleData()
@@ -392,7 +392,7 @@ void QWaveDecoder::handleData()
     haveFormat = true;
     disconnect(device, &QIODevice::readyRead, this, &QWaveDecoder::handleData);
     connect(device, &QIODevice::readyRead, this, &QIODevice::readyRead);
-    emit formatKnown();
+    Q_EMIT formatKnown();
 }
 
 #endif // QT_DEPRECATED_SINCE(6, 11)

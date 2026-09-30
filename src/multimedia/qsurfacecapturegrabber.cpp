@@ -137,7 +137,7 @@ void QSurfaceCaptureGrabber::updateError(QPlatformSurfaceCapture::Error error,
 
     if (error != QPlatformSurfaceCapture::Error::NoError
         || prevError != QPlatformSurfaceCapture::Error::NoError) {
-        emit errorUpdated(error, description);
+        Q_EMIT errorUpdated(error, description);
     }
 
     updateTimerInterval();
@@ -179,7 +179,7 @@ void QSurfaceCaptureGrabber::initializeGrabbingContext()
 
             updateError(QPlatformSurfaceCapture::Error::NoError);
 
-            emit frameGrabbed(frame);
+            Q_EMIT frameGrabbed(frame);
         }
     };
 

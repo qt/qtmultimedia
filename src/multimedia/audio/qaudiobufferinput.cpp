@@ -17,7 +17,7 @@ public:
     bool sendAudioBuffer(const QAudioBuffer &audioBuffer)
     {
         return sendMediaFrame(
-                [&]() { emit m_platfromAudioBufferInput->newAudioBuffer(audioBuffer); });
+                [&]() { Q_EMIT m_platfromAudioBufferInput->newAudioBuffer(audioBuffer); });
     }
 
     void initialize(const QAudioFormat &format = {})
@@ -63,7 +63,7 @@ private:
         return false;
     }
 
-    void emitReadyToSendMediaFrame() override { emit q->readyToSendAudioBuffer(); }
+    void emitReadyToSendMediaFrame() override { Q_EMIT q->readyToSendAudioBuffer(); }
 
 private:
     QAudioBufferInput *q = nullptr;

@@ -1043,7 +1043,7 @@ void QGstreamerMediaPlayer::setMediaCustomSource(const QUrl &content)
     qCDebug(qLcMediaPlayer) << "generating" << gstLaunchString;
     QGstElement element = QGstElement::createFromPipelineDescription(gstLaunchString);
     if (!element) {
-        emit error(QMediaPlayer::ResourceError, u"Could not create custom pipeline"_s);
+        Q_EMIT error(QMediaPlayer::ResourceError, u"Could not create custom pipeline"_s);
         return;
     }
 

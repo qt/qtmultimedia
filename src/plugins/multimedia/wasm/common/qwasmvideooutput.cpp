@@ -194,9 +194,9 @@ void QWasmVideoOutput::playVideoElement()
             // attribute happens to say.
             if (errorName == "NotAllowedError"_L1) {
                 qCWarning(qWasmMediaVideoOutput) << "video.play() not allowed:" << errorMessage;
-                emit videoOutput->readyChanged(false);
-                emit videoOutput->stateChanged(QWasmMediaPlayer::Stopped);
-                emit videoOutput->errorOccured(QMediaPlayer::AccessDeniedError, errorString);
+                Q_EMIT videoOutput->readyChanged(false);
+                Q_EMIT videoOutput->stateChanged(QWasmMediaPlayer::Stopped);
+                Q_EMIT videoOutput->errorOccured(QMediaPlayer::AccessDeniedError, errorString);
                 return;
             }
 
@@ -211,9 +211,9 @@ void QWasmVideoOutput::playVideoElement()
 
             qCWarning(qWasmMediaVideoOutput) << "video.play() rejected:" << errorName
                                              << errorMessage;
-            emit videoOutput->readyChanged(false);
-            emit videoOutput->stateChanged(QWasmMediaPlayer::Stopped);
-            emit videoOutput->errorOccured(QMediaPlayer::ResourceError, errorString);
+            Q_EMIT videoOutput->readyChanged(false);
+            Q_EMIT videoOutput->stateChanged(QWasmMediaPlayer::Stopped);
+            Q_EMIT videoOutput->errorOccured(QMediaPlayer::ResourceError, errorString);
         }
     });
 }
@@ -223,7 +223,7 @@ void QWasmVideoOutput::start()
     if (m_video.isUndefined() || m_video.isNull()
         || !m_wasmSink) {
         // error
-        emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("video surface error"));
+        Q_EMIT errorOccured(QMediaPlayer::ResourceError, QStringLiteral("video surface error"));
         return;
     }
 
@@ -238,7 +238,7 @@ void QWasmVideoOutput::start()
     } break;
     case QWasmVideoOutput::SurfaceCapture: {
         playVideoElement();
-        emit readyChanged(true);
+        Q_EMIT readyChanged(true);
     } break;
     case QWasmVideoOutput::Camera: {
         {
@@ -259,7 +259,7 @@ void QWasmVideoOutput::start()
                     // srcObject would interrupt the in-flight play() and reject its
                     // promise with AbortError, so skip it when nothing changed.
                     if (m_video["srcObject"].equals(newStream)) {
-                        emit readyChanged(true);
+                        Q_EMIT readyChanged(true);
                         return;
                     }
                     m_video.set("srcObject", newStream);
@@ -267,19 +267,19 @@ void QWasmVideoOutput::start()
                     emscripten::val stream = m_video["srcObject"];
                     if (stream.isNull() || stream.isUndefined()) { // camera  device
                         qCDebug(qWasmMediaVideoOutput) << "srcObject ERROR";
-                        emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("video surface error"));
+                        Q_EMIT errorOccured(QMediaPlayer::ResourceError, QStringLiteral("video surface error"));
                         return;
                     } else {
                         emscripten::val videoTracks = stream.call<emscripten::val>("getVideoTracks");
                         if (videoTracks.isNull() || videoTracks.isUndefined()) {
                             qCDebug(qWasmMediaVideoOutput) << Q_FUNC_INFO << "videoTracks is null";
-                            emit errorOccured(QMediaPlayer::ResourceError,
+                            Q_EMIT errorOccured(QMediaPlayer::ResourceError,
                                               QStringLiteral("video surface error"));
                             return;
                         }
                         if (videoTracks["length"].as<int>() == 0) {
                             qCDebug(qWasmMediaVideoOutput) << Q_FUNC_INFO << "videoTracks count is 0";
-                            emit errorOccured(QMediaPlayer::ResourceError,
+                            Q_EMIT errorOccured(QMediaPlayer::ResourceError,
                                               QStringLiteral("video surface error"));
                             return;
                         }
@@ -295,7 +295,7 @@ void QWasmVideoOutput::start()
 
                     playVideoElement();
 
-                    emit readyChanged(true);
+                    Q_EMIT readyChanged(true);
 
                 });
         m_mediaInputStream->setUseAudio(false);
@@ -324,7 +324,7 @@ void QWasmVideoOutput::stop()
         return;
     qCWarning(qWasmMediaVideoOutput) << Q_FUNC_INFO << "mode=" << m_currentVideoMode;
     if (m_video.isUndefined() || m_video.isNull()) {
-        emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("Resource error"));
+        Q_EMIT errorOccured(QMediaPlayer::ResourceError, QStringLiteral("Resource error"));
         return;
     }
     m_isStopped = true;
@@ -360,7 +360,7 @@ void QWasmVideoOutput::pause()
 
     if (m_video.isUndefined() || m_video.isNull()) {
         // error
-        emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("video surface error"));
+        Q_EMIT errorOccured(QMediaPlayer::ResourceError, QStringLiteral("video surface error"));
         return;
     }
     m_isStopped = false;
@@ -471,11 +471,11 @@ void QWasmVideoOutput::setSource(QIODevice *stream)
 {
     if (stream->bytesAvailable() == 0) {
         qWarning() << "data not available";
-        emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("data not available"));
+        Q_EMIT errorOccured(QMediaPlayer::ResourceError, QStringLiteral("data not available"));
         return;
     }
     if (m_video.isUndefined() || m_video.isNull()) {
-        emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("video surface error"));
+        Q_EMIT errorOccured(QMediaPlayer::ResourceError, QStringLiteral("video surface error"));
         return;
     }
 
@@ -508,7 +508,7 @@ void QWasmVideoOutput::setMuted(bool muted)
 {
     if (m_video.isUndefined() || m_video.isNull()) {
         // error
-        emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("video surface error"));
+        Q_EMIT errorOccured(QMediaPlayer::ResourceError, QStringLiteral("video surface error"));
         return;
     }
     m_video.set("muted", muted);
@@ -547,7 +547,7 @@ bool QWasmVideoOutput::isVideoSeekable()
 {
     if (m_video.isUndefined() || m_video.isNull()) {
         // error
-        emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("video surface error"));
+        Q_EMIT errorOccured(QMediaPlayer::ResourceError, QStringLiteral("video surface error"));
         return false;
     }
 
@@ -1362,7 +1362,7 @@ emscripten::val QWasmVideoOutput::getDeviceCapabilities()
         }
     } else {
         // camera not started track capabilities not available
-        emit errorOccured(QMediaPlayer::ResourceError, QStringLiteral("capabilities not available"));
+        Q_EMIT errorOccured(QMediaPlayer::ResourceError, QStringLiteral("capabilities not available"));
     }
 
     return emscripten::val::undefined();

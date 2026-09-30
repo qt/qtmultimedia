@@ -40,7 +40,7 @@ QAutoResetEventPipe::QAutoResetEventPipe(QObject *parent)
         Q_ASSERT(bytesRead > 0);
 
         m_consumePending.clear();
-        emit activated();
+        Q_EMIT activated();
         QT_WARNING_POP
     });
     m_notifier.setSocket(m_fdConsumer);

@@ -249,7 +249,7 @@ void QAndroidCaptureSession::start(QMediaEncoderSettings &settings, const QUrl &
     }
 
     m_state = QMediaRecorder::RecordingState;
-    emit stateChanged(m_state);
+    Q_EMIT stateChanged(m_state);
 }
 
 void QAndroidCaptureSession::stop(bool error)
@@ -276,11 +276,11 @@ void QAndroidCaptureSession::stop(bool error)
         if (m_outputLocationIsStandard)
             AndroidMultimediaUtils::registerMediaFile(m_usedOutputLocation.toLocalFile());
 
-        emit actualLocationChanged(m_usedOutputLocation);
+        Q_EMIT actualLocationChanged(m_usedOutputLocation);
     }
 
     m_state = QMediaRecorder::StoppedState;
-    emit stateChanged(m_state);
+    Q_EMIT stateChanged(m_state);
 }
 
 qint64 QAndroidCaptureSession::duration() const
@@ -381,7 +381,7 @@ void QAndroidCaptureSession::updateDuration()
     if (m_elapsedTime.isValid())
         m_duration = m_elapsedTime.elapsed();
 
-    emit durationChanged(m_duration);
+    Q_EMIT durationChanged(m_duration);
 }
 
 void QAndroidCaptureSession::onCameraOpened()

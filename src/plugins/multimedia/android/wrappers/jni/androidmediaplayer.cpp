@@ -487,7 +487,7 @@ static void onTrackInfoChangedNative(JNIEnv *env, jobject thiz, jlong ptr)
     if (!mediaplayer)
         return;
 
-    emit mediaplayer->tracksInfoChanged();
+    Q_EMIT mediaplayer->tracksInfoChanged();
 }
 
 static void onTimedTextChangedNative(JNIEnv *env, jobject thiz, jstring timedText, jint time,
@@ -507,7 +507,7 @@ static void onTimedTextChangedNative(JNIEnv *env, jobject thiz, jstring timedTex
     if (timedText != nullptr)
         subtitleText = QString::fromUtf8(env->GetStringUTFChars(timedText, 0));
 
-    emit mediaplayer->timedTextChanged(subtitleText);
+    Q_EMIT mediaplayer->timedTextChanged(subtitleText);
 }
 
 bool AndroidMediaPlayer::registerNativeMethods()

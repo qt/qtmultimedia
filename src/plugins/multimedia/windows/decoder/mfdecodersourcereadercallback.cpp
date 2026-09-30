@@ -13,9 +13,9 @@ STDMETHODIMP MFSourceReaderCallback::OnReadSample(HRESULT hrStatus, DWORD dwStre
     Q_UNUSED(dwStreamIndex);
     Q_UNUSED(llTimestamp);
     if (pSample) {
-        emit newSample(ComPtr<IMFSample>{ pSample });
+        Q_EMIT newSample(ComPtr<IMFSample>{ pSample });
     } else if ((dwStreamFlags & MF_SOURCE_READERF_ENDOFSTREAM) == MF_SOURCE_READERF_ENDOFSTREAM) {
-        emit finished();
+        Q_EMIT finished();
     }
     return S_OK;
 }

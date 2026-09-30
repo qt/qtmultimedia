@@ -43,7 +43,7 @@ void QWindowsMediaCaptureService::setCamera(QPlatformCamera *camera)
     m_camera = control;
     if (m_camera)
         m_camera->setCaptureSession(this);
-    emit cameraChanged();
+    Q_EMIT cameraChanged();
 }
 
 QPlatformImageCapture *QWindowsMediaCaptureService::imageCapture()
@@ -63,7 +63,7 @@ void QWindowsMediaCaptureService::setImageCapture(QPlatformImageCapture *imageCa
     m_imageCapture = control;
     if (m_imageCapture)
         m_imageCapture->setCaptureSession(this);
-    emit imageCaptureChanged();
+    Q_EMIT imageCaptureChanged();
 }
 
 QPlatformMediaRecorder *QWindowsMediaCaptureService::mediaRecorder()
@@ -83,7 +83,7 @@ void QWindowsMediaCaptureService::setMediaRecorder(QPlatformMediaRecorder *recor
     m_encoder = control;
     if (m_encoder)
         m_encoder->setCaptureSession(this);
-    emit encoderChanged();
+    Q_EMIT encoderChanged();
 }
 
 void QWindowsMediaCaptureService::setAudioInput(QPlatformAudioInput *input)

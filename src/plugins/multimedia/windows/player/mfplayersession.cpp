@@ -1291,7 +1291,7 @@ HRESULT MFPlayerSession::Invoke(IMFAsyncResult *pResult)
     }
 
     if (!m_closing) {
-        emit sessionEvent(pEvent);
+        Q_EMIT sessionEvent(pEvent);
     }
     return S_OK;
 }

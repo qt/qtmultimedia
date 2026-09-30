@@ -261,7 +261,7 @@ void QOhosCameraSession::setActive(bool active)
         stopSession();
     }
     m_active = active;
-    emit activeChanged(active);
+    Q_EMIT activeChanged(active);
     emitReadyForCaptureChanged();
 }
 
@@ -274,12 +274,12 @@ int QOhosCameraSession::capture(const QString &fileName, bool toBuffer)
 {
     const int id = ++m_lastCaptureId;
     if (!m_active || !m_photoOutput) {
-        emit imageCaptureError(id, QImageCapture::NotReadyError,
+        Q_EMIT imageCaptureError(id, QImageCapture::NotReadyError,
                                tr("Camera not ready for capture"));
         return id;
     }
     if (m_captureInProgress) {
-        emit imageCaptureError(id, QImageCapture::NotReadyError,
+        Q_EMIT imageCaptureError(id, QImageCapture::NotReadyError,
                                tr("Capture already in progress"));
         return id;
     }
@@ -292,7 +292,7 @@ int QOhosCameraSession::capture(const QString &fileName, bool toBuffer)
 
     if (OH_PhotoOutput_Capture(m_photoOutput) != CAMERA_OK) {
         m_captureInProgress = false;
-        emit imageCaptureError(id, QImageCapture::ResourceError,
+        Q_EMIT imageCaptureError(id, QImageCapture::ResourceError,
                                tr("OH_PhotoOutput_Capture failed"));
         emitReadyForCaptureChanged();
     }
@@ -305,7 +305,7 @@ void QOhosCameraSession::onSurfaceReady()
         m_pendingStart = false;
         if (startSession()) {
             m_active = true;
-            emit activeChanged(true);
+            Q_EMIT activeChanged(true);
             emitReadyForCaptureChanged();
         }
         return;
@@ -322,7 +322,7 @@ void QOhosCameraSession::onSurfaceReady()
     stopSession();
     if (startSession()) {
         m_active = true;
-        emit activeChanged(true);
+        Q_EMIT activeChanged(true);
         emitReadyForCaptureChanged();
     }
 }
@@ -336,7 +336,7 @@ void QOhosCameraSession::onCapturedImageAvailable()
     if (OH_ImageReceiverNative_ReadLatestImage(m_imageReceiver, &image) != IMAGE_SUCCESS
         || !image) {
         m_captureInProgress = false;
-        emit imageCaptureError(m_pendingCaptureId, QImageCapture::ResourceError,
+        Q_EMIT imageCaptureError(m_pendingCaptureId, QImageCapture::ResourceError,
                                tr("Failed to read captured image"));
         emitReadyForCaptureChanged();
         return;
@@ -355,22 +355,22 @@ void QOhosCameraSession::onCapturedImageAvailable()
     m_captureInProgress = false;
 
     if (jpegBytes.isEmpty()) {
-        emit imageCaptureError(id, QImageCapture::FormatError,
+        Q_EMIT imageCaptureError(id, QImageCapture::FormatError,
                                tr("Failed to encode captured image"));
         emitReadyForCaptureChanged();
         return;
     }
 
     QImage preview = QImage::fromData(jpegBytes, "JPEG");
-    emit imageExposed(id);
-    emit imageCaptured(id, preview);
+    Q_EMIT imageExposed(id);
+    Q_EMIT imageCaptured(id, preview);
 
     if (toBuffer) {
         QVideoFrame buffer = QVideoFramePrivate::createFrame(
                 std::make_unique<QMemoryVideoBuffer>(QByteArray(jpegBytes),
                                                      preview.bytesPerLine()),
                 QVideoFrameFormat(preview.size(), QVideoFrameFormat::Format_Jpeg));
-        emit imageAvailable(id, buffer);
+        Q_EMIT imageAvailable(id, buffer);
         emitReadyForCaptureChanged();
         return;
     }
@@ -411,9 +411,9 @@ void QOhosCameraSession::onCapturedImageAvailable()
         }
     }
     if (saved) {
-        emit imageSaved(id, resolved);
+        Q_EMIT imageSaved(id, resolved);
     } else {
-        emit imageCaptureError(id, QImageCapture::ResourceError,
+        Q_EMIT imageCaptureError(id, QImageCapture::ResourceError,
                                tr("Could not save captured image to: %1").arg(resolved));
     }
 
@@ -426,7 +426,7 @@ void QOhosCameraSession::emitReadyForCaptureChanged()
     if (m_lastReadyForCapture && *m_lastReadyForCapture == ready)
         return;
     m_lastReadyForCapture = ready;
-    emit readyForCaptureChanged(ready);
+    Q_EMIT readyForCaptureChanged(ready);
 }
 
 bool QOhosCameraSession::ensureManager()
@@ -961,12 +961,12 @@ void QOhosCameraSession::onRecorderStateNotification(int state)
     if (mapped == m_recorderState)
         return;
     m_recorderState = mapped;
-    emit recorderStateChanged(int(mapped));
+    Q_EMIT recorderStateChanged(int(mapped));
 }
 
 void QOhosCameraSession::onRecorderErrorNotification(int code, const QString &message)
 {
-    emit recorderErrorOccurred(int(QMediaRecorder::ResourceError),
+    Q_EMIT recorderErrorOccurred(int(QMediaRecorder::ResourceError),
                                message.isEmpty()
                                        ? tr("Recorder error %1").arg(code)
                                        : message);
@@ -987,7 +987,7 @@ bool QOhosCameraSession::startRecording(const QMediaEncoderSettings &settings,
                                          const QString &location)
 {
     if (m_recorder) {
-        emit recorderErrorOccurred(int(QMediaRecorder::ResourceError),
+        Q_EMIT recorderErrorOccurred(int(QMediaRecorder::ResourceError),
                                    tr("Recording already in progress"));
         return false;
     }
@@ -998,7 +998,7 @@ bool QOhosCameraSession::startRecording(const QMediaEncoderSettings &settings,
     Camera_VideoProfile videoProfile{};
     if (videoEnabled) {
         if (!findVideoProfile(settings, &videoProfile)) {
-            emit recorderErrorOccurred(int(QMediaRecorder::ResourceError),
+            Q_EMIT recorderErrorOccurred(int(QMediaRecorder::ResourceError),
                                        tr("No matching camera video profile"));
             return false;
         }
@@ -1006,7 +1006,7 @@ bool QOhosCameraSession::startRecording(const QMediaEncoderSettings &settings,
 
     m_recorder = OH_AVRecorder_Create();
     if (!m_recorder) {
-        emit recorderErrorOccurred(int(QMediaRecorder::ResourceError),
+        Q_EMIT recorderErrorOccurred(int(QMediaRecorder::ResourceError),
                                    tr("OH_AVRecorder_Create failed"));
         return false;
     }
@@ -1027,7 +1027,7 @@ bool QOhosCameraSession::startRecording(const QMediaEncoderSettings &settings,
     int fd = ::open(QFile::encodeName(resolved).constData(),
                     O_RDWR | O_CREAT | O_TRUNC, 0644);
     if (fd < 0) {
-        emit recorderErrorOccurred(int(QMediaRecorder::ResourceError),
+        Q_EMIT recorderErrorOccurred(int(QMediaRecorder::ResourceError),
                                    tr("Could not open output file: %1").arg(resolved));
         destroyRecorder();
         return false;
@@ -1062,7 +1062,7 @@ bool QOhosCameraSession::startRecording(const QMediaEncoderSettings &settings,
     config.maxDuration = 0;
 
     if (OH_AVRecorder_Prepare(m_recorder, &config) != AV_ERR_OK) {
-        emit recorderErrorOccurred(int(QMediaRecorder::FormatError),
+        Q_EMIT recorderErrorOccurred(int(QMediaRecorder::FormatError),
                                    tr("OH_AVRecorder_Prepare failed"));
         ::close(fd);
         destroyRecorder();
@@ -1072,7 +1072,7 @@ bool QOhosCameraSession::startRecording(const QMediaEncoderSettings &settings,
     if (videoEnabled) {
         if (OH_AVRecorder_GetInputSurface(m_recorder, &m_recorderWindow) != AV_ERR_OK
             || !m_recorderWindow) {
-            emit recorderErrorOccurred(int(QMediaRecorder::ResourceError),
+            Q_EMIT recorderErrorOccurred(int(QMediaRecorder::ResourceError),
                                        tr("OH_AVRecorder_GetInputSurface failed"));
             destroyRecorder();
             return false;
@@ -1081,7 +1081,7 @@ bool QOhosCameraSession::startRecording(const QMediaEncoderSettings &settings,
         uint64_t surfaceIdNum = 0;
         if (OH_NativeWindow_GetSurfaceId(m_recorderWindow, &surfaceIdNum) != 0
             || surfaceIdNum == 0) {
-            emit recorderErrorOccurred(int(QMediaRecorder::ResourceError),
+            Q_EMIT recorderErrorOccurred(int(QMediaRecorder::ResourceError),
                                        tr("Failed to obtain recorder surface ID"));
             destroyRecorder();
             return false;
@@ -1089,7 +1089,7 @@ bool QOhosCameraSession::startRecording(const QMediaEncoderSettings &settings,
         const QByteArray surfaceId = QByteArray::number(qulonglong(surfaceIdNum));
 
         if (!attachVideoOutput(videoProfile, surfaceId)) {
-            emit recorderErrorOccurred(int(QMediaRecorder::ResourceError),
+            Q_EMIT recorderErrorOccurred(int(QMediaRecorder::ResourceError),
                                        tr("Failed to attach video output to capture session"));
             destroyRecorder();
             return false;
@@ -1097,7 +1097,7 @@ bool QOhosCameraSession::startRecording(const QMediaEncoderSettings &settings,
     }
 
     if (OH_AVRecorder_Start(m_recorder) != AV_ERR_OK) {
-        emit recorderErrorOccurred(int(QMediaRecorder::ResourceError),
+        Q_EMIT recorderErrorOccurred(int(QMediaRecorder::ResourceError),
                                    tr("OH_AVRecorder_Start failed"));
         detachVideoOutput();
         destroyRecorder();
@@ -1105,7 +1105,7 @@ bool QOhosCameraSession::startRecording(const QMediaEncoderSettings &settings,
     }
 
     m_recorderActualLocation = QUrl::fromLocalFile(resolved);
-    emit recorderActualLocationChanged(m_recorderActualLocation);
+    Q_EMIT recorderActualLocationChanged(m_recorderActualLocation);
     m_recorderPausedMs = 0;
     m_recorderResumeStartMs = 0;
     m_recorderTimer.restart();
@@ -1147,7 +1147,7 @@ void QOhosCameraSession::destroyRecorder()
     m_recorderWindow = nullptr;
     if (m_recorderState != QMediaRecorder::StoppedState) {
         m_recorderState = QMediaRecorder::StoppedState;
-        emit recorderStateChanged(int(QMediaRecorder::StoppedState));
+        Q_EMIT recorderStateChanged(int(QMediaRecorder::StoppedState));
     }
     m_recorderTimer.invalidate();
     m_recorderPausedMs = 0;

@@ -69,7 +69,7 @@ void QPlatformCamera::supportedFeaturesChanged(QCamera::Features f)
     if (m_supportedFeatures == f)
         return;
     m_supportedFeatures = f;
-    emit m_camera->supportedFeaturesChanged();
+    Q_EMIT m_camera->supportedFeaturesChanged();
 }
 
 void QPlatformCamera::minimumZoomFactorChanged(float factor)
@@ -77,7 +77,7 @@ void QPlatformCamera::minimumZoomFactorChanged(float factor)
     if (m_minZoom == factor)
         return;
     m_minZoom = factor;
-    emit m_camera->minimumZoomFactorChanged(factor);
+    Q_EMIT m_camera->minimumZoomFactorChanged(factor);
 }
 
 void QPlatformCamera::maximumZoomFactorChanged(float factor)
@@ -85,7 +85,7 @@ void QPlatformCamera::maximumZoomFactorChanged(float factor)
     if (m_maxZoom == factor)
         return;
     m_maxZoom = factor;
-    emit m_camera->maximumZoomFactorChanged(factor);
+    Q_EMIT m_camera->maximumZoomFactorChanged(factor);
 }
 
 void QPlatformCamera::focusModeChanged(QCamera::FocusMode mode)
@@ -93,7 +93,7 @@ void QPlatformCamera::focusModeChanged(QCamera::FocusMode mode)
     if (m_focusMode == mode)
         return;
     m_focusMode = mode;
-    emit m_camera->focusModeChanged();
+    Q_EMIT m_camera->focusModeChanged();
 }
 
 void QPlatformCamera::customFocusPointChanged(const QPointF &point)
@@ -101,7 +101,7 @@ void QPlatformCamera::customFocusPointChanged(const QPointF &point)
     if (m_customFocusPoint == point)
         return;
     m_customFocusPoint = point;
-    emit m_camera->customFocusPointChanged();
+    Q_EMIT m_camera->customFocusPointChanged();
 }
 
 
@@ -110,7 +110,7 @@ void QPlatformCamera::zoomFactorChanged(float zoom)
     if (m_zoomFactor == zoom)
         return;
     m_zoomFactor = zoom;
-    emit m_camera->zoomFactorChanged(zoom);
+    Q_EMIT m_camera->zoomFactorChanged(zoom);
 }
 
 
@@ -119,7 +119,7 @@ void QPlatformCamera::focusDistanceChanged(float d)
     if (m_focusDistance == d)
         return;
     m_focusDistance = d;
-    emit m_camera->focusDistanceChanged(m_focusDistance);
+    Q_EMIT m_camera->focusDistanceChanged(m_focusDistance);
 }
 
 
@@ -128,7 +128,7 @@ void QPlatformCamera::flashReadyChanged(bool ready)
     if (m_flashReady == ready)
         return;
     m_flashReady = ready;
-    emit m_camera->flashReady(m_flashReady);
+    Q_EMIT m_camera->flashReady(m_flashReady);
 }
 
 void QPlatformCamera::flashModeChanged(QCamera::FlashMode mode)
@@ -136,7 +136,7 @@ void QPlatformCamera::flashModeChanged(QCamera::FlashMode mode)
     if (m_flashMode == mode)
         return;
     m_flashMode = mode;
-    emit m_camera->flashModeChanged();
+    Q_EMIT m_camera->flashModeChanged();
 }
 
 void QPlatformCamera::torchModeChanged(QCamera::TorchMode mode)
@@ -144,7 +144,7 @@ void QPlatformCamera::torchModeChanged(QCamera::TorchMode mode)
     if (m_torchMode == mode)
         return;
     m_torchMode = mode;
-    emit m_camera->torchModeChanged();
+    Q_EMIT m_camera->torchModeChanged();
 }
 
 void QPlatformCamera::exposureModeChanged(QCamera::ExposureMode mode)
@@ -152,7 +152,7 @@ void QPlatformCamera::exposureModeChanged(QCamera::ExposureMode mode)
     if (m_exposureMode == mode)
         return;
     m_exposureMode = mode;
-    emit m_camera->exposureModeChanged();
+    Q_EMIT m_camera->exposureModeChanged();
 }
 
 void QPlatformCamera::exposureCompensationChanged(float compensation)
@@ -160,7 +160,7 @@ void QPlatformCamera::exposureCompensationChanged(float compensation)
     if (m_exposureCompensation == compensation)
         return;
     m_exposureCompensation = compensation;
-    emit m_camera->exposureCompensationChanged(compensation);
+    Q_EMIT m_camera->exposureCompensationChanged(compensation);
 }
 
 void QPlatformCamera::exposureCompensationRangeChanged(float min, float max)
@@ -177,7 +177,7 @@ void QPlatformCamera::isoSensitivityChanged(int iso)
     if (m_iso == iso)
         return;
     m_iso = iso;
-    emit m_camera->isoSensitivityChanged(iso);
+    Q_EMIT m_camera->isoSensitivityChanged(iso);
 }
 
 void QPlatformCamera::exposureTimeChanged(float speed)
@@ -185,7 +185,7 @@ void QPlatformCamera::exposureTimeChanged(float speed)
     if (m_exposureTime == speed)
         return;
     m_exposureTime = speed;
-    emit m_camera->exposureTimeChanged(speed);
+    Q_EMIT m_camera->exposureTimeChanged(speed);
 }
 
 void QPlatformCamera::whiteBalanceModeChanged(QCamera::WhiteBalanceMode mode)
@@ -193,7 +193,7 @@ void QPlatformCamera::whiteBalanceModeChanged(QCamera::WhiteBalanceMode mode)
     if (m_whiteBalance == mode)
         return;
     m_whiteBalance = mode;
-    emit m_camera->whiteBalanceModeChanged();
+    Q_EMIT m_camera->whiteBalanceModeChanged();
 }
 
 void QPlatformCamera::colorTemperatureChanged(int temperature)
@@ -204,7 +204,7 @@ void QPlatformCamera::colorTemperatureChanged(int temperature)
     if (m_colorTemperature == temperature)
         return;
     m_colorTemperature = temperature;
-    emit m_camera->colorTemperatureChanged();
+    Q_EMIT m_camera->colorTemperatureChanged();
 }
 
 int QPlatformCamera::colorTemperatureForWhiteBalance(QCamera::WhiteBalanceMode mode)

@@ -295,7 +295,7 @@ void QQnxAudioSource::changeState(QAudio::State state, QAudio::Error error)
 {
     if (m_state != state) {
         m_state = state;
-        emit stateChanged(state);
+        Q_EMIT stateChanged(state);
     }
 
     setError(error);
@@ -330,7 +330,7 @@ bool InputPrivate::isSequential() const
 
 void InputPrivate::trigger()
 {
-    emit readyRead();
+    Q_EMIT readyRead();
 }
 
 QT_END_NAMESPACE

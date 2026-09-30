@@ -80,7 +80,7 @@ void QWasmCamera::setActive(bool active)
 
     if (active)
         updateCameraFeatures();
-    emit activeChanged(active);
+    Q_EMIT activeChanged(active);
     if (m_CaptureSession->imageCapture()) {
          if (active) {
             m_readyChangedConnection = connect(cameraOutput(), &QWasmVideoOutput::readyChanged, this, [this] () {
@@ -121,7 +121,7 @@ void QWasmCamera::setCamera(const QCameraDevice &camera)
     if (ranges::contains(cameras, camera)) {
         m_cameraDev = camera;
         createCamera(m_cameraDev);
-        emit cameraIsReady();
+        Q_EMIT cameraIsReady();
         if (wasActive)
             m_cameraOutput->start();
         return;
@@ -130,7 +130,7 @@ void QWasmCamera::setCamera(const QCameraDevice &camera)
     if (cameras.count() > 0) {
         m_cameraDev = camera;
         createCamera(m_cameraDev);
-        emit cameraIsReady();
+        Q_EMIT cameraIsReady();
         if (wasActive)
             m_cameraOutput->start();
     } else {
@@ -329,7 +329,7 @@ void QWasmCamera::setExposureCompensation(float bias)
     static constexpr std::string_view exposureCompensationModeString = "exposureCompensation";
     m_cameraOutput->setDeviceSetting(exposureCompensationModeString.data(), emscripten::val(bias));
     m_wasmExposureCompensation = bias;
-    emit exposureCompensationChanged(m_wasmExposureCompensation);
+    Q_EMIT exposureCompensationChanged(m_wasmExposureCompensation);
 }
 
 void QWasmCamera::setManualExposureTime(float secs)
@@ -347,7 +347,7 @@ void QWasmCamera::setManualExposureTime(float secs)
     static constexpr std::string_view exposureTimeString = "exposureTime";
     m_cameraOutput->setDeviceSetting(exposureTimeString.data(), emscripten::val(secs));
     m_wasmExposureTime = secs;
-    emit exposureTimeChanged(m_wasmExposureTime);
+    Q_EMIT exposureTimeChanged(m_wasmExposureTime);
 }
 
 int QWasmCamera::isoSensitivity() const
@@ -383,7 +383,7 @@ void QWasmCamera::setManualIsoSensitivity(int sens)
     static constexpr std::string_view isoString = "iso";
     m_cameraOutput->setDeviceSetting(isoString.data(), emscripten::val(sens));
     m_wasmIsoSensitivity = sens;
-    emit isoSensitivityChanged(m_wasmIsoSensitivity);
+    Q_EMIT isoSensitivityChanged(m_wasmIsoSensitivity);
 }
 
 bool QWasmCamera::isWhiteBalanceModeSupported(QCamera::WhiteBalanceMode mode) const
@@ -430,7 +430,7 @@ void QWasmCamera::setWhiteBalanceMode(QCamera::WhiteBalanceMode mode)
 
     if (hasChanged) {
         m_wasmWhiteBalanceMode = mode;
-        emit whiteBalanceModeChanged(m_wasmWhiteBalanceMode);
+        Q_EMIT whiteBalanceModeChanged(m_wasmWhiteBalanceMode);
     }
 }
 

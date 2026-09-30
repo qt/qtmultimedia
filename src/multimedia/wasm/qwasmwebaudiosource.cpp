@@ -463,7 +463,7 @@ void QWasmAudioSource::deliverBufferedData()
         m_processed += avail;
         m_readPos.store((rpos + avail) % ringSize, std::memory_order_release);
     } else {
-        emit m_device->readyRead();
+        Q_EMIT m_device->readyRead();
     }
 #else
     float frameBuf[128 * 8]; // one Web Audio quantum: 128 frames × 8 ch max
@@ -485,7 +485,7 @@ void QWasmAudioSource::deliverBufferedData()
         m_device->write(m_pendingData);
         m_pendingData.clear();
     } else {
-        emit m_device->readyRead();
+        Q_EMIT m_device->readyRead();
     }
 #endif
 }

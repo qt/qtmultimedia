@@ -44,7 +44,7 @@ void QVideoOutputOrientationHandler::screenOrientationChanged(Qt::ScreenOrientat
         return;
 
     m_currentOrientation = angle;
-    emit orientationChanged(m_currentOrientation);
+    Q_EMIT orientationChanged(m_currentOrientation);
 }
 
 QT_END_NAMESPACE

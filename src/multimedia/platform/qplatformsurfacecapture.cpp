@@ -26,7 +26,7 @@ void QPlatformSurfaceCapture::setActive(bool active)
         return;
 
     m_active = active;
-    emit activeChanged(active);
+    Q_EMIT activeChanged(active);
 }
 
 bool QPlatformSurfaceCapture::isActive() const
@@ -48,11 +48,11 @@ void QPlatformSurfaceCapture::setSource(Source source)
 
     if (m_active && !setActiveInternal(true)) {
         m_active = false;
-        emit activeChanged(false);
+        Q_EMIT activeChanged(false);
     }
 
     std::visit([this](const auto &source) {
-        emit sourceChanged(source);
+        Q_EMIT sourceChanged(source);
     }, m_source);
 }
 
@@ -72,7 +72,7 @@ void QPlatformSurfaceCapture::setFrameRate(std::optional<qreal> frameRate)
         return;
 
     m_frameRate = frameRate;
-    emit frameRateChanged(m_frameRate);
+    Q_EMIT frameRateChanged(m_frameRate);
 }
 
 std::optional<qreal> QPlatformSurfaceCapture::frameRate() const

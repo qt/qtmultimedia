@@ -27,7 +27,7 @@ QWasmImageCapture::~QWasmImageCapture() = default;
 int QWasmImageCapture::capture(const QString &fileName)
 {
     if (!isReadyForCapture()) {
-        emit error(m_lastId, QImageCapture::NotReadyError, msgCameraNotReady());
+        Q_EMIT error(m_lastId, QImageCapture::NotReadyError, msgCameraNotReady());
         return -1;
     }
 
@@ -48,13 +48,13 @@ int QWasmImageCapture::capture(const QString &fileName)
 
     if (writer.write(image)) {
         qCDebug(qWasmImageCapture) << Q_FUNC_INFO << "image saved";
-        emit imageSaved(m_lastId, fileName);
+        Q_EMIT imageSaved(m_lastId, fileName);
     } else {
         QImageCapture::Error err = (writer.error() == QImageWriter::UnsupportedFormatError)
                 ? QImageCapture::FormatError
                 : QImageCapture::ResourceError;
 
-        emit error(m_lastId, err, writer.errorString());
+        Q_EMIT error(m_lastId, err, writer.errorString());
     }
 
     return m_lastId;
@@ -63,7 +63,7 @@ int QWasmImageCapture::capture(const QString &fileName)
 int QWasmImageCapture::captureToBuffer()
 {
     if (!isReadyForCapture()) {
-        emit error(m_lastId, QImageCapture::NotReadyError, msgCameraNotReady());
+        Q_EMIT error(m_lastId, QImageCapture::NotReadyError, msgCameraNotReady());
         return -1;
     }
 
@@ -71,7 +71,7 @@ int QWasmImageCapture::captureToBuffer()
     if (image.isNull())
         return -1;
 
-    emit imageCaptured(m_lastId, image);
+    Q_EMIT imageCaptured(m_lastId, image);
     return m_lastId;
 }
 
@@ -83,17 +83,17 @@ QImage QWasmImageCapture::takePicture()
     QVideoFrame thisFrame = m_captureSession->videoSink()->videoFrame();
     QImage image;
     if (thisFrame.isValid()) {
-        emit imageAvailable(m_lastId, thisFrame);
+        Q_EMIT imageAvailable(m_lastId, thisFrame);
         image = thisFrame.toImage();
     }
 
     if (image.isNull()) {
         qCDebug(qWasmImageCapture) << Q_FUNC_INFO << "image capture failed";
-        emit error(m_lastId, QImageCapture::ResourceError, QStringLiteral("Capture failed"));
+        Q_EMIT error(m_lastId, QImageCapture::ResourceError, QStringLiteral("Capture failed"));
         return QImage();
     }
 
-    emit imageCaptured(m_lastId, image);
+    Q_EMIT imageCaptured(m_lastId, image);
     if (m_settings.resolution().isValid() && m_settings.resolution() != image.size())
         image = image.scaled(m_settings.resolution());
 
@@ -119,7 +119,7 @@ void QWasmImageCapture::setReadyForCapture(bool isReady)
 {
     if (m_isReadyForCapture != isReady) {
         m_isReadyForCapture = isReady;
-        emit readyForCaptureChanged(m_isReadyForCapture);
+        Q_EMIT readyForCaptureChanged(m_isReadyForCapture);
     }
 }
 

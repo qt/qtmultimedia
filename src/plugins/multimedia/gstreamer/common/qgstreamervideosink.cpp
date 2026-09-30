@@ -52,7 +52,7 @@ void QGstreamerPluggableVideoSink::setRhi(QRhi *rhi)
         return;
 
     m_rhi = rhi;
-    emit rhiChanged();
+    Q_EMIT rhiChanged();
 }
 
 QRhi* QGstreamerPluggableVideoSink::rhi() const
@@ -150,7 +150,7 @@ QGstreamerRelayVideoSink::QGstreamerRelayVideoSink(QObject *parent)
 
 QGstreamerRelayVideoSink::~QGstreamerRelayVideoSink()
 {
-    emit aboutToBeDestroyed();
+    Q_EMIT aboutToBeDestroyed();
 
     unrefGstContexts();
 }
@@ -219,19 +219,19 @@ void QGstreamerRelayVideoSink::disconnectPluggableVideoSink()
 
 void QGstreamerRelayVideoSink::setVideoFrame(const QVideoFrame &frame)
 {
-    emit videoFrameChanged(frame);
+    Q_EMIT videoFrameChanged(frame);
     m_currentVideoFrame = frame;
 }
 
 void QGstreamerRelayVideoSink::setSubtitleText(const QString &subtitleText)
 {
-    emit subtitleTextChanged(subtitleText);
+    Q_EMIT subtitleTextChanged(subtitleText);
     m_currentSubtitleText = subtitleText;
 }
 
 void QGstreamerRelayVideoSink::setNativeSize(QSize size)
 {
-    emit nativeSizeChanged(size);
+    Q_EMIT nativeSizeChanged(size);
     m_currentNativeSize = size;
 }
 

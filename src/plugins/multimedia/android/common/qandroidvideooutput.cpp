@@ -289,7 +289,7 @@ public:
     }
 #endif
 
-public slots:
+public Q_SLOTS:
     void onFrameAvailable(quint64 index)
     {
         // Check if 'm_surfaceTexture' is not reset and if the current index is the same that
@@ -301,12 +301,12 @@ public slots:
             auto tex = m_textureCopy->copyExternalGlTexture(m_size, matrix);
             auto *buffer = new AndroidTextureVideoBuffer(std::move(tex), m_size);
             QVideoFrame frame(buffer, QVideoFrameFormat(m_size, QVideoFrameFormat::Format_RGBA8888));
-            emit newFrame(frame);
+            Q_EMIT newFrame(frame);
 #endif
         }
     }
 
-    void clearFrame() { emit newFrame({}); }
+    void clearFrame() { Q_EMIT newFrame({}); }
 
     void setFrameSize(QSize size) { m_size = size; }
 
@@ -354,7 +354,7 @@ public slots:
 #endif
     }
 
-signals:
+Q_SIGNALS:
     void newFrame(const QVideoFrame &);
 
 private:

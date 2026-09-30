@@ -20,7 +20,7 @@ void QPlatformAudioDecoder::error(QAudioDecoder::Error error, const QString &err
 
     if (m_error != QAudioDecoder::NoError) {
         setIsDecoding(false);
-        emit q->error(m_error);
+        Q_EMIT q->error(m_error);
     }
 }
 
@@ -35,7 +35,7 @@ void QPlatformAudioDecoder::bufferAvailableChanged(bool available)
             q->bufferAvailableChanged(available);
         }, Qt::QueuedConnection);
     else
-        emit q->bufferAvailableChanged(available);
+        Q_EMIT q->bufferAvailableChanged(available);
 }
 
 void QPlatformAudioDecoder::bufferReady()
@@ -43,24 +43,24 @@ void QPlatformAudioDecoder::bufferReady()
     if (!q->thread()->isCurrentThread())
         QMetaObject::invokeMethod(q, &QAudioDecoder::bufferReady, Qt::QueuedConnection);
     else
-        emit q->bufferReady();
+        Q_EMIT q->bufferReady();
 }
 
 void QPlatformAudioDecoder::sourceChanged()
 {
-    emit q->sourceChanged();
+    Q_EMIT q->sourceChanged();
 }
 
 void QPlatformAudioDecoder::formatChanged(const QAudioFormat &format)
 {
-    emit q->formatChanged(format);
+    Q_EMIT q->formatChanged(format);
 }
 
 void QPlatformAudioDecoder::finished()
 {
     durationChanged(kInvalidDuration);
     setIsDecoding(false);
-    emit q->finished();
+    Q_EMIT q->finished();
 }
 
 void QPlatformAudioDecoder::positionChanged(std::chrono::milliseconds position)
@@ -68,7 +68,7 @@ void QPlatformAudioDecoder::positionChanged(std::chrono::milliseconds position)
     if (m_position == position)
         return;
     m_position = position;
-    emit q->positionChanged(position.count());
+    Q_EMIT q->positionChanged(position.count());
 }
 
 void QPlatformAudioDecoder::durationChanged(std::chrono::milliseconds duration)
@@ -76,7 +76,7 @@ void QPlatformAudioDecoder::durationChanged(std::chrono::milliseconds duration)
     if (m_duration == duration)
         return;
     m_duration = duration;
-    emit q->durationChanged(duration.count());
+    Q_EMIT q->durationChanged(duration.count());
 }
 
 QT_END_NAMESPACE

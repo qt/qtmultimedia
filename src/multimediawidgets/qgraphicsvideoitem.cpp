@@ -62,7 +62,7 @@ void QGraphicsVideoItemPrivate::_q_present(const QVideoFrame &frame)
             nativeSize = size;
 
             updateRects();
-            emit q_ptr->nativeSizeChanged(nativeSize);
+            Q_EMIT q_ptr->nativeSizeChanged(nativeSize);
         }
     }
 }

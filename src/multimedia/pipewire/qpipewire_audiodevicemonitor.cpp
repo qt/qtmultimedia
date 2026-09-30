@@ -208,7 +208,7 @@ void QAudioDeviceMonitor::objectRemoved(ObjectId id)
     }
 
     for (const SharedObjectRemoveObserver &element : removalObserversForObject)
-        emit element->objectRemoved();
+        Q_EMIT element->objectRemoved();
 
     {
         std::lock_guard guard{ m_pendingRecordsMutex };
@@ -436,10 +436,10 @@ void QAudioDeviceMonitor::updateSourcesOrSinks(std::list<PendingNodeRecord> adde
 
         if constexpr (Mode == Direction::sink) {
             m_sinkDeviceList = newDeviceList;
-            emit audioSinksChanged(m_sinkDeviceList);
+            Q_EMIT audioSinksChanged(m_sinkDeviceList);
         } else {
             m_sourceDeviceList = newDeviceList;
-            emit audioSourcesChanged(m_sourceDeviceList);
+            Q_EMIT audioSourcesChanged(m_sourceDeviceList);
         }
     }
 }

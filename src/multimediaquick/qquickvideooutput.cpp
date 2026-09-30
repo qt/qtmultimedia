@@ -170,7 +170,7 @@ void QQuickVideoOutput::setFillMode(FillMode mode)
     m_geometryDirty = true;
     update();
 
-    emit fillModeChanged(mode);
+    Q_EMIT fillModeChanged(mode);
 }
 
 void QQuickVideoOutput::_q_newFrame(QSize size)
@@ -187,7 +187,7 @@ void QQuickVideoOutput::_q_newFrame(QSize size)
         setImplicitWidth(size.width());
         setImplicitHeight(size.height());
 
-        emit sourceRectChanged();
+        Q_EMIT sourceRectChanged();
     }
 }
 
@@ -223,7 +223,7 @@ void QQuickVideoOutput::_q_updateGeometry()
     updateGeometry();
 
     if (m_contentRect != oldContentRect)
-        emit contentRectChanged();
+        Q_EMIT contentRectChanged();
 }
 
 /*!
@@ -270,7 +270,7 @@ void QQuickVideoOutput::setOrientation(int orientation)
     // as the old one, don't update the video node stuff
     if (qVideoRotationFromDegrees(orientation - m_orientation) == QtVideo::Rotation::None) {
         m_orientation = orientation;
-        emit orientationChanged();
+        Q_EMIT orientationChanged();
         return;
     }
 
@@ -298,7 +298,7 @@ void QQuickVideoOutput::setOrientation(int orientation)
     }
 
     update();
-    emit orientationChanged();
+    Q_EMIT orientationChanged();
 }
 
 /*!
@@ -326,7 +326,7 @@ void QQuickVideoOutput::setMirrored(bool mirrored)
     m_mirrored = mirrored;
 
     update();
-    emit mirroredChanged();
+    Q_EMIT mirroredChanged();
 }
 
 /*!
@@ -375,7 +375,7 @@ void QQuickVideoOutput::setEndOfStreamPolicy(EndOfStreamPolicy policy)
         return;
 
     m_endOfStreamPolicy = policy;
-    emit endOfStreamPolicyChanged(policy);
+    Q_EMIT endOfStreamPolicyChanged(policy);
 }
 
 /*!

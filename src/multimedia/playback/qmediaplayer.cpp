@@ -97,8 +97,8 @@ void QMediaPlayerPrivate::setState(QMediaPlayer::PlaybackState toState)
     if (toState != state) {
         const auto fromState = std::exchange(state, toState);
         if (toState == QMediaPlayer::PlayingState || fromState == QMediaPlayer::PlayingState)
-            emit q->playingChanged(toState == QMediaPlayer::PlayingState);
-        emit q->playbackStateChanged(toState);
+            Q_EMIT q->playingChanged(toState == QMediaPlayer::PlayingState);
+        Q_EMIT q->playbackStateChanged(toState);
     }
 }
 
@@ -106,7 +106,7 @@ void QMediaPlayerPrivate::setStatus(QMediaPlayer::MediaStatus s)
 {
     Q_Q(QMediaPlayer);
 
-    emit q->mediaStatusChanged(s);
+    Q_EMIT q->mediaStatusChanged(s);
 }
 
 void QMediaPlayerPrivate::setError(QMediaPlayer::Error error, const QString &errorString)
@@ -585,7 +585,7 @@ void QMediaPlayer::setSource(const QUrl &source)
     d->stream = nullptr;
 
     d->setMedia(source, nullptr);
-    emit sourceChanged(d->source);
+    Q_EMIT sourceChanged(d->source);
 }
 
 /*!
@@ -614,7 +614,7 @@ void QMediaPlayer::setSourceDevice(QIODevice *device, const QUrl &sourceUrl)
     d->stream = device;
 
     d->setMedia(d->source, device);
-    emit sourceChanged(d->source);
+    Q_EMIT sourceChanged(d->source);
 }
 
 /*!
@@ -686,7 +686,7 @@ void QMediaPlayer::setAudioBufferOutput(QAudioBufferOutput *output)
     if (d->control)
         d->control->setAudioBufferOutput(output);
 
-    emit audioBufferOutputChanged();
+    Q_EMIT audioBufferOutputChanged();
 }
 
 QAudioBufferOutput *QMediaPlayer::audioBufferOutput() const
@@ -730,7 +730,7 @@ void QMediaPlayer::setAudioOutput(QAudioOutput *output)
         if (d->control)
             d->control->setAudioOutput(output->handle());
     }
-    emit audioOutputChanged();
+    Q_EMIT audioOutputChanged();
 }
 
 QAudioOutput *QMediaPlayer::audioOutput() const
@@ -1184,7 +1184,7 @@ void QMediaPlayer::setPlaybackOptions(const QPlaybackOptions &options)
 {
     Q_D(QMediaPlayer);
     if (std::exchange(d->playbackOptions, options) != options)
-        emit playbackOptionsChanged();
+        Q_EMIT playbackOptionsChanged();
 }
 
 void QMediaPlayer::resetPlaybackOptions()
@@ -1192,7 +1192,7 @@ void QMediaPlayer::resetPlaybackOptions()
     Q_D(QMediaPlayer);
     QPlaybackOptions defaultOptions{ };
     if (std::exchange(d->playbackOptions, defaultOptions) != defaultOptions)
-        emit playbackOptionsChanged();
+        Q_EMIT playbackOptionsChanged();
 }
 
 // Enums

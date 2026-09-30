@@ -79,7 +79,7 @@ void QPlatformAudioEndpointBase::inferState()
     }
 
     if (oldState != m_inferredState)
-        emit stateChanged(m_inferredState);
+        Q_EMIT stateChanged(m_inferredState);
 }
 
 QPlatformAudioSink::QPlatformAudioSink(QAudioDevice device, const QAudioFormat &format,

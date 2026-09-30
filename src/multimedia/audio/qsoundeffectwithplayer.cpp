@@ -374,7 +374,7 @@ void QSoundEffectPrivateWithPlayer::setStatus(QSoundEffect::Status status)
     if (status == m_status)
         return;
     m_status = status;
-    emit q_ptr->statusChanged();
+    Q_EMIT q_ptr->statusChanged();
 }
 
 QSoundEffect::Status QSoundEffectPrivateWithPlayer::status() const
@@ -484,7 +484,7 @@ void QSoundEffectPrivateWithPlayer::stop()
     m_voices.clear();
     m_playPending = false;
     if (activeVoices)
-        emit q_ptr->playingChanged();
+        Q_EMIT q_ptr->playingChanged();
 }
 
 bool QSoundEffectPrivateWithPlayer::playing() const
@@ -510,7 +510,7 @@ void QSoundEffectPrivateWithPlayer::play(std::shared_ptr<QSoundEffectVoice> voic
     m_voices.insert(std::move(voice));
     setLoopsRemaining(m_loopCount);
     if (m_voices.size() == 1)
-        emit q_ptr->playingChanged();
+        Q_EMIT q_ptr->playingChanged();
 }
 
 bool QSoundEffectPrivateWithPlayer::updatePlayer(const SharedSamplePtr &sample)
@@ -555,7 +555,7 @@ bool QSoundEffectPrivateWithPlayer::updatePlayer(const SharedSamplePtr &sample)
         if (found != m_voices.end()) {
             m_voices.erase(found);
             if (m_voices.empty())
-                emit q_ptr->playingChanged();
+                Q_EMIT q_ptr->playingChanged();
         }
     });
     return true;
@@ -584,7 +584,7 @@ void QSoundEffectPrivateWithPlayer::setLoopsRemaining(int loopsRemaining)
     if (loopsRemaining == m_loopsRemaining)
         return;
     m_loopsRemaining = loopsRemaining;
-    emit q_ptr->loopsRemainingChanged();
+    Q_EMIT q_ptr->loopsRemainingChanged();
 }
 
 } // namespace QtMultimediaPrivate

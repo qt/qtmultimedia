@@ -190,7 +190,7 @@ bool AudioEncoder::init()
     if (!m_codecContext) {
         qCWarning(qLcFFmpegAudioEncoder) << "Unable to open any audio codec";
         markResolved(false);
-        emit m_recordingEngine.sessionError(QMediaRecorder::FormatError,
+        Q_EMIT m_recordingEngine.sessionError(QMediaRecorder::FormatError,
                                             QStringLiteral("Cannot open any audio codec"));
         return false;
     }
@@ -296,7 +296,7 @@ bool AudioEncoder::updateResampler(const QAudioFormat &sourceFormat)
         if (!swr_is_initialized(m_resampler.get())) {
             m_sourceFormat = {};
             qCWarning(qLcFFmpegAudioEncoder) << "Cannot initialize resampler for audio encoder";
-            emit m_recordingEngine.sessionError(
+            Q_EMIT m_recordingEngine.sessionError(
                     QMediaRecorder::FormatError,
                     QStringLiteral("Cannot initialize resampler for audio encoder"));
             return false;

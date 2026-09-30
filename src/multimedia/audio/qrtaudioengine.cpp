@@ -98,7 +98,7 @@ QRtAudioEngine::QRtAudioEngine(MoveToApplicationThread moveToApplicationThread,
     m_sink.suspend();
 
     QObject::connect(&m_sink, &QAudioSink::stateChanged, this, [&](QtAudio::State state) {
-        emit stateChanged(sinkStateToEngineState(state));
+        Q_EMIT stateChanged(sinkStateToEngineState(state));
     });
 }
 
@@ -317,7 +317,7 @@ void QRtAudioEngine::runNonRtNotifications()
 
     // emit voiceFinished outside of the lock
     for (VoiceId voiceId : finishedVoices)
-        emit voiceFinished(voiceId);
+        Q_EMIT voiceFinished(voiceId);
 }
 
 void QRtAudioEngine::runNonRtNotification(StopNotification notification)

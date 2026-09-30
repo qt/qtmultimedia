@@ -79,7 +79,7 @@ int QFFmpegImageCapture::doCapture(const QString &fileName)
         QMetaObject::invokeMethod(
             this,
             [this]() {
-                emit error(
+                Q_EMIT error(
                     -1,
                     QImageCapture::ResourceError,
                     QPlatformImageCapture::msgImageCaptureNotSet());
@@ -93,7 +93,7 @@ int QFFmpegImageCapture::doCapture(const QString &fileName)
         QMetaObject::invokeMethod(
             this,
             [this]() {
-                emit error(
+                Q_EMIT error(
                     -1,
                     QImageCapture::ResourceError,
                     u"No camera available."_s);
@@ -107,7 +107,7 @@ int QFFmpegImageCapture::doCapture(const QString &fileName)
         QMetaObject::invokeMethod(
             this,
             [this]() {
-                emit error(
+                Q_EMIT error(
                     -1,
                     QImageCapture::NotReadyError,
                     QPlatformImageCapture::msgCameraNotReady());
@@ -155,7 +155,7 @@ void QFFmpegImageCapture::cancelPendingImage(QImageCapture::Error error, const Q
 
     PendingImage cancelledImage = m_pendingImages.dequeue();
 
-    emit QPlatformImageCapture::error(cancelledImage.id, error, errorMsg);
+    Q_EMIT QPlatformImageCapture::error(cancelledImage.id, error, errorMsg);
 
     updateReadyForCapture();
 }
@@ -168,7 +168,7 @@ void QFFmpegImageCapture::updateReadyForCapture()
     qCDebug(qLcImageCapture) << "updateReadyForCapture" << ready;
 
     if (std::exchange(m_isReadyForCapture, ready) != ready)
-        emit readyForCaptureChanged(ready);
+        Q_EMIT readyForCaptureChanged(ready);
 }
 
 void QFFmpegImageCapture::newVideoFrame(const QVideoFrame &frame)
@@ -180,15 +180,15 @@ void QFFmpegImageCapture::newVideoFrame(const QVideoFrame &frame)
 
     qCDebug(qLcImageCapture) << "Taking image" << pending.id;
 
-    emit imageExposed(pending.id);
+    Q_EMIT imageExposed(pending.id);
     // ### Add metadata from the AVFrame
-    emit imageMetadataAvailable(pending.id, pending.metaData);
-    emit imageAvailable(pending.id, frame);
+    Q_EMIT imageMetadataAvailable(pending.id, pending.metaData);
+    Q_EMIT imageAvailable(pending.id, frame);
     QImage image = frame.toImage();
     if (m_settings.resolution().isValid() && m_settings.resolution() != image.size())
         image = image.scaled(m_settings.resolution());
 
-    emit imageCaptured(pending.id, image);
+    Q_EMIT imageCaptured(pending.id, image);
     if (!pending.filename.isEmpty()) {
         const char *fmt = nullptr;
         switch (m_settings.format()) {
@@ -228,12 +228,12 @@ void QFFmpegImageCapture::newVideoFrame(const QVideoFrame &frame)
         writer.setQuality(quality);
 
         if (writer.write(image)) {
-            emit imageSaved(pending.id, pending.filename);
+            Q_EMIT imageSaved(pending.id, pending.filename);
         } else {
             QImageCapture::Error err = QImageCapture::ResourceError;
             if (writer.error() == QImageWriter::UnsupportedFormatError)
                 err = QImageCapture::FormatError;
-            emit error(pending.id, err, writer.errorString());
+            Q_EMIT error(pending.id, err, writer.errorString());
         }
     }
 
@@ -275,7 +275,7 @@ void QFFmpegImageCapture::setImageSettings(const QImageEncoderSettings &settings
     auto s = settings;
     const auto supportedFormats = QPlatformMediaIntegration::instance()->formatInfo()->imageFormats;
     if (supportedFormats.isEmpty()) {
-        emit error(-1, QImageCapture::FormatError, u"No image formats supported, can't capture."_s);
+        Q_EMIT error(-1, QImageCapture::FormatError, u"No image formats supported, can't capture."_s);
         return;
     }
     if (s.format() == QImageCapture::UnspecifiedFormat) {
@@ -284,7 +284,7 @@ void QFFmpegImageCapture::setImageSettings(const QImageEncoderSettings &settings
             f = supportedFormats.first();
         s.setFormat(f);
     } else if (!supportedFormats.contains(settings.format())) {
-        emit error(-1, QImageCapture::FormatError, u"Image format not supported."_s);
+        Q_EMIT error(-1, QImageCapture::FormatError, u"Image format not supported."_s);
         return;
     }
 

@@ -65,7 +65,7 @@ void QWindowsMediaDeviceSession::setActive(bool active)
             if (m_mediaDeviceReader->activate(camId, m_cameraFormat, micId)) {
                 m_activating = true;
             } else {
-                emit streamingError(MF_E_NOT_AVAILABLE);
+                Q_EMIT streamingError(MF_E_NOT_AVAILABLE);
             }
         } else {
             qWarning() << Q_FUNC_INFO << "Camera ID and Microphone ID both undefined.";
@@ -74,8 +74,8 @@ void QWindowsMediaDeviceSession::setActive(bool active)
         m_mediaDeviceReader->deactivate();
         m_active = false;
         m_activating = false;
-        emit activeChanged(m_active);
-        emit readyForCaptureChanged(m_active);
+        Q_EMIT activeChanged(m_active);
+        Q_EMIT readyForCaptureChanged(m_active);
     }
 }
 
@@ -115,30 +115,30 @@ void QWindowsMediaDeviceSession::handleStreamingStarted()
     if (m_activating) {
         m_active = true;
         m_activating = false;
-        emit activeChanged(m_active);
-        emit readyForCaptureChanged(m_active);
+        Q_EMIT activeChanged(m_active);
+        Q_EMIT readyForCaptureChanged(m_active);
     }
 }
 
 void QWindowsMediaDeviceSession::handleStreamingStopped()
 {
     m_active = false;
-    emit activeChanged(m_active);
-    emit readyForCaptureChanged(m_active);
+    Q_EMIT activeChanged(m_active);
+    Q_EMIT readyForCaptureChanged(m_active);
 }
 
 void QWindowsMediaDeviceSession::handleStreamingError(HRESULT errorCode)
 {
     if (m_surface)
         m_surface->platformVideoSink()->setVideoFrame(QVideoFrame());
-    emit streamingError(errorCode);
+    Q_EMIT streamingError(errorCode);
 }
 
 void QWindowsMediaDeviceSession::handleVideoFrameChanged(const QVideoFrame &frame)
 {
     if (m_surface)
         m_surface->platformVideoSink()->setVideoFrame(frame);
-    emit videoFrameChanged(frame);
+    Q_EMIT videoFrameChanged(frame);
 }
 
 void QWindowsMediaDeviceSession::setAudioInputMuted(bool muted)

@@ -112,7 +112,7 @@ void QAudioInput::setVolume(float volume)
         return;
     d->volume = volume;
     d->setVolume(volume);
-    emit volumeChanged(volume);
+    Q_EMIT volumeChanged(volume);
 }
 
 /*!
@@ -140,7 +140,7 @@ void QAudioInput::setMuted(bool muted)
         return;
     d->muted = muted;
     d->setMuted(muted);
-    emit mutedChanged(muted);
+    Q_EMIT mutedChanged(muted);
 }
 
 /*!
@@ -180,7 +180,7 @@ void QAudioInput::setDevice(const QAudioDevice &device)
         return;
     d->device = dev;
     d->setAudioDevice(dev);
-    emit deviceChanged();
+    Q_EMIT deviceChanged();
 }
 
 /*!

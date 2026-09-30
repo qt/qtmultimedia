@@ -33,27 +33,27 @@ QWasmMediaRecorder::QWasmMediaRecorder(QMediaRecorder *parent)
             [this]() {
                 m_isRecording = true;
                 m_durationTimer->start();
-                emit stateChanged(QMediaRecorder::RecordingState);
+                Q_EMIT stateChanged(QMediaRecorder::RecordingState);
             });
 
     connect(m_jsMediaRecorderDevice.get(), &JsMediaRecorder::stopped, this,
             [this]() {
                 m_isRecording = false;
                 m_durationMs = m_durationTimer->elapsed();
-                emit durationChanged(m_durationMs);
+                Q_EMIT durationChanged(m_durationMs);
 
                 m_durationTimer->invalidate();
-                emit stateChanged(QMediaRecorder::StoppedState);
+                Q_EMIT stateChanged(QMediaRecorder::StoppedState);
             });
 
     connect(m_jsMediaRecorderDevice.get(), &JsMediaRecorder::paused, this,
             [this]() {
                 m_isRecording = false;
                 m_durationMs = m_durationTimer->elapsed();
-                emit durationChanged(m_durationMs);
+                Q_EMIT durationChanged(m_durationMs);
 
                 m_durationTimer->invalidate();
-                emit stateChanged(QMediaRecorder::PausedState);
+                Q_EMIT stateChanged(QMediaRecorder::PausedState);
             });
 
     connect(m_jsMediaRecorderDevice.get(), &JsMediaRecorder::resumed, this,
@@ -65,7 +65,7 @@ QWasmMediaRecorder::QWasmMediaRecorder(QMediaRecorder *parent)
     connect(m_jsMediaRecorderDevice.get(), &JsMediaRecorder::streamError, this,
             [this](QMediaRecorder::Error errorCode, const QString &errorMessage) {
                 updateError(errorCode, errorMessage);
-                emit stateChanged(state());
+                Q_EMIT stateChanged(state());
             });
 }
 
@@ -217,7 +217,7 @@ void QWasmMediaRecorder::initUserMedia()
                 m_outputTarget->write(mediaData.constData(), mediaData.length());
             // we've read everything
             if (m_durationMs > 0) {
-                emit durationChanged(m_durationMs);
+                Q_EMIT durationChanged(m_durationMs);
                 qCDebug(qWasmMediaRecorder) << "duration changed" << m_durationMs;
             }
         }
