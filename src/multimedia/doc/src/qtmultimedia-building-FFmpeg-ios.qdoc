@@ -87,9 +87,9 @@ build_info_plist() {
     <key>CFBundlePackageType</key>
     <string>FMWK</string>
     <key>CFBundleShortVersionString</key>
-    <string>9.0.1</string>
+    <string>9.0.2</string>
     <key>CFBundleVersion</key>
-    <string>9.0.1</string>
+    <string>9.0.2</string>
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>${minimum_version_key}</key>
