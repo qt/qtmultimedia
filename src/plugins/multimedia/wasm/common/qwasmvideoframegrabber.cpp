@@ -269,9 +269,6 @@ void QWasmVideoFrameGrabber::startFrameLoop()
             return true;
         }
 
-        qCDebug(qWasmMediaVideoOutput) << "frame loop render: mode=" << videoOutput->m_currentVideoMode
-                                       << "glHandle=" << frameGrabber->m_glContextHandle;
-
         if (frameGrabber->m_glContextHandle)
             frameGrabber->processWebGLVideoFrame();
         else
