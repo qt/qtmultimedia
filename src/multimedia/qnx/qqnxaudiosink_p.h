@@ -52,7 +52,7 @@ public:
     QAudio::State state() const override;
     qint64 pushData(const char *data, qint64 len);
 
-private slots:
+private Q_SLOTS:
     void pullData();
     void pcmNotifierActivated(int socket);
 

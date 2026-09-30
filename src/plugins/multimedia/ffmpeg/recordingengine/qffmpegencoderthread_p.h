@@ -67,7 +67,7 @@ protected:
             const bool canPush = !autoStopActivated && !m_paused && checkIfCanPushFrame();
             locker.unlock();
             if (m_canPushFrame.exchange(canPush, std::memory_order_relaxed) != canPush)
-                emit canPushFrameChanged();
+                Q_EMIT canPushFrameChanged();
         });
     }
 

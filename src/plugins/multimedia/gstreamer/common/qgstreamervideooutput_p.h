@@ -52,7 +52,7 @@ public:
 
     void updateSubtitle(QString) override;
 
-signals:
+Q_SIGNALS:
     void subtitleChanged(QString);
 
 private:

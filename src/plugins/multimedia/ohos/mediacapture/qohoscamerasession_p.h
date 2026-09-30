@@ -79,7 +79,7 @@ public:
     void resumeRecording();
     void stopRecording();
 
-signals:
+Q_SIGNALS:
     void activeChanged(bool active);
     void errorOccurred(int code, const QString &message);
     void readyForCaptureChanged(bool ready);
@@ -94,12 +94,12 @@ signals:
     void recorderDurationChanged(qint64 ms);
     void recorderActualLocationChanged(const QUrl &url);
 
-public slots:
+public Q_SLOTS:
     void onCapturedImageAvailable();
     void onRecorderStateNotification(int state);
     void onRecorderErrorNotification(int code, const QString &message);
 
-private slots:
+private Q_SLOTS:
     void onSurfaceReady();
     void onApplicationStateChanged();
 

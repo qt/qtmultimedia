@@ -46,7 +46,7 @@ private Q_SLOTS:
     void addVideoFrame(const QVideoFrame &frame);
     void storeImage(const QVideoFrame &frame);
 
-signals:
+Q_SIGNALS:
     void videoFrameChangedSync(const QVideoFrame &frame);
 
 public:

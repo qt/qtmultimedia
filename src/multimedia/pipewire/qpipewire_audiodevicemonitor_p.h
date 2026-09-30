@@ -40,7 +40,7 @@ public:
     explicit ObjectRemoveObserver(ObjectSerial objectSerial);
     ObjectSerial serial() const;
 
-signals:
+Q_SIGNALS:
     void objectRemoved();
 
 private:
@@ -94,7 +94,7 @@ public:
     };
     DeviceLists getDeviceLists(bool verifyThreading = true);
 
-signals:
+Q_SIGNALS:
     void audioSinksChanged(QList<QAudioDevice>);
     void audioSourcesChanged(QList<QAudioDevice>);
 

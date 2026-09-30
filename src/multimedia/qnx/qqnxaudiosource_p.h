@@ -48,7 +48,7 @@ public:
     qint64 processedUSecs() const override;
     QAudio::State state() const override;
 
-private slots:
+private Q_SLOTS:
     void userFeed();
     bool deviceReady();
 

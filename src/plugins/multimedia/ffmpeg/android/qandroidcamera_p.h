@@ -76,7 +76,7 @@ public:
 
     void capture();
     void updateExif(const QString &filename);
-public slots:
+public Q_SLOTS:
     void onApplicationStateChanged();
     void onCameraOpened();
     void onCameraDisconnect();
@@ -89,7 +89,7 @@ public slots:
     void onSessionClosed();
     void onStillPhotoCaptureFailed();
 
-signals:
+Q_SIGNALS:
     void onStillPhotoCaptured(const QVideoFrame&);
     void onImageCaptureFailed(QImageCapture::Error error, const QString &errMsg);
 

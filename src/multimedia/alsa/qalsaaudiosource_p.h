@@ -84,7 +84,7 @@ public:
     QIODevice* audioSource;
     QAudio::State deviceState;
 
-private slots:
+private Q_SLOTS:
     void userFeed();
     bool deviceReady();
 

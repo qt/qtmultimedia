@@ -84,7 +84,7 @@ public:
             sink->setSource(q);
         if (control)
             control->setVideoSink(sink);
-        emit q->videoOutputChanged();
+        Q_EMIT q->videoOutputChanged();
     }
 
     using AbstractSourceResolver = QMultimediaPrivate::AbstractSourceResolver;

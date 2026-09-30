@@ -38,10 +38,10 @@ public:
         m_description = std::move(description);
 
         if (code != NoError)
-            emit notifier.errorOccurred(m_code, m_description);
+            Q_EMIT notifier.errorOccurred(m_code, m_description);
 
         if (changed)
-            emit notifier.errorChanged();
+            Q_EMIT notifier.errorChanged();
     }
 
     ErrorCode code() const { return m_code; }

@@ -120,7 +120,7 @@ public:
     // output resolution. Don't call directly.
     void updateStream(QSize resolutionPx);
 
-signals:
+Q_SIGNALS:
     void newVideoFrameGenerated(StreamId streamId, QVideoFrame);
     // This is commonly signaled if the user stops the stream by
     // interacting with the system UI, or the stream has stopped

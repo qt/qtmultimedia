@@ -43,10 +43,10 @@ public:
 
     void setLoops(int loopsCount);
 
-public slots:
+public Q_SLOTS:
     void onPacketProcessed(const Packet &);
 
-signals:
+Q_SIGNALS:
     void requestProcessAudioPacket(Packet);
     void requestProcessVideoPacket(Packet);
     void requestProcessSubtitlePacket(Packet);

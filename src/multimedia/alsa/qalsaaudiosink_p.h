@@ -58,11 +58,11 @@ public:
     QAudio::State deviceState = QAudio::StoppedState;
     QAudio::State suspendedInState = QAudio::SuspendedState;
 
-private slots:
+private Q_SLOTS:
     void userFeed();
     bool deviceReady();
 
-signals:
+Q_SIGNALS:
     void processMore();
 
 private:

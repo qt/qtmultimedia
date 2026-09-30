@@ -42,7 +42,7 @@ public:
         m_bytesConsumed.callOnActivated([&] {
             qint64 bytes = m_bytesConsumedFromRingbuffer.exchange(0, std::memory_order_relaxed);
             if (bytes > 0)
-                emit bytesWritten(bytes);
+                Q_EMIT bytesWritten(bytes);
         });
     }
 
@@ -86,7 +86,7 @@ public:
 
         qint64 bytesWritten = m_ringbuffer->write(readRegion) * sizeof(SampleType);
         if (bytesWritten)
-            emit readyRead();
+            Q_EMIT readyRead();
 
         return bytesWritten;
     }

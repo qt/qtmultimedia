@@ -49,13 +49,13 @@ public:
 
     void seek(quint64 sessionId, const TimeController &tc, const LoopOffset &offset);
 
-public slots:
+public Q_SLOTS:
 
     void onFinalFrameReceived(PlaybackEngineObjectID sourceID);
 
     void render(Frame);
 
-signals:
+Q_SIGNALS:
     void frameProcessed(Frame);
 
     void synchronized(PlaybackEngineObjectID id, TimePoint tp, TrackPosition pos);

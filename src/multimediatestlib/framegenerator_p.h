@@ -46,11 +46,11 @@ public:
     void emitEmptyFrameOnStop();
     QVideoFrame createFrame();
 
-signals:
+Q_SIGNALS:
     void done();
     void frameCreated(const QVideoFrame &frame);
 
-public slots:
+public Q_SLOTS:
     void nextFrame();
 
 private:
