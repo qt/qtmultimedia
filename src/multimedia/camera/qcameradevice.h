@@ -56,6 +56,7 @@ class Q_MULTIMEDIA_EXPORT QCameraDevice
     Q_PROPERTY(Position position READ position CONSTANT)
     Q_PROPERTY(QList<QCameraFormat> videoFormats READ videoFormats CONSTANT)
     Q_PROPERTY(QtVideo::Rotation correctionAngle READ correctionAngle CONSTANT)
+    Q_PROPERTY(QList<QSize> photoResolutions READ photoResolutions CONSTANT REVISION(6, 13))
 public:
     QCameraDevice();
     QCameraDevice(const QCameraDevice& other);

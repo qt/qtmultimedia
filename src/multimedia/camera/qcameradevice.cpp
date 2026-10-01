@@ -424,11 +424,26 @@ QCameraDevice::Position QCameraDevice::position() const
 }
 
 /*!
-    Returns a list of resolutions that the camera can use to
-    capture still images.
+    \qmlproperty list<size> QtMultimedia::cameraDevice::photoResolutions
+    \since 6.13
 
-    \sa QImageCapture
- */
+    Holds the resolutions the camera can use to capture still images.
+
+    \sa ImageCapture::resolution, videoFormats
+*/
+
+/*!
+    \property QCameraDevice::photoResolutions
+
+    Returns the resolutions the camera can use to capture still images.
+
+    The list can be empty if the camera or platform does not report still capture resolutions.
+    The order of the sizes is unspecified. Not every size is guaranteed to be usable together
+    with every QCameraFormat.
+
+    \sa QImageCapture::resolution, videoFormats()
+*/
+
 QList<QSize> QCameraDevice::photoResolutions() const
 {
     return d ? d->photoResolutions : QList<QSize>{};

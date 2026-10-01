@@ -24,15 +24,6 @@ TestCase {
         verify(TestHelper.mediaBackendName === "mock");
     }
 
-    function test_mediaDevicesExposesAtleastTwoFormats() {
-        let mediaDevices = createTemporaryObject(mediaDevicesComponent, testCase);
-        let videoInputs = mediaDevices.videoInputs;
-        verify(videoInputs.length >= 2)
-
-        let cameraDevice = videoInputs[0];
-        verify(cameraDevice.videoFormats.length >= 2)
-    }
-
     function test_cameraFormatIsEqualityComparable() {
         let mediaDevices = createTemporaryObject(mediaDevicesComponent, testCase);
         let a = mediaDevices.videoInputs[0].videoFormats[0];

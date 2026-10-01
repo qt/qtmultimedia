@@ -30,6 +30,7 @@ QMockVideoDevices::QMockVideoDevices(QPlatformMediaIntegration *mediaIntegration
         30
     };
     info->videoFormats << f->create();
+    info->photoResolutions << QSize(640, 480) << QSize(1920, 1080);
     m_cameraDevices.append(info->create());
     info = new QCameraDevicePrivate;
     info->description = QStringLiteral("frontCamera");
@@ -44,6 +45,7 @@ QMockVideoDevices::QMockVideoDevices(QPlatformMediaIntegration *mediaIntegration
         30
     };
     info->videoFormats << f->create();
+    info->photoResolutions << QSize(1280, 720);
     m_cameraDevices.append(info->create());
     info = new QCameraDevicePrivate;
     info->description = QStringLiteral("backCamera");
