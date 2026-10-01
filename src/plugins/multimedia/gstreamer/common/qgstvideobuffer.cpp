@@ -45,15 +45,12 @@ Q_STATIC_LOGGING_CATEGORY(qLcGstVideoBuffer, "qt.multimedia.gstreamer.videobuffe
 
 QGstVideoBuffer::QGstVideoBuffer(QGstBufferHandle buffer, const QGstVideoInfo &videoInfo,
                                  const QVideoFrameFormat &frameFormat)
-    : QHwVideoBuffer(QVideoFrame::NoHandle),
-      m_memoryFormat(buffer.isValid() ? qMemoryFormatFromGstBuffer(buffer.get())
+    : m_memoryFormat(buffer.isValid() ? qMemoryFormatFromGstBuffer(buffer.get())
                                       : QGstCaps::CpuMemory),
       m_frameFormat(frameFormat),
       m_videoInfo(videoInfo),
       m_buffer(std::move(buffer))
 {
-    m_type = m_memoryFormat != QGstCaps::CpuMemory ? QVideoFrame::RhiTextureHandle
-                                                   : QVideoFrame::NoHandle;
 }
 
 QGstVideoBuffer::~QGstVideoBuffer()

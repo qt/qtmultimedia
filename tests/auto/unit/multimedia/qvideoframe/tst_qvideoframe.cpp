@@ -18,6 +18,8 @@
 #include <QtCore/qpointer.h>
 #include <QtCore/qset.h>
 
+QT_WARNING_DISABLE_DEPRECATED; // Tests use deprecated QVideoFrame::HandleType
+
 // Adds an enum, and the stringized version
 #define ADD_ENUM_TEST(x) \
     QTest::newRow(#x) \
@@ -233,8 +235,7 @@ class QtTestVideoBuffer : public QObject, public QHwVideoBuffer
 {
     Q_OBJECT
 public:
-    QtTestVideoBuffer() : QHwVideoBuffer(QVideoFrame::NoHandle) { }
-    explicit QtTestVideoBuffer(QVideoFrame::HandleType type) : QHwVideoBuffer(type) { }
+    QtTestVideoBuffer() { }
     ~QtTestVideoBuffer() override { QTEST_ASSERT(!m_mapObject); }
 
     MapData map(QVideoFrame::MapMode) override
@@ -317,7 +318,9 @@ void tst_QVideoFrame::create()
     QVideoFrame frame(QVideoFrameFormat(size, pixelFormat));
 
     QVERIFY(frame.isValid());
+#if QT_DEPRECATED_SINCE(6, 13)
     QCOMPARE(frame.handleType(), QVideoFrame::NoHandle);
+#endif
     QCOMPARE(QVideoFramePrivate::hwBuffer(frame), nullptr);
     QCOMPARE_NE(QVideoFramePrivate::buffer(frame), nullptr);
     QCOMPARE(frame.pixelFormat(), pixelFormat);
@@ -352,7 +355,9 @@ void tst_QVideoFrame::createInvalid()
     QVideoFrame frame(QVideoFrameFormat(size, pixelFormat));
 
     QVERIFY(!frame.isValid());
+#if QT_DEPRECATED_SINCE(6, 13)
     QCOMPARE(frame.handleType(), QVideoFrame::NoHandle);
+#endif
     QCOMPARE(QVideoFramePrivate::buffer(frame), nullptr);
     QCOMPARE(frame.pixelFormat(), pixelFormat);
     QCOMPARE(frame.size(), size);
@@ -364,31 +369,24 @@ void tst_QVideoFrame::createInvalid()
 
 void tst_QVideoFrame::createFromBuffer_data()
 {
-    QTest::addColumn<QVideoFrame::HandleType>("handleType");
     QTest::addColumn<QSize>("size");
     QTest::addColumn<QVideoFrameFormat::PixelFormat>("pixelFormat");
 
-    QTest::newRow("64x64 ARGB32 no handle")
-            << QVideoFrame::NoHandle
-            << QSize(64, 64)
-            << QVideoFrameFormat::Format_ARGB8888;
-    QTest::newRow("64x64 ARGB32 gl handle")
-            << QVideoFrame::RhiTextureHandle
-            << QSize(64, 64)
-            << QVideoFrameFormat::Format_ARGB8888;
+    QTest::newRow("64x64 ARGB32") << QSize(64, 64) << QVideoFrameFormat::Format_ARGB8888;
 }
 
 void tst_QVideoFrame::createFromBuffer()
 {
-    QFETCH(QVideoFrame::HandleType, handleType);
     QFETCH(QSize, size);
     QFETCH(QVideoFrameFormat::PixelFormat, pixelFormat);
 
-    QVideoFrame frame = QVideoFramePrivate::createFrame(
-            std::make_unique<QtTestVideoBuffer>(handleType), QVideoFrameFormat(size, pixelFormat));
+    QVideoFrame frame = QVideoFramePrivate::createFrame(std::make_unique<QtTestVideoBuffer>(),
+                                                        QVideoFrameFormat(size, pixelFormat));
 
     QVERIFY(frame.isValid());
-    QCOMPARE(frame.handleType(), handleType);
+#if QT_DEPRECATED_SINCE(6, 13)
+    QCOMPARE(frame.handleType(), QVideoFrame::NoHandle);
+#endif
     QCOMPARE(frame.pixelFormat(), pixelFormat);
     QCOMPARE(frame.size(), size);
     QCOMPARE(frame.width(), size.width());
@@ -420,7 +418,9 @@ void tst_QVideoFrame::createNull()
         QVideoFrame frame;
 
         QVERIFY(!frame.isValid());
+#if QT_DEPRECATED_SINCE(6, 13)
         QCOMPARE(frame.handleType(), QVideoFrame::NoHandle);
+#endif
         QCOMPARE(frame.pixelFormat(), QVideoFrameFormat::Format_Invalid);
         QCOMPARE(frame.size(), QSize());
         QCOMPARE(frame.width(), -1);
@@ -443,7 +443,9 @@ void tst_QVideoFrame::createNull()
                 std::unique_ptr<QHwVideoBuffer>(),
                 QVideoFrameFormat(QSize(1024, 768), QVideoFrameFormat::Format_ARGB8888));
         QVERIFY(!frame.isValid());
+#if QT_DEPRECATED_SINCE(6, 13)
         QCOMPARE(frame.handleType(), QVideoFrame::NoHandle);
+#endif
         QCOMPARE(frame.pixelFormat(), QVideoFrameFormat::Format_ARGB8888);
         QCOMPARE(frame.size(), QSize(1024, 768));
         QCOMPARE(frame.width(), 1024);
@@ -512,53 +514,27 @@ void tst_QVideoFrame::destructorOfPrivateData_unmapsAndDeletesVideoBuffer_whenNo
 
 void tst_QVideoFrame::copy_data()
 {
-    QTest::addColumn<QVideoFrame::HandleType>("handleType");
     QTest::addColumn<QSize>("size");
     QTest::addColumn<QVideoFrameFormat::PixelFormat>("pixelFormat");
     QTest::addColumn<qint64>("startTime");
     QTest::addColumn<qint64>("endTime");
 
-    QTest::newRow("64x64 ARGB32")
-            << QVideoFrame::RhiTextureHandle
-            << QSize(64, 64)
-            << QVideoFrameFormat::Format_ARGB8888
-            << qint64(63641740)
-            << qint64(63641954);
-    QTest::newRow("64x64 ARGB32")
-            << QVideoFrame::RhiTextureHandle
-            << QSize(64, 64)
-            << QVideoFrameFormat::Format_ARGB8888
-            << qint64(63641740)
-            << qint64(63641954);
-    QTest::newRow("32x256 YUV420P")
-            << QVideoFrame::NoHandle
-            << QSize(32, 256)
-            << QVideoFrameFormat::Format_YUV420P
-            << qint64(12345)
-            << qint64(12389);
-    QTest::newRow("1052x756 ARGB32")
-            << QVideoFrame::NoHandle
-            << QSize(1052, 756)
-            << QVideoFrameFormat::Format_ARGB8888
-            << qint64(12345)
-            << qint64(12389);
-    QTest::newRow("32x256 YUV420P")
-            << QVideoFrame::NoHandle
-            << QSize(32, 256)
-            << QVideoFrameFormat::Format_YUV420P
-            << qint64(12345)
-            << qint64(12389);
+    QTest::newRow("64x64 ARGB32") << QSize(64, 64) << QVideoFrameFormat::Format_ARGB8888
+                                  << qint64(63641740) << qint64(63641954);
+    QTest::newRow("32x256 YUV420P") << QSize(32, 256) << QVideoFrameFormat::Format_YUV420P
+                                    << qint64(12345) << qint64(12389);
+    QTest::newRow("1052x756 ARGB32") << QSize(1052, 756) << QVideoFrameFormat::Format_ARGB8888
+                                     << qint64(12345) << qint64(12389);
 }
 
 void tst_QVideoFrame::copy()
 {
-    QFETCH(QVideoFrame::HandleType, handleType);
     QFETCH(QSize, size);
     QFETCH(QVideoFrameFormat::PixelFormat, pixelFormat);
     QFETCH(qint64, startTime);
     QFETCH(qint64, endTime);
 
-    QPointer<QtTestVideoBuffer> buffer = new QtTestVideoBuffer(handleType);
+    QPointer<QtTestVideoBuffer> buffer = new QtTestVideoBuffer();
 
     {
         QVideoFrame frame = QVideoFramePrivate::createFrame(std::unique_ptr<QHwVideoBuffer>(buffer),
@@ -567,7 +543,9 @@ void tst_QVideoFrame::copy()
         frame.setEndTime(endTime);
 
         QVERIFY(frame.isValid());
-        QCOMPARE(frame.handleType(), handleType);
+#if QT_DEPRECATED_SINCE(6, 13)
+        QCOMPARE(frame.handleType(), QVideoFrame::NoHandle);
+#endif
         QCOMPARE(frame.pixelFormat(), pixelFormat);
         QCOMPARE(frame.size(), size);
         QCOMPARE(frame.width(), size.width());
@@ -581,7 +559,9 @@ void tst_QVideoFrame::copy()
             QVERIFY(!buffer.isNull());
 
             QVERIFY(otherFrame.isValid());
-            QCOMPARE(otherFrame.handleType(), handleType);
+#if QT_DEPRECATED_SINCE(6, 13)
+            QCOMPARE(otherFrame.handleType(), QVideoFrame::NoHandle);
+#endif
             QCOMPARE(otherFrame.pixelFormat(), pixelFormat);
             QCOMPARE(otherFrame.size(), size);
             QCOMPARE(otherFrame.width(), size.width());
@@ -594,7 +574,9 @@ void tst_QVideoFrame::copy()
             QVERIFY(!buffer.isNull());
 
             QVERIFY(otherFrame.isValid());
-            QCOMPARE(otherFrame.handleType(), handleType);
+#if QT_DEPRECATED_SINCE(6, 13)
+            QCOMPARE(otherFrame.handleType(), QVideoFrame::NoHandle);
+#endif
             QCOMPARE(otherFrame.pixelFormat(), pixelFormat);
             QCOMPARE(otherFrame.size(), size);
             QCOMPARE(otherFrame.width(), size.width());
@@ -606,7 +588,9 @@ void tst_QVideoFrame::copy()
         QVERIFY(!buffer.isNull());
 
         QVERIFY(frame.isValid());
-        QCOMPARE(frame.handleType(), handleType);
+#if QT_DEPRECATED_SINCE(6, 13)
+        QCOMPARE(frame.handleType(), QVideoFrame::NoHandle);
+#endif
         QCOMPARE(frame.pixelFormat(), pixelFormat);
         QCOMPARE(frame.size(), size);
         QCOMPARE(frame.width(), size.width());
@@ -620,35 +604,25 @@ void tst_QVideoFrame::copy()
 
 void tst_QVideoFrame::assign_data()
 {
-    QTest::addColumn<QVideoFrame::HandleType>("handleType");
     QTest::addColumn<QSize>("size");
     QTest::addColumn<QVideoFrameFormat::PixelFormat>("pixelFormat");
     QTest::addColumn<qint64>("startTime");
     QTest::addColumn<qint64>("endTime");
 
-    QTest::newRow("64x64 ARGB32")
-            << QVideoFrame::RhiTextureHandle
-            << QSize(64, 64)
-            << QVideoFrameFormat::Format_ARGB8888
-            << qint64(63641740)
-            << qint64(63641954);
-    QTest::newRow("32x256 YUV420P")
-            << QVideoFrame::NoHandle
-            << QSize(32, 256)
-            << QVideoFrameFormat::Format_YUV420P
-            << qint64(12345)
-            << qint64(12389);
+    QTest::newRow("64x64 ARGB32") << QSize(64, 64) << QVideoFrameFormat::Format_ARGB8888
+                                  << qint64(63641740) << qint64(63641954);
+    QTest::newRow("32x256 YUV420P") << QSize(32, 256) << QVideoFrameFormat::Format_YUV420P
+                                    << qint64(12345) << qint64(12389);
 }
 
 void tst_QVideoFrame::assign()
 {
-    QFETCH(QVideoFrame::HandleType, handleType);
     QFETCH(QSize, size);
     QFETCH(QVideoFrameFormat::PixelFormat, pixelFormat);
     QFETCH(qint64, startTime);
     QFETCH(qint64, endTime);
 
-    QPointer<QtTestVideoBuffer> buffer = new QtTestVideoBuffer(handleType);
+    QPointer<QtTestVideoBuffer> buffer = new QtTestVideoBuffer();
 
     QVideoFrame frame;
     {
@@ -662,7 +636,9 @@ void tst_QVideoFrame::assign()
         QVERIFY(!buffer.isNull());
 
         QVERIFY(otherFrame.isValid());
-        QCOMPARE(otherFrame.handleType(), handleType);
+#if QT_DEPRECATED_SINCE(6, 13)
+        QCOMPARE(otherFrame.handleType(), QVideoFrame::NoHandle);
+#endif
         QCOMPARE(otherFrame.pixelFormat(), pixelFormat);
         QCOMPARE(otherFrame.size(), size);
         QCOMPARE(otherFrame.width(), size.width());
@@ -675,7 +651,9 @@ void tst_QVideoFrame::assign()
         QVERIFY(!buffer.isNull());
 
         QVERIFY(otherFrame.isValid());
-        QCOMPARE(otherFrame.handleType(), handleType);
+#if QT_DEPRECATED_SINCE(6, 13)
+        QCOMPARE(otherFrame.handleType(), QVideoFrame::NoHandle);
+#endif
         QCOMPARE(otherFrame.pixelFormat(), pixelFormat);
         QCOMPARE(otherFrame.size(), size);
         QCOMPARE(otherFrame.width(), size.width());
@@ -687,7 +665,9 @@ void tst_QVideoFrame::assign()
     QVERIFY(!buffer.isNull());
 
     QVERIFY(frame.isValid());
-    QCOMPARE(frame.handleType(), handleType);
+#if QT_DEPRECATED_SINCE(6, 13)
+    QCOMPARE(frame.handleType(), QVideoFrame::NoHandle);
+#endif
     QCOMPARE(frame.pixelFormat(), pixelFormat);
     QCOMPARE(frame.size(), size);
     QCOMPARE(frame.width(), size.width());
@@ -700,7 +680,9 @@ void tst_QVideoFrame::assign()
     QVERIFY(buffer.isNull());
 
     QVERIFY(!frame.isValid());
+#if QT_DEPRECATED_SINCE(6, 13)
     QCOMPARE(frame.handleType(), QVideoFrame::NoHandle);
+#endif
     QCOMPARE(frame.pixelFormat(), QVideoFrameFormat::Format_Invalid);
     QCOMPARE(frame.size(), QSize());
     QCOMPARE(frame.width(), -1);

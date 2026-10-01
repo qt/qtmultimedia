@@ -30,8 +30,7 @@ static bool isFrameFlipped(const AVFrame& frame) {
 }
 
 QFFmpegVideoBuffer::QFFmpegVideoBuffer(AVFrameUPtr frame, AVRational pixelAspectRatio)
-    : QHwVideoBuffer(QVideoFrame::NoHandle),
-      m_frame(frame.get()),
+    : m_frame(frame.get()),
       m_size(qCalculateFrameSize({ frame->width, frame->height },
                                  { pixelAspectRatio.num, pixelAspectRatio.den }))
 {
@@ -90,11 +89,6 @@ void QFFmpegVideoBuffer::initTextureConverter(QRhi &rhi)
 
     // don't use the result reference here
     ensureTextureConverter(rhi);
-
-    // the type is to be clarified in the method mapTextures
-    m_type = m_hwFrame && TextureConverter::isBackendAvailable(*m_hwFrame, rhi)
-            ? QVideoFrame::RhiTextureHandle
-            : QVideoFrame::NoHandle;
 }
 
 QFFmpeg::TextureConverter &QFFmpegVideoBuffer::ensureTextureConverter(QRhi &rhi)
@@ -184,10 +178,8 @@ QAbstractVideoBuffer::MapData QFFmpegVideoBuffer::map(QVideoFrame::MapMode mode)
         mapData.dataSize[i] = mapData.bytesPerLine[i]*desc->heightForPlane(m_swFrame->height, i);
     }
 
-    if ((mode & QVideoFrame::WriteOnly) != 0 && m_hwFrame) {
-        m_type = QVideoFrame::NoHandle;
+    if ((mode & QVideoFrame::WriteOnly) != 0 && m_hwFrame)
         m_hwFrame.reset();
-    }
 
     return mapData;
 }
@@ -203,11 +195,7 @@ QVideoFrameTexturesUPtr QFFmpegVideoBuffer::mapTextures(QRhi &rhi, QVideoFrameTe
 {
     Q_ASSERT(rhi.thread()->isCurrentThread());
 
-    QVideoFrameTexturesUPtr result = createTexturesFromHwFrame(rhi, oldTextures);
-
-    // update m_type according to the real result
-    m_type = result ? QVideoFrame::RhiTextureHandle : QVideoFrame::NoHandle;
-    return result;
+    return createTexturesFromHwFrame(rhi, oldTextures);
 }
 
 QVideoFrameTexturesUPtr QFFmpegVideoBuffer::createTexturesFromHwFrame(QRhi &rhi, QVideoFrameTexturesUPtr& oldTextures) {

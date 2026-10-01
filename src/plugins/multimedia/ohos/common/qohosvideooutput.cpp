@@ -63,8 +63,7 @@ public:
     QOhosTextureVideoBuffer(std::unique_ptr<QRhiTexture> tex, const QSize &size,
                             std::weak_ptr<QRhi> producerRhi, QPointer<QObject> producer,
                             QPointer<QOpenGLContext> producerContext)
-        : QHwVideoBuffer(QVideoFrame::RhiTextureHandle)
-        , m_size(size)
+        : m_size(size)
         , m_tex(std::move(tex))
         , m_producerRhi(std::move(producerRhi))
         , m_producer(std::move(producer))

@@ -43,9 +43,7 @@ class AndroidTextureVideoBuffer : public QHwVideoBuffer
 {
 public:
     AndroidTextureVideoBuffer(std::unique_ptr<QRhiTexture> tex, const QSize &size)
-        : QHwVideoBuffer(QVideoFrame::RhiTextureHandle),
-          m_size(size),
-          m_tex(std::move(tex))
+        : m_size(size), m_tex(std::move(tex))
     {}
 
     MapData map(QVideoFrame::MapMode mode) override;
@@ -71,8 +69,7 @@ private:
 class ImageFromVideoFrameHelper : public QHwVideoBuffer
 {
 public:
-    ImageFromVideoFrameHelper(AndroidTextureVideoBuffer &atvb)
-        : QHwVideoBuffer(QVideoFrame::RhiTextureHandle), m_atvb(atvb)
+    ImageFromVideoFrameHelper(AndroidTextureVideoBuffer &atvb) : m_atvb(atvb)
     {}
     QVideoFrameTexturesUPtr mapTextures(QRhi &rhi, QVideoFrameTexturesUPtr& oldTextures) override
     {

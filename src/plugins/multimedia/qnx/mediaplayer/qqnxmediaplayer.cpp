@@ -67,7 +67,6 @@ class QnxTextureBuffer : public QHwVideoBuffer
 {
 public:
     QnxTextureBuffer(QQnxWindowGrabber *QQnxWindowGrabber)
-        : QHwVideoBuffer(QVideoFrame::RhiTextureHandle)
     {
         m_windowGrabber = QQnxWindowGrabber;
         m_handle = 0;

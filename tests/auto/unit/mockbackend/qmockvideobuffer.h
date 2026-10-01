@@ -10,7 +10,7 @@
 class QMockVideoBuffer : public QHwVideoBuffer
 {
 public:
-    QMockVideoBuffer(QImage image) : QHwVideoBuffer(QVideoFrame::NoHandle), m_image(image) { }
+    QMockVideoBuffer(QImage image) : m_image(image) {}
 
     MapData map(QVideoFrame::MapMode mode) override
     {

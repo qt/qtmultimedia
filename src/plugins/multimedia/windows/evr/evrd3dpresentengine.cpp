@@ -30,12 +30,8 @@ Q_STATIC_LOGGING_CATEGORY(qLcEvrD3DPresentEngine, "qt.multimedia.evrd3dpresenten
 class IMFSampleVideoBuffer : public QHwVideoBuffer
 {
 public:
-    IMFSampleVideoBuffer(ComPtr<IDirect3DDevice9Ex> device, const ComPtr<IMFSample> &sample,
-                         QVideoFrame::HandleType type = QVideoFrame::NoHandle)
-        : QHwVideoBuffer(type),
-          m_device(device),
-          m_sample(sample),
-          m_mapMode(QVideoFrame::NotMapped)
+    IMFSampleVideoBuffer(ComPtr<IDirect3DDevice9Ex> device, const ComPtr<IMFSample> &sample)
+        : m_device(device), m_sample(sample), m_mapMode(QVideoFrame::NotMapped)
     {
     }
 
@@ -131,8 +127,7 @@ class D3D11TextureVideoBuffer: public IMFSampleVideoBuffer
 public:
     D3D11TextureVideoBuffer(ComPtr<IDirect3DDevice9Ex> device, const ComPtr<IMFSample> &sample,
                             HANDLE sharedHandle)
-        : IMFSampleVideoBuffer(std::move(device), sample, QVideoFrame::RhiTextureHandle)
-        , m_sharedHandle(sharedHandle)
+        : IMFSampleVideoBuffer(std::move(device), sample), m_sharedHandle(sharedHandle)
     {}
 
     QVideoFrameTexturesUPtr mapTextures(QRhi &rhi, QVideoFrameTexturesUPtr& /*oldTextures*/) override
@@ -282,7 +277,7 @@ class OpenGlVideoBuffer: public IMFSampleVideoBuffer
 public:
     OpenGlVideoBuffer(ComPtr<IDirect3DDevice9Ex> device, const ComPtr<IMFSample> &sample,
                       const WglNvDxInterop &wglNvDxInterop, HANDLE sharedHandle)
-        : IMFSampleVideoBuffer(std::move(device), sample, QVideoFrame::RhiTextureHandle)
+        : IMFSampleVideoBuffer(std::move(device), sample)
         , m_sharedHandle(sharedHandle)
         , m_wgl(wglNvDxInterop)
     {}

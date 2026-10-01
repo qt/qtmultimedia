@@ -67,8 +67,11 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFramePrivate);
     \sa QAbstractVideoBuffer, QVideoFrameFormat, QVideoFrame::MapMode
 */
 
+#if QT_DEPRECATED_SINCE(6, 13)
 /*!
     \enum QVideoFrame::HandleType
+    \deprecated [6.13] QVideoFrame::HandleType is deprecated and will be removed in a future
+    Qt version.
 
     Identifies the type of a video buffers handle.
 
@@ -81,6 +84,7 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFramePrivate);
 
     \sa handleType()
 */
+#endif
 
 
 /*!
@@ -301,16 +305,22 @@ QVideoFrameFormat QVideoFrame::surfaceFormat() const
     return d ? d->format : QVideoFrameFormat{};
 }
 
+#if QT_DEPRECATED_SINCE(6, 13)
 /*!
     Returns the type of a video frame's handle.
+    \deprecated [6.13] QVideoFrame::handleType() is deprecated and will be removed in a future
+    Qt version.
 
-    The handle type could either be NoHandle, meaning that the frame is memory
-    based, or a RHI texture.
+    Always returns NoHandle.
 */
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
 QVideoFrame::HandleType QVideoFrame::handleType() const
 {
-    return (d && d->hwVideoBuffer) ? d->hwVideoBuffer->handleType() : QVideoFrame::NoHandle;
+    return QVideoFrame::NoHandle;
 }
+QT_WARNING_POP
+#endif
 
 /*!
     Returns the dimensions of a video frame.
@@ -1038,6 +1048,9 @@ static QString qFormatTimeStamps(qint64 start, qint64 end)
             .arg(e_millis, 2, 10, QLatin1Char('0'));
 }
 
+#  if QT_DEPRECATED_SINCE(6, 13)
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
 QDebug operator<<(QDebug dbg, QVideoFrame::HandleType type)
 {
     QDebugStateSaver saver(dbg);
@@ -1050,6 +1063,8 @@ QDebug operator<<(QDebug dbg, QVideoFrame::HandleType type)
     }
     return dbg;
 }
+QT_WARNING_POP
+#  endif
 
 QDebug operator<<(QDebug dbg, const QVideoFrame& f)
 {
@@ -1057,7 +1072,6 @@ QDebug operator<<(QDebug dbg, const QVideoFrame& f)
     dbg.nospace();
     dbg << "QVideoFrame(" << f.size() << ", "
                << f.pixelFormat() << ", "
-               << f.handleType() << ", "
                << f.mapMode() << ", "
                << qFormatTimeStamps(f.startTime(), f.endTime()).toLatin1().constData();
     dbg << ')';

@@ -9,7 +9,7 @@ QVideoFrameTextures::~QVideoFrameTextures() = default;
 
 QVideoFrameTexturesHandles::~QVideoFrameTexturesHandles() = default;
 
-QHwVideoBuffer::QHwVideoBuffer(QVideoFrame::HandleType type) : m_type(type) { }
+QHwVideoBuffer::QHwVideoBuffer() = default;
 
 // must be out-of-line to ensure correct working of dynamic_cast when QHwVideoBuffer is created in tests
 QHwVideoBuffer::~QHwVideoBuffer() = default;

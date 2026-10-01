@@ -20,7 +20,7 @@ QT_USE_NAMESPACE
 Q_STATIC_LOGGING_CATEGORY(qLcVideoBuffer, "qt.multimedia.darwin.videobuffer")
 
 AVFVideoBuffer::AVFVideoBuffer(AVFVideoSinkInterface *sink, QCFType<CVImageBufferRef> buffer)
-    : QHwVideoBuffer(sink->rhi() ? QVideoFrame::RhiTextureHandle : QVideoFrame::NoHandle),
+    :
 #if QT_CONFIG(opengl)
       sink(sink),
 #endif

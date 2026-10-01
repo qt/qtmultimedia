@@ -83,11 +83,9 @@ class Q_MULTIMEDIA_EXPORT QHwVideoBuffer : public QAbstractVideoBuffer,
                                            public QVideoFrameTexturesHandles
 {
 public:
-    explicit QHwVideoBuffer(QVideoFrame::HandleType type);
+    QHwVideoBuffer();
 
     ~QHwVideoBuffer() override;
-
-    QVideoFrame::HandleType handleType() const { return m_type; }
 
     // returns rhi in the current thread that has been associated with the frame
     // during texture mapping or texture converter initialization.
@@ -105,9 +103,6 @@ public:
     virtual void initTextureConverter(QRhi &) { }
 
     virtual bool isDmaBuf() const { return false; }
-
-protected:
-    QVideoFrame::HandleType m_type;
 };
 
 QT_END_NAMESPACE

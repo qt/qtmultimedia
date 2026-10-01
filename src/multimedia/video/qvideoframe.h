@@ -28,11 +28,14 @@ class Q_MULTIMEDIA_EXPORT QVideoFrame
     Q_GADGET
 public:
 
-    enum HandleType
+#if QT_DEPRECATED_SINCE(6, 13)
+    enum QT_DEPRECATED_VERSION_X_6_13("QVideoFrame::HandleType is deprecated and will be "
+                                      "removed in a future Qt version.") HandleType
     {
         NoHandle,
         RhiTextureHandle
     };
+#endif
 
     enum MapMode
     {
@@ -75,7 +78,14 @@ public:
     QVideoFrameFormat::PixelFormat pixelFormat() const;
 
     QVideoFrameFormat surfaceFormat() const;
+#if QT_DEPRECATED_SINCE(6, 13)
+    QT_WARNING_PUSH
+    QT_WARNING_DISABLE_DEPRECATED
+    QT_DEPRECATED_VERSION_X_6_13("QVideoFrame::handleType() is deprecated and will be "
+                                 "removed in a future Qt version.")
     QVideoFrame::HandleType handleType() const;
+    QT_WARNING_POP
+#endif
 
     QSize size() const;
     int width() const;
@@ -153,7 +163,14 @@ Q_DECLARE_SHARED(QVideoFrame)
 
 #ifndef QT_NO_DEBUG_STREAM
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, const QVideoFrame&);
+#  if QT_DEPRECATED_SINCE(6, 13)
+QT_WARNING_PUSH
+QT_WARNING_DISABLE_DEPRECATED
+QT_DEPRECATED_VERSION_X_6_13("QVideoFrame::HandleType is deprecated and will be "
+                             "removed in a future Qt version.")
 Q_MULTIMEDIA_EXPORT QDebug operator<<(QDebug, QVideoFrame::HandleType);
+QT_WARNING_POP
+#  endif
 #endif
 
 QT_END_NAMESPACE

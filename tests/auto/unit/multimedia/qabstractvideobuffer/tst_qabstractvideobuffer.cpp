@@ -19,8 +19,6 @@ public slots:
     void cleanup();
 
 private slots:
-    void handleType_data();
-    void handleType();
     void handle();
     void mapModeDebug();
 };
@@ -28,8 +26,6 @@ private slots:
 class QtTestVideoBuffer : public QHwVideoBuffer
 {
 public:
-    QtTestVideoBuffer(QVideoFrame::HandleType type) : QHwVideoBuffer(type) { }
-
     MapData map(QVideoFrame::MapMode) override { return {}; }
     void unmap() override {}
 };
@@ -58,31 +54,9 @@ void tst_QAbstractVideoBuffer::cleanup()
 {
 }
 
-void tst_QAbstractVideoBuffer::handleType_data()
-{
-    QTest::addColumn<QVideoFrame::HandleType>("type");
-    QTest::addColumn<QString>("stringized");
-
-    QTest::newRow("NoHandle") << QVideoFrame::NoHandle << QStringLiteral("NoHandle");
-    QTest::newRow("RhiTextureHandle") << QVideoFrame::RhiTextureHandle << QStringLiteral("RhiTextureHandle");
-}
-
-void tst_QAbstractVideoBuffer::handleType()
-{
-    QFETCH(QVideoFrame::HandleType, type);
-    QFETCH(QString, stringized);
-
-    QtTestVideoBuffer buffer(type);
-
-    QCOMPARE(buffer.handleType(), type);
-
-    QTest::ignoreMessage(QtDebugMsg, stringized.toLatin1().constData());
-    qDebug() << type;
-}
-
 void tst_QAbstractVideoBuffer::handle()
 {
-    QtTestVideoBuffer buffer(QVideoFrame::NoHandle);
+    QtTestVideoBuffer buffer;
 
     std::unique_ptr<QRhi> rhi(QRhi::create(QRhi::Null, {}));
 

@@ -33,8 +33,7 @@ static QRhiValueMapper<DmaBufEglContext> g_eglContexts;
 QDmaBufVideoBuffer::QDmaBufVideoBuffer(QVideoFrameFormat::PixelFormat format, QSize size,
                                        QSpan<const DmaBufPlane> planes,
                                        std::shared_ptr<void> keepAlive)
-    : QHwVideoBuffer(QVideoFrame::NoHandle),
-      m_format(format),
+    : m_format(format),
       m_size(size),
       m_planeCount(std::clamp(0, int(planes.size()), 4)),
       m_keepAlive(std::move(keepAlive))

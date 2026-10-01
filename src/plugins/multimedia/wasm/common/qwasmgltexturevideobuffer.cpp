@@ -12,8 +12,7 @@ QWasmGLTextureVideoBuffer::QWasmGLTextureVideoBuffer(QGlTextureHandle textureHan
                                                      const QSize &size,
                                                      EMSCRIPTEN_WEBGL_CONTEXT_HANDLE glContext,
                                                      QRhi *rhi)
-    : QHwVideoBuffer(QVideoFrame::RhiTextureHandle),
-      m_glTextureHandle(std::move(textureHandle)),
+    : m_glTextureHandle(std::move(textureHandle)),
       m_size(size),
       m_videoFrameFormat(size, QVideoFrameFormat::Format_RGBA8888),
       m_glContext(glContext),
