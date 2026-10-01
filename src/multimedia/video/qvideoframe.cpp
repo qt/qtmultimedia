@@ -39,6 +39,17 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFramePrivate);
     frames can vary greatly, and some pixel formats offer greater compression opportunities at
     the expense of ease of use.
 
+    A video frame can also have timestamp information associated with it.  These timestamps can be
+    used to determine when to start and stop displaying the frame.
+
+    QVideoFrame objects can consume a significant amount of memory or system resources and
+    should not be held for longer than required by the application.
+
+    \note Since video frames can be expensive to copy, QVideoFrame is explicitly shared, so any
+    change made to a video frame will also apply to any copies.
+
+    \section1 Mapping Video Frames to Memory
+
     The pixel contents of a video frame can be mapped to memory using the map() function. After
     a successful call to map(), the video data can be accessed through various functions. Some of
     the YUV pixel formats provide the data in several planes. The planeCount() method will return
@@ -52,15 +63,6 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFramePrivate);
 
     \note A mapping should only be held for a short time and be released as
     early as possible with unmap().
-
-    A video frame can also have timestamp information associated with it.  These timestamps can be
-    used to determine when to start and stop displaying the frame.
-
-    QVideoFrame objects can consume a significant amount of memory or system resources and
-    should not be held for longer than required by the application.
-
-    \note Since video frames can be expensive to copy, QVideoFrame is explicitly shared, so any
-    change made to a video frame will also apply to any copies.
 
     \sa QAbstractVideoBuffer, QVideoFrameFormat, QVideoFrame::MapMode
 */
