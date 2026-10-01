@@ -443,6 +443,54 @@ private slots:
         QVERIFY(fixture.m_errors.empty());
     }
 
+    // Switching the source of an active capture must keep it active, without
+    // emitting any activation signals in between. Otherwise it may trigger
+    // QMediaRecorder::autoStop.
+    void setWindow_doesNotEmitActiveChanged_whenSwitchedWhileActive()
+    {
+        WindowCaptureWithWidgetFixture fixture;
+        QVERIFY(fixture.start({ 60, 40 }));
+        QVERIFY(fixture.consumeFirstFrame());
+        QCOMPARE(fixture.m_activations.size(), 1);
+
+        // A differently-sized second window, so we can tell the sources apart.
+        TestWidget secondWidget;
+        secondWidget.setSize({ 120, 80 });
+        secondWidget.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&secondWidget, globalTestTimeout()));
+
+        const std::optional<QCapturableWindow> secondWindow =
+            WindowCaptureWithWidgetFixture::findCaptureWindow(
+                secondWidget.windowTitle(),
+                secondWidget.windowHandle());
+        QVERIFY(secondWindow && secondWindow->isValid());
+
+        // The captured frame is delivered in physical pixels.
+        const auto expectedFrameSize = [](const TestWidget &widget) {
+            return (QSizeF(widget.size()) * widget.devicePixelRatio()).toSize();
+        };
+
+        // Switch back and forth. Wait for frames of each new source, so that we also
+        // catch activation signals that are emitted while the new source is starting up.
+        fixture.m_capture.setWindow(*secondWindow);
+        QVERIFY(fixture.m_capture.isActive());
+        waitForVideoFrameExpectedSize(
+            fixture,
+            expectedFrameSize(secondWidget),
+            u"Switched to second window"_s);
+
+        fixture.m_capture.setWindow(fixture.m_captureWindow);
+        QVERIFY(fixture.m_capture.isActive());
+        waitForVideoFrameExpectedSize(
+            fixture,
+            expectedFrameSize(fixture.m_widget),
+            u"Switched back to first window"_s);
+
+        QVERIFY(fixture.m_capture.isActive());
+        QCOMPARE(fixture.m_activations.size(), 1);
+        QVERIFY(fixture.m_errors.empty());
+    }
+
     void setWindow_stopsCapture_whenSwitchedToInvalidWindow()
     {
         WindowCaptureWithWidgetFixture fixture;
