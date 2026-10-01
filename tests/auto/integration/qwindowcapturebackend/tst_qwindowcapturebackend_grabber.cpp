@@ -7,10 +7,32 @@
 #include <QtMultimedia/qvideoframe.h>
 #include <QtCore/q20vector.h>
 #include <QtCore/qelapsedtimer.h>
+#include <QtCore/qscopeguard.h>
 
 #include "tst_qwindowcapturebackend_fixture.h"
 
 #include <utility>
+
+static qint64 startTimeOf(const QVideoFrame &frame)
+{
+    return frame.startTime();
+}
+
+static qint64 startTimeOf(const VideoFrameInfo &info)
+{
+    return info.startTime;
+}
+
+static VideoFrameInfo makeVideoFrameInfo(const QVideoFrame &frame)
+{
+    return VideoFrameInfo{
+        frame.isValid(),
+        frame.size(),
+        frame.pixelFormat(),
+        frame.startTime(),
+        frame.endTime(),
+    };
+}
 
 FrameGrabber::FrameGrabber()
 {
@@ -19,7 +41,9 @@ FrameGrabber::FrameGrabber()
 
 void FrameGrabber::onFrameReceived(const QVideoFrame &frame)
 {
-    m_frames.push_back(frame);
+    m_frameInfos.push_back(makeVideoFrameInfo(frame));
+    if (m_retainVideoFrames)
+        m_videoFrames.push_back(frame);
 
     if (!frame.isValid()) {
         // A null-frame ends the stream, and the next valid frame starts a new one.
@@ -31,16 +55,43 @@ void FrameGrabber::onFrameReceived(const QVideoFrame &frame)
     }
 }
 
-const std::vector<QVideoFrame> &FrameGrabber::getFrames() const
+const std::vector<VideoFrameInfo> &FrameGrabber::getFrameInfos() const
 {
-    return m_frames;
+    return m_frameInfos;
 }
 
-std::vector<QVideoFrame> FrameGrabber::waitAndTakeFrames(size_t minCount, qint64 noOlderThanTime)
+std::vector<VideoFrameInfo> FrameGrabber::waitAndTakeFrameInfos(
+    size_t minCount,
+    qint64 noOlderThanTime)
 {
-    m_frames.clear();
+    return waitAndTake(m_frameInfos, minCount, noOlderThanTime);
+}
 
-    const auto enoughFramesOrStopped = [this, minCount, noOlderThanTime]() -> bool {
+std::vector<QVideoFrame> FrameGrabber::waitAndTakeVideoFrames(
+    size_t minCount,
+    qint64 noOlderThanTime)
+{
+    // Holding on to QVideoFrames can stall backends that use a fixed-size
+    // frame pool, so only retain them while the caller is waiting for them.
+    m_retainVideoFrames = true;
+    const auto stopRetaining = qScopeGuard([this] {
+        m_retainVideoFrames = false;
+        m_videoFrames.clear();
+    });
+
+    return waitAndTake(m_videoFrames, minCount, noOlderThanTime);
+}
+
+template <typename Frame>
+std::vector<Frame> FrameGrabber::waitAndTake(
+    std::vector<Frame> &frames,
+    size_t minCount,
+    qint64 noOlderThanTime)
+{
+    m_frameInfos.clear();
+    m_videoFrames.clear();
+
+    const auto enoughFramesOrStopped = [this, &frames, minCount, noOlderThanTime]() -> bool {
         if (m_stopped)
             return true; // Stop waiting
 
@@ -49,12 +100,12 @@ std::vector<QVideoFrame> FrameGrabber::waitAndTakeFrames(size_t minCount, qint64
 
         if (noOlderThanTime > 0) {
             // Reject frames older than noOlderThanTime
-            q20::erase_if(m_frames, [noOlderThanTime](const QVideoFrame &frame) {
-                return frame.startTime() <= noOlderThanTime;
+            q20::erase_if(frames, [noOlderThanTime](const Frame &frame) {
+                return startTimeOf(frame) <= noOlderThanTime;
             });
         }
 
-        return m_frames.size() >= minCount;
+        return frames.size() >= minCount;
     };
 
     if (!QTest::qWaitFor(enoughFramesOrStopped, globalTestTimeout()))
@@ -63,7 +114,7 @@ std::vector<QVideoFrame> FrameGrabber::waitAndTakeFrames(size_t minCount, qint64
     if (m_stopped)
         return {};
 
-    return std::move(m_frames);
+    return std::exchange(frames, {});
 }
 
 std::optional<QVideoFrame> FrameGrabber::consumeFirstFrame()

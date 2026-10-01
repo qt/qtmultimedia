@@ -11,6 +11,15 @@
 #include <optional>
 #include <vector>
 
+struct VideoFrameInfo
+{
+    bool isValid = false;
+    QSize size;
+    QVideoFrameFormat::PixelFormat pixelFormat = QVideoFrameFormat::Format_Invalid;
+    qint64 startTime = -1;
+    qint64 endTime = -1;
+};
+
 /*!
     The FrameGrabber stores frames that arrive from the window capture,
     and is used to inspect captured frames in the tests.
@@ -22,7 +31,7 @@ class FrameGrabber : public QVideoSink
 public:
     FrameGrabber();
 
-    const std::vector<QVideoFrame> &getFrames() const;
+    [[nodiscard]] const std::vector<VideoFrameInfo> &getFrameInfos() const;
 
     /*!
         Wait for at least \a minCount frames that are no older than noOlderThanTime.
@@ -30,7 +39,17 @@ public:
         Returns empty if not enough frames arrived, or if grabber was stopped before global timeout
         elapsed.
     */
-    std::vector<QVideoFrame> waitAndTakeFrames(size_t minCount, qint64 noOlderThanTime = 0);
+    [[nodiscard]] std::vector<VideoFrameInfo> waitAndTakeFrameInfos(
+        size_t minCount,
+        qint64 noOlderThanTime = 0);
+
+    /*!
+        Same as waitAndTakeFrameInfos(), but returns the video frames themselves.
+        Video frames are only retained for the duration of this call.
+    */
+    [[nodiscard]] std::vector<QVideoFrame> waitAndTakeVideoFrames(
+        size_t minCount,
+        qint64 noOlderThanTime = 0);
 
     /*!
         Waits for the first frame of the current stream and consumes it, so that
@@ -43,9 +62,9 @@ public:
     */
     [[nodiscard]] std::optional<QVideoFrame> consumeFirstFrame();
 
-    std::chrono::milliseconds durationBetweenFrames(qsizetype frameCount = 1);
+    [[nodiscard]] std::chrono::milliseconds durationBetweenFrames(qsizetype frameCount = 1);
 
-    bool isStopped() const;
+    [[nodiscard]] bool isStopped() const;
 
 public slots:
     void stop();
@@ -59,7 +78,17 @@ public slots:
 private:
     void onFrameReceived(const QVideoFrame &frame);
 
-    std::vector<QVideoFrame> m_frames;
+    template <typename Frame>
+    [[nodiscard]] std::vector<Frame> waitAndTake(
+        std::vector<Frame> &frames,
+        size_t minCount,
+        qint64 noOlderThanTime);
+
+    std::vector<VideoFrameInfo> m_frameInfos;
+
+    // Only set, and m_videoFrames only populated, during waitAndTakeVideoFrames().
+    bool m_retainVideoFrames = false;
+    std::vector<QVideoFrame> m_videoFrames;
 
     // The first frame of the current stream, until it is consumed.
     std::optional<QVideoFrame> m_firstFrame;

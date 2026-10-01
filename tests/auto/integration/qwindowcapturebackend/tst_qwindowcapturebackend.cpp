@@ -28,6 +28,7 @@
 
 #include <chrono>
 #include <cstdlib>
+#include <tuple>
 #include <vector>
 
 namespace ranges = QtMultimediaPrivate::ranges;
@@ -55,13 +56,13 @@ private:
     {
         bool matched = QTest::qWaitFor(
             [&] {
-                const std::vector<QVideoFrame> &frames = fixture.m_grabber.getFrames();
-                return !frames.empty() && frames.back().size() == expectedSize;
+                const std::vector<VideoFrameInfo> &frames = fixture.m_grabber.getFrameInfos();
+                return !frames.empty() && frames.back().size == expectedSize;
             },
             globalTestTimeout());
 
-        const std::vector<QVideoFrame> &frames = fixture.m_grabber.getFrames();
-        QSize lastFrameSize = frames.empty() ? QSize{} : frames.back().size();
+        const std::vector<VideoFrameInfo> &frames = fixture.m_grabber.getFrameInfos();
+        QSize lastFrameSize = frames.empty() ? QSize{} : frames.back().size;
 
         QVERIFY2(
             matched,
@@ -296,7 +297,7 @@ private slots:
 
         // No frames must ever arrive on the stream.
         QTest::qWait(500ms);
-        QVERIFY(fixture.m_grabber.getFrames().empty());
+        QVERIFY(fixture.m_grabber.getFrameInfos().empty());
 
         // TODO: Verify a specific error code once it is consistent across
         // platforms.
@@ -444,7 +445,7 @@ private slots:
 
         QVERIFY(fixture.consumeFirstFrame());
 
-        std::vector<QVideoFrame> capturedFrames = fixture.m_grabber.waitAndTakeFrames(
+        std::vector<QVideoFrame> capturedFrames = fixture.m_grabber.waitAndTakeVideoFrames(
             capturedFrameCount);
 
         // If this fails, it's an indication we stalled the stream.
@@ -489,8 +490,8 @@ private slots:
         const QSize expectedSize =
             (QSizeF(secondWidget.size()) * secondWidget.devicePixelRatio()).toSize();
         QTRY_VERIFY_WITH_TIMEOUT(
-            !fixture.m_grabber.getFrames().empty()
-            && fixture.m_grabber.getFrames().back().size() == expectedSize,
+            !fixture.m_grabber.getFrameInfos().empty()
+            && fixture.m_grabber.getFrameInfos().back().size == expectedSize,
             globalTestTimeout());
 
         QVERIFY(fixture.m_errors.empty());
@@ -650,14 +651,14 @@ private slots:
         fixture.m_widget.setDisplayPattern(TestWidget::Pattern::Animated);
         QVERIFY(fixture.start());
 
-        const std::vector<QVideoFrame> frames = fixture.m_grabber.waitAndTakeFrames(10);
+        const std::vector<VideoFrameInfo> frames = fixture.m_grabber.waitAndTakeFrameInfos(10);
         QVERIFY2(
             frames.size() >= 2,
             "Did not receive enough QVideoFrames to compare presentation times");
 
         for (size_t i = 1; i < frames.size(); ++i) {
-            const qint64 prevStart = frames[i - 1].startTime();
-            const qint64 currStart = frames[i].startTime();
+            const qint64 prevStart = frames[i - 1].startTime;
+            const qint64 currStart = frames[i].startTime;
 
             // Presentation (start) times must strictly increase along the stream.
             QVERIFY2(
@@ -669,7 +670,7 @@ private slots:
             // Where the backend also reports an end time, the frame must not end
             // before it starts, and the next frame must not start before the
             // previous one ended (frames must not overlap in time).
-            const qint64 prevEnd = frames[i - 1].endTime();
+            const qint64 prevEnd = frames[i - 1].endTime;
             if (prevEnd >= 0) {
                 QVERIFY2(
                     prevEnd >= prevStart,
@@ -697,7 +698,7 @@ private slots:
 
         QVERIFY(fixture.start());
 
-        const std::vector<QVideoFrame> frames = fixture.m_grabber.waitAndTakeFrames(6);
+        const std::vector<VideoFrameInfo> frames = fixture.m_grabber.waitAndTakeFrameInfos(6);
         QVERIFY2(
             frames.size() >= 2,
             "Did not receive enough QVideoFrames to measure presentation time spacing");
@@ -714,7 +715,7 @@ private slots:
 
         qint64 totalSpacingUs = 0;
         for (size_t i = 1; i < frames.size(); ++i) {
-            const qint64 spacingUs = frames[i].startTime() - frames[i - 1].startTime();
+            const qint64 spacingUs = frames[i].startTime - frames[i - 1].startTime;
             totalSpacingUs += spacingUs;
 
             QVERIFY2(
@@ -785,16 +786,16 @@ private slots:
             (QSizeF(fixture.m_widget.size()) * fixture.m_widget.devicePixelRatio()).toSize();
 
         QVERIFY(QTest::qWaitFor(
-            [&] { return !fixture.m_grabber.getFrames().empty(); }, globalTestTimeout()));
+            [&] { return !fixture.m_grabber.getFrameInfos().empty(); }, globalTestTimeout()));
 
-        const std::vector<QVideoFrame> frames = fixture.m_grabber.getFrames();
+        const std::vector<VideoFrameInfo> frames = fixture.m_grabber.getFrameInfos();
         for (size_t i = 0; i < frames.size(); ++i) {
             QVERIFY2(
-                frames[i].size() == expectedSize,
+                frames[i].size == expectedSize,
                 qPrintable(u"Captured frame #%1 was %2x%3, but expected %4x%5"_s
                     .arg(i)
-                    .arg(frames[i].size().width())
-                    .arg(frames[i].size().height())
+                    .arg(frames[i].size.width())
+                    .arg(frames[i].size.height())
                     .arg(expectedSize.width())
                     .arg(expectedSize.height())));
         }
@@ -852,16 +853,16 @@ private slots:
             (QSizeF(resizedSize) * fixture.m_widget.devicePixelRatio()).toSize();
 
         QVERIFY(QTest::qWaitFor(
-            [&] { return !fixture.m_grabber.getFrames().empty(); }, globalTestTimeout()));
+            [&] { return !fixture.m_grabber.getFrameInfos().empty(); }, globalTestTimeout()));
 
-        const std::vector<QVideoFrame> frames = fixture.m_grabber.getFrames();
+        const std::vector<VideoFrameInfo> frames = fixture.m_grabber.getFrameInfos();
         for (size_t i = 0; i < frames.size(); ++i) {
             QVERIFY2(
-                frames[i].size() == expectedSize,
+                frames[i].size == expectedSize,
                 qPrintable(u"Captured frame #%1 was %2x%3, but expected %4x%5"_s
                     .arg(i)
-                    .arg(frames[i].size().width())
-                    .arg(frames[i].size().height())
+                    .arg(frames[i].size.width())
+                    .arg(frames[i].size.height())
                     .arg(expectedSize.width())
                     .arg(expectedSize.height())));
         }
@@ -975,26 +976,30 @@ private slots:
 
         QVERIFY(fixture.consumeFirstFrame());
 
-        fixture.m_widget.setDisplayPattern(TestWidget::Pattern::Grid);
-
-        const QImage expectedGridImage = fixture.m_widget.grabImage();
-
-        // Compare every new frame we have received since we changed the
-        // target window content. If any of the new frames match,
-        // the test succeeds.
-        size_t checkedFrames = 0;
-        const auto anyNewFramesMatchesNewContent = [&] {
-            const std::vector<QVideoFrame> &frames = fixture.m_grabber.getFrames();
-            for (; checkedFrames < frames.size(); ++checkedFrames) {
-                const QImage image = frames[checkedFrames].toImage();
+        // Compare every new frame as it arrives, rather than storing the frames.
+        // If any of the new frames match, the test succeeds.
+        QImage expectedGridImage;
+        bool anyNewFrameMatchesNewContent = false;
+        QObject context;
+        connect(
+            &fixture.m_grabber,
+            &QVideoSink::videoFrameChanged,
+            &context,
+            [&](const QVideoFrame &frame) {
+                // Two null images compare equal, so skip frames until we know
+                // the expected image.
+                if (anyNewFrameMatchesNewContent || expectedGridImage.isNull())
+                    return;
+                const QImage image = frame.toImage();
                 if (image.convertToFormat(expectedGridImage.format()) == expectedGridImage)
-                    return true;
-            }
-            return false;
-        };
+                    anyNewFrameMatchesNewContent = true;
+            });
+
+        fixture.m_widget.setDisplayPattern(TestWidget::Pattern::Grid);
+        expectedGridImage = fixture.m_widget.grabImage();
 
         QTRY_VERIFY_WITH_TIMEOUT(
-            anyNewFramesMatchesNewContent(),
+            anyNewFrameMatchesNewContent,
             globalTestTimeout());
     }
 
@@ -1013,7 +1018,7 @@ private slots:
         WindowCaptureWithWidgetFixture fixture;
         QVERIFY(fixture.start());
 
-        const std::vector<QVideoFrame> frames = fixture.m_grabber.waitAndTakeFrames(10);
+        const std::vector<QVideoFrame> frames = fixture.m_grabber.waitAndTakeVideoFrames(10);
         QVERIFY(!frames.empty());
 
         QImage firstFrame = frames.front().toImage();
@@ -1048,7 +1053,7 @@ private slots:
         fixture.start(windowSize);
 
         // Wait on grabber to ensure that video recorder also get some frames
-        fixture.m_grabber.waitAndTakeFrames(60);
+        std::ignore = fixture.m_grabber.waitAndTakeFrameInfos(60);
 
         // Wait for recorder finalization
         fixture.stop();
@@ -1079,7 +1084,7 @@ private slots:
             fixture.m_widget.setSize(windowSize);
 
             // Wait on grabber to ensure that video recorder also get some frames
-            fixture.m_grabber.waitAndTakeFrames(1);
+            std::ignore = fixture.m_grabber.waitAndTakeFrameInfos(1);
         }
 
         // Wait for recorder finalization
