@@ -20,7 +20,9 @@
 #include <QtMultimedia/qcapturablewindow.h>
 #include <QtGui/qscreen.h>
 #include <QtCore/qpointer.h>
+#include <QtCore/private/qexpected_p.h>
 
+#include <optional>
 #include <variant>
 
 QT_BEGIN_NAMESPACE
@@ -45,6 +47,14 @@ public:
 
     using Source = std::variant<ScreenSource, WindowSource>;
 
+    struct ErrorDetails
+    {
+        Error error = Error::InternalError;
+        // Description is user-facing. Emitted in errorOccurred.
+        QString description;
+    };
+    using SourceSwitchResult = q23::expected<void, ErrorDetails>;
+
     explicit QPlatformSurfaceCapture(Source initialSource);
 
     // When capturing a Window, we should never include the drop shadow of that Window.
@@ -59,6 +69,8 @@ public:
     void setActive(bool active) override;
     bool isActive() const override;
 
+    // Changes the source. If we are active, the new source is captured right away,
+    // see switchActiveSource(). If that fails, we go inactive and report the error.
     void setSource(Source source);
 
     template<typename Type>
@@ -81,6 +93,21 @@ public:
 
 protected:
     virtual bool setActiveInternal(bool) = 0;
+
+    // Switches an active capture over to newSource, which is always of the same kind
+    // as the current source (window to window, or screen to screen).
+    //
+    // Presentation times must keep increasing across the switch.
+    //
+    // The implementatiom must not emit an end-of-stream frame when the switch occurs.
+    //
+    // This function blocks until the switch is complete. Preferably, no frames of
+    // the old source are emitted after it returns.
+    //
+    // If the switch fails, the implementation may tear its resources down immediately
+    // before returning.
+    [[nodiscard]] virtual std::optional<SourceSwitchResult>
+    switchActiveSource(const Source &newSource);
 
     bool checkScreenWithError(ScreenSource &screen);
 

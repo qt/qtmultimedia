@@ -41,19 +41,38 @@ void QPlatformSurfaceCapture::setSource(Source source)
     if (m_source == source)
         return;
 
-    if (m_active)
+    if (!m_active) {
+        m_source = std::move(source);
+    } else if (const std::optional<SourceSwitchResult> result = switchActiveSource(source)) {
+        m_source = std::move(source);
+
+        if (!*result) {
+            setActiveInternal(false);
+            updateError(result->error().error, result->error().description);
+            m_active = false;
+            Q_EMIT activeChanged(false);
+        }
+    } else {
+        // Switching is not supported, so restart the stream with the new source.
         setActiveInternal(false);
 
-    m_source = std::move(source);
+        m_source = std::move(source);
 
-    if (m_active && !setActiveInternal(true)) {
-        m_active = false;
-        Q_EMIT activeChanged(false);
+        if (!setActiveInternal(true)) {
+            m_active = false;
+            Q_EMIT activeChanged(false);
+        }
     }
 
     std::visit([this](const auto &source) {
         Q_EMIT sourceChanged(source);
     }, m_source);
+}
+
+std::optional<QPlatformSurfaceCapture::SourceSwitchResult>
+QPlatformSurfaceCapture::switchActiveSource(const Source &)
+{
+    return std::nullopt;
 }
 
 QPlatformSurfaceCapture::Error QPlatformSurfaceCapture::error() const

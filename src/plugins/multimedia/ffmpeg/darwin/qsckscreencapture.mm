@@ -10,6 +10,7 @@
 
 #include <QtMultimedia/private/qmultimedia_ranges_p.h>
 
+#include <QtGui/qguiapplication.h>
 #include <QtGui/qscreen.h>
 
 #define AVMediaType XAVMediaType
@@ -61,6 +62,37 @@ namespace QFFmpeg {
 
     // AVFScopedPointer doesn't have shared-ptr semantics, force a reference increment.
     return AVFScopedPointer<SCDisplay>{ [it->data() retain] };
+}
+
+// Finds the SCDisplay to capture for the given, non-null QScreen.
+[[nodiscard]] static auto findScDisplayForScreen(QScreen &screen)
+    -> q23::expected<AVFScopedPointer<SCDisplay>, QPlatformSurfaceCapture::ErrorDetails>
+{
+    using Error = QPlatformSurfaceCapture::Error;
+    using ErrorDetails = QPlatformSurfaceCapture::ErrorDetails;
+
+    auto *cocoaScreen = screen.nativeInterface<QNativeInterface::QCocoaScreen>();
+    if (!cocoaScreen) {
+        qCWarning(qLcMacScreenCapture)
+            << "Failed to grab QNativeInterface::QCocoaScreen from QScreen";
+        return q23::unexpected{ ErrorDetails{
+            Error::CaptureFailed,
+            u"Screen capture could not be started."_s } };
+    }
+
+    CGDirectDisplayID cgDisplayId = displayIDForScreen(cocoaScreen->nativeScreen());
+
+    q23::expected<AVFScopedPointer<SCDisplay>, QString> scDisplayResult = findScDisplay(cgDisplayId);
+    if (!scDisplayResult) {
+        qCWarning(qLcMacScreenCapture)
+            << "Could not find associated SCDisplay:"
+            << scDisplayResult.error();
+        return q23::unexpected{ ErrorDetails{
+            Error::NotFound,
+            u"The selected screen could not be found."_s } };
+    }
+
+    return std::move(*scDisplayResult);
 }
 
 static void setupQMacScreenCaptureKitConnections(
@@ -117,41 +149,20 @@ void QSckScreenCapture::setCaptureSession(QPlatformMediaCaptureSession *sessionI
 
 bool QSckScreenCapture::setActiveInternal(bool active)
 {
-    struct ErrorPair {
-        QPlatformSurfaceCapture::Error err;
-        QString msg;
-    };
-
-    using TryStartResult = q23::expected<std::unique_ptr<ActiveData>, ErrorPair>;
+    using TryStartResult = q23::expected<std::unique_ptr<ActiveData>, ErrorDetails>;
 
     auto tryStartStream = [&]() -> TryStartResult {
         ScreenSource screen = QPlatformSurfaceCapture::source<ScreenSource>();
         if (!QPlatformSurfaceCapture::checkScreenWithError(screen)) {
-            return q23::unexpected{ ErrorPair {
+            return q23::unexpected{ ErrorDetails{
                QPlatformSurfaceCapture::Error::NotFound,
-               u"Could not find selected screen"_s } };
+               u"The selected screen could not be found. It may have been disconnected."_s } };
         }
 
-        auto *cocoaScreen = screen->nativeInterface<QNativeInterface::QCocoaScreen>();
-        if (!cocoaScreen) {
-            qCWarning(qLcMacScreenCapture)
-                << "Failed to grab QNativeInterface::QCocoaScreen from QScreen";
-            return q23::unexpected{ ErrorPair{
-                QPlatformSurfaceCapture::Error::CaptureFailed,
-                u"Failed to start stream due to unknown issue"_s } };
-        }
-
-        CGDirectDisplayID cgDisplayId = displayIDForScreen(cocoaScreen->nativeScreen());
-
-        q23::expected<AVFScopedPointer<SCDisplay>, QString> scDisplayResult = findScDisplay(cgDisplayId);
-        if (!scDisplayResult) {
-            qCWarning(qLcMacScreenCapture)
-                << "Could not find associated SCDisplay:"
-                << scDisplayResult.error();
-            return q23::unexpected{ ErrorPair {
-                QPlatformSurfaceCapture::Error::NotFound,
-                u"Backend was unable to find selected QScreen"_s } };
-        }
+        q23::expected<AVFScopedPointer<SCDisplay>, ErrorDetails> scDisplayResult =
+            findScDisplayForScreen(*screen);
+        if (!scDisplayResult)
+            return q23::unexpected{ std::move(scDisplayResult.error()) };
 
         QMacScreenCaptureKit::StreamId newStreamId = allocateStreamId();
 
@@ -180,9 +191,9 @@ bool QSckScreenCapture::setActiveInternal(bool active)
             qCWarning(qLcMacScreenCapture)
                 << "Failed to start screen capture stream: "
                 << streamResult.error();
-            return q23::unexpected{ ErrorPair{
+            return q23::unexpected{ ErrorDetails{
                QPlatformSurfaceCapture::Error::CaptureFailed,
-               u"Failed to start stream due to unknown issue"_s } };
+               u"Screen capture could not be started."_s } };
         }
 
         std::unique_ptr<QMacScreenCaptureKit> &macScreenCaptureKit = *streamResult;
@@ -199,8 +210,8 @@ bool QSckScreenCapture::setActiveInternal(bool active)
 
         TryStartResult result = tryStartStream();
         if (!result) {
-            const ErrorPair &error = result.error();
-            QPlatformSurfaceCapture::updateError(error.err, error.msg);
+            const ErrorDetails &error = result.error();
+            QPlatformSurfaceCapture::updateError(error.error, error.description);
             return false;
         }
 
@@ -210,6 +221,42 @@ bool QSckScreenCapture::setActiveInternal(bool active)
     }
 
     return true;
+}
+
+std::optional<QPlatformSurfaceCapture::SourceSwitchResult>
+QSckScreenCapture::switchActiveSource(const Source &newSource)
+{
+    Q_ASSERT(m_activeData);
+
+    // A null screen means the primary screen.
+    QScreen *screen = std::get<ScreenSource>(newSource);
+    if (!screen)
+        screen = QGuiApplication::primaryScreen();
+    if (!screen)
+        return SourceSwitchResult{ q23::unexpected{ ErrorDetails{
+            Error::NotFound,
+            u"The selected screen could not be found. It may have been disconnected."_s } } };
+
+    q23::expected<AVFScopedPointer<SCDisplay>, ErrorDetails> scDisplayResult =
+        findScDisplayForScreen(*screen);
+    if (!scDisplayResult)
+        return SourceSwitchResult{ q23::unexpected{ std::move(scDisplayResult.error()) } };
+
+    std::future<q23::expected<void, QString>> switchFuture =
+        m_activeData->macScreenCaptureKit->switchToDisplay(scDisplayResult->data());
+
+    const q23::expected<void, QString> result = switchFuture.get();
+    if (!result) {
+        qCWarning(qLcMacScreenCapture)
+            << "Failed to switch screen capture stream to new screen:"
+            << result.error();
+        return SourceSwitchResult{ q23::unexpected{ ErrorDetails{
+            Error::CaptureFailed,
+            u"Could not switch capture to the selected screen."_s } } };
+    }
+
+    m_activeData->scDisplay = std::move(*scDisplayResult);
+    return SourceSwitchResult{};
 }
 
 void QSckScreenCapture::onNewFrameFormatReceived(

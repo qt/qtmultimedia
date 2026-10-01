@@ -34,7 +34,8 @@ linux
 # BUG: Switching window while recording restarts presentation times at zero,
 # and the recorder discards frames older than what it has already encoded.
 [recorder_recordingHasExpectedDuration_whenWindowIsSwitched]
-*
+windows
+linux
 
 [recorder_doesNotAutoStop_whenWindowIsSwitched]
 xcb

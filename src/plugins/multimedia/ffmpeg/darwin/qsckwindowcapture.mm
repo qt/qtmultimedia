@@ -52,6 +52,34 @@ namespace {
     return AVFScopedPointer<SCWindow>{ [it->data() retain] };
 }
 
+// Finds the SCWindow to capture for the given QCapturableWindow.
+[[nodiscard]] q23::expected<AVFScopedPointer<SCWindow>, QPlatformSurfaceCapture::ErrorDetails>
+findScWindowForSource(const QCapturableWindow &capturableWindow)
+{
+    using Error = QPlatformSurfaceCapture::Error;
+    using ErrorDetails = QPlatformSurfaceCapture::ErrorDetails;
+
+    const QCapturableWindowPrivate *handle = QCapturableWindowPrivate::handle(capturableWindow);
+    if (!handle)
+        return q23::unexpected{ ErrorDetails{
+            Error::NotFound,
+            u"No window has been selected for capture."_s } };
+    const auto cgWindowId = static_cast<CGWindowID>(handle->id);
+
+    // This will trigger the system dialog for granting screen capture permissions.
+    q23::expected<AVFScopedPointer<SCWindow>, QString> scWindowResult = findScWindow(cgWindowId);
+    if (!scWindowResult) {
+        qCWarning(qLcMacScreenCapture)
+            << "Could not find associated SCWindow:"
+            << scWindowResult.error();
+        return q23::unexpected{ ErrorDetails{
+            Error::NotFound,
+            u"The selected window could not be found."_s } };
+    }
+
+    return std::move(*scWindowResult);
+}
+
 void setupQMacScreenCaptureKitConnections(
     QSckWindowCapture &windowCapture,
     const QMacScreenCaptureKit &macScreenCaptureKit)
@@ -107,34 +135,14 @@ void QSckWindowCapture::setCaptureSession(QPlatformMediaCaptureSession *sessionI
 
 bool QSckWindowCapture::setActiveInternal(bool active)
 {
-    struct ErrorPair {
-        QPlatformSurfaceCapture::Error err;
-        QString msg;
-    };
-
-    using TryStartResult = q23::expected<std::unique_ptr<ActiveData>, ErrorPair>;
+    using TryStartResult = q23::expected<std::unique_ptr<ActiveData>, ErrorDetails>;
 
     auto tryStartStream = [&]() -> TryStartResult {
-        QCapturableWindow capturableWindow = source<WindowSource>();
-        const QCapturableWindowPrivate *handle = QCapturableWindowPrivate::handle(capturableWindow);
-        if (!handle) {
-            return q23::unexpected{ ErrorPair{
-                QPlatformSurfaceCapture::Error::NotFound,
-                u"Selected window is null"_s } };
-        }
-        CGWindowID cgWindowId = static_cast<CGWindowID>(handle->id);
-
         // Find the associated SCWindow we can use.
-        // This will trigger the system dialog for granting screen capture permissions.
-        q23::expected<AVFScopedPointer<SCWindow>, QString> scWindowResult = findScWindow(cgWindowId);
-        if (!scWindowResult) {
-            qCWarning(qLcMacScreenCapture)
-                << "Could not find associated SCWindow:"
-                << scWindowResult.error();
-            return q23::unexpected{ ErrorPair {
-                QPlatformSurfaceCapture::Error::NotFound,
-                u"Backend was unable to find selected QCapturableWindow"_s } };
-        }
+        q23::expected<AVFScopedPointer<SCWindow>, ErrorDetails> scWindowResult =
+            findScWindowForSource(source<WindowSource>());
+        if (!scWindowResult)
+            return q23::unexpected{ std::move(scWindowResult.error()) };
 
         QMacScreenCaptureKit::StreamId newStreamId = allocateStreamId();
 
@@ -168,9 +176,9 @@ bool QSckWindowCapture::setActiveInternal(bool active)
             qCWarning(qLcMacScreenCapture)
                 << "Failed to start screen capture stream:"
                 << streamResult.error();
-            return q23::unexpected{ ErrorPair{
+            return q23::unexpected{ ErrorDetails{
                QPlatformSurfaceCapture::Error::CaptureFailed,
-               u"Failed to start stream due to unknown issue"_s } };
+               u"Window capture could not be started."_s } };
         }
 
         std::unique_ptr<QMacScreenCaptureKit> &macScreenCaptureKit = *streamResult;
@@ -187,8 +195,8 @@ bool QSckWindowCapture::setActiveInternal(bool active)
 
         TryStartResult result = tryStartStream();
         if (!result) {
-            const ErrorPair &error = result.error();
-            QPlatformSurfaceCapture::updateError(error.err, error.msg);
+            const ErrorDetails &error = result.error();
+            QPlatformSurfaceCapture::updateError(error.error, error.description);
             return false;
         }
 
@@ -198,6 +206,33 @@ bool QSckWindowCapture::setActiveInternal(bool active)
     }
 
     return true;
+}
+
+std::optional<QPlatformSurfaceCapture::SourceSwitchResult>
+QSckWindowCapture::switchActiveSource(const Source &newSource)
+{
+    Q_ASSERT(m_activeData);
+
+    q23::expected<AVFScopedPointer<SCWindow>, ErrorDetails> scWindowResult =
+        findScWindowForSource(std::get<WindowSource>(newSource));
+    if (!scWindowResult)
+        return SourceSwitchResult{ q23::unexpected{ std::move(scWindowResult.error()) } };
+
+    std::future<q23::expected<void, QString>> switchFuture =
+        m_activeData->macScreenCaptureKit->switchToWindow(scWindowResult->data());
+
+    const q23::expected<void, QString> result = switchFuture.get();
+    if (!result) {
+        qCWarning(qLcMacScreenCapture)
+            << "Failed to switch screen capture stream to new window:"
+            << result.error();
+        return SourceSwitchResult{ q23::unexpected{ ErrorDetails{
+            Error::CaptureFailed,
+            u"Could not switch capture to the selected window."_s } } };
+    }
+
+    m_activeData->scWindow = std::move(*scWindowResult);
+    return SourceSwitchResult{};
 }
 
 void QSckWindowCapture::onNewFrameFormatReceived(

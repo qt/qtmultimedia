@@ -116,6 +116,16 @@ public:
         CreateStreamInfo const &,
         SCWindow *);
 
+    // Switches the ongoing stream over to capture new content, without restarting it.
+    // Presentation times continue on from the old content. The future is signaled
+    // once the switch is complete and the frames already queued for the old content
+    // have been flushed. The future must be waited on before destroying this object.
+    [[nodiscard]] std::future<q23::expected<void, QString>> switchToFilter(SCContentFilter *);
+
+    [[nodiscard]] std::future<q23::expected<void, QString>> switchToDisplay(SCDisplay *);
+
+    [[nodiscard]] std::future<q23::expected<void, QString>> switchToWindow(SCWindow *);
+
     // Called from background thread when stream needs to be configured with new
     // output resolution. Don't call directly.
     void updateStream(QSize resolutionPx);
