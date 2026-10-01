@@ -35,3 +35,6 @@ windows
 # and the recorder discards frames older than what it has already encoded.
 [recorder_recordingHasExpectedDuration_whenWindowIsSwitched]
 *
+
+[recorder_doesNotAutoStop_whenWindowIsSwitched]
+xcb

@@ -1158,6 +1158,61 @@ private slots:
                 .arg(expectedDuration.count())));
     }
 
+    // Switching the captured window ends the stream of the old source. This must
+    // not be treated as the end of the input, so the recorder must not auto-stop.
+    void recorder_doesNotAutoStop_whenWindowIsSwitched()
+    {
+        const QSize windowSize{ 200, 150 };
+
+        // Animated content, so that both sources keep producing new frames.
+        TestWidget secondWidget;
+        secondWidget.setSize(windowSize);
+        secondWidget.setDisplayPattern(TestWidget::Pattern::Animated);
+        secondWidget.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&secondWidget, globalTestTimeout()));
+
+        const std::optional<QCapturableWindow> secondWindow =
+            WindowCaptureWithWidgetFixture::findCaptureWindow(
+                secondWidget.windowTitle(),
+                secondWidget.windowHandle());
+        QVERIFY(secondWindow && secondWindow->isValid());
+
+        WindowCaptureWithWidgetAndRecorderFixture fixture;
+        fixture.m_recorder.setAutoStop(true);
+        fixture.start(windowSize);
+
+        QVERIFY(fixture.consumeFirstFrame());
+        QTRY_COMPARE_WITH_TIMEOUT(
+            fixture.m_recorderState,
+            QMediaRecorder::RecorderState::RecordingState,
+            globalTestTimeout());
+
+        QSignalSpy recorderStateChanges{
+            &fixture.m_recorder,
+            &QMediaRecorder::recorderStateChanged
+        };
+
+        fixture.m_capture.setWindow(*secondWindow);
+        QVERIFY(fixture.m_capture.isActive());
+
+        // Give the recorder time to process frames from the new source.
+        QVERIFY(fixture.m_grabber.waitAndTakeFrameInfos(10).size() >= 10);
+
+        QVERIFY(recorderStateChanges.empty());
+        QCOMPARE(fixture.m_recorder.recorderState(), QMediaRecorder::RecorderState::RecordingState);
+
+        // Deactivating the capture ends the input, which must trigger auto-stop.
+        // This ensures that auto-stop works at all in this setup.
+        fixture.m_capture.setActive(false);
+        QTRY_COMPARE_WITH_TIMEOUT(
+            fixture.m_recorderState,
+            QMediaRecorder::RecorderState::StoppedState,
+            globalTestTimeout());
+
+        QVERIFY(fixture.m_errors.empty());
+        QVERIFY(fixture.m_recorderErrors.empty());
+    }
+
     void windowCapture_capturesWindowsInOtherProcesses()
     {
         if (isMacOS) {
