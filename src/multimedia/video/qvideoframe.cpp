@@ -50,6 +50,9 @@ QT_DEFINE_QESDP_SPECIALIZATION_DTOR(QVideoFramePrivate);
     function may also be used to access frame data using the internal buffer's native APIs
     (for example - an OpenGL texture handle).
 
+    \note A mapping should only be held for a short time and be released as
+    early as possible with unmap().
+
     A video frame can also have timestamp information associated with it.  These timestamps can be
     used to determine when to start and stop displaying the frame.
 
@@ -431,7 +434,8 @@ QVideoFrame::MapMode QVideoFrame::mapMode() const
     by the bits() function.
 
     When access to the data is no longer needed, be sure to call the unmap() function to release the
-    mapped memory and possibly update the video frame contents.
+    mapped memory and possibly update the video frame contents. A mapping should only be held for
+    a short time and be released as early as possible.
 
     If the video frame has been mapped in read only mode, it is permissible to map it
     multiple times in read only mode (and unmap it a corresponding number of times). In all
