@@ -16,6 +16,7 @@ endif()
 set(QML_SOURCE_FILES
     tst_cameraformat.qml
     tst_capturesession.qml
+    tst_imagecapture.qml
     tst_cameradevice.qml
     tst_screencapture.qml
     tst_windowcapture.qml)

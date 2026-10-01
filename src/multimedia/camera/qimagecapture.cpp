@@ -514,9 +514,34 @@ QString QImageCapture::fileFormatDescription(QImageCapture::FileFormat f)
 }
 
 /*!
-    Returns the resolution of the encoded image.
+    \qmlproperty size QtMultimedia::ImageCapture::resolution
+    \since 6.13
+
+    The resolution of captured images.
+
+    An empty size (the default) lets the backend choose. When the image source is a camera,
+    a size from \l {QtMultimedia::cameraDevice::photoResolutions}{photoResolutions} makes the
+    camera capture stills at that size.
+
+    \sa QtMultimedia::cameraDevice::photoResolutions
 */
 
+/*!
+    \property QImageCapture::resolution
+    \brief The resolution of captured images
+
+    Set this property to request a specific capture resolution.
+
+    When the image source is a camera, use a size from
+    \l {QCameraDevice::photoResolutions}{photoResolutions} to capture at a resolution the camera
+    supports natively. This might be limited based on the current
+    \l {QCamera::cameraFormat}{camera format}.
+
+    If the source cannot provide the requested resolution, the backend may use the closest
+    supported resolution, and scale the captured image to the requested size.
+
+    \sa QCameraDevice::photoResolutions, QCameraFormat
+*/
 QSize QImageCapture::resolution() const
 {
     Q_D(const QImageCapture);
@@ -530,10 +555,10 @@ QSize QImageCapture::resolution() const
 */
 
 /*!
-    Sets the \a resolution of the encoded image.
+    Sets the requested \a resolution of captured images.
 
-    An empty QSize indicates the encoder should make an optimal choice based on
-    what is available from the image source and the limitations of the codec.
+    An empty QSize indicates the backend should make an optimal choice based on
+    what is available from the image source.
 */
 void QImageCapture::setResolution(const QSize &resolution)
 {
@@ -549,13 +574,23 @@ void QImageCapture::setResolution(const QSize &resolution)
 }
 
 /*!
-    Sets the \a width and \a height of the resolution of the encoded image.
+    Sets the \a width and \a height of the requested resolution of captured images.
 
     \overload
 */
 void QImageCapture::setResolution(int width, int height)
 {
     setResolution(QSize(width, height));
+}
+
+/*!
+    Resets the requested resolution of captured images to the default.
+
+    \sa setResolution()
+*/
+void QImageCapture::resetResolution()
+{
+    setResolution(QSize{});
 }
 
 /*!

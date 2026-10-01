@@ -30,6 +30,8 @@ class Q_MULTIMEDIA_EXPORT QImageCapture : public QObject
     Q_PROPERTY(FileFormat fileFormat READ fileFormat WRITE setFileFormat NOTIFY fileFormatChanged)
     Q_PROPERTY(Quality quality READ quality WRITE setQuality NOTIFY qualityChanged)
     Q_PROPERTY(QList<FileFormat> supportedFormats READ supportedFormats CONSTANT REVISION(6, 10))
+    Q_PROPERTY(QSize resolution READ resolution WRITE setResolution RESET resetResolution NOTIFY
+                       resolutionChanged REVISION(6, 13))
 public:
     enum Error
     {
@@ -84,6 +86,7 @@ public:
     QSize resolution() const;
     void setResolution(const QSize &);
     void setResolution(int width, int height);
+    void resetResolution();
 
     Quality quality() const;
     void setQuality(Quality quality);
