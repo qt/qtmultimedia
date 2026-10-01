@@ -294,6 +294,12 @@ bool RecordingEngine::isEndOfSourceStreams() const
 
 void RecordingEngine::handleSourceEndOfStream()
 {
+    // Once finalizing, the EncodingFinalizer thread owns the encoders and deletes
+    // them, so we must not access them. The recording is stopping anyway.
+    // This can be reached via queued end-of-stream signals emitted before finalize().
+    if (m_state == State::Finalizing)
+        return;
+
     if (m_autoStop && isEndOfSourceStreams())
         Q_EMIT autoStopped();
 }
