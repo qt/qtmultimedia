@@ -24,6 +24,11 @@ private slots:
     void mediaRecorderWritesVideo_whenVideoFramesInputSendsFrames();
 
     void mediaRecorderWritesVideo_withSingleFrame();
+    void mediaRecorderStops_whenEndOfStreamIsSentFromOtherThreadWhileStopping_data();
+    void mediaRecorderStops_whenEndOfStreamIsSentFromOtherThreadWhileStopping();
+
+    void mediaRecorderStops_whenFramesSentFromOtherThread_andEndOfStreamSentFromMainThread_data();
+    void mediaRecorderStops_whenFramesSentFromOtherThread_andEndOfStreamSentFromMainThread();
 
     void sinkReceivesFrameWithTransformParams_whenPresentationTransformPresent_data();
     void sinkReceivesFrameWithTransformParams_whenPresentationTransformPresent();

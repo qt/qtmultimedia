@@ -18,6 +18,8 @@
 #include <private/audiogenerationutils_p.h>
 #include <private/qcolorutil_p.h>
 
+#include <thread>
+
 QT_BEGIN_NAMESPACE
 
 namespace {
@@ -359,6 +361,118 @@ void tst_QMediaFrameInputsBackend::mediaRecorderWritesVideo_withSingleFrame()
 
     QCOMPARE_EQ(info->m_frameCount, 1);
     QCOMPARE_EQ(info->m_duration, 1s);
+}
+
+void tst_QMediaFrameInputsBackend::
+        mediaRecorderStops_whenEndOfStreamIsSentFromOtherThreadWhileStopping_data()
+{
+    QTest::addColumn<int>("stopDelayMs");
+
+    // The race window is while the recorder tears down its encoders after stopping,
+    // and its timing depends on the machine. So we try a range of delays.
+    for (int delayMs : { 0, 1, 2, 4, 8, 16 })
+        QTest::addRow("%dms", delayMs) << delayMs;
+}
+
+// With autoStop enabled, an end-of-stream frame sent from a thread other than the
+// recorder's own reaches the recorder through a queued connection. This checks that
+// stopping the recorder before that queued notification is handled is safe.
+void tst_QMediaFrameInputsBackend::
+        mediaRecorderStops_whenEndOfStreamIsSentFromOtherThreadWhileStopping()
+{
+    QFETCH(const int, stopDelayMs);
+
+    CaptureSessionFixture f{ StreamType::Video };
+    f.m_videoGenerator.setFrameCount(1000);
+    f.m_recorder.setAutoStop(true);
+    f.start(RunMode::Push, AutoStop::No);
+
+    // Send frames until the recorder is encoding.
+    QTRY_VERIFY_WITH_TIMEOUT(
+            [&] {
+                if (!f.readyToSendVideoFrame.empty())
+                    f.m_videoGenerator.nextFrame();
+                return f.m_recorder.duration() > 0;
+            }(),
+            60s);
+
+    // Wait until the frame input accepts another frame.
+    f.readyToSendVideoFrame.clear();
+    QTRY_VERIFY(!f.readyToSendVideoFrame.empty());
+
+    // Send the end-of-stream frame from another thread. We block until it is sent,
+    // so that the frame input is never accessed from two threads at the same time.
+    bool endOfStreamSent = false;
+    std::thread sender([&] {
+        endOfStreamSent = f.m_videoInput.sendVideoFrame(QVideoFrame{});
+    });
+    sender.join();
+    QVERIFY(endOfStreamSent);
+
+    // Stop before the queued end-of-stream notification is handled. We then block
+    // the event loop for a while, so the notification is handled while the recorder
+    // is tearing down its encoders.
+    f.m_recorder.stop();
+    std::this_thread::sleep_for(std::chrono::milliseconds{ stopDelayMs });
+
+    QVERIFY(f.waitForRecorderStopped(60s));
+    QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError,
+             f.m_recorder.errorString().toLatin1().constData());
+}
+
+void tst_QMediaFrameInputsBackend::
+        mediaRecorderStops_whenFramesSentFromOtherThread_andEndOfStreamSentFromMainThread_data()
+{
+    QTest::addColumn<int>("senderStartDelayMs");
+
+    // Vary the delay before sending EOS to hit different points in the background sender's loop.
+    for (int delayMs : { 0, 1, 2, 4, 8, 16 })
+        QTest::addRow("%dms", delayMs) << delayMs;
+}
+
+// Checks that sending EOS from the main thread is safe while a background thread
+// is actively sending frames — the mirror case of
+// mediaRecorderStops_whenEndOfStreamIsSentFromOtherThreadWhileStopping.
+void tst_QMediaFrameInputsBackend::
+        mediaRecorderStops_whenFramesSentFromOtherThread_andEndOfStreamSentFromMainThread()
+{
+    QFETCH(const int, senderStartDelayMs);
+
+    CaptureSessionFixture f{ StreamType::Video };
+    f.m_recorder.setAutoStop(true);
+    f.start(RunMode::Push, AutoStop::No);
+
+    // Send frames from the main thread until the recorder is encoding.
+    QTRY_VERIFY_WITH_TIMEOUT(
+            [&] {
+                if (!f.readyToSendVideoFrame.empty())
+                    f.m_videoGenerator.nextFrame();
+                return f.m_recorder.duration() > 0;
+            }(),
+            60s);
+
+    // Wait until the frame input accepts another frame.
+    f.readyToSendVideoFrame.clear();
+    QTRY_VERIFY(!f.readyToSendVideoFrame.empty());
+
+    // Start a background thread that continuously sends frames.
+    std::atomic<bool> keepSending{ true };
+    std::thread sender([&] {
+        while (keepSending.load(std::memory_order_relaxed))
+            f.m_videoInput.sendVideoFrame(f.m_videoGenerator.createFrame());
+    });
+
+    std::this_thread::sleep_for(std::chrono::milliseconds{ senderStartDelayMs });
+
+    // Send the end-of-stream from the main thread while the background thread
+    // is still sending frames.
+    f.m_videoInput.sendVideoFrame(QVideoFrame{});
+    keepSending.store(false, std::memory_order_relaxed);
+    sender.join();
+
+    QVERIFY(f.waitForRecorderStopped(60s));
+    QVERIFY2(f.m_recorder.error() == QMediaRecorder::NoError,
+             f.m_recorder.errorString().toLatin1().constData());
 }
 
 void tst_QMediaFrameInputsBackend::readyToSend_isEmitted_whenRecordingStarts_data()
