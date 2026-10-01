@@ -63,6 +63,7 @@ if(QT_FEATURE_multimedia_quick)
     add_subdirectory(qml-multiple-players)
     add_subdirectory(qml-camera-advanced)
     add_subdirectory(qml-screencapture-advanced)
+    add_subdirectory(qml-mediaplayer-advanced)
 
     if(QT_FEATURE_gstreamer_qt_api)
         add_subdirectory(qml-minimal-gstreamer-video-source)

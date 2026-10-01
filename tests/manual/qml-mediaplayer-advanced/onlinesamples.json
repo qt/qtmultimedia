@@ -1,0 +1,754 @@
+[
+    {
+        "name": "Qt logo merge effect (MP4)",
+        "url": "https://download.qt.io/learning/videos/media-player-example/Qt_LogoMergeEffect.mp4",
+        "description": "Short Qt logo animation, 1080p60, no audio, 9.6 MB. Used by the mediaplayer example. Hosted on the Qt download mirrors.",
+        "license": "(c) The Qt Company",
+        "protocol": "http",
+        "container": "mp4",
+        "durationSeconds": 19.0,
+        "moovAtStart": true,
+        "video": {
+            "codec": "h264",
+            "profile": "Main",
+            "width": 1920,
+            "height": 1080,
+            "frameRate": 60
+        },
+        "audio": [],
+        "subtitles": []
+    },
+    {
+        "name": "Lars Knoll: The Making of Qt 5 (MP4)",
+        "url": "https://download.qt.io/learning/videos/Lars_Knoll_The_Making_of_Qt_5.mp4",
+        "description": "Interview, H.264/AAC 720p25, 26 MB. Hosted on the Qt download mirrors.",
+        "license": "(c) The Qt Company",
+        "protocol": "http",
+        "container": "mp4",
+        "durationSeconds": 173.2,
+        "moovAtStart": true,
+        "video": {
+            "codec": "h264",
+            "profile": "High",
+            "width": 1280,
+            "height": 720,
+            "frameRate": 25
+        },
+        "audio": [
+            {
+                "codec": "aac",
+                "channels": 2,
+                "sampleRate": 44100
+            }
+        ],
+        "subtitles": []
+    },
+    {
+        "name": "Big Buck Bunny (HLS)",
+        "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
+        "description": "Adaptive HLS, H.264/AAC, 184p to 1080p, MPEG-TS segments. Hosted by Mux.",
+        "license": "CC BY 3.0, (c) Blender Foundation, www.bigbuckbunny.org",
+        "protocol": "hls",
+        "container": "mpegts",
+        "durationSeconds": 634.6,
+        "video": {
+            "codec": "h264",
+            "profile": "High",
+            "width": 1920,
+            "height": 1080,
+            "frameRate": 60
+        },
+        "variants": [
+            {
+                "width": 320,
+                "height": 184,
+                "bitrate": 246000,
+                "frameRate": 30
+            },
+            {
+                "width": 512,
+                "height": 288,
+                "bitrate": 461000,
+                "frameRate": 30
+            },
+            {
+                "width": 848,
+                "height": 480,
+                "bitrate": 836000,
+                "frameRate": 60
+            },
+            {
+                "width": 1280,
+                "height": 720,
+                "bitrate": 2149000,
+                "frameRate": 60
+            },
+            {
+                "width": 1920,
+                "height": 1080,
+                "bitrate": 6222000,
+                "frameRate": 60
+            }
+        ],
+        "audio": [
+            {
+                "codec": "aac",
+                "channels": 2,
+                "sampleRate": 44100
+            }
+        ],
+        "subtitles": []
+    },
+    {
+        "name": "Big Buck Bunny (DASH)",
+        "url": "https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd",
+        "description": "Adaptive MPEG-DASH, H.264/HE-AAC, 30 fps, 180p to 2160p. Hosted by Akamai.",
+        "license": "CC BY 3.0, (c) Blender Foundation, www.bigbuckbunny.org",
+        "protocol": "dash",
+        "container": "fmp4",
+        "durationSeconds": 634.6,
+        "video": {
+            "codec": "h264",
+            "profile": "High",
+            "width": 3840,
+            "height": 2160,
+            "frameRate": 30
+        },
+        "variants": [
+            {
+                "width": 320,
+                "height": 180,
+                "bitrate": 254000
+            },
+            {
+                "width": 320,
+                "height": 180,
+                "bitrate": 507000
+            },
+            {
+                "width": 480,
+                "height": 270,
+                "bitrate": 760000
+            },
+            {
+                "width": 640,
+                "height": 360,
+                "bitrate": 1013000
+            },
+            {
+                "width": 640,
+                "height": 360,
+                "bitrate": 1255000
+            },
+            {
+                "width": 768,
+                "height": 432,
+                "bitrate": 1884000
+            },
+            {
+                "width": 1024,
+                "height": 576,
+                "bitrate": 3134000
+            },
+            {
+                "width": 1280,
+                "height": 720,
+                "bitrate": 4953000
+            },
+            {
+                "width": 1920,
+                "height": 1080,
+                "bitrate": 9915000
+            },
+            {
+                "width": 3840,
+                "height": 2160,
+                "bitrate": 14932000
+            }
+        ],
+        "audio": [
+            {
+                "codec": "he-aac",
+                "channels": 2
+            }
+        ],
+        "subtitles": []
+    },
+    {
+        "name": "Big Buck Bunny 360p (MP4)",
+        "url": "https://archive.org/download/BigBuckBunny_124/Content/big_buck_bunny_720p_surround.mp4",
+        "description": "Full film, H.264 Constrained Baseline 640x360, stereo AAC, 62 MB. Hosted by the Internet Archive. Despite the file name, it is neither 720p nor surround.",
+        "license": "CC BY 3.0, (c) Blender Foundation, www.bigbuckbunny.org",
+        "protocol": "http",
+        "container": "mp4",
+        "durationSeconds": 596.5,
+        "moovAtStart": true,
+        "video": {
+            "codec": "h264",
+            "profile": "Constrained Baseline",
+            "width": 640,
+            "height": 360,
+            "frameRate": 24
+        },
+        "audio": [
+            {
+                "codec": "aac",
+                "channels": 2,
+                "sampleRate": 44100
+            }
+        ],
+        "subtitles": []
+    },
+    {
+        "name": "Big Buck Bunny 10s 1080p (H.264, MP4)",
+        "url": "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h264/1080/Big_Buck_Bunny_1080_10s_30MB.mp4",
+        "description": "10 second clip, 1080p30, no audio, 30 MB. Hosted by test-videos.co.uk.",
+        "license": "CC BY 3.0, (c) Blender Foundation, www.bigbuckbunny.org",
+        "protocol": "http",
+        "container": "mp4",
+        "durationSeconds": 10.0,
+        "moovAtStart": true,
+        "video": {
+            "codec": "h264",
+            "profile": "High",
+            "width": 1920,
+            "height": 1080,
+            "frameRate": 30
+        },
+        "audio": [],
+        "subtitles": []
+    },
+    {
+        "name": "Big Buck Bunny 10s 1080p (H.265, MP4)",
+        "url": "https://test-videos.co.uk/vids/bigbuckbunny/mp4/h265/1080/Big_Buck_Bunny_1080_10s_30MB.mp4",
+        "description": "10 second clip, 1080p30, no audio, 30 MB. Hosted by test-videos.co.uk.",
+        "license": "CC BY 3.0, (c) Blender Foundation, www.bigbuckbunny.org",
+        "protocol": "http",
+        "container": "mp4",
+        "durationSeconds": 10.0,
+        "moovAtStart": true,
+        "video": {
+            "codec": "hevc",
+            "profile": "Main",
+            "width": 1920,
+            "height": 1080,
+            "frameRate": 30
+        },
+        "audio": [],
+        "subtitles": []
+    },
+    {
+        "name": "Big Buck Bunny 10s 1080p (AV1, MP4)",
+        "url": "https://test-videos.co.uk/vids/bigbuckbunny/mp4/av1/1080/Big_Buck_Bunny_1080_10s_30MB.mp4",
+        "description": "10 second clip, 1080p30, no audio, 30 MB. Hosted by test-videos.co.uk.",
+        "license": "CC BY 3.0, (c) Blender Foundation, www.bigbuckbunny.org",
+        "protocol": "http",
+        "container": "mp4",
+        "durationSeconds": 10.0,
+        "moovAtStart": true,
+        "video": {
+            "codec": "av1",
+            "profile": "Main",
+            "width": 1920,
+            "height": 1080,
+            "frameRate": 30
+        },
+        "audio": [],
+        "subtitles": []
+    },
+    {
+        "name": "Big Buck Bunny 10s 1080p (VP9, WebM)",
+        "url": "https://test-videos.co.uk/vids/bigbuckbunny/webm/vp9/1080/Big_Buck_Bunny_1080_10s_30MB.webm",
+        "description": "10 second clip, 1080p30, no audio, 30 MB. Hosted by test-videos.co.uk.",
+        "license": "CC BY 3.0, (c) Blender Foundation, www.bigbuckbunny.org",
+        "protocol": "http",
+        "container": "webm",
+        "durationSeconds": 10.0,
+        "video": {
+            "codec": "vp9",
+            "profile": "Profile 0",
+            "width": 1920,
+            "height": 1080,
+            "frameRate": 30
+        },
+        "audio": [],
+        "subtitles": []
+    },
+    {
+        "name": "Sintel trailer 1080p (MP4)",
+        "url": "https://download.blender.org/durian/trailer/sintel_trailer-1080p.mp4",
+        "description": "Trailer, H.264/AAC, 15 MB. The moov atom is at the end of the file, so playback over HTTP needs a range request before it can start. Hosted by the Blender Foundation.",
+        "license": "CC BY 3.0, (c) Blender Foundation, www.sintel.org",
+        "protocol": "http",
+        "container": "mp4",
+        "durationSeconds": 52.2,
+        "moovAtStart": false,
+        "video": {
+            "codec": "h264",
+            "profile": "High",
+            "width": 1920,
+            "height": 1080,
+            "frameRate": 24
+        },
+        "audio": [
+            {
+                "codec": "aac",
+                "channels": 2,
+                "sampleRate": 48000
+            }
+        ],
+        "subtitles": []
+    },
+    {
+        "name": "Sintel 1080p (MKV)",
+        "url": "https://download.blender.org/durian/movies/Sintel.2010.1080p.mkv",
+        "description": "Full film, H.264 1920x818, AC-3 5.1, with 10 SRT subtitle tracks, 1.1 GB. Hosted by the Blender Foundation.",
+        "license": "CC BY 3.0, (c) Blender Foundation, www.sintel.org",
+        "protocol": "http",
+        "container": "matroska",
+        "durationSeconds": 888.0,
+        "video": {
+            "codec": "h264",
+            "profile": "High",
+            "width": 1920,
+            "height": 818,
+            "frameRate": 24
+        },
+        "audio": [
+            {
+                "codec": "ac3",
+                "channels": 6,
+                "sampleRate": 48000,
+                "language": "eng"
+            }
+        ],
+        "subtitles": [
+            {
+                "format": "srt",
+                "language": "ger"
+            },
+            {
+                "format": "srt",
+                "language": "eng"
+            },
+            {
+                "format": "srt",
+                "language": "spa"
+            },
+            {
+                "format": "srt",
+                "language": "fre"
+            },
+            {
+                "format": "srt",
+                "language": "ita"
+            },
+            {
+                "format": "srt",
+                "language": "dut"
+            },
+            {
+                "format": "srt",
+                "language": "pol"
+            },
+            {
+                "format": "srt",
+                "language": "por"
+            },
+            {
+                "format": "srt",
+                "language": "rus"
+            },
+            {
+                "format": "srt",
+                "language": "vie"
+            }
+        ]
+    },
+    {
+        "name": "Tears of Steel (HLS, subtitles)",
+        "url": "https://test-streams.mux.dev/tos_ismc/main.m3u8",
+        "description": "HLS, H.264/AAC 1920x800, fragmented MP4 segments, with WebVTT and TTML subtitle tracks. Hosted by Mux.",
+        "license": "CC BY 3.0, (c) Blender Foundation, mango.blender.org",
+        "protocol": "hls",
+        "container": "fmp4",
+        "durationSeconds": 734.2,
+        "video": {
+            "codec": "h264",
+            "profile": "Main",
+            "width": 1920,
+            "height": 800,
+            "frameRate": 24
+        },
+        "variants": [
+            {
+                "width": 1920,
+                "height": 800,
+                "bitrate": 6725000,
+                "frameRate": 24
+            }
+        ],
+        "audio": [
+            {
+                "codec": "aac",
+                "channels": 2,
+                "sampleRate": 44100,
+                "language": "eng"
+            }
+        ],
+        "subtitles": [
+            {
+                "format": "webvtt"
+            },
+            {
+                "format": "ttml"
+            }
+        ]
+    },
+    {
+        "name": "Tears of Steel 720p (MOV)",
+        "url": "https://download.blender.org/demo/movies/ToS/tears_of_steel_720p.mov",
+        "description": "Full film, H.264 1280x534, MP3 stereo, 372 MB. The moov atom is at the end of the file, so playback over HTTP needs a range request before it can start. Hosted by the Blender Foundation.",
+        "license": "CC BY 3.0, (c) Blender Foundation, mango.blender.org",
+        "protocol": "http",
+        "container": "mov",
+        "durationSeconds": 734.2,
+        "moovAtStart": false,
+        "video": {
+            "codec": "h264",
+            "profile": "Main",
+            "width": 1280,
+            "height": 534,
+            "frameRate": 24
+        },
+        "audio": [
+            {
+                "codec": "mp3",
+                "channels": 2,
+                "sampleRate": 44100,
+                "language": "eng"
+            }
+        ],
+        "subtitles": []
+    },
+    {
+        "name": "Elephants Dream 720x405 (MOV)",
+        "url": "https://download.blender.org/ED/elephantsdream-720-h264-st-aac.mov",
+        "description": "Full film, H.264 720x405, AAC stereo, 152 MB. Hosted by the Blender Foundation.",
+        "license": "CC BY 2.5, (c) Blender Foundation, orange.blender.org",
+        "protocol": "http",
+        "container": "mov",
+        "durationSeconds": 658.3,
+        "moovAtStart": true,
+        "video": {
+            "codec": "h264",
+            "profile": "Main",
+            "width": 720,
+            "height": 405,
+            "frameRate": 23.393
+        },
+        "audio": [
+            {
+                "codec": "aac",
+                "channels": 2,
+                "sampleRate": 48000,
+                "language": "eng"
+            }
+        ],
+        "subtitles": []
+    },
+    {
+        "name": "Elephants Dream 1024 (AVI)",
+        "url": "https://download.blender.org/ED/ED_1024.avi",
+        "description": "Full film, MPEG-4 Part 2 1024x576, AC-3 5.1, 446 MB. Hosted by the Blender Foundation.",
+        "license": "CC BY 2.5, (c) Blender Foundation, orange.blender.org",
+        "protocol": "http",
+        "container": "avi",
+        "durationSeconds": 653.8,
+        "video": {
+            "codec": "mpeg4",
+            "profile": "Simple Profile",
+            "width": 1024,
+            "height": 576,
+            "frameRate": 24
+        },
+        "audio": [
+            {
+                "codec": "ac3",
+                "channels": 6,
+                "sampleRate": 48000
+            }
+        ],
+        "subtitles": []
+    },
+    {
+        "name": "Spring 4K (DASH)",
+        "url": "https://dash.akamaized.net/akamai/streamroot/050714/Spring_4Ktest.mpd",
+        "description": "Adaptive MPEG-DASH, H.264/AAC, 23.976 fps, 720p to 2160p. Hosted by Akamai.",
+        "license": "CC BY 4.0, (c) Blender Foundation, studio.blender.org",
+        "protocol": "dash",
+        "container": "fmp4",
+        "durationSeconds": 165.8,
+        "video": {
+            "codec": "h264",
+            "profile": "High",
+            "width": 3840,
+            "height": 2160,
+            "frameRate": 23.976
+        },
+        "variants": [
+            {
+                "width": 1280,
+                "height": 720,
+                "bitrate": 2859000
+            },
+            {
+                "width": 1920,
+                "height": 1080,
+                "bitrate": 4873000
+            },
+            {
+                "width": 2880,
+                "height": 1620,
+                "bitrate": 7322000
+            },
+            {
+                "width": 3840,
+                "height": 2160,
+                "bitrate": 9604000
+            },
+            {
+                "width": 3840,
+                "height": 2160,
+                "bitrate": 14658000
+            },
+            {
+                "width": 3840,
+                "height": 2160,
+                "bitrate": 19684000
+            }
+        ],
+        "audio": [
+            {
+                "codec": "aac",
+                "channels": 2
+            }
+        ],
+        "subtitles": []
+    },
+    {
+        "name": "Tears of Steel 4K (DASH, H.264)",
+        "url": "https://storage.googleapis.com/wvmedia/clear/h264/tears/tears_uhd.mpd",
+        "description": "MPEG-DASH, H.264/AAC, 3840x1714, single quality level. Hosted by Google (ExoPlayer test media).",
+        "license": "CC BY 3.0, (c) Blender Foundation, mango.blender.org",
+        "protocol": "dash",
+        "container": "fmp4",
+        "durationSeconds": 734.0,
+        "video": {
+            "codec": "h264",
+            "width": 3840,
+            "height": 1714,
+            "frameRate": 24
+        },
+        "variants": [
+            {
+                "width": 3840,
+                "height": 1714,
+                "bitrate": 26981000
+            }
+        ],
+        "audio": [
+            {
+                "codec": "aac",
+                "channels": 2,
+                "language": "eng"
+            }
+        ],
+        "subtitles": []
+    },
+    {
+        "name": "Tears of Steel 4K (DASH, HEVC)",
+        "url": "https://storage.googleapis.com/wvmedia/clear/hevc/tears/tears_uhd.mpd",
+        "description": "MPEG-DASH, HEVC/AAC, 3840x1714, single quality level. Hosted by Google (ExoPlayer test media).",
+        "license": "CC BY 3.0, (c) Blender Foundation, mango.blender.org",
+        "protocol": "dash",
+        "container": "fmp4",
+        "durationSeconds": 734.0,
+        "video": {
+            "codec": "hevc",
+            "width": 3840,
+            "height": 1714,
+            "frameRate": 24
+        },
+        "variants": [
+            {
+                "width": 3840,
+                "height": 1714,
+                "bitrate": 20222000
+            }
+        ],
+        "audio": [
+            {
+                "codec": "aac",
+                "channels": 2,
+                "language": "eng"
+            }
+        ],
+        "subtitles": []
+    },
+    {
+        "name": "Tears of Steel 4K (DASH, VP9)",
+        "url": "https://storage.googleapis.com/wvmedia/clear/vp9/tears/tears_uhd.mpd",
+        "description": "MPEG-DASH, VP9/Vorbis, 3840x1714, single quality level. Hosted by Google (ExoPlayer test media).",
+        "license": "CC BY 3.0, (c) Blender Foundation, mango.blender.org",
+        "protocol": "dash",
+        "container": "webm",
+        "durationSeconds": 734.0,
+        "video": {
+            "codec": "vp9",
+            "width": 3840,
+            "height": 1714,
+            "frameRate": 23.81
+        },
+        "variants": [
+            {
+                "width": 3840,
+                "height": 1714,
+                "bitrate": 19512000
+            }
+        ],
+        "audio": [
+            {
+                "codec": "vorbis",
+                "channels": 2,
+                "language": "eng"
+            }
+        ],
+        "subtitles": []
+    },
+    {
+        "name": "Big Buck Bunny 4K 60fps (MP4)",
+        "url": "https://archive.org/download/big-buck-bunny-4k-60fps/BigBuckBunny4k60fps.mp4",
+        "description": "Full film, H.264 2160p60, with MP3 stereo and AC-3 5.1 audio tracks, 673 MB. Hosted by the Internet Archive.",
+        "license": "CC BY 3.0, (c) Blender Foundation, www.bigbuckbunny.org",
+        "protocol": "http",
+        "container": "mp4",
+        "durationSeconds": 634.6,
+        "moovAtStart": true,
+        "video": {
+            "codec": "h264",
+            "profile": "High",
+            "width": 3840,
+            "height": 2160,
+            "frameRate": 60
+        },
+        "audio": [
+            {
+                "codec": "mp3",
+                "channels": 2,
+                "sampleRate": 48000
+            },
+            {
+                "codec": "ac3",
+                "channels": 6,
+                "sampleRate": 48000
+            }
+        ],
+        "subtitles": []
+    },
+    {
+        "name": "Charge 4K (WebM)",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/7/7a/Charge_-_Blender_Open_Movie-full_movie.webm",
+        "description": "Full film, VP9/Opus, 3840x1608, 223 MB. Hosted by Wikimedia Commons. Wikimedia rate-limits downloads (HTTP 429); if opening or seeking fails, wait a bit and retry.",
+        "license": "CC BY 4.0, (c) Blender Foundation, studio.blender.org",
+        "protocol": "http",
+        "container": "webm",
+        "durationSeconds": 262.7,
+        "video": {
+            "codec": "vp9",
+            "profile": "Profile 0",
+            "width": 3840,
+            "height": 1608,
+            "frameRate": 24
+        },
+        "audio": [
+            {
+                "codec": "opus",
+                "channels": 2,
+                "sampleRate": 48000,
+                "language": "eng"
+            }
+        ],
+        "subtitles": []
+    },
+    {
+        "name": "Tears of Steel 4K (WebM)",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/1/10/Tears_of_Steel_in_4k_-_Official_Blender_Foundation_release.webm",
+        "description": "Full film, VP8/Vorbis, 3840x1714, 959 MB. Hosted by Wikimedia Commons. Wikimedia rate-limits downloads (HTTP 429); if opening or seeking fails, wait a bit and retry.",
+        "license": "CC BY 3.0, (c) Blender Foundation, mango.blender.org",
+        "protocol": "http",
+        "container": "webm",
+        "durationSeconds": 734.1,
+        "video": {
+            "codec": "vp8",
+            "width": 3840,
+            "height": 1714,
+            "frameRate": 24
+        },
+        "audio": [
+            {
+                "codec": "vorbis",
+                "channels": 2,
+                "sampleRate": 44100
+            }
+        ],
+        "subtitles": []
+    },
+    {
+        "name": "Sintel 4K (WebM)",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/f/f1/Sintel_movie_4K.webm",
+        "description": "Full film, VP8 4096x1744, Vorbis 5.1, 3.5 GB. Hosted by Wikimedia Commons. Wikimedia rate-limits downloads (HTTP 429); if opening or seeking fails, wait a bit and retry.",
+        "license": "CC BY 3.0, (c) Blender Foundation, www.sintel.org",
+        "protocol": "http",
+        "container": "webm",
+        "durationSeconds": 888.0,
+        "video": {
+            "codec": "vp8",
+            "width": 4096,
+            "height": 1744,
+            "frameRate": null
+        },
+        "audio": [
+            {
+                "codec": "vorbis",
+                "channels": 6,
+                "sampleRate": 48000,
+                "language": "eng"
+            }
+        ],
+        "subtitles": []
+    },
+    {
+        "name": "Big Buck Bunny 4K (WebM)",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/c/c0/Big_Buck_Bunny_4K.webm",
+        "description": "Full film, VP8 4000x2250, Vorbis 5.1, 3.0 GB. Hosted by Wikimedia Commons. Wikimedia rate-limits downloads (HTTP 429); if opening or seeking fails, wait a bit and retry.",
+        "license": "CC BY 3.0, (c) Blender Foundation, www.bigbuckbunny.org",
+        "protocol": "http",
+        "container": "webm",
+        "durationSeconds": 634.6,
+        "video": {
+            "codec": "vp8",
+            "width": 4000,
+            "height": 2250,
+            "frameRate": null
+        },
+        "audio": [
+            {
+                "codec": "vorbis",
+                "channels": 6,
+                "sampleRate": 48000
+            }
+        ],
+        "subtitles": []
+    }
+]
