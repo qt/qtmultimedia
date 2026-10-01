@@ -48,6 +48,9 @@ public:
 protected:
     bool setActiveInternal(bool active) override;
 
+    [[nodiscard]] std::optional<SourceSwitchResult>
+    switchActiveSource(const Source &newSource) override;
+
 private:
     QFFmpegMediaCaptureSession *m_session = nullptr;
 

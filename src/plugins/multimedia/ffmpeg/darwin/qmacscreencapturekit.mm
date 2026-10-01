@@ -367,6 +367,39 @@ createStreamOutput(
     return streamOutput;
 }
 
+[[nodiscard]] static AVFScopedPointer<SCContentFilter> createDisplayFilter(SCDisplay *scDisplay)
+{
+    Q_ASSERT(scDisplay);
+    return AVFScopedPointer<SCContentFilter>{ [[SCContentFilter alloc]
+        initWithDisplay: scDisplay
+        excludingWindows: @[] ] };
+}
+
+[[nodiscard]] static AVFScopedPointer<SCContentFilter> createWindowFilter(SCWindow *scWindow)
+{
+    Q_ASSERT(scWindow);
+    return AVFScopedPointer<SCContentFilter>{ [[SCContentFilter alloc]
+        initWithDesktopIndependentWindow: scWindow] };
+}
+
+// Returns the resolution of the filtered content, in pixel-coordinates.
+// Error message is not user-facing.
+[[nodiscard]] static q23::expected<QSize, QString> resolutionForFilter(
+    SCContentFilter *scContentFilter)
+{
+    // SCContentFilter.contentRect is in screen-points, not pixels. Multiply by
+    // pointPixelScale.
+    const CGRect contentRect = scContentFilter.contentRect;
+    const QSize resolutionPx =
+        (QSizeF::fromCGSize(contentRect.size) * scContentFilter.pointPixelScale).toSize();
+
+    // Rare edge cases have shown contentRect to sometimes be empty.
+    if (resolutionPx.isEmpty())
+        return q23::unexpected{ u"SCContentFilter contentRect reported as zero size"_s };
+
+    return resolutionPx;
+}
+
 // The strategy is to flush any remaining jobs on the background thread.
 QMacScreenCaptureKit::~QMacScreenCaptureKit()
 {
@@ -436,15 +469,9 @@ QMacScreenCaptureKit::createStreamFromDisplay(
     CreateStreamInfo const& info,
     SCDisplay *scDisplay)
 {
-    Q_ASSERT(scDisplay);
-
-    auto scContentFilter = AVFScopedPointer<SCContentFilter>{ [[SCContentFilter alloc]
-        initWithDisplay: scDisplay
-        excludingWindows: @[] ] };
-
     return createStreamFromFilter(
         info,
-        scContentFilter);
+        createDisplayFilter(scDisplay));
 }
 
 // Note that we are using manual memory management here, because Obj-C block functions
@@ -459,17 +486,12 @@ QMacScreenCaptureKit::createStreamFromFilter(
     auto promise = std::make_shared<std::promise<ResultType>>();
     auto future = promise->get_future();
 
-    CGRect contentRect = scContentFilter.contentRect;
-    float pointPixelScale = scContentFilter.pointPixelScale;
-
-    // SCContentFilter.contentRect is in screen-points, not pixels. Multiply by
-    // pointPixelScale.
-    QSize resolutionPx = (QSizeF::fromCGSize(contentRect.size) * pointPixelScale).toSize();
-    // Rare edge cases have shown contentRect to sometimes be empty.
-    if (resolutionPx.isEmpty()) {
-        promise->set_value(q23::unexpected{ u"SCContentFilter contentRect reported as zero size"_s });
+    q23::expected<QSize, QString> resolutionResult = resolutionForFilter(scContentFilter);
+    if (!resolutionResult) {
+        promise->set_value(q23::unexpected{ std::move(resolutionResult.error()) });
         return future;
     }
+    const QSize resolutionPx = *resolutionResult;
 
     const StreamSettings &streamSettings = createInfo.streamSettings;
 
@@ -555,14 +577,84 @@ QMacScreenCaptureKit::createStreamFromWindow(
     CreateStreamInfo const& createInfo,
     SCWindow *scWindow)
 {
-    Q_ASSERT(scWindow);
-
-    auto scContentFilter = AVFScopedPointer<SCContentFilter>{ [[SCContentFilter alloc]
-        initWithDesktopIndependentWindow: scWindow] };
-
     return createStreamFromFilter(
         createInfo,
-        scContentFilter);
+        createWindowFilter(scWindow));
+}
+
+// We first switch the content filter, and then reconfigure the stream for the
+// resolution of the new content. Finally we flush the background queue, so the
+// frames that were queued up for the old content are emitted before we signal.
+std::future<q23::expected<void, QString>> QMacScreenCaptureKit::switchToFilter(
+    SCContentFilter *scContentFilter)
+{
+    using ResultType = q23::expected<void, QString>;
+
+    Q_ASSERT(m_stream);
+    Q_ASSERT(scContentFilter);
+
+    auto promise = std::make_shared<std::promise<ResultType>>();
+    auto future = promise->get_future();
+
+    q23::expected<QSize, QString> resolutionResult = resolutionForFilter(scContentFilter);
+    if (!resolutionResult) {
+        promise->set_value(q23::unexpected{ std::move(resolutionResult.error()) });
+        return future;
+    }
+    const QSize resolutionPx = *resolutionResult;
+
+    const auto onConfigurationUpdated = [this, promise, resolutionPx](NSError *error) {
+        if (error != nil) {
+            promise->set_value(q23::unexpected{
+                u"Error when reconfiguring stream for new content: "_s
+                + QString::fromNSString(error.localizedDescription) });
+            return;
+        }
+
+        dispatch_async(m_dispatchQueue.data(), [this, promise, resolutionPx] {
+            // The stream is already configured for the new content,
+            // so the frame handler doesn't need to reconfigure it.
+            m_streamOutput.data()->m_previousFrameContentRect = resolutionPx;
+            promise->set_value(ResultType{});
+        });
+    };
+
+    const auto onContentFilterUpdated = [this, promise, resolutionPx, onConfigurationUpdated](
+        NSError *error)
+    {
+        if (error != nil) {
+            promise->set_value(q23::unexpected{
+                u"Error when switching stream content: "_s
+                + QString::fromNSString(error.localizedDescription) });
+            return;
+        }
+
+        AVFScopedPointer<SCStreamConfiguration> scStreamConfig = createStreamConfig(
+            resolutionPx,
+            m_streamSettings);
+
+        [m_stream.data()
+            updateConfiguration:scStreamConfig.data()
+            completionHandler:onConfigurationUpdated];
+    };
+
+    [m_stream.data()
+        updateContentFilter:scContentFilter
+        completionHandler:onContentFilterUpdated];
+
+    return future;
+}
+
+std::future<q23::expected<void, QString>> QMacScreenCaptureKit::switchToDisplay(
+    SCDisplay *scDisplay)
+{
+    return switchToFilter(createDisplayFilter(scDisplay));
+}
+
+std::future<q23::expected<void, QString>> QMacScreenCaptureKit::switchToWindow(
+    SCWindow *scWindow)
+{
+    return switchToFilter(createWindowFilter(scWindow));
 }
 
 // Issues a stream configuration update, so that the stream will give us video frames
