@@ -7,6 +7,7 @@
 #include "tst_qwindowcapturebackend_widget.h"
 
 #include <QtCore/qcommandlineparser.h>
+#include <QtCore/qelapsedtimer.h>
 #include <QtCore/qoperatingsystemversion.h>
 
 #include <QtGui/qguiapplication.h>
@@ -20,6 +21,7 @@
 #include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtMultimedia/private/qwindowcapture_p.h>
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/mediainfo_p.h>
 #include <QtMultimediaTestLib/private/osdetection_p.h>
 #include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
 
@@ -36,6 +38,7 @@ namespace ranges = QtMultimediaPrivate::ranges;
 using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;
 using std::chrono::microseconds;
+using std::chrono::milliseconds;
 
 using namespace std::chrono_literals;
 
@@ -1093,6 +1096,66 @@ private slots:
         QVERIFY(fixture.m_recorderErrors.empty());
         QVERIFY(QFile{ fixture.m_mediaFile }.exists());
         QVERIFY(fixture.testVideoFilePlayback(fixture.m_mediaFile));
+    }
+
+    void recorder_recordingHasExpectedDuration_whenWindowIsSwitched()
+    {
+        // How long we keep each of the two sources active while recording.
+        constexpr auto sourceDuration = 2s;
+
+        const QSize windowSize{ 200, 150 };
+
+        // Animated content, so that both sources keep producing new frames.
+        TestWidget secondWidget;
+        secondWidget.setSize(windowSize);
+        secondWidget.setDisplayPattern(TestWidget::Pattern::Animated);
+        secondWidget.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&secondWidget, globalTestTimeout()));
+
+        const std::optional<QCapturableWindow> secondWindow =
+            WindowCaptureWithWidgetFixture::findCaptureWindow(
+                secondWidget.windowTitle(),
+                secondWidget.windowHandle());
+        QVERIFY(secondWindow && secondWindow->isValid());
+
+        WindowCaptureWithWidgetAndRecorderFixture fixture;
+        fixture.start(windowSize);
+
+        // Make sure we are both capturing and recording before we start timing.
+        QVERIFY(fixture.consumeFirstFrame());
+        QTRY_COMPARE_WITH_TIMEOUT(
+            fixture.m_recorderState,
+            QMediaRecorder::RecorderState::RecordingState,
+            globalTestTimeout());
+
+        QElapsedTimer recordingTimer;
+        recordingTimer.start();
+
+        QTest::qWait(sourceDuration);
+
+        fixture.m_capture.setWindow(*secondWindow);
+        QVERIFY(fixture.m_capture.isActive());
+
+        QTest::qWait(sourceDuration);
+
+        const milliseconds expectedDuration{ recordingTimer.elapsed() };
+
+        QVERIFY(fixture.stop());
+
+        QVERIFY(fixture.m_errors.empty());
+        QVERIFY(fixture.m_recorderErrors.empty());
+
+        const std::optional<MediaInfo> info =
+            MediaInfo::create(QUrl::fromLocalFile(fixture.m_mediaFile));
+        QVERIFY(info);
+
+        // Allow some slack for the time it takes to start and switch streams.
+        const milliseconds tolerance = expectedDuration / 4;
+        QVERIFY2(
+            std::chrono::abs(info->m_duration - expectedDuration) <= tolerance,
+            qPrintable(u"Recording lasted %1ms, but sources were active for %2ms"_s
+                .arg(info->m_duration.count())
+                .arg(expectedDuration.count())));
     }
 
     void windowCapture_capturesWindowsInOtherProcesses()

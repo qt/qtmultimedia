@@ -30,3 +30,8 @@ linux
 # BUG: Not all windows listed by capturableWindows() can be captured on Windows
 [capturableWindows_canAllBeCaptured]
 windows
+
+# BUG: Switching window while recording restarts presentation times at zero,
+# and the recorder discards frames older than what it has already encoded.
+[recorder_recordingHasExpectedDuration_whenWindowIsSwitched]
+*
