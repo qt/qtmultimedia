@@ -9,6 +9,7 @@
 #include <QtCore/qcommandlineparser.h>
 #include <QtCore/qoperatingsystemversion.h>
 
+#include <QtGui/qguiapplication.h>
 #include <QtGui/qwindow.h>
 
 #include <QtMultimedia/qmediarecorder.h>
@@ -83,6 +84,12 @@ private slots:
 #ifdef Q_OS_ANDROID
      QSKIP("Feature does not work on Android");
 #endif
+
+        // The offscreen platform plugin never shows windows on the native desktop, so the
+        // capture backends have nothing they can capture.
+        if (QGuiApplication::platformName() == u"offscreen"_s)
+            QSKIP("Window capturing does not work with the offscreen platform plugin");
+
 #if defined(Q_OS_LINUX)
      if (isCI() && qEnvironmentVariable("XDG_SESSION_TYPE").toLower() != "x11")
          QSKIP("Skip on wayland; to be fixed");
