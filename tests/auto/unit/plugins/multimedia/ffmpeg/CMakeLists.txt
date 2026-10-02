@@ -3,6 +3,7 @@
 
 add_subdirectory(shared)
 
+add_subdirectory(qffmpegencoderthread)
 add_subdirectory(qffmpegmath)
 add_subdirectory(qffmpegvideoencoderutils)
 add_subdirectory(qffmpegsubtitledecoder)
