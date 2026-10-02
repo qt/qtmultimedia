@@ -355,6 +355,11 @@ void tst_QScreenCaptureBackend::initTestCase()
         QSKIP("Skip on wayland; to be fixed");
 #endif
 
+    // The offscreen platform plugin never shows windows on the native desktop, so the
+    // capture backends cannot capture any of the test content.
+    if (QGuiApplication::platformName() == u"offscreen"_s)
+        QSKIP("Screen capturing does not work with the offscreen platform plugin");
+
     if (!QApplication::primaryScreen())
         QSKIP("No screens found");
 
