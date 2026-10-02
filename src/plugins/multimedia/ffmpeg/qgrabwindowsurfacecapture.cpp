@@ -144,7 +144,7 @@ private:
 
         QVideoFrameFormat format(img.size(),
                                  QVideoFrameFormat::pixelFormatFromImageFormat(img.format()));
-        format.setStreamFrameRate(frameRate());
+        format.setStreamFrameRate(activeFrameRate());
         updateFormat(format);
 
         if (!format.isValid()) {

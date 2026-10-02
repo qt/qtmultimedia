@@ -518,7 +518,7 @@ void QPipeWireCaptureHelper::recreateStream()
     // Considering the framerate as always variable rate, but with our target set as maximum.
     struct spa_fraction maxrate = SPA_FRACTION(1000, 1);
     struct spa_fraction minrate = SPA_FRACTION(0, 1);
-    auto rate = rateFromFps(frameRate());
+    auto rate = rateFromFps(activeFrameRate());
 
     std::array<const struct spa_pod *, 1> params{ static_cast<const spa_pod*>(spa_pod_builder_add_object(
             &builder,

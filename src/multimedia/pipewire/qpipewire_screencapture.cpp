@@ -50,12 +50,12 @@ bool QPipeWireCapture::setActiveInternal(bool active)
 
     Q_ASSERT(m_instance->hasScreenCastPortal());
 
-    m_helper->setFrameRate(frameRate().value_or(DefaultCaptureFrameRate));
-
-    if (active)
+    if (active) {
+        m_helper->setFrameRate(frameRate().value_or(DefaultCaptureFrameRate));
         m_helper->start();
-    else
+    } else {
         m_helper->stop();
+    }
 
     return true;
 }

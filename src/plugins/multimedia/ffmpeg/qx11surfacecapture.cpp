@@ -291,7 +291,7 @@ private:
             }
 
             QVideoFrameFormat format(QSize(m_xImage->width, m_xImage->height), pixelFormat);
-            format.setStreamFrameRate(frameRate());
+            format.setStreamFrameRate(activeFrameRate());
             m_format = format;
         }
 

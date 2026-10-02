@@ -104,6 +104,9 @@ public:
     //! Replaces the content published by the synthetic source.
     q23::expected<void, QString> setScene(const SyntheticVideoScene &scene);
 
+    //! Revokes the portal session mid-stream, as a compositor would.
+    q23::expected<void, QString> closeSessions();
+
 private:
     q23::expected<void, QString> startHelper(QSize frameSize);
     void stopHelper();

@@ -401,8 +401,8 @@ public:
             if (bufSize != m_format.frameSize())
                 m_format.setFrameSize(bufSize);
 
-            if (m_format.streamFrameRate() != frameRate())
-                m_format.setStreamFrameRate(frameRate());
+            if (m_format.streamFrameRate() != activeFrameRate())
+                m_format.setStreamFrameRate(activeFrameRate());
 
             frame = QVideoFramePrivate::createFrame(std::move(buffer), format());
         } else {

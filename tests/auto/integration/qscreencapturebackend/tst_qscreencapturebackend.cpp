@@ -226,6 +226,7 @@ private slots:
     void setActive_restartsScreenCapture_whenStartedAgainAfterStop();
     void setFrameRate_updatesPropertyAndEmitsSignal();
     void setFrameRate_emitsFramesAtCorrectRate();
+    void portalSessionClosed_doesNotWarnAboutGrabbingThreadTimer();
 
     void setScreen_selectsScreen_whenCalledWithWidgetsScreen();
     void constructor_selectsPrimaryScreenAsDefault();
@@ -840,6 +841,51 @@ void tst_QScreenCaptureBackend::setFrameRate_emitsFramesAtCorrectRate()
         "Did not receive enough QVideoFrames to measure framerate");
     const qreal actualFps = 1000.0 / durationBetweenFrames.count();
     QCOMPARE_LT(actualFps, newFrameRate * (1 + slopFactor));
+}
+
+void tst_QScreenCaptureBackend::portalSessionClosed_doesNotWarnAboutGrabbingThreadTimer()
+{
+#ifdef QT_MM_HAVE_FAKE_XDG_PORTAL
+    if (!usingFakePortal())
+        QSKIP("Requires the fake ScreenCast portal");
+
+    // The fixture's re-exec pins QT_SCREEN_CAPTURE_BACKEND to pipewire, so a
+    // portal session always exists here. Other backends report their errors
+    // from the grabbing thread itself and cannot produce these warnings.
+
+    // Only the grabbing thread may touch its polling timer. Fail if reporting
+    // the portal error from the main thread reaches across threads; every
+    // other warning (session teardown, device enumeration) passes through.
+    QTest::failOnWarning(QRegularExpression(u".*another thread.*"_s));
+
+    TestVideoSink sink;
+    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTestLib::makeScreenCapture();
+    QScreenCapture &sc = *screenCapture;
+
+    QSignalSpy errorsSpy(&sc, &QScreenCapture::errorOccurred);
+
+    QMediaCaptureSession session;
+    session.setScreenCapture(&sc);
+    session.setVideoSink(&sink);
+
+    sc.setActive(true);
+
+    // Frames flowing proves the grabbing thread and its timer are up.
+    QVERIFY(sink.waitForFrame().isValid());
+
+    auto closed = m_fakePortal.closeSessions();
+    QVERIFY2(closed,
+             qPrintable(u"Could not close the fake portal session: "_s
+                        + (closed ? QString() : closed.error())));
+
+    QVERIFY(errorsSpy.wait(10000));
+    QCOMPARE(errorsSpy.size(), 1);
+
+    sc.setActive(false);
+    QVERIFY(!sc.isActive());
+#else
+    QSKIP("Requires the fake ScreenCast portal");
+#endif
 }
 
 void tst_QScreenCaptureBackend::setScreen_selectsScreen_whenCalledWithWidgetsScreen()

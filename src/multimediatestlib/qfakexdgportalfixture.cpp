@@ -469,4 +469,18 @@ q23::expected<void, QString> QFakeXdgPortalFixture::setScene(const SyntheticVide
     return {};
 }
 
+q23::expected<void, QString> QFakeXdgPortalFixture::closeSessions()
+{
+    if (!d->active)
+        return q23::unexpected(u"the fixture is not running"_s);
+
+    QDBusInterface control(
+            u"org.freedesktop.portal.Desktop"_s, u"/org/qtproject/qtmultimedia/FakeXdgPortal"_s,
+            u"org.qtproject.qtmultimedia.FakeXdgPortal"_s, QDBusConnection::sessionBus());
+    const QDBusMessage reply = control.call(u"CloseSessions"_s);
+    if (reply.type() == QDBusMessage::ErrorMessage)
+        return q23::unexpected(u"CloseSessions failed: "_s + reply.errorMessage());
+    return {};
+}
+
 QT_END_NAMESPACE
