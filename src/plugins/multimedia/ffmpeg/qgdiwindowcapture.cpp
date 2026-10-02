@@ -111,7 +111,7 @@ private:
         }
 
         QVideoFrameFormat format(size, QVideoFrameFormat::Format_BGRX8888);
-        format.setStreamFrameRate(frameRate());
+        format.setStreamFrameRate(activeFrameRate());
         m_format = format;
         return true;
     }

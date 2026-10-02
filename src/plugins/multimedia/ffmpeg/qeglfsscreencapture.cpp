@@ -62,8 +62,8 @@ protected:
                          QVideoFrameFormat::pixelFormatFromImageFormat(image.format()) };
         }
 
-        if (m_format.streamFrameRate() != frameRate())
-            m_format.setStreamFrameRate(frameRate());
+        if (m_format.streamFrameRate() != activeFrameRate())
+            m_format.setStreamFrameRate(activeFrameRate());
 
         return QVideoFramePrivate::createFrame(std::move(videoBuffer), m_format);
     }
@@ -101,8 +101,8 @@ protected:
                          QVideoFrameFormat::pixelFormatFromImageFormat(image.format()) };
         }
 
-        if (m_format.streamFrameRate() != frameRate())
-            m_format.setStreamFrameRate(frameRate());
+        if (m_format.streamFrameRate() != activeFrameRate())
+            m_format.setStreamFrameRate(activeFrameRate());
 
         return QVideoFramePrivate::createFrame(
                 std::make_unique<QImageVideoBuffer>(std::move(image)), m_format);

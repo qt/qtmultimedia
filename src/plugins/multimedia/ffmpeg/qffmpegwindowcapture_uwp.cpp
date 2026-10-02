@@ -362,8 +362,8 @@ protected:
 
             m_format.setFrameSize(size);
 
-            if (m_format.streamFrameRate() != frameRate())
-                m_format.setStreamFrameRate(frameRate());
+            if (m_format.streamFrameRate() != activeFrameRate())
+                m_format.setStreamFrameRate(activeFrameRate());
 
             return QVideoFramePrivate::createFrame(
                     std::make_unique<QUwpTextureVideoBuffer>(std::move(texture)), m_format);

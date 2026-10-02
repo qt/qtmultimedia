@@ -19,6 +19,9 @@
 #include <QtMultimedia/private/qplatformsurfacecapture_p.h>
 #include <QtMultimedia/qtmultimediaglobal.h>
 
+#include <QtCore/qmutex.h>
+
+#include <chrono>
 #include <memory>
 #include <optional>
 
@@ -53,6 +56,9 @@ public:
     void setFrameRate(std::optional<qreal>);
     qreal frameRate() const;
 
+    // Owning thread before start(), grabbing thread after.
+    qreal activeFrameRate() const;
+
 Q_SIGNALS:
     void frameGrabbed(const QVideoFrame&);
     void errorUpdated(QPlatformSurfaceCapture::Error error, const QString &description);
@@ -65,6 +71,7 @@ protected:
     virtual QVideoFrame grabFrame() = 0;
 
     void updateTimerInterval();
+    void setTimerInterval(std::chrono::nanoseconds interval, quint64 generation);
 
     virtual void initializeGrabbingContext();
     virtual void finalizeGrabbingContext();
@@ -78,11 +85,16 @@ private:
     struct GrabbingContext;
     class GrabbingThread;
 
+    mutable QMutex m_mutex;
     std::unique_ptr<GrabbingContext> m_context;
     std::optional<QPlatformSurfaceCapture::Error> m_prevError;
     std::unique_ptr<QThread> m_thread;
+    std::chrono::nanoseconds m_timerInterval{ 0 };
+    quint64 m_contextGeneration{ 0 };
 
     qreal m_rate{ DefaultScreenCaptureFrameRate };
+    // Locked in start()/updateTimerInterval(); lock-free on the grabbing thread.
+    qreal m_activeRate{ DefaultScreenCaptureFrameRate };
 };
 
 QT_END_NAMESPACE

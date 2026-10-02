@@ -3,11 +3,14 @@
 
 #include "qsurfacecapturegrabber_p.h"
 
-#include <qchronotimer.h>
-#include <qelapsedtimer.h>
-#include <qloggingcategory.h>
-#include <qthread.h>
-#include <qtimer.h>
+#include <QtCore/qchronotimer.h>
+#include <QtCore/qelapsedtimer.h>
+#include <QtCore/qloggingcategory.h>
+#include <QtCore/qmetaobject.h>
+#include <QtCore/qthread.h>
+#include <QtCore/qtimer.h>
+
+#include <mutex>
 
 QT_BEGIN_NAMESPACE
 
@@ -88,6 +91,13 @@ QSurfaceCaptureGrabber::QSurfaceCaptureGrabber(ThreadPolicy threadPolicy)
 
 void QSurfaceCaptureGrabber::start()
 {
+    Q_ASSERT(thread()->isCurrentThread());
+    {
+        // Locked: pairs with the read in updateTimerInterval().
+        std::lock_guard locker{ m_mutex };
+        m_activeRate = m_rate;
+    }
+
     if (m_thread)
         m_thread->start();
     else if (!isGrabbingContextInitialized())
@@ -105,16 +115,27 @@ void QSurfaceCaptureGrabber::setFrameRate(std::optional<qreal> rate)
     if (*rate < MinScreenCaptureFrameRate)
         rate = MinScreenCaptureFrameRate;
 
+    // New rate applies to the next stream only.
+    Q_ASSERT(thread()->isCurrentThread());
+    Q_ASSERT(!isGrabbingContextInitialized());
     if (m_rate == *rate)
         return;
 
     m_rate = *rate;
-    qCDebug(qLcScreenCaptureGrabber) << "Screen capture rate has been changed:" << m_rate;
+    m_activeRate = *rate; // Also visible pre-start via activeFrameRate().
+    qCDebug(qLcScreenCaptureGrabber) << "Screen capture rate has been changed:" << *rate;
 }
 
 qreal QSurfaceCaptureGrabber::frameRate() const
 {
+    Q_ASSERT(thread()->isCurrentThread());
     return m_rate;
+}
+
+qreal QSurfaceCaptureGrabber::activeFrameRate() const
+{
+    // Owning thread before start(), grabbing thread after.
+    return m_activeRate;
 }
 
 void QSurfaceCaptureGrabber::stop()
@@ -133,7 +154,11 @@ void QSurfaceCaptureGrabber::stop()
 void QSurfaceCaptureGrabber::updateError(QPlatformSurfaceCapture::Error error,
                                              const QString &description)
 {
-    const auto prevError = std::exchange(m_prevError, error);
+    std::optional<QPlatformSurfaceCapture::Error> prevError;
+    {
+        std::lock_guard locker{ m_mutex };
+        prevError = std::exchange(m_prevError, error);
+    }
 
     if (error != QPlatformSurfaceCapture::Error::NoError
         || prevError != QPlatformSurfaceCapture::Error::NoError) {
@@ -147,13 +172,38 @@ void QSurfaceCaptureGrabber::updateTimerInterval()
 {
     using namespace std::chrono;
 
+    std::lock_guard locker{ m_mutex };
+    if (!m_context)
+        return;
+
     const qreal rate = m_prevError && *m_prevError != QPlatformSurfaceCapture::Error::NoError
             ? MinScreenCaptureFrameRate
-            : m_rate;
-    const auto interval = round<nanoseconds>(nanoseconds(1s) / rate);
+            : m_activeRate;
+    const nanoseconds interval = round<nanoseconds>(nanoseconds(1s) / rate);
 
-    if (m_context && m_context->timer.interval() != interval)
-        m_context->timer.setInterval(interval);
+    if (m_timerInterval == interval)
+        return;
+
+    QChronoTimer *timer = &m_context->timer;
+    if (timer->thread()->isCurrentThread()) {
+        timer->setInterval(interval);
+        m_timerInterval = interval;
+    } else {
+        const quint64 generation = m_contextGeneration;
+        QMetaObject::invokeMethod(timer, [this, interval, generation] {
+            setTimerInterval(interval, generation);
+        }, Qt::QueuedConnection);
+    }
+}
+
+void QSurfaceCaptureGrabber::setTimerInterval(std::chrono::nanoseconds interval, quint64 generation)
+{
+    std::lock_guard locker{ m_mutex };
+    if (!m_context || generation != m_contextGeneration || m_timerInterval == interval)
+        return;
+
+    m_context->timer.setInterval(interval);
+    m_timerInterval = interval;
 }
 
 void QSurfaceCaptureGrabber::initializeGrabbingContext()
@@ -161,7 +211,12 @@ void QSurfaceCaptureGrabber::initializeGrabbingContext()
     Q_ASSERT(!isGrabbingContextInitialized());
     qCDebug(qLcScreenCaptureGrabber) << "screen capture started";
 
-    m_context = std::make_unique<GrabbingContext>();
+    {
+        std::lock_guard locker{ m_mutex };
+        m_context = std::make_unique<GrabbingContext>();
+        ++m_contextGeneration;
+        m_timerInterval = std::chrono::nanoseconds{ 0 };
+    }
     m_context->timer.setTimerType(Qt::PreciseTimer);
     updateTimerInterval();
 
@@ -195,11 +250,19 @@ void QSurfaceCaptureGrabber::finalizeGrabbingContext()
     qCDebug(qLcScreenCaptureGrabber)
             << "end screen capture thread; avg grabbing time:" << m_context->profiler.avgTime()
             << "ms, grabbings number:" << m_context->profiler.number();
-    m_context.reset();
+    {
+        // Bump the generation first so queued interval updates posted from
+        // another thread are dropped instead of touching a dead timer.
+        std::lock_guard locker{ m_mutex };
+        ++m_contextGeneration;
+        m_timerInterval = std::chrono::nanoseconds{ 0 };
+        m_context.reset();
+    }
 }
 
 bool QSurfaceCaptureGrabber::isGrabbingContextInitialized() const
 {
+    std::lock_guard locker{ m_mutex };
     return m_context != nullptr;
 }
 
