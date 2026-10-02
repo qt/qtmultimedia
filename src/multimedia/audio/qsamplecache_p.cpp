@@ -2,8 +2,13 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qsamplecache_p.h"
-#include "qaudiohelpers_p.h"
 
+#include <QtMultimedia/qaudiobuffer.h>
+#include <QtMultimedia/qaudiodecoder.h>
+#include <QtMultimedia/private/qaudiohelpers_p.h>
+#include <QtMultimedia/private/qdrawavaudiodecoder_p.h>
+#include <QtMultimedia/private/qmultimediautils_p.h>
+#include <QtConcurrent/qtconcurrentrun.h>
 #include <QtCore/qapplicationstatic.h>
 #include <QtCore/qbuffer.h>
 #include <QtCore/qcoreapplication.h>
@@ -12,10 +17,7 @@
 #include <QtCore/qfile.h>
 #include <QtCore/qfuturewatcher.h>
 #include <QtCore/qloggingcategory.h>
-#include <QtMultimedia/qaudiobuffer.h>
-#include <QtMultimedia/qaudiodecoder.h>
-#include <QtMultimedia/private/qmultimediautils_p.h>
-#include <QtConcurrent/qtconcurrentrun.h>
+#include <QtCore/qmutex.h>
 
 #if QT_CONFIG(network)
 #  include <QtNetwork/qnetworkaccessmanager.h>
@@ -165,17 +167,16 @@ QSampleCache::SampleLoadResult QSampleCache::loadSample(QSpan<const char> data)
     audioFormat.setChannelConfig(
             QAudioFormat::defaultChannelConfigForChannelCount(wavParser.channels));
 
-    QByteArray sampleData;
-    sampleData.resizeForOverwrite(qsizetype(sizeof(float) * wavParser.channels
-                                   * wavParser.totalPCMFrameCount));
-    uint64_t framesRead = drwav_read_pcm_frames_f32(&wavParser, wavParser.totalPCMFrameCount,
-                                                    reinterpret_cast<float *>(sampleData.data()));
-
-    if (framesRead != wavParser.totalPCMFrameCount)
+    std::optional<QByteArray> sampleData = QtMultimediaPrivate::readFramesInChunks(
+            wavParser.totalPCMFrameCount, sizeof(float) * wavParser.channels,
+            [&](uint64_t frameCount, char *out) -> uint64_t {
+        return drwav_read_pcm_frames_f32(&wavParser, frameCount, reinterpret_cast<float *>(out));
+    });
+    if (!sampleData)
         return q23::unexpected(QSampleLoadError::FormatError);
 
     return std::pair{
-        std::move(sampleData),
+        std::move(*sampleData),
         audioFormat,
     };
 }

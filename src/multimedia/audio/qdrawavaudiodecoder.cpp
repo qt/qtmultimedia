@@ -122,39 +122,40 @@ QDrWavDecodeResult loadWaveAndDecodeData(QSpan<const std::byte> data,
                              << "totalPCMFrameCount=" << wav.totalPCMFrameCount
                              << "outputFormat=" << outputFormat.sampleFormat();
 
-    // Allocate PCM data for the entire file
-    QByteArray pcmData;
-    pcmData.resizeForOverwrite(wav.totalPCMFrameCount * bytesPerFrame);
-
-    // Read all frames at once using appropriate format
-    uint64_t framesRead = 0;
-
-    switch (outputFormat.sampleFormat()) {
+    const QAudioFormat::SampleFormat readFormat = outputFormat.sampleFormat();
+    switch (readFormat) {
     case QAudioFormat::UInt8:
-        framesRead = drwav_read_pcm_frames(&wav, wav.totalPCMFrameCount,
-                                           reinterpret_cast<uint8_t *>(pcmData.data()));
-        break;
     case QAudioFormat::Int16:
-        framesRead = drwav_read_pcm_frames_s16(&wav, wav.totalPCMFrameCount,
-                                               reinterpret_cast<int16_t *>(pcmData.data()));
-        break;
     case QAudioFormat::Int32:
-        framesRead = drwav_read_pcm_frames_s32(&wav, wav.totalPCMFrameCount,
-                                               reinterpret_cast<int32_t *>(pcmData.data()));
-        break;
     case QAudioFormat::Float:
-        framesRead = drwav_read_pcm_frames_f32(&wav, wav.totalPCMFrameCount,
-                                               reinterpret_cast<float *>(pcmData.data()));
         break;
     default:
         return makeFormatError(QAudioDecoder::tr("Unsupported sample format"));
     }
 
-    if (framesRead != wav.totalPCMFrameCount) {
+    std::optional<QByteArray> decoded = readFramesInChunks(
+            wav.totalPCMFrameCount, bytesPerFrame, [&](uint64_t frameCount, char *out) -> uint64_t {
+        switch (readFormat) {
+        case QAudioFormat::UInt8:
+            return drwav_read_pcm_frames(&wav, frameCount, out);
+        case QAudioFormat::Int16:
+            return drwav_read_pcm_frames_s16(&wav, frameCount, reinterpret_cast<int16_t *>(out));
+        case QAudioFormat::Int32:
+            return drwav_read_pcm_frames_s32(&wav, frameCount, reinterpret_cast<int32_t *>(out));
+        case QAudioFormat::Float:
+            return drwav_read_pcm_frames_f32(&wav, frameCount, reinterpret_cast<float *>(out));
+        default:
+            Q_UNREACHABLE_RETURN(0);
+        }
+    });
+
+    if (!decoded) {
         qCDebug(qLcDrWavDecoder) << "Failed to read all frames:"
-                                 << "expected" << wav.totalPCMFrameCount << "got" << framesRead;
+                                 << "expected" << wav.totalPCMFrameCount;
         return makeFormatError(QAudioDecoder::tr("Unable to read audio data"));
     }
+
+    const QByteArray &pcmData = *decoded;
 
     QAudioBuffer buffer(pcmData, outputFormat);
     if (!buffer.isValid()) {
