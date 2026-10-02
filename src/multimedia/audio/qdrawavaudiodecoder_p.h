@@ -16,12 +16,18 @@
 //
 
 #include <QtMultimedia/private/qplatformaudiodecoder_p.h>
+#include <QtCore/qbytearray.h>
 #include <QtCore/qspan.h>
 #include <QtCore/qurl.h>
 #include <QtCore/private/qexpected_p.h>
 
+#include <algorithm>
 #include <atomic>
+#include <cstdint>
 #include <memory>
+#include <new>
+#include <optional>
+#include <type_traits>
 
 QT_BEGIN_NAMESPACE
 
@@ -33,6 +39,57 @@ namespace QtMultimediaPrivate {
 using QDrWavDecodeResult = q23::expected<QAudioBuffer, std::pair<QAudioDecoder::Error, QString>>;
 QDrWavDecodeResult loadWaveAndDecodeData(QSpan<const std::byte>,
                                          const QAudioFormat &requestedFormat);
+
+#ifdef __cpp_concepts
+template <typename Reader>
+concept FrameReader = std::is_invocable_v<Reader, uint64_t, char *>
+        && std::is_convertible_v<std::invoke_result_t<Reader, uint64_t, char *>, uint64_t>;
+#endif
+
+#ifdef __cpp_concepts
+template <FrameReader Reader>
+#else
+template <typename Reader>
+#endif
+std::optional<QByteArray> readFramesInChunks(uint64_t declaredFrameCount, size_t bytesPerFrame,
+                                             Reader &&readFrames)
+{
+    constexpr size_t chunkBytes = 10 * 1024 * 1024; // 10 MB
+    if (bytesPerFrame == 0)
+        return std::nullopt;
+
+    const uint64_t chunkFrames = std::max<uint64_t>(1, chunkBytes / bytesPerFrame);
+
+    QT_TRY
+    {
+        QByteArray result;
+        uint64_t totalFramesRead = 0;
+        while (totalFramesRead < declaredFrameCount) {
+            const uint64_t framesToRead =
+                    std::min(chunkFrames, declaredFrameCount - totalFramesRead);
+            const uint64_t bytesToRead = framesToRead * bytesPerFrame;
+            const qsizetype oldSize = result.size();
+            if (bytesToRead > uint64_t(QByteArray::maxSize() - oldSize))
+                return std::nullopt;
+
+            result.resizeForOverwrite(oldSize + qsizetype(bytesToRead));
+            const uint64_t framesRead = readFrames(framesToRead, result.data() + oldSize);
+            Q_ASSERT(framesRead <= framesToRead);
+            result.resize(oldSize + qsizetype(framesRead * bytesPerFrame));
+
+            totalFramesRead += framesRead;
+            if (framesRead < framesToRead)
+                break;
+        }
+        if (totalFramesRead != declaredFrameCount)
+            return std::nullopt;
+        return result;
+    }
+    QT_CATCH(const std::bad_alloc &)
+    {
+        return std::nullopt;
+    }
+}
 
 } // namespace QtMultimediaPrivate
 

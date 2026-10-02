@@ -5,8 +5,11 @@
 
 #include <QtTest/qtest.h>
 #include <QtMultimedia/private/qsamplecache_p.h>
+#include <QtCore/qendian.h>
 #include <QtCore/qfile.h>
 #include <QtCore/qfuturewatcher.h>
+
+#include <cstdint>
 
 Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN
 
@@ -41,6 +44,14 @@ private slots:
 
     void testLoadSampleFromSpan_valid();
     void testLoadSampleFromSpan_invalid();
+    void testLoadSampleFromSpan_declaredFrameCountMismatch_data();
+    void testLoadSampleFromSpan_declaredFrameCountMismatch();
+    void testLoadSampleFromSpan_multiChannel();
+    void testLoadSampleViaDecoderBuffer_declaredFrameCountMismatch_data()
+    {
+        testLoadSampleFromSpan_declaredFrameCountMismatch_data();
+    }
+    void testLoadSampleViaDecoderBuffer_declaredFrameCountMismatch();
     void testLoadSampleViaDecoder_valid();
     void testLoadSampleViaDecoder_fallbackToDrWav();
     void testLoadSampleViaDecoderBuffer_valid();
@@ -55,6 +66,45 @@ private slots:
     void testForcedDecoderPathAsync();
 
 private:
+    template <typename T>
+    static void appendLittleEndian(QByteArray &out, T value)
+    {
+        const T le = qToLittleEndian(value);
+        out.append(reinterpret_cast<const char *>(&le), sizeof(le));
+    }
+
+    static QByteArray makeRf64Wav(uint64_t declaredFrameCount, uint16_t channelCount,
+                                  qsizetype dataBytes)
+    {
+        const uint16_t bytesPerFrame = channelCount * sizeof(int16_t);
+
+        QByteArray wav;
+        wav.append("RF64");
+        appendLittleEndian<uint32_t>(wav, 0xFFFFFFFF);
+        wav.append("WAVE");
+
+        wav.append("ds64");
+        appendLittleEndian<uint32_t>(wav, 28);
+        appendLittleEndian<uint64_t>(wav, 0); // RIFF size, ignored
+        appendLittleEndian<uint64_t>(wav, uint64_t(dataBytes));
+        appendLittleEndian<uint64_t>(wav, declaredFrameCount);
+        appendLittleEndian<uint32_t>(wav, 0); // table length
+
+        wav.append("fmt ");
+        appendLittleEndian<uint32_t>(wav, 16);
+        appendLittleEndian<uint16_t>(wav, 1); // PCM
+        appendLittleEndian<uint16_t>(wav, channelCount);
+        appendLittleEndian<uint32_t>(wav, 8000);
+        appendLittleEndian<uint32_t>(wav, 8000 * bytesPerFrame);
+        appendLittleEndian<uint16_t>(wav, bytesPerFrame);
+        appendLittleEndian<uint16_t>(wav, 16);
+
+        wav.append("data");
+        appendLittleEndian<uint32_t>(wav, 0xFFFFFFFF);
+        wav.append(QByteArray(dataBytes, '\x7f'));
+        return wav;
+    }
+
     void generateTestData()
     {
         QTest::addColumn<QSampleCache::SampleSourceType>("sampleSourceType");
@@ -191,6 +241,50 @@ void tst_QSampleCache::testLoadSampleFromSpan_invalid()
     auto result = QSampleCache::loadSample(garbage);
     QVERIFY(!result.has_value());
     QCOMPARE(result.error(), QSampleLoadError::FormatError);
+}
+
+void tst_QSampleCache::testLoadSampleFromSpan_declaredFrameCountMismatch_data()
+{
+    QTest::addColumn<uint64_t>("declaredFrameCount");
+
+    // 4 * (2^62 + 256) wraps to 1024 in 64-bit arithmetic
+    QTest::newRow("wrapping") << ((uint64_t(1) << 62) + 256);
+    QTest::newRow("huge") << (uint64_t(1) << 40);
+    QTest::newRow("more-than-data") << uint64_t(1024 * 1024);
+}
+
+void tst_QSampleCache::testLoadSampleFromSpan_declaredFrameCountMismatch()
+{
+    QFETCH(const uint64_t, declaredFrameCount);
+
+    const QByteArray wav = makeRf64Wav(declaredFrameCount, 1, 1024 * 1024);
+    auto result = QSampleCache::loadSample(wav);
+    QVERIFY(!result.has_value());
+    QCOMPARE(result.error(), QSampleLoadError::FormatError);
+}
+
+void tst_QSampleCache::testLoadSampleFromSpan_multiChannel()
+{
+    constexpr uint16_t channelCount = 2;
+    constexpr uint64_t frameCount = 3'000'000; // spans multiple decode chunks
+
+    const QByteArray wav =
+            makeRf64Wav(frameCount, channelCount, qsizetype(frameCount * channelCount * 2));
+    auto result = QSampleCache::loadSample(wav);
+    QVERIFY(result.has_value());
+    QCOMPARE_EQ(result->second.channelCount(), int(channelCount));
+    QCOMPARE_EQ(result->first.size(), qsizetype(frameCount * channelCount * sizeof(float)));
+}
+
+void tst_QSampleCache::testLoadSampleViaDecoderBuffer_declaredFrameCountMismatch()
+{
+    QFETCH(const uint64_t, declaredFrameCount);
+
+    QMockIntegration::instance()->setFlags(QMockIntegration::NoAudioDecoderInterface);
+
+    const QByteArray wav = makeRf64Wav(declaredFrameCount, 1, 1024 * 1024);
+    auto result = QSampleCache::loadSampleViaDecoder(wav);
+    QVERIFY(!result.has_value());
 }
 
 void tst_QSampleCache::testLoadSampleViaDecoder_valid()
