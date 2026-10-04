@@ -19,6 +19,10 @@
 #  include <QtMultimedia/private/qmacosaudiodatautils_p.h>
 #endif
 
+#ifdef Q_OS_MACOS
+#  include <Block.h>
+#endif
+
 #if defined(Q_OS_MACOS)
 Q_STATIC_LOGGING_CATEGORY(qLcDarwinMediaDevices, "qt.multimedia.darwin.mediaDevices");
 #endif
@@ -144,6 +148,31 @@ static constexpr AudioObjectPropertyAddress listenerAddresses[] = {
 
 #endif
 
+namespace {
+
+template <typename Block>
+auto makeOwningBlock(Block block)
+{
+#if defined(__has_feature) && __has_feature(objc_arc)
+    return std::make_shared<Block>(block);
+#else
+    struct BlockDeleter
+    {
+        void operator()(Block *b) const noexcept
+        {
+            if (b) {
+                Block_release(*b);
+                delete b;
+            }
+        }
+    };
+
+    return std::shared_ptr<Block>(new Block(Block_copy(block)), BlockDeleter{});
+#endif
+}
+
+} // namespace
+
 QCoreAudioDevices::QCoreAudioDevices()
 {
     if (!QThread::isMainThread())
@@ -155,7 +184,7 @@ QCoreAudioDevices::QCoreAudioDevices()
     dispatch_set_target_queue(m_listenerQueue.get(), dispatch_get_main_queue());
 
     std::shared_ptr destroyedFlag = m_destroyed; // capture shared_ptr
-    m_deviceListenerBlock = std::make_unique<AudioObjectPropertyListenerBlock>(
+    m_deviceListenerBlock = makeOwningBlock<AudioObjectPropertyListenerBlock>(
             [this, destroyedFlag](UInt32 numberOfProps, const AudioObjectPropertyAddress *props) {
         // the block is dispatched via a dispatch queue on the main thread and can be in-flight when
         // the QCoreAudioDevices instance is being destroyed. Check the destroyed flag to avoid
@@ -261,7 +290,7 @@ static void removeListenerBlock(AudioObjectID id, AudioObjectPropertyListenerBlo
     UInt32 size = sizeof(isAlive);
     OSStatus status = AudioObjectGetPropertyData(id, &propertyAddressDeviceIsAlive, 0, nullptr,
                                                  &size, &isAlive);
-    if (status == noErr)
+    if (status == noErr && isAlive)
         AudioObjectRemovePropertyListenerBlock(id, &propertyAddressDeviceIsAlive,
                                                /*inDispatchQueue=*/nullptr, listenerBlock);
 }
@@ -283,7 +312,7 @@ std::optional<QFuture<void>> DeviceDisconnectMonitor::setDisconnectListener(Audi
     auto disconnectedPromise = std::make_shared<QPromise<void>>();
 
     auto removeListenerPromise = std::make_shared<QPromise<void>>();
-    auto listenerBlock = std::make_shared<AudioObjectPropertyListenerBlock>(
+    auto listenerBlock = makeOwningBlock<AudioObjectPropertyListenerBlock>(
             [disconnectedPromise, removeListenerPromise](UInt32 numberOfProps,
                                                          const AudioObjectPropertyAddress *props) {
         // Called on HAL thread
@@ -309,8 +338,11 @@ std::optional<QFuture<void>> DeviceDisconnectMonitor::setDisconnectListener(Audi
         return std::nullopt;
     }
 
-    removeListenerPromise->future().then(this, [id, listenerBlock] {
-        removeListenerBlock(id, *listenerBlock);
+    removeListenerPromise->future().then(this, [this, id, listenerBlock] {
+        if (m_state && m_state->block == listenerBlock) {
+            removeListenerBlock(id, *listenerBlock);
+            m_state = std::nullopt;
+        }
     });
 
     m_state = State{

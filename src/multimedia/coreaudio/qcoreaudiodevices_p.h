@@ -21,6 +21,7 @@
 #  include <QtCore/qfuture.h>
 #  include <CoreAudio/AudioHardware.h>
 #  include <dispatch/dispatch.h>
+#  include <memory>
 #  include <optional>
 #endif
 
@@ -58,7 +59,7 @@ private:
     using UniqueDispatchQueue =
             std::unique_ptr<std::remove_pointer_t<dispatch_queue_t>, DispatchQueueDeleter>;
 
-    std::unique_ptr<AudioObjectPropertyListenerBlock> m_deviceListenerBlock;
+    std::shared_ptr<AudioObjectPropertyListenerBlock> m_deviceListenerBlock;
     UniqueDispatchQueue m_listenerQueue;
     std::shared_ptr<bool> m_destroyed = std::make_shared<bool>(false);
 #endif
