@@ -34,6 +34,13 @@ q23::expected<OffscreenGlRhi, QString> createOffscreenGlRhi()
         std::move(rhi),
     };
 }
+
+std::unique_ptr<QRhi> createGles2Rhi(QOffscreenSurface *fallbackSurface)
+{
+    QRhiGles2InitParams params;
+    params.fallbackSurface = fallbackSurface;
+    return std::unique_ptr<QRhi>{ QRhi::create(QRhi::OpenGLES2, &params) };
+}
 #endif
 
 #if QT_CONFIG(metal)
@@ -60,6 +67,13 @@ std::unique_ptr<QRhi> createWarpD3D11Rhi(const QWindowsD3D11TestDeviceContext &w
     QRhiD3D11InitParams params;
     return std::unique_ptr<QRhi>{ QRhi::create(QRhi::D3D11, &params, {}, &nativeHandles) };
 }
+
+std::unique_ptr<QRhi> createD3D12Rhi()
+{
+    QRhiD3D12InitParams params;
+    return std::unique_ptr<QRhi>{ QRhi::create(QRhi::D3D12, &params) };
+}
+
 #endif
 
 q23::expected<QByteArray, QString> readBackPlane(QRhi &rhi, quint64 handle, QSize planeSize,

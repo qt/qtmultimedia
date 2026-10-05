@@ -46,8 +46,8 @@ std::unique_ptr<QRhi> createOffscreenMetalRhi();
 
 #if defined(Q_OS_WIN)
 std::unique_ptr<QRhi> createOffscreenD3D11Rhi();
-
 std::unique_ptr<QRhi> createWarpD3D11Rhi(const QWindowsD3D11TestDeviceContext &warpDevice);
+std::unique_ptr<QRhi> createD3D12Rhi();
 #endif
 
 q23::expected<QByteArray, QString> readBackPlane(QRhi &, quint64 handle, QSize planeSize,
