@@ -30,7 +30,7 @@ void EncoderThread::setEndOfSourceStream()
 {
     {
         auto guard = lockLoopData();
-        m_endOfSourceStream = true;
+        m_endOfSourceStream.store(true, std::memory_order_release);
     }
 
     Q_EMIT endOfSourceStream();

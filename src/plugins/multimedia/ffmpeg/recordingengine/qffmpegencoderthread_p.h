@@ -21,6 +21,8 @@
 #include <QtCore/qpromise.h>
 #include <QtMultimedia/private/qmediainputencoderinterface_p.h>
 
+#include <atomic>
+
 QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
@@ -45,7 +47,7 @@ public:
 
     void setEndOfSourceStream();
 
-    bool isEndOfSourceStream() const { return m_endOfSourceStream; }
+    bool isEndOfSourceStream() const { return m_endOfSourceStream.load(std::memory_order_acquire); }
 
     bool isInitialized() const { return m_initialized; }
 
@@ -58,7 +60,7 @@ protected:
 
     virtual bool checkIfCanPushFrame() const = 0;
 
-    void resetEndOfSourceStream() { m_endOfSourceStream = false; }
+    void resetEndOfSourceStream() { m_endOfSourceStream.store(false, std::memory_order_release); }
 
     auto lockLoopData()
     {
@@ -79,7 +81,7 @@ Q_SIGNALS:
 
 protected:
     bool m_paused = false;
-    bool m_endOfSourceStream = false;
+    std::atomic_bool m_endOfSourceStream = false;
     bool m_autoStop = false;
     bool m_initialized = false;
     bool m_encodingStarted = false;
