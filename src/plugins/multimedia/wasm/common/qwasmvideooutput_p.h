@@ -194,6 +194,8 @@ private:
     float m_maxFrameRate = 0;
     float m_streamFrameRate = 0;
     EMSCRIPTEN_WEBGL_CONTEXT_HANDLE m_glContextHandle = 0;
+    // Pending requestAnimationFrame id, 0 while no loop is scheduled.
+    int m_animationFrameRequestId = 0;
     static bool orientationchangeCallback(int eventType, const EmscriptenOrientationChangeEvent *orientationChangeEvent, void *userData);
 };
 

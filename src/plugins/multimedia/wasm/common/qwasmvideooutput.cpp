@@ -70,6 +70,10 @@ bool QWasmVideoOutput::isPlatformiOs()
     return false;
 }
 
+// The orientationchange callback is global and takes a raw this pointer,
+// so remember which output it currently belongs to.
+static QWasmVideoOutput *s_orientationCallbackOwner = nullptr;
+
 QWasmVideoOutput::QWasmVideoOutput(QObject *parent) : QObject{ parent }
 {
     m_hasVideoFrame = checkForVideoFrame();
@@ -100,18 +104,34 @@ QWasmVideoOutput::QWasmVideoOutput(QObject *parent) : QObject{ parent }
             });
 
             emscripten_set_orientationchange_callback(this,false, &QWasmVideoOutput::orientationchangeCallback);
+            s_orientationCallbackOwner = this;
         }
     }
 }
 
 QWasmVideoOutput::~QWasmVideoOutput()
 {
+    // The pending callback holds a raw pointer to this object.
+    if (m_animationFrameRequestId)
+        emscripten_cancel_animation_frame(m_animationFrameRequestId);
+
+    if (s_orientationCallbackOwner == this) {
+        emscripten_set_orientationchange_callback(nullptr, false, nullptr);
+        s_orientationCallbackOwner = nullptr;
+    }
+
     if (m_mediaInputStream) {
         if (m_streamStarted) {
             m_streamStarted = false;
             m_mediaInputStream->unregisterConsumer();
         }
         JsMediaInputStream::releaseInstance(m_cameraId);
+    }
+
+    // Otherwise the hidden element keeps playing after the player is gone.
+    if (!m_video.isUndefined() && !m_video.isNull()) {
+        m_video.call<void>("pause");
+        m_video.call<void>("remove");
     }
 }
 
@@ -1084,12 +1104,18 @@ void QWasmVideoOutput::videoFrameCallback(void *context)
             emscripten::val::global("Uint8Array").new_(frameBytesAllocationSize);
     QWasmVideoOutput *wasmVideoOutput =
             reinterpret_cast<QWasmVideoOutput*>(videoElement["data-qvideocontext"].as<quintptr>());
+    // copyTo resolves asynchronously, the output may be gone by then.
+    QPointer<QWasmVideoOutput> videoOutputGuard = this;
 
     qstdweb::PromiseCallbacks copyToCallback;
-    copyToCallback.thenFunc = [this, wasmVideoOutput, oneVideoFrame, frameBuffer,
+    copyToCallback.thenFunc = [this, videoOutputGuard, wasmVideoOutput, oneVideoFrame, frameBuffer,
                                 displayWidth, displayHeight]
             (emscripten::val frameLayout)
     {
+        if (!videoOutputGuard) {
+            oneVideoFrame.call<emscripten::val>("close");
+            return;
+        }
         if (frameLayout.isNull() || frameLayout.isUndefined()) {
             qCDebug(qWasmMediaVideoOutput) << "theres no frameLayout";
             return;
@@ -1257,6 +1283,10 @@ void QWasmVideoOutput::videoFrameTimerCallback()
         }
     }
 
+    // canplaythrough and playing both land here, one loop per output is enough.
+    if (m_animationFrameRequestId)
+        return;
+
     // Single-shot callback: re-registers each frame so multiple QWasmVideoOutput
     // instances can coexist. emscripten_request_animation_frame_loop allows only one
     // active loop globally and would cancel another instance.
@@ -1265,15 +1295,16 @@ void QWasmVideoOutput::videoFrameTimerCallback()
         Q_UNUSED(frameTime);
 
         QWasmVideoOutput *videoOutput = reinterpret_cast<QWasmVideoOutput *>(context);
-        if (!videoOutput || videoOutput->m_isStopped) {
-            qCWarning(qWasmMediaVideoOutput) << "frame loop exit: isStopped=" << (videoOutput ? videoOutput->m_isStopped : true)
-                                             << "mode=" << (videoOutput ? videoOutput->m_currentVideoMode : -1);
+        videoOutput->m_animationFrameRequestId = 0;
+        if (videoOutput->m_isStopped) {
+            qCWarning(qWasmMediaVideoOutput) << "frame loop exit: isStopped=" << videoOutput->m_isStopped
+                                             << "mode=" << videoOutput->m_currentVideoMode;
             return false;
         }
 
         if (videoOutput->m_currentVideoMode == QWasmVideoOutput::VideoDisplay
             && videoOutput->m_currentMediaStatus != MediaStatus::LoadedMedia) {
-            emscripten_request_animation_frame(frame, context);
+            videoOutput->m_animationFrameRequestId = emscripten_request_animation_frame(frame, context);
             return true;
         }
 
@@ -1289,7 +1320,7 @@ void QWasmVideoOutput::videoFrameTimerCallback()
                                            << "paused=" << videoElement["paused"].as<bool>()
                                            << "ended=" << videoElement["ended"].as<bool>()
                                            << "readyState=" << videoElement["readyState"].as<int>();
-            emscripten_request_animation_frame(frame, context);
+            videoOutput->m_animationFrameRequestId = emscripten_request_animation_frame(frame, context);
             return true;
         }
 
@@ -1302,13 +1333,13 @@ void QWasmVideoOutput::videoFrameTimerCallback()
             videoOutput->videoComputeFrame(context);
         }
 
-        emscripten_request_animation_frame(frame, context);
+        videoOutput->m_animationFrameRequestId = emscripten_request_animation_frame(frame, context);
         return true;
     };
     if ((!m_isStopped  && m_video["className"].as<std::string>() == "Camera" && m_cameraIsReady)
         || (!m_isStopped  && m_currentVideoMode == QWasmVideoOutput::SurfaceCapture)
         || isReady())
-        emscripten_request_animation_frame(frame, this);
+        m_animationFrameRequestId = emscripten_request_animation_frame(frame, this);
 }
 
 QVideoFrameFormat::PixelFormat QWasmVideoOutput::fromJsPixelFormat(std::string_view videoFormat)
