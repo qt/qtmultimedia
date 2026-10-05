@@ -44,6 +44,10 @@ bool QWasmVideoOutput::isPlatformiOs()
     return false;
 }
 
+// The orientationchange callback is global and takes a raw this pointer,
+// so remember which output it currently belongs to.
+static QWasmVideoOutput *s_orientationCallbackOwner = nullptr;
+
 QWasmVideoOutput::QWasmVideoOutput(QObject *parent)
     : QObject{ parent }, m_frameGrabber(this)
 {
@@ -52,17 +56,29 @@ QWasmVideoOutput::QWasmVideoOutput(QObject *parent)
                 &QWasmVideoOutput::applyIosRotation);
 
         emscripten_set_orientationchange_callback(this, false, &QWasmVideoOutput::orientationchangeCallback);
+        s_orientationCallbackOwner = this;
     }
 }
 
 QWasmVideoOutput::~QWasmVideoOutput()
 {
+    if (s_orientationCallbackOwner == this) {
+        emscripten_set_orientationchange_callback(nullptr, false, nullptr);
+        s_orientationCallbackOwner = nullptr;
+    }
+
     if (m_mediaInputStream) {
         if (m_streamStarted) {
             m_streamStarted = false;
             m_mediaInputStream->unregisterConsumer();
         }
         JsMediaInputStream::releaseInstance(m_cameraId);
+    }
+
+    // Otherwise the hidden element keeps playing after the player is gone.
+    if (!m_video.isUndefined() && !m_video.isNull()) {
+        m_video.call<void>("pause");
+        m_video.call<void>("remove");
     }
 }
 

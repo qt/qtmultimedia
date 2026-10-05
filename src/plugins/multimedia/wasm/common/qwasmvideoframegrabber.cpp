@@ -12,6 +12,7 @@
 #include <QtGui/qopenglcontext.h>
 #include <QtGui/rhi/qrhi_platform.h>
 #include <QtCore/qdebug.h>
+#include <QtCore/qpointer.h>
 #include <QtCore/private/qstdweb_p.h>
 
 #include <emscripten/emscripten.h>
@@ -47,6 +48,13 @@ EM_JS(void, em_texImage2DFromVideo, (const char *videoId, int *widthOut, int *he
 QWasmVideoFrameGrabber::QWasmVideoFrameGrabber(QWasmVideoOutput *videoOutput)
     : m_videoOutput(videoOutput)
 {
+}
+
+QWasmVideoFrameGrabber::~QWasmVideoFrameGrabber()
+{
+    // The pending callback holds a raw pointer to this object.
+    if (m_animationFrameRequestId)
+        emscripten_cancel_animation_frame(m_animationFrameRequestId);
 }
 
 void QWasmVideoFrameGrabber::detectWebGLContext()
@@ -118,13 +126,18 @@ void QWasmVideoFrameGrabber::processVideoFrame()
     emscripten::val frameBytesAllocationSize = oneVideoFrame.call<emscripten::val>("allocationSize", options);
     emscripten::val frameBuffer =
             emscripten::val::global("Uint8Array").new_(frameBytesAllocationSize);
-    QWasmVideoOutput *videoOutput = m_videoOutput;
+    // copyTo resolves asynchronously, the output may be gone by then.
+    QPointer<QWasmVideoOutput> videoOutput = m_videoOutput;
 
     qstdweb::PromiseCallbacks copyToCallback;
     copyToCallback.thenFunc = [videoOutput, oneVideoFrame, frameBuffer,
                                 displayWidth, displayHeight]
             (emscripten::val frameLayout)
     {
+        if (!videoOutput) {
+            oneVideoFrame.call<emscripten::val>("close");
+            return;
+        }
         if (frameLayout.isNull() || frameLayout.isUndefined()) {
             qCDebug(qWasmMediaVideoOutput) << "theres no frameLayout";
             return;
@@ -218,6 +231,10 @@ void QWasmVideoFrameGrabber::startFrameLoop()
 
     m_videoOutput->detectIosCameraRotation();
 
+    // canplaythrough and playing both land here, one loop per grabber is enough.
+    if (m_animationFrameRequestId)
+        return;
+
     // Single-shot callback: re-registers each frame so multiple QWasmVideoOutput
     // instances can coexist. emscripten_request_animation_frame_loop allows only one
     // active loop globally and would cancel another instance.
@@ -226,7 +243,8 @@ void QWasmVideoFrameGrabber::startFrameLoop()
         Q_UNUSED(frameTime);
 
         QWasmVideoFrameGrabber *frameGrabber = reinterpret_cast<QWasmVideoFrameGrabber *>(context);
-        QWasmVideoOutput *videoOutput = frameGrabber ? frameGrabber->m_videoOutput : nullptr;
+        frameGrabber->m_animationFrameRequestId = 0;
+        QWasmVideoOutput *videoOutput = frameGrabber->m_videoOutput;
         if (!videoOutput || videoOutput->m_isStopped) {
             qCWarning(qWasmMediaVideoOutput) << "frame loop exit: isStopped=" << (videoOutput ? videoOutput->m_isStopped : true)
                                              << "mode=" << (videoOutput ? videoOutput->m_currentVideoMode : -1);
@@ -235,7 +253,7 @@ void QWasmVideoFrameGrabber::startFrameLoop()
 
         if (videoOutput->m_currentVideoMode == QWasmVideoOutput::VideoDisplay
             && videoOutput->m_currentMediaStatus != QWasmVideoOutput::MediaStatus::LoadedMedia) {
-            emscripten_request_animation_frame(frame, context);
+            frameGrabber->m_animationFrameRequestId = emscripten_request_animation_frame(frame, context);
             return true;
         }
 
@@ -251,7 +269,7 @@ void QWasmVideoFrameGrabber::startFrameLoop()
                                            << "paused=" << videoElement["paused"].as<bool>()
                                            << "ended=" << videoElement["ended"].as<bool>()
                                            << "readyState=" << videoElement["readyState"].as<int>();
-            emscripten_request_animation_frame(frame, context);
+            frameGrabber->m_animationFrameRequestId = emscripten_request_animation_frame(frame, context);
             return true;
         }
 
@@ -260,7 +278,7 @@ void QWasmVideoFrameGrabber::startFrameLoop()
         else
             frameGrabber->processVideoFrame();
 
-        emscripten_request_animation_frame(frame, context);
+        frameGrabber->m_animationFrameRequestId = emscripten_request_animation_frame(frame, context);
         return true;
     };
     if ((!m_videoOutput->m_isStopped
@@ -269,7 +287,7 @@ void QWasmVideoFrameGrabber::startFrameLoop()
         || (!m_videoOutput->m_isStopped
             && m_videoOutput->m_currentVideoMode == QWasmVideoOutput::SurfaceCapture)
         || m_videoOutput->isReady())
-        emscripten_request_animation_frame(frame, this);
+        m_animationFrameRequestId = emscripten_request_animation_frame(frame, this);
 }
 
 QVideoFrameFormat::PixelFormat QWasmVideoFrameGrabber::fromJsPixelFormat(std::string_view videoFormat)

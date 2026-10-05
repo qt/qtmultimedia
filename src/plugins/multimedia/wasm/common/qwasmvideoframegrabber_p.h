@@ -29,6 +29,7 @@ class QWasmVideoFrameGrabber
 {
 public:
     explicit QWasmVideoFrameGrabber(QWasmVideoOutput *videoOutput);
+    ~QWasmVideoFrameGrabber();
 
     void startFrameLoop();
 
@@ -41,6 +42,8 @@ private:
 
     QWasmVideoOutput *m_videoOutput = nullptr;
     EMSCRIPTEN_WEBGL_CONTEXT_HANDLE m_glContextHandle = 0;
+    // Pending requestAnimationFrame id, 0 while no loop is scheduled.
+    int m_animationFrameRequestId = 0;
     bool m_hasWebGLContext = false;
     bool m_webGLContextChecked = false;
 };
