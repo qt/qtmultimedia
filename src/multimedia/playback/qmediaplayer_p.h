@@ -57,7 +57,7 @@ public:
     QPointer<QObject> videoOutput;
     QUrl qrcMedia;
     std::unique_ptr<QFile> qrcFile;
-    QUrl source;
+    QUrl source; // unresolved
     QIODevice *stream = nullptr;
     QPlaybackOptions playbackOptions;
 

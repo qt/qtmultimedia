@@ -559,7 +559,7 @@ void QMediaPlayer::setPlaybackRate(qreal rate)
 
     Setting the media to a null QUrl will cause the player to discard all
     information relating to the current media source and to cease all I/O operations related
-    to that media. Setting the media will stop the playback.
+    to that media. Changing the media will stop the playback.
 
     \note This function returns immediately after recording the specified source of the media.
     It does not wait for the media to finish loading and does not check for errors. Listen for
@@ -575,17 +575,7 @@ void QMediaPlayer::setPlaybackRate(qreal rate)
 
 void QMediaPlayer::setSource(const QUrl &source)
 {
-    Q_D(QMediaPlayer);
-    stop();
-
-    if (d->source == source && d->stream == nullptr)
-        return;
-
-    d->source = source;
-    d->stream = nullptr;
-
-    d->setMedia(source, nullptr);
-    Q_EMIT sourceChanged(d->source);
+    setSourceDevice(nullptr, source);
 }
 
 /*!
@@ -597,6 +587,9 @@ void QMediaPlayer::setSource(const QUrl &source)
 
     For macOS the \a device should also be seek-able.
 
+    Setting the same device and source URL again does nothing:
+    playback continues and sourceChanged() is not emitted.
+
     \note This function returns immediately after recording the specified source
     of the media. It does not wait for the media to finish loading and does not
     check for errors. Listen for the mediaStatusChanged() and error() signals to
@@ -605,11 +598,11 @@ void QMediaPlayer::setSource(const QUrl &source)
 void QMediaPlayer::setSourceDevice(QIODevice *device, const QUrl &sourceUrl)
 {
     Q_D(QMediaPlayer);
-    stop();
 
     if (d->source == sourceUrl && d->stream == device)
         return;
 
+    stop();
     d->source = sourceUrl;
     d->stream = device;
 

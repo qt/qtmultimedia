@@ -60,6 +60,7 @@ private slots:
     void play_doesNotResetError();
     void setSource_resetsError();
     void setSourceDevice_resetsError();
+    void setSource_sameSource_doesNotStopPlayback();
     void testValid();
     void testMedia_data();
     void testMedia();
@@ -252,6 +253,31 @@ void tst_QMediaPlayer::setSourceDevice_resetsError()
     QCOMPARE_EQ(player->error(), QMediaPlayer::NoError);
     QVERIFY(player->errorString().isEmpty());
     QCOMPARE_EQ(errorSpy.size(), 1);
+}
+
+void tst_QMediaPlayer::setSource_sameSource_doesNotStopPlayback()
+{
+    const QUrl source{ u"file:///some.mp3"_s };
+    player->setSource(source);
+    mockPlayer->setIsValid(true);
+    mockPlayer->setState(QMediaPlayer::PlayingState, QMediaPlayer::LoadedMedia);
+    QCOMPARE_EQ(player->playbackState(), QMediaPlayer::PlayingState);
+    QVERIFY(player->isPlaying());
+
+    QSignalSpy stateSpy{ player, &QMediaPlayer::playbackStateChanged };
+    QSignalSpy playingSpy{ player, &QMediaPlayer::playingChanged };
+    QSignalSpy statusSpy{ player, &QMediaPlayer::mediaStatusChanged };
+    QSignalSpy sourceSpy{ player, &QMediaPlayer::sourceChanged };
+
+    player->setSource(source);
+
+    QCOMPARE_EQ(player->source(), source);
+    QCOMPARE_EQ(player->playbackState(), QMediaPlayer::PlayingState);
+    QVERIFY(player->isPlaying());
+    QCOMPARE_EQ(stateSpy.size(), 0);
+    QCOMPARE_EQ(playingSpy.size(), 0);
+    QCOMPARE_EQ(statusSpy.size(), 0);
+    QCOMPARE_EQ(sourceSpy.size(), 0);
 }
 
 void tst_QMediaPlayer::testValid()
