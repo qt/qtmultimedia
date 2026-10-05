@@ -33,12 +33,14 @@ std::unique_ptr<QRhi> createD3D12Rhi()
     return std::unique_ptr<QRhi>{ QRhi::create(QRhi::D3D12, &params) };
 }
 
+#if QT_CONFIG(opengl)
 std::unique_ptr<QRhi> createGles2Rhi(QOffscreenSurface *fallbackSurface)
 {
     QRhiGles2InitParams params;
     params.fallbackSurface = fallbackSurface;
     return std::unique_ptr<QRhi>{ QRhi::create(QRhi::OpenGLES2, &params) };
 }
+#endif
 
 ComPtr<ID3D11Texture2D> nativeTextureFromHandle(quint64 handle)
 {
@@ -62,7 +64,9 @@ private slots:
     void isRhiBackendSupported_returnsFalse_whenRhiIsNull();
     void isRhiBackendSupported_returnsFalse_whenRhiIsWarpD3D11();
     void isRhiBackendSupported_returnsFalse_whenRhiIsD3D12();
+#if QT_CONFIG(opengl)
     void isRhiBackendSupported_returnsFalse_whenRhiIsOpenGL();
+#endif
 
 private:
     ComResult<QWindowsD3D11TestDeviceContext> m_srcDevice = q23::unexpected{ E_FAIL };
@@ -253,6 +257,7 @@ void tst_QWindowsD3D11RhiTextureImporter::isRhiBackendSupported_returnsFalse_whe
     QVERIFY(!QWindowsD3D11RhiTextureImporter::isRhiBackendSupported(*rhi));
 }
 
+#if QT_CONFIG(opengl)
 void tst_QWindowsD3D11RhiTextureImporter::isRhiBackendSupported_returnsFalse_whenRhiIsOpenGL()
 {
     // OpenGL support is not implemented yet; verify the gap is reported rather than asserting.
@@ -263,6 +268,7 @@ void tst_QWindowsD3D11RhiTextureImporter::isRhiBackendSupported_returnsFalse_whe
 
     QVERIFY(!QWindowsD3D11RhiTextureImporter::isRhiBackendSupported(*rhi));
 }
+#endif
 
 QTEST_MAIN(tst_QWindowsD3D11RhiTextureImporter)
 
