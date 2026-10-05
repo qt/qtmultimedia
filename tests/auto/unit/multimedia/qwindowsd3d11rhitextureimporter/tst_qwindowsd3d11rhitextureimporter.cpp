@@ -10,7 +10,6 @@
 #include <QtMultimedia/private/qvideotexturehelper_p.h>
 
 #include <QtGui/rhi/qrhi.h>
-#include <QtGui/qoffscreensurface.h>
 #include <QtGui/qcolor.h>
 
 #include <QtCore/private/qsystemerror_p.h>
@@ -26,21 +25,6 @@ using QWindowsD3D11RhiTextureImporter = QtMultimediaPrivate::QWindowsD3D11RhiTex
                        : qPrintable(QSystemError::windowsComString((comresult).error())))
 
 namespace {
-
-std::unique_ptr<QRhi> createD3D12Rhi()
-{
-    QRhiD3D12InitParams params;
-    return std::unique_ptr<QRhi>{ QRhi::create(QRhi::D3D12, &params) };
-}
-
-#if QT_CONFIG(opengl)
-std::unique_ptr<QRhi> createGles2Rhi(QOffscreenSurface *fallbackSurface)
-{
-    QRhiGles2InitParams params;
-    params.fallbackSurface = fallbackSurface;
-    return std::unique_ptr<QRhi>{ QRhi::create(QRhi::OpenGLES2, &params) };
-}
-#endif
 
 ComPtr<ID3D11Texture2D> nativeTextureFromHandle(quint64 handle)
 {
@@ -261,12 +245,12 @@ void tst_QWindowsD3D11RhiTextureImporter::isRhiBackendSupported_returnsFalse_whe
 void tst_QWindowsD3D11RhiTextureImporter::isRhiBackendSupported_returnsFalse_whenRhiIsOpenGL()
 {
     // OpenGL support is not implemented yet; verify the gap is reported rather than asserting.
-    std::unique_ptr<QOffscreenSurface> fallbackSurface{ QRhiGles2InitParams::newFallbackSurface() };
-    std::unique_ptr<QRhi> rhi = createGles2Rhi(fallbackSurface.get());
-    if (!rhi)
+    auto offscreenGlRHI = createOffscreenGlRhi();
+
+    if (!offscreenGlRHI)
         QSKIP("Could not create an OpenGL QRhi on this machine");
 
-    QVERIFY(!QWindowsD3D11RhiTextureImporter::isRhiBackendSupported(*rhi));
+    QVERIFY(!QWindowsD3D11RhiTextureImporter::isRhiBackendSupported(*offscreenGlRHI->rhi));
 }
 #endif
 
