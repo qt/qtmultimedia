@@ -19,10 +19,9 @@
 #include <QtMultimedia/qmediametadata.h>
 #include <QtMultimedia/qmediaplayer.h>
 #include <QtMultimedia/qmediatimerange.h>
+#include <QtMultimedia/private/qmultimediautils_p.h>
 #include <QtCore/private/qglobal_p.h>
 #include <QtCore/qobject.h>
-
-#include <array>
 
 QT_BEGIN_NAMESPACE
 
@@ -82,19 +81,7 @@ public:
     static constexpr size_t NTrackTypes = qToUnderlying(TrackType::SubtitleStream) + 1;
 
     template <typename T>
-    class TrackTypeMap : public std::array<T, NTrackTypes>
-    {
-        using Base = std::array<T, NTrackTypes>;
-
-    public:
-        using Base::operator[];
-
-        constexpr T &operator[](TrackType type) { return Base::operator[](qToUnderlying(type)); }
-        constexpr const T &operator[](TrackType type) const
-        {
-            return Base::operator[](qToUnderlying(type));
-        }
-    };
+    using TrackTypeMap = QtMultimediaPrivate::EnumMap<TrackType, T, NTrackTypes>;
 
     virtual int trackCount(TrackType) { return 0; }
     virtual QMediaMetaData trackMetaData(TrackType /*type*/, int /*streamNumber*/) { return QMediaMetaData(); }
