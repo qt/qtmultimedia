@@ -1,7 +1,7 @@
 // Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include "fixture.h"
+#include "tst_qwindowcapturebackend_fixture.h"
 
 #include <QtCore/qoperatingsystemversion.h>
 #include <QtCore/qsystemsemaphore.h>
@@ -271,4 +271,4 @@ bool WindowCaptureWithWidgetInOtherProcessFixture::start()
 }
 
 
-#include "moc_fixture.cpp"
+#include "moc_tst_qwindowcapturebackend_fixture.cpp"

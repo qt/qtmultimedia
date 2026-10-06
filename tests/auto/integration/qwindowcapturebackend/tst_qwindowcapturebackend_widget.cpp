@@ -1,14 +1,14 @@
 // Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include "widget.h"
+#include "tst_qwindowcapturebackend_widget.h"
 
 #include <QtTest/qtest.h>
 #include <QtWidgets/qapplication.h>
 #include <QtGui/qwindow.h>
 #include <QtCore/qsystemsemaphore.h>
 
-#include "fixture.h"
+#include "tst_qwindowcapturebackend_fixture.h"
 
 TestWidget::TestWidget(const QString &uuid, QScreen *screen)
 {
@@ -177,4 +177,4 @@ bool showCaptureWindow(const QString &windowTitle)
     return result;
 }
 
-#include "moc_widget.cpp"
+#include "moc_tst_qwindowcapturebackend_widget.cpp"

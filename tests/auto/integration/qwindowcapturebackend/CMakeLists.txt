@@ -11,12 +11,12 @@ qt_internal_multimedia_add_test(tst_qwindowcapturebackend
     NEEDS_MEDIA_BACKEND_PLUGINS
     SOURCES
         tst_qwindowcapturebackend.cpp
-        widget.h
-        widget.cpp
-        grabber.h
-        grabber.cpp
-        fixture.h
-        fixture.cpp
+        tst_qwindowcapturebackend_widget.h
+        tst_qwindowcapturebackend_widget.cpp
+        tst_qwindowcapturebackend_grabber.h
+        tst_qwindowcapturebackend_grabber.cpp
+        tst_qwindowcapturebackend_fixture.h
+        tst_qwindowcapturebackend_fixture.cpp
 
     LIBRARIES
         Qt::Multimedia

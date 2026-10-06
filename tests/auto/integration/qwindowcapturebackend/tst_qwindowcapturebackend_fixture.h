@@ -1,8 +1,8 @@
 // Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#ifndef WINDOW_CAPTURE_FIXTURE_H
-#define WINDOW_CAPTURE_FIXTURE_H
+#ifndef TST_QWINDOWCAPTUREBACKEND_FIXTURE_H
+#define TST_QWINDOWCAPTUREBACKEND_FIXTURE_H
 
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
 #include <QtMultimediaTestLib/private/surfacecapturetestutils_p.h>
@@ -15,8 +15,8 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qprocess.h>
 
-#include "grabber.h"
-#include "widget.h"
+#include "tst_qwindowcapturebackend_grabber.h"
+#include "tst_qwindowcapturebackend_widget.h"
 
 #include <chrono>
 #include <memory>
