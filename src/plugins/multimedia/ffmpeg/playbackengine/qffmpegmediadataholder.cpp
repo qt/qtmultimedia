@@ -316,6 +316,7 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const QPlaybackOptions &playb
     };
 
     int ret = 0;
+    AVIOContext *customIo = context->pb;
     {
         AVFormatContext *contextRaw = context.release();
         ret = avformat_open_input(&contextRaw, url.constData(), nullptr, dict);
@@ -332,6 +333,7 @@ loadMedia(const QUrl &mediaUrl, QIODevice *stream, const QPlaybackOptions &playb
         qCWarning(qLcMediaDataHolder)
                 << "Could not open media. FFmpeg error description:" << AVError(ret);
 
+        freeAVIOContext(customIo);
         return q23::unexpected{
             MediaDataHolder::ContextError{ code, QMediaPlayer::tr("Could not open file") },
         };

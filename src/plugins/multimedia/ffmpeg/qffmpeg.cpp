@@ -340,6 +340,15 @@ SwsContextUPtr createSwsContext(const QSize &srcSize, AVPixelFormat srcPixFmt, c
     return SwsContextUPtr(result);
 }
 
+void freeAVIOContext(AVIOContext *&ctx)
+{
+    if (ctx == nullptr)
+        return;
+    av_freep(&ctx->buffer);
+    avio_context_free(&ctx);
+    Q_ASSERT(ctx == nullptr);
+}
+
 #ifdef Q_OS_DARWIN
 bool isCVFormatSupported(uint32_t cvFormat)
 {
