@@ -167,7 +167,24 @@ using AVHWFramesConstraintsUPtr =
         std::unique_ptr<AVHWFramesConstraints, AVDeleter<av_hwframe_constraints_free>>;
 using SwrContextUPtr = std::unique_ptr<SwrContext, AVDeleter<swr_free>>;
 using SwsContextUPtr = std::unique_ptr<SwsContext, AVDeleter<sws_freeContext>>;
-using AVDemuxerContextUPtr = std::unique_ptr<AVFormatContext, AVDeleter<avformat_close_input>>;
+
+void freeAVIOContext(AVIOContext *&);
+
+struct AVDemuxerContextDeleter
+{
+    void operator()(AVFormatContext *ctx) const
+    {
+        if (!ctx)
+            return;
+
+        if (ctx->flags & AVFMT_FLAG_CUSTOM_IO)
+            freeAVIOContext(ctx->pb);
+
+        avformat_close_input(&ctx);
+    }
+};
+
+using AVDemuxerContextUPtr = std::unique_ptr<AVFormatContext, AVDemuxerContextDeleter>;
 using AVMuxerContextUPtr = std::unique_ptr<AVFormatContext, AVDeleter<avformat_free_context>>;
 
 bool isAVFormatSupported(const Codec &, const PixelOrSampleFormat &);

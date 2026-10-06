@@ -100,8 +100,7 @@ void EncodingFormatContext::closeAVIO()
             auto closeResult = avio_closep(&m_avFormatContext->pb);
             Q_ASSERT(closeResult == 0);
         } else {
-            av_free(std::exchange(m_avFormatContext->pb->buffer, nullptr));
-            avio_context_free(&m_avFormatContext->pb);
+            freeAVIOContext(m_avFormatContext->pb);
         }
 
         m_outputFile.reset();
