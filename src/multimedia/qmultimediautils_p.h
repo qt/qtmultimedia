@@ -22,6 +22,7 @@
 #include <QtCore/qurl.h>
 #include <QtGui/rhi/qrhi.h>
 
+#include <array>
 #include <memory>
 
 QT_BEGIN_NAMESPACE
@@ -128,6 +129,26 @@ struct QrcMedia
 };
 
 q23::expected<QrcMedia, QString> qCopyQrcToTemporaryFile(QFile &, const QUrl &);
+
+// clang-format off
+template <typename Key, typename Value, size_t N>
+#ifdef __cpp_concepts
+requires std::is_enum_v<Key>
+#endif
+class EnumMap : public std::array<Value, N>
+// clang-format on
+{
+    using Base = std::array<Value, N>;
+
+public:
+    using Base::operator[];
+
+    constexpr Value &operator[](Key key) { return Base::operator[](qToUnderlying(key)); }
+    constexpr const Value &operator[](Key key) const
+    {
+        return Base::operator[](qToUnderlying(key));
+    }
+};
 
 } // namespace QtMultimediaPrivate
 
