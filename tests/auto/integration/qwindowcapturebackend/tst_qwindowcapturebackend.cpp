@@ -575,6 +575,10 @@ private slots:
         for (int i = 0; i <= restartCount; ++i) {
             if (i > 0) {
                 windowCapture.setActive(false);
+                // Deactivation flushes the backend, but frames it already produced may
+                // still be queued towards the sink. Deliver them before restarting, so
+                // they are not mistaken for the first frame of the new stream.
+                QCoreApplication::processEvents();
                 windowCapture.setActive(true);
             }
 
