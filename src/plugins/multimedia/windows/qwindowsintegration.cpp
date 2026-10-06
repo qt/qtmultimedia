@@ -2,17 +2,18 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qwindowsintegration_p.h"
-#include <private/qwindowsaudiodevices_p.h>
-#include <qwindowsformatinfo_p.h>
-#include <qwindowsmediacapture_p.h>
-#include <qwindowsimagecapture_p.h>
-#include <qwindowscamera_p.h>
-#include <qwindowsmediaencoder_p.h>
-#include <mfplayercontrol_p.h>
-#include <mfaudiodecodercontrol_p.h>
-#include <mfevrvideowindowcontrol_p.h>
-#include <private/qplatformmediaplugin_p.h>
 
+#include <decoder/mfaudiodecodercontrol_p.h>
+#include <mediacapture/qwindowscamera_p.h>
+#include <mediacapture/qwindowsimagecapture_p.h>
+#include <mediacapture/qwindowsmediacapture_p.h>
+#include <mediacapture/qwindowsmediaencoder_p.h>
+#include <player/qmediaengineplayer_p.h>
+#include <qmediaenginevideosink_p.h>
+#include <qwindowsformatinfo_p.h>
+
+#include <QtMultimedia/private/qplatformmediaplugin_p.h>
+#include <QtMultimedia/private/qwindowsaudiodevices_p.h>
 #include <QtCore/private/qfunctions_win_p.h>
 #include <QtCore/private/qsystemerror_p.h>
 
@@ -77,7 +78,7 @@ q23::expected<QPlatformAudioDecoder *, QString> QWindowsMediaIntegration::create
 
 q23::expected<QPlatformMediaPlayer *, QString> QWindowsMediaIntegration::createPlayer(QMediaPlayer *parent)
 {
-    return new MFPlayerControl(parent);
+    return new QMediaEnginePlayer(parent);
 }
 
 q23::expected<QPlatformCamera *, QString> QWindowsMediaIntegration::createCamera(QCamera *camera)
@@ -97,7 +98,7 @@ q23::expected<QPlatformImageCapture *, QString> QWindowsMediaIntegration::create
 
 q23::expected<QPlatformVideoSink *, QString> QWindowsMediaIntegration::createVideoSink(QVideoSink *sink)
 {
-    return new MFEvrVideoWindowControl(sink);
+    return new QMediaEngineVideoSink(sink);
 }
 
 QT_END_NAMESPACE

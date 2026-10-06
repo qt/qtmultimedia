@@ -10,16 +10,13 @@ qt_internal_add_plugin(QWindowsMediaPlugin
         decoder/mfaudiodecodercontrol.cpp decoder/mfaudiodecodercontrol_p.h
         decoder/mfdecodersourcereader.cpp decoder/mfdecodersourcereader_p.h
         decoder/mfdecodersourcereadercallback.cpp decoder/mfdecodersourcereadercallback_p.h
-        evr/evrcustompresenter.cpp evr/evrcustompresenter_p.h
-        evr/evrd3dpresentengine.cpp evr/evrd3dpresentengine_p.h
-        evr/evrhelpers.cpp evr/evrhelpers_p.h
-        evr/evrvideowindowcontrol.cpp evr/evrvideowindowcontrol_p.h
         mfstream.cpp mfstream_p.h
-        player/mfactivate.cpp player/mfactivate_p.h
-        player/mfevrvideowindowcontrol.cpp player/mfevrvideowindowcontrol_p.h
-        player/mfplayercontrol.cpp player/mfplayercontrol_p.h
-        player/mfplayersession.cpp player/mfplayersession_p.h
-        player/mfvideorenderercontrol.cpp player/mfvideorenderercontrol_p.h
+        player/qmediaengineplayer.cpp player/qmediaengineplayer_p.h
+        player/qmediaenginenotify.cpp player/qmediaenginenotify_p.h
+        player/qmediaenginetimedtextnotify.cpp player/qmediaenginetimedtextnotify_p.h
+        player/qmediaenginevideobuffer.cpp player/qmediaenginevideobuffer_p.h
+        qmediaenginevideosink.cpp qmediaenginevideosink_p.h
+        qwindowsmfdefs_p.h
         mediacapture/qwindowscamera.cpp
         mediacapture/qwindowscamera_p.h
         mediacapture/qwindowsimagecapture.cpp
@@ -35,13 +32,6 @@ qt_internal_add_plugin(QWindowsMediaPlugin
         qwindowsformatinfo.cpp qwindowsformatinfo_p.h
         qwindowsintegration.cpp qwindowsintegration_p.h
         sourceresolver.cpp sourceresolver_p.h
-    INCLUDE_DIRECTORIES
-        audio
-        common
-        decoder
-        evr
-        player
-        mediacapture
     DEFINES
         QT_NO_CAST_FROM_ASCII
         QT_NO_CAST_TO_ASCII
@@ -50,24 +40,16 @@ qt_internal_add_plugin(QWindowsMediaPlugin
         Qt::CorePrivate
         Qt::Concurrent
         uuid
-        d3d9
-        dxva2
-        evr
-        gdi32
-        ksuser
+        d3d11
+        d3d12
+        dxgi
+        dxguid
         mf
-        mfcore
         mfplat
         mfreadwrite
         mfuuid
         ole32
-        oleaut32
         propsys
         shlwapi
-        strmiids
-        amstrmid
         user32
-        winmm
-        wmcodecdspuuid
 )
-

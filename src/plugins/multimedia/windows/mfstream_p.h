@@ -32,7 +32,7 @@ class MFStream : public QObject, public QComObjectWithDeleteLater<MFStream, IMFB
 {
     Q_OBJECT
 public:
-    MFStream(QIODevice *stream, bool ownStream);
+    MFStream(QIODevice *stream, bool ownStream, bool synchronous = false);
 
     ~MFStream();
 
@@ -95,10 +95,12 @@ private:
 
     QPointer<QIODevice> m_stream;
     bool m_ownStream;
+    bool m_synchronous;
     DWORD m_workQueueId;
     QMutex m_mutex;
 
     void doRead();
+    ULONG m_syncReadCount = 0;
 
 protected:
     void customEvent(QEvent *event) override;

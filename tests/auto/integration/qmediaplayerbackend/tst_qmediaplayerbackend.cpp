@@ -379,7 +379,9 @@ void tst_QMediaPlayerBackend::initTestCase()
     if (qEnvironmentVariable("COIN_PLATFORM_ID") == "macos-15-x86_64-tests")
         QSKIP("Skipping test on macOS 15 x86_64, as it's flaky on CI");
 
-    QSKIP_WMF("Skipping Windows media foundations backend");
+    if (isWMFPlatform() && isCI())
+        QSKIP("Skipping test on WMF backend on CI: virtualized environments (without audio "
+              "device?) are slow and time out");
 
     QMediaPlayer player;
     if (!player.isAvailable())
@@ -767,6 +769,8 @@ void tst_QMediaPlayerBackend::setSource_updatesExpectedAttributes_whenMediaHasLo
         expectedState.duration = 15019;
     else if (isDarwinPlatform())
         expectedState.duration = 15000;
+    else if (isWMFPlatform())
+        expectedState.duration = 15019;
     else
         expectedState.duration = 15018;
     expectedState.hasAudio = true;
@@ -776,6 +780,11 @@ void tst_QMediaPlayerBackend::setSource_updatesExpectedAttributes_whenMediaHasLo
 
     if (isGStreamerPlatform())
         expectedState.bufferProgress = std::nullopt; // QTBUG-124633: can change before play()
+
+    if (isWMFPlatform()) {
+        expectedState.bufferProgress = std::nullopt;
+        expectedState.bufferedTimeRange = std::nullopt;
+    }
 
     MediaPlayerState actualState{ m_fixture->player };
 
@@ -1179,6 +1188,8 @@ void tst_QMediaPlayerBackend::
 
     QSKIP_DARWIN("No pixel aspect ratio scaling support");
     QSKIP_OHOS("OH_AVPlayer reports the encoded video size and does not apply pixel-aspect-ratio scaling");
+    QSKIP_WMF("IMFMediaEngine applies PAR as horizontal scaling only, while the test expects "
+              "vertical scaling for PAR < 1");
 
     QFETCH(MaybeUrl, url);
     QFETCH(QSize, expectedVideoSize);
@@ -1321,6 +1332,9 @@ void tst_QMediaPlayerBackend::pause_playback_resumesFromPausedPosition()
 
     if (isDarwinPlatform() && isCI())
         QSKIP("Flaky on CI: position may drift by 1ms after pause due to async event delivery");
+
+    QSKIP_WMF("IMFMediaEngine: position may drift by 30-40ms after resuming from pause due to "
+              "decode-priming latency");
 
     CHECK_SELECTED_URL(m_localVideoFile);
 
@@ -1518,7 +1532,7 @@ void tst_QMediaPlayerBackend::play_doesNotEnterMediaLoadingState_whenResumingPla
     QTRY_VERIFY(m_fixture->playbackStateChanged.contains({ QMediaPlayer::PlayingState }));
 
     // Note: Should not go through Loading again when play -> stop -> play
-    if (!isGStreamerPlatform()) {
+    if (!isGStreamerPlatform() && !isWMFPlatform()) {
         QCOMPARE_EQ(m_fixture->mediaStatusChanged,
                     SignalList({
                             { QMediaPlayer::BufferingMedia },
@@ -1526,7 +1540,7 @@ void tst_QMediaPlayerBackend::play_doesNotEnterMediaLoadingState_whenResumingPla
                     }));
     } else {
         QTRY_COMPARE_EQ(m_fixture->mediaStatusChanged,
-                        // gstreamer may see EndOfMedia
+                        // gstreamer/windows: short files may reach EndOfMedia
                         SignalList({
                                 { QMediaPlayer::BufferingMedia },
                                 { QMediaPlayer::BufferedMedia },
@@ -1596,6 +1610,7 @@ void tst_QMediaPlayerBackend::
 
     QSKIP_GSTREAMER("GStreamer tests fail");
     QSKIP_DARWIN("RTSP playback is not reliably supported with AVFoundation");
+    QSKIP_WMF("IMFMediaEngine does not support playing RTSP/RTP media streams directly");
 
     auto temporaryFile = copyResourceToTemporaryFile(QUrl(u"qrc:/testdata/colors.mp4"_s),
                                                      u"colors.XXXXXX.mp4"_s);
@@ -1662,6 +1677,8 @@ void tst_QMediaPlayerBackend::play_waitsForLastFrameEnd_whenPlayingVideoWithLong
 {
     QSKIP_GSTREAMER("test failure with gst_play");
     QSKIP_OHOS("OH_AVPlayer does not hold the last video frame for its full presentation duration");
+    QSKIP_WMF("IMFMediaEngine fires ENDED synchronously with the last frame "
+              "for single-frame videos, so elapsed time is always ~0");
 
     CHECK_SELECTED_URL(m_oneRedFrameVideo);
 
@@ -2241,6 +2258,8 @@ void tst_QMediaPlayerBackend::processEOS()
 {
     QSKIP_GSTREAMER("QTBUG-124005: spurious failure with gstreamer");
     QSKIP_OHOS("OH_AVPlayer end-of-stream handling does not follow the cross-platform signal contract");
+    QSKIP_WMF("IMFMediaEngine: short files reach EndOfMedia before playbackStateChanged can be "
+              "checked");
 
     QMediaPlayer &player = m_fixture->player;
     QSignalSpy &mediaStatusChanged = m_fixture->mediaStatusChanged;
@@ -2709,6 +2728,9 @@ void tst_QMediaPlayerBackend::seekInStoppedState()
     // ------
     // Same tests but after reaching the end of the media
 
+    QSKIP_WMF("IMFMediaEngine: rebuffering after seek from EndOfMedia "
+              "on byte stream sources exceeds the QTRY timeout");
+
     player.setPosition(player.duration() - 100);
     QTRY_COMPARE(player.mediaStatus(), QMediaPlayer::EndOfMedia);
     QCOMPARE(player.playbackState(), QMediaPlayer::StoppedState);
@@ -2880,6 +2902,7 @@ void tst_QMediaPlayerBackend::multiplePlaybackRateChangingStressTest()
 
     QSKIP_GSTREAMER(
             "playback rate changes are flushing the pipeline, so this test is not representative");
+    QSKIP_WMF("IMFMediaEngine: SetPlaybackRate is not instantaneous");
 
     TestVideoSink surface(false);
     QAudioOutput output;
@@ -2954,6 +2977,7 @@ void tst_QMediaPlayerBackend::multipleSeekStressTest()
     QSKIP_GSTREAMER("QTBUG-124005: spurious test failures with gstreamer");
     QSKIP_DARWIN("hasNewPixelBufferForItemTime returns false after rapid seeks");
     QSKIP_OHOS("OH_AVPlayer_Seek does not reliably deliver a frame on every seek under stress");
+    QSKIP_WMF("IMFMediaEngine: OnVideoStreamTick may not return a valid frame after rapid seeks");
 
 #ifdef Q_OS_ANDROID
     QSKIP("frame.toImage will return null image because of QTBUG-108446");
@@ -3065,6 +3089,8 @@ void tst_QMediaPlayerBackend::setPlaybackRate_changesActualRateAndFramesRenderin
 {
     QSKIP_GSTREAMER("QTBUG-124005: timing issues");
     QSKIP_OHOS("OH_AVPlayer playback rate is a discrete enum and frame timing differs from real-time scaling");
+    QSKIP_WMF("IMFMediaEngine: SetPlaybackRate is not instantaneous, causing position lag after "
+              "rate change");
 
     QMediaPlayer &player = m_fixture->player;
 
@@ -3201,6 +3227,7 @@ void tst_QMediaPlayerBackend::metadata()
     static QList allowedDurations{
         QVariant(7680), // FFmpeg-8
         QVariant(7704), // FFmpeg-7 and earlier, avfoundation
+        QVariant(7383), // IMFMediaEngine (Windows)
     };
     const QVariant durationVar = metadata.value(QMediaMetaData::Duration);
     QVERIFY2(allowedDurations.contains(durationVar),
@@ -3245,6 +3272,11 @@ void tst_QMediaPlayerBackend::metadata_returnsMetadataWithThumbnail_whenMediaHas
     QFETCH(const QColor, expectedColor);
 
     CHECK_SELECTED_URL(mediaUrl);
+
+    // MP4 artwork is only available via IPropertyStore which requires
+    // a file path — not supported for qrc:// byte stream sources.
+    if (isWMFPlatform() && hasThumbnail)
+        QSKIP_WMF("MP4 artwork requires a file path (IPropertyStore)");
 
     m_fixture->player.setSource(*mediaUrl);
     QTRY_VERIFY(!m_fixture->metadataChanged.empty());
@@ -3316,6 +3348,10 @@ void tst_QMediaPlayerBackend::metadata_returnsMetadataWithCorrectDate()
 
     if (mediaUrl == m_withQtDateAndCreationTime)
         QSKIP_DARWIN("Non-standard QuickTime metadata keys are not mapped");
+
+    // MF does not map MP4 date atoms to any metadata property
+    // accessible via IPropertyStore or IMFMetadataProvider.
+    QSKIP_WMF("MF does not expose date metadata from MP4 containers");
 
     CHECK_SELECTED_URL(mediaUrl);
 
@@ -3512,6 +3548,9 @@ void tst_QMediaPlayerBackend::pause_rendersVideoAtCorrectResolution()
     QFETCH(const int, height);
     CHECK_SELECTED_URL(mediaFile);
 
+    if (isWMFPlatform() && mediaFile == m_av1File)
+        QSKIP_WMF("IMFMediaEngine does not apply PAR for AV1/WebM files");
+
     // Arrange
     TestVideoSink surface(true);
     QMediaPlayer player;
@@ -3574,6 +3613,9 @@ void tst_QMediaPlayerBackend::position()
     if (isGStreamerPlatform()) {
         QCOMPARE_EQ(microseconds(lastFrame.startTime()), 500ms);
         QCOMPARE_EQ(microseconds(lastFrame.endTime()), 520ms);
+    } else if (isWMFPlatform()) {
+        QCOMPARE_EQ(microseconds(lastFrame.startTime()), 500ms);
+        QCOMPARE_EQ(microseconds(lastFrame.endTime()), 540ms);
     } else {
         QCOMPARE_EQ(microseconds(lastFrame.startTime()), 480ms);
         QCOMPARE_EQ(microseconds(lastFrame.endTime()), 520ms);
@@ -3652,16 +3694,17 @@ void tst_QMediaPlayerBackend::durationDetectionIssues()
     QCOMPARE(player.metaData().value(QMediaMetaData::Duration), expectedDuration);
 
     // Track duration properties
+    // IMFMediaEngine does not expose per-stream duration via GetStreamAttribute.
     const auto videoTracks = player.videoTracks();
     QCOMPARE(videoTracks.size(), expectedVideoTrackCount);
 
-    if (expectedVideoTrackCount != 0)
+    if (expectedVideoTrackCount != 0 && !isWMFPlatform())
         QCOMPARE(videoTracks.front().value(QMediaMetaData::Duration), expectedVideoTrackDuration);
 
     const auto audioTracks = player.audioTracks();
     QCOMPARE(audioTracks.size(), expectedAudioTrackCount);
 
-    if (expectedAudioTrackCount != 0)
+    if (expectedAudioTrackCount != 0 && !isWMFPlatform())
         QCOMPARE(audioTracks.front().value(QMediaMetaData::Duration), expectedAudioTrackDuration);
 }
 
@@ -3771,6 +3814,9 @@ void tst_QMediaPlayerBackend::finiteLoops()
     QCOMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::EndOfMedia);
 
     // Check that loop counter is reset when playback is restarted.
+    QSKIP_WMF("IMFMediaEngine: SetPlaybackRate(10) is not applied instantaneously "
+              "after play(), so 3 loops at rate=1 (~9.7s) may exceed the 8s timeout");
+
     m_fixture->positionChanged.clear();
     m_fixture->player.play();
     m_fixture->player.setPlaybackRate(10);
@@ -3975,6 +4021,7 @@ void tst_QMediaPlayerBackend::setVideoOutput_whilePlaying_doesNotDropFrames()
     QSKIP_GSTREAMER("QTBUG-124005: gstreamer will lose frames, possibly due to buffering");
     QSKIP_OHOS("Reattaching the video surface mid-playback drops the first frame in the new sink");
     QSKIP_DARWIN("DisplayLink-based rendering does not match video frame rate");
+    QSKIP_WMF("IMFMediaEngine: frame loss during video output switch with short files");
 
     CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
 
@@ -4148,7 +4195,23 @@ void tst_QMediaPlayerBackend::nonAsciiFileName()
                                                      u"äöüØøÆ中文.XXXXXX.wav"_s);
     QVERIFY(temporaryFile);
 
-    m_fixture->player.setSource(QUrl::fromLocalFile(temporaryFile->fileName()));
+    QString path = temporaryFile->fileName();
+
+    if (isWMFPlatform()) {
+        // QTemporaryFile on Windows uses FILE_FLAG_DELETE_ON_CLOSE, which
+        // marks the file as "pending delete". While Qt can still open such
+        // files (it uses FILE_SHARE_DELETE), IMFMediaEngine cannot because
+        // it does not use FILE_SHARE_DELETE when opening the file.
+        temporaryFile->setAutoRemove(false);
+        temporaryFile.reset();
+    }
+
+    auto cleanup = qScopeGuard([&] {
+        if (!temporaryFile)
+            QFile::remove(path);
+    });
+
+    m_fixture->player.setSource(QUrl::fromLocalFile(path));
     m_fixture->player.play();
 
     QTRY_VERIFY(m_fixture->player.mediaStatus() == QMediaPlayer::BufferedMedia
@@ -4299,21 +4362,29 @@ void tst_QMediaPlayerBackend::
     // Fetch path and expected color of upper left area of each file
     QFETCH(const MaybeUrl, fileURL);
     QFETCH(const QRgb, expectedColor);
-    QFETCH(const QtVideo::Rotation, expectedRotation);
+    QFETCH(QtVideo::Rotation, expectedRotation);
     QFETCH(const bool, expectedMirrored);
     QFETCH(const QSize, videoSize);
 
-    if (expectedMirrored)
+    if (expectedMirrored) {
         QSKIP_GSTREAMER("gst_play - 'mirrored' property not taken into account");
+        QSKIP_WMF("MF_MT_VIDEO_ROTATION does not support mirroring");
+    }
 
     CHECK_SELECTED_URL(fileURL);
+
+    // IMFMediaEngine applies rotation to decoded pixels directly and does not
+    // expose rotation through metadata or surfaceFormat.
+    if (isWMFPlatform())
+        expectedRotation = QtVideo::Rotation::None;
 
     // Load video file
     m_fixture->player.setSource(*fileURL);
     QTRY_COMPARE(m_fixture->player.mediaStatus(), QMediaPlayer::LoadedMedia);
 
     // Compare videoSize of the output video sink with the expected value before starting playing
-    QCOMPARE(m_fixture->surface.videoSize(), videoSize);
+    if (!isWMFPlatform()) // IMFMediaEngine: nativeSize available after FORMATCHANGE
+        QCOMPARE(m_fixture->surface.videoSize(), videoSize);
 
     // Compare orientation metadata of QMediaPlayer with expected value
     const auto metaData = m_fixture->player.metaData();
@@ -4579,8 +4650,9 @@ void tst_QMediaPlayerBackend::play_readsSubtitle()
 
     player.setSource(*m_subtitleVideo);
     QTRY_COMPARE(player.subtitleTracks().size(), 1);
-    if (!isGStreamerPlatform()) {
+    if (!isGStreamerPlatform() && !isWMFPlatform()) {
         // QTBUG-124005: spurious failures with gstreamer
+        // IMFTimedText does not expose per-track duration
         QCOMPARE_EQ(player.subtitleTracks()[0].value(QMediaMetaData::Duration), 3000);
     }
 
@@ -4592,6 +4664,8 @@ void tst_QMediaPlayerBackend::play_readsSubtitle()
     player.play();
 
     QSKIP_GSTREAMER("QTBUG-124005: gstreamer sometimes reports more than 4 subtitle events");
+    QSKIP_WMF("IMFMediaEngine: calling SetPlaybackRate before play() causes the first timed-text "
+              "cue to be delivered twice");
 
     QStringList expectedSubtitleList = {
         u"Hello"_s,
@@ -4616,13 +4690,16 @@ void tst_QMediaPlayerBackend::multiTrack_validateMetadata()
 
     QSKIP_GSTREAMER("GStreamer does not provide correct track order");
 
-    QCOMPARE(player.videoTracks()[0][QMediaMetaData::Title], u"One"_s);
-    QCOMPARE(player.videoTracks()[1][QMediaMetaData::Title], u"Two"_s);
-
     QCOMPARE(player.audioTracks()[0][QMediaMetaData::Language], QLocale::Language::English);
     QCOMPARE(player.audioTracks()[1][QMediaMetaData::Language], QLocale::Language::Spanish);
     QCOMPARE(player.subtitleTracks()[0][QMediaMetaData::Language], QLocale::Language::English);
     QCOMPARE(player.subtitleTracks()[1][QMediaMetaData::Language], QLocale::Language::Spanish);
+
+    QSKIP_WMF("IMFMediaEngine: MKV track titles are not exposed through stream attributes or "
+              "IPropertyStore");
+
+    QCOMPARE(player.videoTracks()[0][QMediaMetaData::Title], u"One"_s);
+    QCOMPARE(player.videoTracks()[1][QMediaMetaData::Title], u"Two"_s);
 }
 
 void tst_QMediaPlayerBackend::play_readsSubtitle_fromMultiTrack()
@@ -4793,6 +4870,7 @@ void tst_QMediaPlayerBackend::setActiveVideoTrack_switchesVideoTrack()
 {
     using namespace std::chrono_literals;
     QSKIP_GSTREAMER("GStreamer does not provide consistent track order");
+    QSKIP_WMF("IMFMediaEngine does not deliver video frames for multitrack MKV via byte stream");
     CHECK_SELECTED_URL(m_multitrackVideo);
 
     TestVideoSink &sink = m_fixture->surface;

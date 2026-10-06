@@ -9,14 +9,14 @@ QT_BEGIN_NAMESPACE
 //MFStream is added for supporting QIODevice type of media source.
 //It is used to delegate invocations from media foundation(through IMFByteStream) to QIODevice.
 
-MFStream::MFStream(QIODevice *stream, bool ownStream)
-    : m_stream(stream)
-    , m_ownStream(ownStream)
+MFStream::MFStream(QIODevice *stream, bool ownStream, bool synchronous)
+    : m_stream(stream), m_ownStream(ownStream), m_synchronous(synchronous)
 {
     //Move to the thread of the stream object
     //to make sure invocations on stream
     //are happened in the same thread of stream object
-    this->moveToThread(stream->thread());
+    if (!synchronous)
+        this->moveToThread(stream->thread());
 }
 
 MFStream::~MFStream()
@@ -99,6 +99,22 @@ STDMETHODIMP MFStream::BeginRead(BYTE *pb, ULONG cb, IMFAsyncCallback *pCallback
     if (!pCallback || !pb)
         return E_INVALIDARG;
 
+    if (m_synchronous) {
+        // Synchronous mode: read immediately and invoke callback.
+        ULONG cbRead = 0;
+        Read(pb, cb, &cbRead);
+
+        ComPtr<IMFAsyncResult> result;
+        HRESULT hr = MFCreateAsyncResult(nullptr, pCallback, punkState, &result);
+        if (FAILED(hr))
+            return hr;
+
+        m_syncReadCount = cbRead;
+        result->SetStatus(S_OK);
+        hr = MFInvokeCallback(result.Get());
+        return hr;
+    }
+
     Q_ASSERT(m_currentReadResult == nullptr);
 
     ComPtr<AsyncReadState> state = makeComObject<AsyncReadState>(pb, cb);
@@ -115,6 +131,11 @@ STDMETHODIMP MFStream::EndRead(IMFAsyncResult* pResult, ULONG *pcbRead)
 {
     if (!pcbRead)
         return E_INVALIDARG;
+
+    if (m_synchronous) {
+        *pcbRead = m_syncReadCount;
+        return S_OK;
+    }
 
     ComPtr<IUnknown> pUnk;
     pResult->GetObject(&pUnk);
