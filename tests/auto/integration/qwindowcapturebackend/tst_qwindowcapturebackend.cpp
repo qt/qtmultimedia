@@ -395,7 +395,7 @@ private slots:
             capturedFrameCount);
 
         // If this fails, it's an indication we stalled the stream.
-        QCOMPARE_GE(capturedFrames.size(), capturedFrameCount);
+        QCOMPARE_GE(capturedFrames.size(), size_t(capturedFrameCount));
     }
 
     void setWindow_switchesSource_whileActive()
