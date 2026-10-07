@@ -19,4 +19,5 @@ qt_internal_multimedia_add_test(tst_qvideoframebackend
     TESTDATA
         testdata/colors.mp4
         testdata/one_red_frame.mp4
+        testdata/mastering_1000nits.mp4
 )

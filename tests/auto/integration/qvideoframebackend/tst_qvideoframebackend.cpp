@@ -28,11 +28,12 @@ class tst_QVideoFrameBackend : public QIntegrationTestBase
 
 public slots:
     void initTestCase();
-    void init() { }
-    void cleanup() { }
 
 private slots:
     void testMediaFilesAreSupported();
+
+    void maxLuminance_isTheMasteringDisplaysPeakInNits_data();
+    void maxLuminance_isTheMasteringDisplaysPeakInNits();
 
     void toImage_retainsThePreviousMappedState_data();
     void toImage_retainsThePreviousMappedState();
@@ -56,6 +57,7 @@ private:
 private:
     MaybeUrl m_oneRedFrameVideo{ q23::unexpect };
     MaybeUrl m_colorsVideo{ q23::unexpect };
+    MaybeUrl m_masteringVideo{ q23::unexpect };
     MediaFileSelector m_mediaSelector;
 };
 
@@ -117,6 +119,7 @@ void tst_QVideoFrameBackend::initTestCase()
 
     m_oneRedFrameVideo = m_mediaSelector.select("qrc:/testdata/one_red_frame.mp4");
     m_colorsVideo = m_mediaSelector.select("qrc:/testdata/colors.mp4");
+    m_masteringVideo = m_mediaSelector.select("qrc:/testdata/mastering_1000nits.mp4");
 }
 
 void tst_QVideoFrameBackend::testMediaFilesAreSupported()
@@ -127,8 +130,50 @@ void tst_QVideoFrameBackend::testMediaFilesAreSupported()
 #ifdef Q_OS_HARMONY
     QSKIP("OHOS demuxer rejects some H.264/HEVC/AV1 profiles used by the test media");
 #endif
+    if (isWMFPlatform())
+        QSKIP("WMF backend cannot mastering_1000nits.mp4");
 
     QCOMPARE(m_mediaSelector.dumpErrors(), "");
+}
+
+void tst_QVideoFrameBackend::maxLuminance_isTheMasteringDisplaysPeakInNits_data()
+{
+#ifdef Q_OS_ANDROID
+    QSKIP("Skip test cases with mediaPlayerFrame on Android CI, because of QTBUG-118571");
+#endif
+    QTest::addColumn<QUrl>("source");
+    QTest::addColumn<float>("expectedMaxLuminance");
+
+    // Files without mastering display metadata fall back to the SDR peak
+    if (m_oneRedFrameVideo)
+        QTest::newRow("one_red_frame") << *m_oneRedFrameVideo << 100.f;
+    if (m_colorsVideo)
+        QTest::newRow("colors") << *m_colorsVideo << 100.f;
+
+    // HEVC with the SMPTE ST 2086 mastering display metadata of x265's
+    // --master-display "...L(10000000,1)": a peak of 1000 cd/m2 (the unit of the frame's
+    // AVMasteringDisplayMetadata, a rational that is 10000000/10000 here)
+    if (m_masteringVideo)
+        QTest::newRow("mastering_1000nits") << *m_masteringVideo << 1000.f;
+}
+
+void tst_QVideoFrameBackend::maxLuminance_isTheMasteringDisplaysPeakInNits()
+{
+    QFETCH(const QUrl, source);
+    QFETCH(const float, expectedMaxLuminance);
+
+    if (!isFFMPEGPlatform())
+        QSKIP("Only the FFmpeg backend reads the mastering display metadata");
+
+    TestVideoSink sink;
+    QMediaPlayer player;
+    player.setVideoOutput(&sink);
+    player.setSource(source);
+    player.play();
+
+    const QVideoFrame frame = sink.waitForFrame();
+    QVERIFY(frame.isValid());
+    QCOMPARE(frame.surfaceFormat().maxLuminance(), expectedMaxLuminance);
 }
 
 void tst_QVideoFrameBackend::toImage_retainsThePreviousMappedState_data()
