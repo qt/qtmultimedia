@@ -315,49 +315,48 @@ void QAndroidCamera::setActive(bool active)
         return;
     }
 
-    if (active && checkCameraPermission()) {
-        QWriteLocker locker(rwLock);
-        int width = m_cameraFormat.resolution().width();
-        int height = m_cameraFormat.resolution().height();
-
-        if (width < 0 || height < 0) {
-            m_cameraFormat = getDefaultCameraFormat(m_cameraDevice);
-            width = m_cameraFormat.resolution().width();
-            height = m_cameraFormat.resolution().height();
-        }
-
-        width = FFALIGN(width, 16);
-        height = FFALIGN(height, 16);
-
-        setState(State::WaitingOpen);
-        g_qcameras->insert(QString::fromUtf8(m_cameraDevice.id()), this);
-
-        // Create frameFactory when ImageReader is created;
-        m_frameFactory = QAndroidVideoFrameFactory::create();
-
-        // this should use the camera format.
-        // but there is only 2 fully supported formats on android - JPG and YUV420P
-        // and JPEG is not supported for encoding in FFmpeg, so it's locked for YUV for now.
-        const static int imageFormat =
-                QJniObject::getStaticField<QtJniTypes::ImageFormat, jint>("YUV_420_888");
-        m_jniCamera.callMethod<void>("prepareCamera", jint(width), jint(height),
-                                     jint(imageFormat), jint(m_cameraFormat.minFrameRate()),
-                                     jint(m_cameraFormat.maxFrameRate()));
-
-        bool canOpen = m_jniCamera.callMethod<jboolean>(
-                "open",
-                QJniObject::fromString(QString::fromUtf8(m_cameraDevice.id())).object<jstring>());
-
-        if (!canOpen) {
-            g_qcameras->remove(QString::fromUtf8(m_cameraDevice.id()));
-            setState(State::Closed);
-            updateError(QCamera::CameraError,
-                        QString(u"Failed to start camera: ").append(m_cameraDevice.description()));
-        }
-    } else {
+    if (!active || !checkCameraPermission()) {
         m_jniCamera.callMethod<void>("stopAndClose");
         m_jniCamera.callMethod<void>("clearSurfaces");
         setState(State::Closed);
+        return;
+    }
+
+    QWriteLocker locker(rwLock);
+    QString cameraId = QString::fromUtf8(m_cameraDevice.id());
+    int width = m_cameraFormat.resolution().width();
+    int height = m_cameraFormat.resolution().height();
+
+    if (width < 0 || height < 0) {
+        m_cameraFormat = getDefaultCameraFormat(m_cameraDevice);
+        width = m_cameraFormat.resolution().width();
+        height = m_cameraFormat.resolution().height();
+    }
+
+    m_videoResolution = { FFALIGN(width, 16), FFALIGN(height, 16) };
+
+    setState(State::WaitingOpen);
+    g_qcameras->insert(cameraId, this);
+
+    // Create frameFactory when ImageReader is created;
+    m_frameFactory = QAndroidVideoFrameFactory::create();
+
+    // Most supported format combination for ImageReaders in a session is YUV_420_888 for
+    // preview/video, and JPEG for stills
+    // TODO: Set session combinations based on device capabilities:
+    // https://developer.android.com/reference/android/hardware/camera2/CameraDevice#regular-capture
+    m_jniCamera.callMethod<void>("prepareCamera", static_cast<jint>(m_videoResolution.width()),
+                                 static_cast<jint>(m_videoResolution.height()),
+                                 static_cast<jint>(m_cameraFormat.minFrameRate()),
+                                 static_cast<jint>(m_cameraFormat.maxFrameRate()));
+
+    bool canOpen = m_jniCamera.callMethod<jboolean>("open", cameraId);
+
+    if (!canOpen) {
+        g_qcameras->remove(cameraId);
+        setState(State::Closed);
+        updateError(QCamera::CameraError,
+                    QString(u"Failed to start camera: ").append(m_cameraDevice.description()));
     }
 }
 
@@ -408,11 +407,7 @@ bool QAndroidCamera::setCameraFormat(const QCameraFormat &format)
 
     m_cameraFormat = chosenFormat;
 
-    if (isActive()) {
-        // Restart the camera to set new camera format
-        setActive(false);
-        setActive(true);
-    }
+    restartCamera();
 
     return true;
 }
@@ -537,6 +532,16 @@ void QAndroidCamera::cleanCameraCharacteristics()
     m_supportedFocusModes.clear();
 
     supportedFeaturesChanged({});
+}
+
+// Restart camera now, must be called from owning thread
+void QAndroidCamera::restartCamera()
+{
+    if (!isActive())
+        return;
+
+    setActive(false);
+    setActive(true);
 }
 
 void QAndroidCamera::setFocusDistance(float distance)
