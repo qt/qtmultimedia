@@ -71,15 +71,25 @@ public:
         qint64 noOlderThanTime = 0);
 
     /*!
-        Waits for the first frame of the current stream and consumes it, so that
-        subsequent calls wait for the first frame of the next stream. A null-frame,
-        or the capture becoming active, marks the start of a new stream, so the
-        next valid frame after it is the first frame of that stream.
+        Waits for the first frame of the current stream, and returns a copy of its
+        info. The capture becoming active marks the start of a new stream, so the
+        next valid frame after it is the first frame of that stream. Calling this
+        again within the same stream returns the same info.
 
         Returns std::nullopt if no first frame arrived before the global timeout,
         or if the grabber was stopped. Can never return an invalid frame.
     */
-    [[nodiscard]] std::optional<QVideoFrame> consumeFirstFrame();
+    [[nodiscard]] std::optional<VideoFrameInfo> tryWaitForFirstFrameInfo();
+
+    /*!
+        Same as tryWaitForFirstFrameInfo(), but returns the video frame itself, and
+        consumes it. The first frame of a stream is only kept alive if
+        setRetainFirstVideoFrame() was enabled before the stream started, since
+        holding on to frames can stall backends that use a fixed-size frame pool.
+    */
+    [[nodiscard]] std::optional<QVideoFrame> consumeFirstVideoFrame();
+
+    void setRetainFirstVideoFrame(bool retain);
 
     [[nodiscard]] std::chrono::milliseconds durationBetweenFrames(qsizetype frameCount = 1);
 
@@ -90,12 +100,14 @@ public slots:
 
     /*!
         Starts tracking a new stream when the capture becomes active, so that
-        consumeFirstFrame() waits for the first frame of it.
+        tryWaitForFirstFrameInfo() waits for the first frame of it.
     */
     void onCaptureActiveChanged(bool active);
 
 private:
     void onFrameReceived(const QVideoFrame &frame);
+    [[nodiscard]] bool waitForFirstFrame();
+    void resetFirstFrame();
 
     template <typename Frame>
     [[nodiscard]] std::vector<Frame> waitAndTake(
@@ -110,7 +122,10 @@ private:
     std::vector<QVideoFrame> m_videoFrames;
 
     // The first frame of the current stream, until it is consumed.
-    std::optional<QVideoFrame> m_firstFrame;
+    std::optional<VideoFrameInfo> m_firstFrameInfo;
+    // Same frame as above. Only populated if m_retainFirstVideoFrame is set.
+    bool m_retainFirstVideoFrame = false;
+    std::optional<QVideoFrame> m_firstVideoFrame;
     // Whether we have received the first frame of the current stream.
     bool m_streamStarted = false;
 

@@ -59,10 +59,12 @@ void FrameGrabber::onFrameReceived(const QVideoFrame &frame)
 
     if (!frame.isValid()) {
         // A null-frame ends the stream, and the next valid frame starts a new one.
-        m_firstFrame.reset();
+        resetFirstFrame();
         m_streamStarted = false;
     } else if (!m_streamStarted) {
-        m_firstFrame = frame;
+        m_firstFrameInfo = m_frameInfos.back();
+        if (m_retainFirstVideoFrame)
+            m_firstVideoFrame = frame;
         m_streamStarted = true;
     }
 }
@@ -129,19 +131,50 @@ std::vector<Frame> FrameGrabber::waitAndTake(
     return std::exchange(frames, {});
 }
 
-std::optional<QVideoFrame> FrameGrabber::consumeFirstFrame()
+bool FrameGrabber::waitForFirstFrame()
 {
     const auto firstFrameReceivedOrStopped = [this] {
-        return m_stopped || m_firstFrame;
+        return m_stopped || m_firstFrameInfo;
     };
 
     if (!QTest::qWaitFor(firstFrameReceivedOrStopped, surfaceCaptureTestTimeout()))
+        return false;
+
+    return !m_stopped;
+}
+
+std::optional<VideoFrameInfo> FrameGrabber::tryWaitForFirstFrameInfo()
+{
+    if (!waitForFirstFrame())
         return std::nullopt;
 
-    if (m_stopped)
+    return m_firstFrameInfo;
+}
+
+std::optional<QVideoFrame> FrameGrabber::consumeFirstVideoFrame()
+{
+    Q_ASSERT_X(
+        m_retainFirstVideoFrame,
+        "FrameGrabber::consumeFirstVideoFrame",
+        "setRetainFirstVideoFrame() must be enabled before the stream starts");
+
+    if (!waitForFirstFrame())
         return std::nullopt;
 
-    return std::exchange(m_firstFrame, std::nullopt);
+    return std::exchange(m_firstVideoFrame, std::nullopt);
+}
+
+void FrameGrabber::setRetainFirstVideoFrame(bool retain)
+{
+    m_retainFirstVideoFrame = retain;
+    if (!retain)
+        m_firstVideoFrame.reset();
+}
+
+void FrameGrabber::resetFirstFrame()
+{
+    m_firstFrameInfo.reset();
+    m_firstVideoFrame.reset();
 }
 
 std::chrono::milliseconds FrameGrabber::durationBetweenFrames(qsizetype frameCount)
@@ -184,7 +217,7 @@ void FrameGrabber::onCaptureActiveChanged(bool active)
     // Not all backends end the stream with a null-frame, so treat activation
     // as the start of a new stream as well.
     if (active) {
-        m_firstFrame.reset();
+        resetFirstFrame();
         m_streamStarted = false;
     }
 }

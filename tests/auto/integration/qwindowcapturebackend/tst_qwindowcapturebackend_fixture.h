@@ -67,10 +67,17 @@ public:
                               const QString &fileSuffix = "");
 
     /*!
-        Waits for the first frame of the current stream and consumes it.
-        See FrameGrabber::consumeFirstFrame().
+        Waits for the first frame of the current stream.
+        See FrameGrabber::tryWaitForFirstFrameInfo().
     */
-    [[nodiscard]] std::optional<QVideoFrame> consumeFirstFrame();
+    [[nodiscard]] std::optional<QtMultimediaTest::VideoFrameInfo> tryWaitForFirstFrameInfo();
+
+    /*!
+        Same as tryWaitForFirstFrameInfo(), but returns the video frame itself.
+        Requires m_grabber.setRetainFirstVideoFrame(true) before starting the capture.
+        See FrameGrabber::consumeFirstVideoFrame().
+    */
+    [[nodiscard]] std::optional<QVideoFrame> consumeFirstVideoFrame();
 
     void waitForWindowGeometryToSettle(FirstFrameSizePolicy policy) const;
 

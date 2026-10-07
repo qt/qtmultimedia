@@ -14,6 +14,7 @@
 using namespace std::chrono_literals;
 
 using QtMultimediaTest::FrameGrabber;
+using QtMultimediaTest::VideoFrameInfo;
 using QtMultimediaTest::surfaceCaptureTestTimeout;
 
 std::chrono::milliseconds WindowCaptureFixture::windowGeometrySettleDelay = 0ms;
@@ -41,9 +42,14 @@ WindowCaptureFixture::WindowCaptureFixture()
         &FrameGrabber::onCaptureActiveChanged);
 }
 
-std::optional<QVideoFrame> WindowCaptureFixture::consumeFirstFrame()
+std::optional<VideoFrameInfo> WindowCaptureFixture::tryWaitForFirstFrameInfo()
 {
-    return m_grabber.consumeFirstFrame();
+    return m_grabber.tryWaitForFirstFrameInfo();
+}
+
+std::optional<QVideoFrame> WindowCaptureFixture::consumeFirstVideoFrame()
+{
+    return m_grabber.consumeFirstVideoFrame();
 }
 
 void WindowCaptureFixture::waitForWindowGeometryToSettle(FirstFrameSizePolicy policy) const
