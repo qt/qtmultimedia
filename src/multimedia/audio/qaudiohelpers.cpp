@@ -460,14 +460,15 @@ std::optional<float> sanitizeVolume(float volume, float lastValue)
     return volume;
 }
 
-void fillSilence(QSpan<std::byte> buffer, NativeSampleFormat sampleFormat) noexcept
+void fillSilence(QSpan<std::byte> buffer,
+                 NativeSampleFormat sampleFormat) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     namespace ranges = QtMultimediaPrivate::ranges;
     ranges::fill(buffer,
                  sampleFormat == NativeSampleFormat::uint8_t ? std::byte{ 0x80 } : std::byte{ 0 });
 }
 
-void fillSilence(QSpan<std::byte> buffer, QAudioFormat fmt) noexcept
+void fillSilence(QSpan<std::byte> buffer, QAudioFormat fmt) noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     fillSilence(buffer, toNativeSampleFormat(fmt.sampleFormat()));
 }
