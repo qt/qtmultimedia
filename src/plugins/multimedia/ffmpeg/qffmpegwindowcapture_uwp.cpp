@@ -146,12 +146,17 @@ struct WindowGrabber
     WindowGrabber() = default;
 
     WindowGrabber(IDXGIAdapter1 *adapter, HWND hwnd, bool ignoreCursor)
-        : m_captureWindow{ hwnd }, m_frameSize{ getWindowSize(hwnd) }
+        : m_captureWindow{ hwnd }
     {
         check_hresult(D3D11CreateDevice(adapter, D3D_DRIVER_TYPE_UNKNOWN, nullptr, 0, nullptr, 0,
                                         D3D11_SDK_VERSION, m_device.put(), nullptr, nullptr));
 
         const auto captureItem = createCaptureItem(hwnd);
+
+        // The capture item excludes invisible borders that GetWindowRect includes. Using the
+        // window rect here would make the first frame look like a resize, which is dropped,
+        // and a static window never delivers another one.
+        m_frameSize = captureItem.Size();
 
         m_framePool = Direct3D11CaptureFramePool::CreateFreeThreaded(
                 getCaptureDevice(m_device), m_pixelFormat, 1,

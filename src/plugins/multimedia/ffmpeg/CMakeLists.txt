@@ -177,6 +177,7 @@ qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION WIN32
         qwincapturablewindows.cpp qwincapturablewindows_p.h
     LIBRARIES
         Qt::MultimediaPrivate
+        Dwmapi
         mf
         mfplat
         mfreadwrite
@@ -187,7 +188,6 @@ qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION QT_FEATURE_cpp_
     SOURCES
         qffmpegwindowcapture_uwp.cpp qffmpegwindowcapture_uwp_p.h
     LIBRARIES
-        Dwmapi
         Dxva2
         windowsapp
 )
