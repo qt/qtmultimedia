@@ -35,7 +35,7 @@ class CameraStillPhotoFinalizerCallback extends CameraCaptureSession.CaptureCall
     {
         mMainCameraObject.onStillPhotoCaptureFailed(mMainCameraObject.mCameraId);
         synchronized (mMainCameraObject.mSyncedMembers) {
-            mMainCameraObject.mSyncedMembers.mIsTakingStillPhoto = false;
+            mMainCameraObject.mSyncedMembers.endStillPhoto();
         }
         try {
             mMainCameraObject.setRepeatingRequestToPreview();
@@ -54,15 +54,15 @@ class CameraStillPhotoFinalizerCallback extends CameraCaptureSession.CaptureCall
         try {
             mMainCameraObject.mExifDataHandler = new QtExifDataHandler(result);
             synchronized (mMainCameraObject.mSyncedMembers) {
-                // If mIsStarted is true, it's an indication the QCamera is active and wants
+                // If the preview is started, it's an indication the QCamera is active and wants
                 // to keep receiving preview frames.
-                if (mMainCameraObject.mSyncedMembers.mIsStarted) {
+                if (mMainCameraObject.mSyncedMembers.isStarted()) {
                     mMainCameraObject.setRepeatingRequestToPreview();
                 }
 
                 // TODO: If we implement queueing of multiple photos, we should start the
                 // process of capturing the next photo here.
-                mMainCameraObject.mSyncedMembers.mIsTakingStillPhoto = false;
+                mMainCameraObject.mSyncedMembers.endStillPhoto();
             }
         } catch (CameraAccessException e) {
             e.printStackTrace();

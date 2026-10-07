@@ -69,9 +69,24 @@ class QtCamera2 {
     // It also acts as the mutex for these variables.
     // All access to these variables must happen after locking the instance.
     class SyncedMembers {
-        boolean mIsStarted = false;
+        // Idle -> Started: start(). Started <-> Capturing: still photo begins/ends.
+        // Anything -> Idle: stopAndClose().
+        enum State { Idle, Started, Capturing }
+        State mState = State.Idle;
 
-        boolean mIsTakingStillPhoto = false;
+        // Preview is running, settings are applied to it directly
+        boolean isStarted() {
+            return mState == State.Started || mState == State.Capturing;
+        }
+
+        boolean isTakingStillPhoto() {
+            return mState == State.Capturing;
+        }
+
+        void endStillPhoto() {
+            if (mState == State.Capturing)
+                mState = State.Started;
+        }
 
         private CameraSettings mCameraSettings = new CameraSettings();
     }
@@ -294,7 +309,8 @@ class QtCamera2 {
         try {
             synchronized (mSyncedMembers) {
                 setRepeatingRequestToPreview();
-                mSyncedMembers.mIsStarted = true;
+                if (!mSyncedMembers.isTakingStillPhoto())
+                    mSyncedMembers.mState = SyncedMembers.State.Started;
             }
             return true;
         } catch (CameraAccessException exception) {
@@ -314,7 +330,7 @@ class QtCamera2 {
 
         synchronized (mSyncedMembers) {
             try {
-                if (mSyncedMembers.mIsTakingStillPhoto)
+                if (mSyncedMembers.isTakingStillPhoto())
                     abortedStillPhotoCameraId = mCameraId;
                 if (null != mCaptureSession) {
                     mCaptureSession.close();
@@ -331,8 +347,7 @@ class QtCamera2 {
             } catch (Exception exception) {
                 Log.w(LOG_TAG, "Failed to stop and close:" + exception);
             }
-            mSyncedMembers.mIsStarted = false;
-            mSyncedMembers.mIsTakingStillPhoto = false;
+            mSyncedMembers.mState = SyncedMembers.State.Idle;
         }
 
         if (abortedStillPhotoCameraId != null)
@@ -389,8 +404,9 @@ class QtCamera2 {
     //      capture commands all over again as if we are using QCamera::FlashModeOn.
     @UsedFromNativeCode
     void beginStillPhotoCapture() {
+        boolean abortCapture = false;
         synchronized (mSyncedMembers) {
-            if (mSyncedMembers.mIsTakingStillPhoto) {
+            if (mSyncedMembers.isTakingStillPhoto()) {
                 // Queuing multiple still photos is not implemented.
                 // TODO: We might have to signal to QImageCapture here that capturing failed.
                 Log.w(
@@ -400,6 +416,18 @@ class QtCamera2 {
                     "developer bug.");
                 return;
             }
+
+            if (!mSyncedMembers.isStarted()) {
+                Log.w(LOG_TAG, "Can't begin still photo capture, camera is not started");
+                abortCapture = true;
+            } else {
+                mSyncedMembers.mState = SyncedMembers.State.Capturing;
+            }
+        }
+
+        if (abortCapture) {
+            onStillPhotoCaptureFailed(mCameraId);
+            return;
         }
 
         final CameraSettings cameraSettings = atomicCameraSettingsCopy();
@@ -408,6 +436,9 @@ class QtCamera2 {
         } catch (Exception e) {
             Log.w(LOG_TAG, "Failed to begin still photo capture: " + e);
             e.printStackTrace();
+            synchronized (mSyncedMembers) {
+                mSyncedMembers.endStillPhoto();
+            }
             onStillPhotoCaptureFailed(mCameraId);
             // TODO: Try to go back to previewing if applicable. If that fails too, shut down
             // camera session and report QCamera as inactive.
@@ -464,14 +495,7 @@ class QtCamera2 {
         }
 
         // TODO: We should have a callback here that can track if still photo fails
-        mCaptureSession.capture(
-            requestBuilder.build(),
-            null,
-            mBackgroundHandler);
-
-        synchronized (mSyncedMembers) {
-            mSyncedMembers.mIsTakingStillPhoto = true;
-        }
+        mCaptureSession.capture(requestBuilder.build(), null, mBackgroundHandler);
     }
 
     @UsedFromNativeCode
@@ -511,7 +535,7 @@ class QtCamera2 {
         synchronized (mSyncedMembers) {
             mSyncedMembers.mCameraSettings.mZoomFactor = factor;
 
-            if (!mSyncedMembers.mIsStarted) {
+            if (!mSyncedMembers.isStarted()) {
                 // Camera capture has not begun. Zoom will be applied during start().
                 return;
             }
@@ -522,7 +546,7 @@ class QtCamera2 {
             applyZoomSettingsToRequestBuilder(mPreviewRequestBuilder, factor);
             mPreviewRequest = mPreviewRequestBuilder.build();
 
-            if (mSyncedMembers.mIsTakingStillPhoto) {
+            if (mSyncedMembers.isTakingStillPhoto()) {
                 // Don't set any request if we are in the middle of taking a still photo.
                 // The setting will be applied to the preview after the still photo routine is done.
                 return;
@@ -581,7 +605,7 @@ class QtCamera2 {
 
             // If the camera is not in the started state yet, we skip activating focus-mode here.
             // Instead it will get applied when the camera is initialized.
-            if (!mSyncedMembers.mIsStarted)
+            if (!mSyncedMembers.isStarted())
                 return;
 
             applyFocusSettingsToCaptureRequestBuilder(
@@ -590,7 +614,7 @@ class QtCamera2 {
                 false);
             mPreviewRequest = mPreviewRequestBuilder.build();
 
-            if (mSyncedMembers.mIsTakingStillPhoto) {
+            if (mSyncedMembers.isTakingStillPhoto()) {
                 // Don't set any request if we are in the middle of taking a still photo.
                 // The setting will be applied to the preview after the still photo routine is done.
                 return;
@@ -643,7 +667,7 @@ class QtCamera2 {
 
             // If the camera is not in the started state yet, we skip applying any camera-controls
             // here. It will get applied once the camera is ready.
-            if (!mSyncedMembers.mIsStarted)
+            if (!mSyncedMembers.isStarted())
                 return;
 
             // If we are currently in QCamera::FocusModeManual, we apply the focus distance
@@ -656,7 +680,7 @@ class QtCamera2 {
 
                 mPreviewRequest = mPreviewRequestBuilder.build();
 
-                if (mSyncedMembers.mIsTakingStillPhoto) {
+                if (mSyncedMembers.isTakingStillPhoto()) {
                     // Don't set any request if we are in the middle of taking a still photo.
                     // The setting will be applied to the preview after the still photo routine is done.
                     return;
@@ -685,11 +709,11 @@ class QtCamera2 {
         synchronized (mSyncedMembers) {
             mSyncedMembers.mCameraSettings.mTorchMode = getTorchModeValue(torchMode);
 
-            if (mSyncedMembers.mIsStarted) {
+            if (mSyncedMembers.isStarted()) {
                 mPreviewRequestBuilder.set(CaptureRequest.FLASH_MODE, mSyncedMembers.mCameraSettings.mTorchMode);
                 mPreviewRequest = mPreviewRequestBuilder.build();
 
-                if (mSyncedMembers.mIsTakingStillPhoto) {
+                if (mSyncedMembers.isTakingStillPhoto()) {
                     // Don't set any request if we are in the middle of taking a still photo.
                     // The setting will be applied to the preview after the still photo routine is done.
                     return;
