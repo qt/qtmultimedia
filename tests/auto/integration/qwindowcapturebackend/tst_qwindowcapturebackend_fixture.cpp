@@ -13,6 +13,9 @@
 
 using namespace std::chrono_literals;
 
+using QtMultimediaTest::FrameGrabber;
+using QtMultimediaTest::surfaceCaptureTestTimeout;
+
 std::chrono::milliseconds WindowCaptureFixture::windowGeometrySettleDelay = 0ms;
 
 DisableCursor::DisableCursor()
@@ -105,7 +108,7 @@ bool WindowCaptureWithWidgetFixture::start(QSize size, FirstFrameSizePolicy firs
 
     // Make sure window is in a state that allows it to be found by QWindowCapture.
     // Not necessary on Windows, but seems to be necessary on some platforms.
-    if (!QTest::qWaitForWindowExposed(&m_widget, globalTestTimeout())) {
+    if (!QTest::qWaitForWindowExposed(&m_widget, surfaceCaptureTestTimeout())) {
         qWarning() << "Failed to display widget within timeout";
         return false;
     }
@@ -190,7 +193,7 @@ bool WindowCaptureWithWidgetAndRecorderFixture::stop()
         return m_recorderState == QMediaRecorder::StoppedState;
     };
 
-    return QTest::qWaitFor(recorderStopped, globalTestTimeout());
+    return QTest::qWaitFor(recorderStopped, surfaceCaptureTestTimeout());
 }
 
 bool WindowCaptureWithWidgetAndRecorderFixture::testVideoFilePlayback(const QString &fileName)
@@ -222,7 +225,7 @@ bool WindowCaptureWithWidgetAndRecorderFixture::testVideoFilePlayback(const QStr
         [&] {
             return !playing || error != QMediaPlayer::NoError;
         },
-        globalTestTimeout());
+        surfaceCaptureTestTimeout());
 
     return completed && error == QMediaPlayer::NoError;
 }

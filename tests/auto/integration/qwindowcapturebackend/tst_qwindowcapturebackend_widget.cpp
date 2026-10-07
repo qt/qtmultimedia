@@ -10,6 +10,8 @@
 
 #include "tst_qwindowcapturebackend_fixture.h"
 
+using QtMultimediaTest::surfaceCaptureTestTimeout;
+
 TestWidget::TestWidget(const QString &uuid, QScreen *screen)
 {
     // Give each window a unique title so that we can uniquely identify it
@@ -164,7 +166,7 @@ bool showCaptureWindow(const QString &windowTitle)
     widget.show();
 
     // Wait for window to be visible and suitable for window capturing
-    const bool result = QTest::qWaitForWindowExposed(&widget, globalTestTimeout());
+    const bool result = QTest::qWaitForWindowExposed(&widget, surfaceCaptureTestTimeout());
     if (!result)
         qDebug() << "Failed to show window";
 
