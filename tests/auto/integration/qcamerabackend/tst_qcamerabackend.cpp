@@ -29,6 +29,7 @@
 #  include <QtCore/private/qcore_mac_p.h>
 #endif
 
+#include <algorithm>
 #include <chrono>
 #include <memory>
 
@@ -79,6 +80,9 @@ private slots:
     void testCameraFormat();
     void testCameraCapture();
     void testCaptureToBuffer();
+    void testCaptureResolutionChangeWhileActive();
+    void testCaptureResolutionChangeRapid();
+    void testCaptureResolutionSetBeforeStart();
     void captureToFile_createsFileWithExpectedExtension_data();
     void captureToFile_createsFileWithExpectedExtension();
     void testCameraCaptureMetadata();
@@ -93,6 +97,13 @@ private slots:
     void multipleCameraSet();
 
 private:
+    // Returns up to \a count distinct photo resolutions supported by the default camera
+    static QList<QSize> photoResolutionsToTest(int count);
+    // Saved images can be rotated according to device orientation
+    static bool isSameSizeAllowingRotation(const QSize &actual, const QSize &expected);
+    // Captures to file, returns the saved image size or an empty size on failure
+    static QSize captureToFileAndGetSize(QImageCapture &imageCapture);
+
     bool callVcam(const QString &command, const VCamParameters &parameters) const;
     bool addVcam(const VCamParameters &parameters) const;
     void removeVcam(const VCamParameters &parameters) const;
@@ -688,6 +699,169 @@ void tst_QCameraBackend::testCaptureToBuffer()
     savedSignal.clear();
 
     QTRY_VERIFY(imageCapture.isReadyForCapture());
+}
+
+QList<QSize> tst_QCameraBackend::photoResolutionsToTest(int count)
+{
+    QList<QSize> sizes = QMediaDevices::defaultVideoInput().photoResolutions();
+    // Smallest first, so every step in the sequence is a change
+    std::sort(sizes.begin(), sizes.end(), [](const QSize &a, const QSize &b) {
+        return a.width() * a.height() < b.width() * b.height();
+    });
+    return sizes.mid(0, count);
+}
+
+bool tst_QCameraBackend::isSameSizeAllowingRotation(const QSize &actual, const QSize &expected)
+{
+    return actual == expected || actual == expected.transposed();
+}
+
+QSize tst_QCameraBackend::captureToFileAndGetSize(QImageCapture &imageCapture)
+{
+    QSignalSpy savedSignal(&imageCapture, &QImageCapture::imageSaved);
+    QSignalSpy errorSignal(&imageCapture, &QImageCapture::errorOccurred);
+
+    if (!QTest::qWaitFor([&] { return imageCapture.isReadyForCapture(); }, 8s))
+        return {};
+
+    imageCapture.captureToFile();
+    if (!QTest::qWaitFor([&] { return !savedSignal.isEmpty() || !errorSignal.isEmpty(); }, 8s)
+        || savedSignal.isEmpty())
+        return {};
+
+    const QString location = savedSignal.last().last().toString();
+    const QSize size = QImageReader(location).size();
+    QFile::remove(location);
+    return size;
+}
+
+void tst_QCameraBackend::testCaptureResolutionChangeWhileActive()
+{
+    if (noCamera)
+        QSKIP("No camera available");
+
+    const QList<QSize> sizes = photoResolutionsToTest(3);
+    if (sizes.size() < 2)
+        QSKIP("Camera reports fewer than two photo resolutions");
+
+    QMediaCaptureSession session;
+    QCamera camera;
+    QImageCapture imageCapture;
+    session.setCamera(&camera);
+    session.setImageCapture(&imageCapture);
+    camera.setFlashMode(QCamera::FlashOff);
+
+    QVideoSink sink;
+    session.setVideoOutput(&sink);
+    camera.start();
+    QTRY_VERIFY(camera.isActive());
+    QTRY_VERIFY(imageCapture.isReadyForCapture());
+
+    QSignalSpy activeChanged(&camera, &QCamera::activeChanged);
+    QSignalSpy errorSignal(&camera, &QCamera::errorOccurred);
+
+    // Go through the sizes twice so both growing and shrinking are covered
+    for (const QSize &size : sizes + sizes) {
+        imageCapture.setResolution(size);
+        QCOMPARE(imageCapture.resolution(), size);
+
+        QTRY_VERIFY_WITH_TIMEOUT(camera.isActive(), 8s);
+        QTRY_VERIFY_WITH_TIMEOUT(imageCapture.isReadyForCapture(), 8s);
+
+        const QSize captured = captureToFileAndGetSize(imageCapture);
+        QVERIFY2(!captured.isEmpty(), "Capture failed after resolution change");
+#ifdef Q_OS_ANDROID
+        QVERIFY(isSameSizeAllowingRotation(captured, size));
+#endif
+    }
+
+#ifdef Q_OS_ANDROID
+    // The session is rebuilt in place, the camera is not restarted
+    QCOMPARE(activeChanged.size(), 0);
+#endif
+    QCOMPARE(errorSignal.size(), 0);
+    QVERIFY(camera.isActive());
+}
+
+void tst_QCameraBackend::testCaptureResolutionChangeRapid()
+{
+    if (noCamera)
+        QSKIP("No camera available");
+
+    const QList<QSize> sizes = photoResolutionsToTest(3);
+    if (sizes.size() < 2)
+        QSKIP("Camera reports fewer than two photo resolutions");
+
+    QMediaCaptureSession session;
+    QCamera camera;
+    QImageCapture imageCapture;
+    session.setCamera(&camera);
+    session.setImageCapture(&imageCapture);
+    camera.setFlashMode(QCamera::FlashOff);
+
+    QVideoSink sink;
+    session.setVideoOutput(&sink);
+    camera.start();
+    QTRY_VERIFY(camera.isActive());
+    QTRY_VERIFY(imageCapture.isReadyForCapture());
+
+    QSignalSpy errorSignal(&camera, &QCamera::errorOccurred);
+
+    // Changes arrive before earlier ones have been applied
+    for (int i = 0; i < 12; ++i)
+        imageCapture.setResolution(sizes.at(i % sizes.size()));
+    const QSize last = imageCapture.resolution();
+
+    QTRY_VERIFY_WITH_TIMEOUT(camera.isActive(), 8s);
+    const QSize captured = captureToFileAndGetSize(imageCapture);
+    QVERIFY2(!captured.isEmpty(), "Capture failed after rapid resolution changes");
+#ifdef Q_OS_ANDROID
+    QVERIFY(isSameSizeAllowingRotation(captured, last));
+#endif
+    QCOMPARE(errorSignal.size(), 0);
+}
+
+void tst_QCameraBackend::testCaptureResolutionSetBeforeStart()
+{
+    if (noCamera)
+        QSKIP("No camera available");
+
+    const QList<QSize> sizes = photoResolutionsToTest(2);
+    if (sizes.isEmpty())
+        QSKIP("Camera reports no photo resolutions");
+
+    QMediaCaptureSession session;
+    QCamera camera;
+    QImageCapture imageCapture;
+    session.setCamera(&camera);
+    session.setImageCapture(&imageCapture);
+    camera.setFlashMode(QCamera::FlashOff);
+
+    imageCapture.setResolution(sizes.first());
+
+    QVideoSink sink;
+    session.setVideoOutput(&sink);
+    camera.start();
+    QTRY_VERIFY(camera.isActive());
+
+    const QSize captured = captureToFileAndGetSize(imageCapture);
+    QVERIFY2(!captured.isEmpty(), "Capture failed");
+#ifdef Q_OS_ANDROID
+    QVERIFY(isSameSizeAllowingRotation(captured, sizes.first()));
+#endif
+
+    // Stop, change while inactive, then restart
+    camera.stop();
+    QTRY_VERIFY(!camera.isActive());
+    imageCapture.setResolution(sizes.last());
+    camera.start();
+    QTRY_VERIFY(camera.isActive());
+
+    const QSize capturedAfterRestart = captureToFileAndGetSize(imageCapture);
+    QVERIFY2(!capturedAfterRestart.isEmpty(), "Capture failed after restart");
+#ifdef Q_OS_ANDROID
+    QVERIFY(isSameSizeAllowingRotation(capturedAfterRestart, sizes.last()));
+#endif
 }
 
 void tst_QCameraBackend::captureToFile_createsFileWithExpectedExtension_data()

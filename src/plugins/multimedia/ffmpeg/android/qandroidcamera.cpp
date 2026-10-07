@@ -25,6 +25,7 @@
 #include <QtMultimedia/qmediaformat.h>
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/private/qcameradevice_p.h>
+#include <QtMultimedia/private/qmultimediautils_p.h>
 #include <QtMultimedia/private/qvideoframe_p.h>
 #include <QtMultimedia/private/qvideoframeconverter_p.h>
 #include <QtMultimedia/private/qvideotexturehelper_p.h>
@@ -256,6 +257,9 @@ void QAndroidCamera::frameAvailable(QJniObject image, bool takePhoto)
     if (m_waitingForFirstFrame) {
         m_waitingForFirstFrame = false;
         setState(State::Started);
+        // Apply a still resolution changed during startup
+        QMetaObject::invokeMethod(this, &QAndroidCamera::applyStillResolution,
+                                  Qt::QueuedConnection);
     }
 
     videoFrame.setMirrored(m_cameraDevice.position() == QCameraDevice::Position::FrontFace);
@@ -307,6 +311,7 @@ QtVideo::Rotation QAndroidCamera::rotation() const
 
 void QAndroidCamera::setActive(bool active)
 {
+    Q_ASSERT(thread()->isCurrentThread());
     if (isActive() == active)
         return;
 
@@ -334,6 +339,7 @@ void QAndroidCamera::setActive(bool active)
     }
 
     m_videoResolution = { FFALIGN(width, 16), FFALIGN(height, 16) };
+    m_stillReaderSize = stillResolution();
 
     setState(State::WaitingOpen);
     g_qcameras->insert(cameraId, this);
@@ -348,7 +354,9 @@ void QAndroidCamera::setActive(bool active)
     m_jniCamera.callMethod<void>("prepareCamera", static_cast<jint>(m_videoResolution.width()),
                                  static_cast<jint>(m_videoResolution.height()),
                                  static_cast<jint>(m_cameraFormat.minFrameRate()),
-                                 static_cast<jint>(m_cameraFormat.maxFrameRate()));
+                                 static_cast<jint>(m_cameraFormat.maxFrameRate()),
+                                 static_cast<jint>(m_stillReaderSize.width()),
+                                 static_cast<jint>(m_stillReaderSize.height()));
 
     bool canOpen = m_jniCamera.callMethod<jboolean>("open", cameraId);
 
@@ -534,6 +542,20 @@ void QAndroidCamera::cleanCameraCharacteristics()
     supportedFeaturesChanged({});
 }
 
+QSize QAndroidCamera::stillResolution() const
+{
+    if (m_requestedStillResolution.isEmpty())
+        return m_videoResolution; // Not set, will use video resolution
+
+    const QList<QSize> photoResolutions = m_cameraDevice.photoResolutions();
+
+    // Use as-is with empty list, might fail
+    if (photoResolutions.isEmpty() || photoResolutions.contains(m_requestedStillResolution))
+        return m_requestedStillResolution;
+
+    return qClosestSupportedResolution(m_requestedStillResolution, photoResolutions);
+}
+
 // Restart camera now, must be called from owning thread
 void QAndroidCamera::restartCamera()
 {
@@ -542,6 +564,22 @@ void QAndroidCamera::restartCamera()
 
     setActive(false);
     setActive(true);
+}
+
+// Queue a camera restart, can be called from a background Java thread
+void QAndroidCamera::queueCameraRestart()
+{
+    if (m_restartPending.exchange(true))
+        return;
+
+    // NOTE: Queued on event loop to avoid re-entering onVideoSourceChanged
+    QMetaObject::invokeMethod(
+            this,
+            [this]() {
+                m_restartPending = false;
+                restartCamera(); // No-op if inactive
+            },
+            Qt::QueuedConnection);
 }
 
 void QAndroidCamera::setFocusDistance(float distance)
@@ -702,6 +740,13 @@ void QAndroidCamera::onCaptureSessionConfigureFailed()
 }
 
 // Called by Java-side processing background thread.
+// The session rebuilt for a new still reader size failed. Fall back to a full restart.
+void QAndroidCamera::onStillReaderSwapFailed()
+{
+    queueCameraRestart();
+}
+
+// Called by Java-side processing background thread.
 void QAndroidCamera::onCameraOpened()
 {
     bool canStart = m_jniCamera.callMethod<jboolean>("createSession");
@@ -744,6 +789,38 @@ void QAndroidCamera::capture()
 void QAndroidCamera::updateExif(const QString &filename)
 {
     m_jniCamera.callMethod<void>("saveExifToFile", QJniObject::fromString(filename).object<jstring>());
+}
+
+void QAndroidCamera::setStillCaptureResolution(QSize resolution)
+{
+    Q_ASSERT(thread()->isCurrentThread());
+
+    if (resolution != m_requestedStillResolution && !resolution.isEmpty()
+        && m_cameraDevice.photoResolutions().isEmpty()) {
+        qCWarning(qLCAndroidCamera) << "Image capture resolution set to" << resolution
+                                    << "while list of valid photo resolutions is empty. Image "
+                                       "capture can fail if resolution is not supported by device.";
+    }
+    m_requestedStillResolution = resolution;
+    applyStillResolution();
+}
+
+void QAndroidCamera::applyStillResolution()
+{
+    Q_ASSERT(thread()->isCurrentThread());
+
+    const QSize newSize = stillResolution();
+    // Not started: the next start uses the new size or re-runs this, see frameAvailable()
+    if (!isActive() || m_stillReaderSize == newSize)
+        return;
+
+    if (m_jniCamera.callMethod<jboolean>("updateStillImageReader", newSize.width(),
+                                         newSize.height())) {
+        m_stillReaderSize = newSize;
+        return;
+    }
+
+    queueCameraRestart();
 }
 
 void QAndroidCamera::onCaptureSessionFailed(int reason, long frameNumber)
@@ -854,6 +931,16 @@ static void onCaptureSessionConfigureFailed(JNIEnv *env, jobject obj, jstring ca
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onCaptureSessionConfigureFailed)
 
+static void onStillReaderSwapFailed(JNIEnv *env, jobject obj, jstring cameraId)
+{
+    Q_UNUSED(env);
+    Q_UNUSED(obj);
+    GET_CAMERA(cameraId);
+
+    camera->onStillReaderSwapFailed();
+}
+Q_DECLARE_JNI_NATIVE_METHOD(onStillReaderSwapFailed)
+
 static void onSessionActive(JNIEnv *env, jobject obj, jstring cameraId)
 {
     Q_UNUSED(env);
@@ -904,6 +991,7 @@ bool QFFmpeg::QAndroidCamera::registerNativeMethods()
             Q_JNI_NATIVE_METHOD(onCameraError),
             Q_JNI_NATIVE_METHOD(onCaptureSessionConfigured),
             Q_JNI_NATIVE_METHOD(onCaptureSessionConfigureFailed),
+            Q_JNI_NATIVE_METHOD(onStillReaderSwapFailed),
             Q_JNI_NATIVE_METHOD(onCaptureSessionFailed),
             Q_JNI_NATIVE_METHOD(onPreviewFrameAvailable),
             Q_JNI_NATIVE_METHOD(onStillPhotoAvailable),

@@ -26,6 +26,8 @@ private slots:
     void isReadyForCapture();
     void capture();
     void encodingSettings();
+    void resolution();
+    void resolution_whileCameraActive();
     void errors();
     void error();
     void imageCaptured();
@@ -133,6 +135,65 @@ void tst_QImageCapture::encodingSettings()
     imageCapture.setQuality(QImageCapture::NormalQuality);
     QVERIFY(imageCapture.fileFormat() == QImageCapture::JPEG);
     QVERIFY(imageCapture.quality() == QImageCapture::NormalQuality);
+}
+
+void tst_QImageCapture::resolution()
+{
+    QMediaCaptureSession session;
+    QCamera camera;
+    QImageCapture imageCapture;
+    session.setCamera(&camera);
+    session.setImageCapture(&imageCapture);
+
+    QSignalSpy resolutionChanged(&imageCapture, &QImageCapture::resolutionChanged);
+    QVERIFY(imageCapture.resolution().isEmpty());
+
+    imageCapture.setResolution(QSize(640, 480));
+    QCOMPARE(imageCapture.resolution(), QSize(640, 480));
+    QCOMPARE(resolutionChanged.size(), 1);
+
+    // Same value, no signal
+    imageCapture.setResolution(QSize(640, 480));
+    imageCapture.setResolution(640, 480);
+    QCOMPARE(resolutionChanged.size(), 1);
+
+    imageCapture.setResolution(1280, 720);
+    QCOMPARE(imageCapture.resolution(), QSize(1280, 720));
+    QCOMPARE(resolutionChanged.size(), 2);
+
+    // Empty size resets to the backend's choice
+    imageCapture.setResolution(QSize());
+    QVERIFY(imageCapture.resolution().isEmpty());
+    QCOMPARE(resolutionChanged.size(), 3);
+}
+
+void tst_QImageCapture::resolution_whileCameraActive()
+{
+    QMediaCaptureSession session;
+    QCamera camera;
+    QImageCapture imageCapture;
+    session.setCamera(&camera);
+    session.setImageCapture(&imageCapture);
+
+    camera.start();
+    QTRY_VERIFY(camera.isActive());
+    QTRY_VERIFY(imageCapture.isReadyForCapture());
+
+    QSignalSpy activeChanged(&camera, &QCamera::activeChanged);
+    QSignalSpy resolutionChanged(&imageCapture, &QImageCapture::resolutionChanged);
+
+    for (const QSize &size : { QSize(640, 480), QSize(1280, 720), QSize(320, 240) }) {
+        imageCapture.setResolution(size);
+        QCOMPARE(imageCapture.resolution(), size);
+    }
+    QCOMPARE(resolutionChanged.size(), 3);
+
+    // Changing the resolution must not stop the camera or block capture
+    QVERIFY(camera.isActive());
+    QCOMPARE(activeChanged.size(), 0);
+    QTRY_VERIFY(imageCapture.isReadyForCapture());
+    QVERIFY(imageCapture.captureToFile() != -1);
+    QCOMPARE(imageCapture.resolution(), QSize(320, 240));
 }
 
 void tst_QImageCapture::errors()

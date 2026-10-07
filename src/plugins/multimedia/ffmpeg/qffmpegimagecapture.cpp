@@ -137,11 +137,17 @@ void QFFmpegImageCapture::setCaptureSession(QPlatformMediaCaptureSession *sessio
 
     m_session = captureSession;
 
-    if (m_session)
+    if (m_session) {
         connect(m_session, &QFFmpegMediaCaptureSession::primaryActiveVideoSourceChanged, this,
                 &QFFmpegImageCapture::onVideoSourceChanged);
+        connect(m_session, &QFFmpegMediaCaptureSession::cameraChanged, this,
+                &QFFmpegImageCapture::applySettingsToVideoSource);
+    }
 
     onVideoSourceChanged();
+
+    if (m_session)
+        applySettingsToVideoSource();
 }
 
 void QFFmpegImageCapture::cancelPendingImage(QImageCapture::Error error, const QString &errorMsg)
@@ -270,8 +276,10 @@ void QFFmpegImageCapture::onVideoSourceChanged()
     m_videoSource = m_session ? m_session->primaryActiveVideoSource() : nullptr;
 
     // TODO: optimize, setup the connection only when the capture is ready
-    if (m_videoSource)
+    if (m_videoSource) {
         setupVideoSourceConnections();
+        applySettingsToVideoSource();
+    }
 
     updateReadyForCapture();
 }
@@ -300,6 +308,7 @@ void QFFmpegImageCapture::setImageSettings(const QImageEncoderSettings &settings
     }
 
     m_settings = settings;
+    applySettingsToVideoSource();
 }
 
 QT_END_NAMESPACE

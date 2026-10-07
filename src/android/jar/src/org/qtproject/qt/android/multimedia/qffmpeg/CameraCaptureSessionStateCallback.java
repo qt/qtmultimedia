@@ -12,26 +12,39 @@ class CameraCaptureSessionStateCallback extends CameraCaptureSession.StateCallba
         mMainCameraObject = mainCameraObject;
     }
 
+    private boolean isSuperseded() {
+        return mMainCameraObject.mCurrentSessionCallback != this;
+    }
+
     @Override
     public void onConfigured(CameraCaptureSession cameraCaptureSession) {
+        if (isSuperseded())
+            return;
         mMainCameraObject.mCaptureSession = cameraCaptureSession;
         mMainCameraObject.onCaptureSessionConfigured(mMainCameraObject.mCameraId);
+        mMainCameraObject.onSessionReconfigured(true);
     }
 
     @Override
     public void onConfigureFailed(CameraCaptureSession cameraCaptureSession) {
-        mMainCameraObject.onCaptureSessionConfigureFailed(mMainCameraObject.mCameraId);
+        if (isSuperseded())
+            return;
+        mMainCameraObject.onSessionConfigureFailed();
     }
 
     @Override
     public void onActive(CameraCaptureSession cameraCaptureSession) {
        super.onActive(cameraCaptureSession);
+       if (isSuperseded())
+           return;
        mMainCameraObject.onSessionActive(mMainCameraObject.mCameraId);
     }
 
     @Override
     public void onClosed(CameraCaptureSession cameraCaptureSession) {
         super.onClosed(cameraCaptureSession);
+        if (isSuperseded())
+            return;
         mMainCameraObject.onSessionClosed(mMainCameraObject.mCameraId);
     }
 }

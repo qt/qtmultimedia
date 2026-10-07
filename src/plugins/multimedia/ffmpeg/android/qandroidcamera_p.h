@@ -24,6 +24,9 @@
 
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 
+#include <atomic>
+#include <optional>
+
 QT_BEGIN_NAMESPACE
 
 Q_DECLARE_JNI_CLASS(QtJniCamera2, "org/qtproject/qt/android/multimedia/qffmpeg/QtCamera2");
@@ -53,6 +56,7 @@ public:
     bool setCameraFormat(const QCameraFormat &format) override;
     void setFlashMode(QCamera::FlashMode mode) override;
     void setFocusDistance(float distance) override;
+    void setStillCaptureResolution(QSize resolution);
 
     // FocusModeAuto maps to CameraMetadata.CONTROL_AF_MODE_CONTINUOUS_PICTURE
     //
@@ -84,6 +88,7 @@ public Q_SLOTS:
     void frameAvailable(QJniObject image, bool takePhoto = false);
     void onCaptureSessionConfigured();
     void onCaptureSessionConfigureFailed();
+    void onStillReaderSwapFailed();
     void onCaptureSessionFailed(int reason, long frameNumber);
     void onSessionActive();
     void onSessionClosed();
@@ -100,8 +105,11 @@ private:
     QtVideo::Rotation rotation() const;
     void updateCameraCharacteristics();
     void cleanCameraCharacteristics();
+    QSize stillResolution() const;
+    void applyStillResolution();
 
     void restartCamera();
+    void queueCameraRestart();
 
     State m_state = State::Closed;
     QCameraDevice m_cameraDevice;
@@ -120,6 +128,9 @@ private:
 
     bool m_waitingForFirstFrame = false;
     QSize m_videoResolution;
+    QSize m_requestedStillResolution;
+    QSize m_stillReaderSize;
+    std::atomic<bool> m_restartPending = false;
 };
 
 } // namespace QFFmpeg

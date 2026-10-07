@@ -4,6 +4,7 @@
 #include <QtFFmpegMediaPluginImpl/private/qandroidimagecapture_p.h>
 
 #include <QtFFmpegMediaPluginImpl/private/qandroidcamera_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegmediacapturesession_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -29,6 +30,17 @@ int QAndroidImageCapture::doCapture(const QString &fileName)
     }
 
     return ret;
+}
+
+void QAndroidImageCapture::applySettingsToVideoSource()
+{
+    // Apply to the session's camera even if inactive, the still reader is created when it opens
+    auto *androidCamera = qobject_cast<QAndroidCamera *>(
+            captureSession() ? captureSession()->camera() : nullptr);
+    if (!androidCamera)
+        return;
+
+    androidCamera->setStillCaptureResolution(imageSettings().resolution());
 }
 
 void QAndroidImageCapture::setupVideoSourceConnections()
