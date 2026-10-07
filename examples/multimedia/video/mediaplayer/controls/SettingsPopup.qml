@@ -34,12 +34,10 @@ Popup {
     property int hPadding: 26
     property bool landscapeSettingsPopup: root.width >= settingsLayout.width + metadataLayout.width + 2 * hPadding + 20 + 24
 
-    padding: {
-        top: vPadding
-        bottom: vPadding
-        left: hPadding
-        right: hPadding
-    }
+    topPadding: vPadding
+    bottomPadding: vPadding
+    leftPadding: hPadding
+    rightPadding: hPadding
 
     Flickable {
         id: flickable
