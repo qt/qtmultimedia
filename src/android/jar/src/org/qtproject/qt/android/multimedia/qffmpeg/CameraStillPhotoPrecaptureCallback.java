@@ -61,7 +61,7 @@ class CameraStillPhotoPrecaptureCallback extends CameraCaptureSession.CaptureCal
         mMainCameraObject.onStillPhotoCaptureFailed(mMainCameraObject.mCameraId);
 
         synchronized (mMainCameraObject.mSyncedMembers) {
-            mMainCameraObject.mSyncedMembers.mIsTakingStillPhoto = false;
+            mMainCameraObject.mSyncedMembers.endStillPhoto();
         }
 
         // Try to reset our camera to regular preview
