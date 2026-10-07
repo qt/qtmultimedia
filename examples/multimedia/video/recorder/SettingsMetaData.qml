@@ -23,7 +23,7 @@ ColumnLayout {
         target: root.recorder
         function onMetaDataChanged() {
             metaDataModel.clear()
-            for (var key of root.recorder.metaData.keys()) {
+            for (const key of root.recorder.metaData.keys()) {
                 if (root.recorder.metaData.stringValue(key))
                     metaDataModel.append(
                                 { text: root.recorder.metaData.metaDataKeyToString(key)

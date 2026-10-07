@@ -51,7 +51,7 @@ Column {
                 audioCodecModel.clear()
                 audioCodecModel.append({"text": "Unspecifed", "value": MediaFormat.AudioCodec.Unspecified})
                 var cs = root.recorder.mediaFormat.supportedAudioCodecs(MediaFormat.Encode)
-                for (var c of cs)
+                for (const c of cs)
                     audioCodecModel.append({"text": root.recorder.mediaFormat.audioCodecName(c), "value": c})
                 audioCodecSelect.currentIndex = cs.indexOf(root.recorder.mediaFormat.audioCodec) + 1
             }
@@ -72,7 +72,7 @@ Column {
                 videoCodecModel.clear()
                 videoCodecModel.append({"text": "Unspecifed", "value": MediaFormat.VideoCodec.Unspecified})
                 var cs = recorder.mediaFormat.supportedVideoCodecs(MediaFormat.Encode)
-                for (var c of cs)
+                for (const c of cs)
                     videoCodecModel.append({"text": recorder.mediaFormat.videoCodecName(c), "value": c})
                 videoCodecSelect.currentIndex = cs.indexOf(recorder.mediaFormat.videoCodec) + 1
             }
@@ -91,7 +91,7 @@ Column {
                 fileFormatModel.clear()
                 fileFormatModel.append({"text": "Unspecifed", "value": MediaFormat.AudioCodec.Unspecified})
                 var cs = recorder.mediaFormat.supportedFileFormats(MediaFormat.Encode)
-                for (var c of cs)
+                for (const c of cs)
                     fileFormatModel.append({"text": recorder.mediaFormat.fileFormatName(c), "value": c})
                 fileFormatSelect.currentIndex = cs.indexOf(recorder.mediaFormat.fileFormat) + 1
             }

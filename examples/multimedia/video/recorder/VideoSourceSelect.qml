@@ -24,7 +24,7 @@ Row {
     Component.onCompleted: {
         videoSourceModel.populate()
 
-        for (var i = 0; i < videoSourceModel.count; i++) {
+        for (let i = 0; i < videoSourceModel.count; i++) {
             if (videoSourceModel.get(i).value.type !== 'toggler') {
                 comboBox.currentIndex = i
                 break
@@ -54,7 +54,7 @@ Row {
 
             videoSourceModel.populate()
 
-            for (var i = 0; i < videoSourceModel.count; i++) {
+            for (let i = 0; i < videoSourceModel.count; i++) {
                 if (videoSourceModel.get(i).value.type !== 'toggler') {
                     comboBox.currentIndex = i
                     break
@@ -96,17 +96,17 @@ Row {
 
             appendToggler('Cameras', 'camera')
             if (enabledSources['camera'])
-                for (var camera of mediaDevices.videoInputs)
+                for (const camera of mediaDevices.videoInputs)
                     appendItem(camera.description, { type: 'camera', camera: camera })
 
             appendToggler('Screens', 'screen')
             if (enabledSources['screen'])
-                for (var screen of Application.screens)
+                for (const screen of Application.screens)
                     appendItem(screen.name, { type: 'screen', screen: screen })
 
             appendToggler('Windows', 'window')
             if (enabledSources['window'])
-                for (var window of windowCapture.capturableWindows())
+                for (const window of windowCapture.capturableWindows())
                     appendItem(window.description, { type: 'window', window: window })
         }
     }

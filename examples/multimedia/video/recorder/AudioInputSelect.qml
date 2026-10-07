@@ -33,7 +33,7 @@ Row {
         function populate() {
             audioInputModel.clear()
 
-            for (var audioDevice of audioInputs)
+            for (const audioDevice of audioInputs)
                 audioInputModel.append({ text: audioDevice.description, value:
                                         { type: 'audioDevice', audioDevice: audioDevice } })
         }
