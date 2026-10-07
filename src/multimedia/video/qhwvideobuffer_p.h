@@ -93,7 +93,11 @@ public:
     // during texture mapping or texture converter initialization.
     virtual QRhi *associatedCurrentThreadRhi() const { return nullptr; }
 
-    QVideoFrameFormat format() const override { return {}; }
+    QVideoFrameFormat format() const final
+    {
+        // invalid by design: we have to go through QVideoFramePrivate::createFrame
+        return {};
+    }
 
     virtual QMatrix4x4 externalTextureMatrix() const { return {}; }
 

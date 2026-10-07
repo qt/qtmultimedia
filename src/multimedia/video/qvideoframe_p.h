@@ -23,6 +23,11 @@
 
 QT_BEGIN_NAMESPACE
 
+#ifdef __cpp_concepts
+template <typename T>
+concept QtVideoBuffer = std::derived_from<T, QAbstractVideoBuffer>;
+#endif
+
 class QVideoFramePrivate : public QSharedData
 {
 public:
@@ -34,7 +39,11 @@ public:
             videoBuffer->unmap();
     }
 
+#ifdef __cpp_concepts
+    template <QtVideoBuffer Buffer>
+#else
     template <typename Buffer>
+#endif
     static QVideoFrame createFrame(std::unique_ptr<Buffer> buffer, QVideoFrameFormat format)
     {
         QVideoFrame result;
@@ -42,7 +51,11 @@ public:
         return result;
     }
 
+#ifdef __cpp_concepts
+    template <QtVideoBuffer Buffer = QAbstractVideoBuffer>
+#else
     template <typename Buffer = QAbstractVideoBuffer>
+#endif
     QVideoFramePrivate(QVideoFrameFormat format, std::unique_ptr<Buffer> buffer = nullptr)
         : format{ std::move(format) }, videoBuffer{ std::move(buffer) }
     {

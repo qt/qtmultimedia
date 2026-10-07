@@ -14,7 +14,6 @@ QWasmGLTextureVideoBuffer::QWasmGLTextureVideoBuffer(QGlTextureHandle textureHan
     : QHwVideoBuffer(QVideoFrame::RhiTextureHandle),
       m_glTextureHandle(std::move(textureHandle)),
       m_size(size),
-      m_videoFrameFormat(size, QVideoFrameFormat::Format_RGBA8888),
       m_glContext(glContext),
       m_rhi(rhi),
       m_rhiThread(QThread::currentThread())
