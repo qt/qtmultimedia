@@ -7,6 +7,7 @@
 #include <QtGui/qwindow.h>
 
 #include <qt_windows.h>
+#include <dwmapi.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -20,6 +21,33 @@ static bool canCaptureWindow(HWND hwnd)
     Q_ASSERT(hwnd);
 
     if (!::IsWindowVisible(hwnd))
+        return false;
+
+    // Minimized windows are not rendered, so capturing them never delivers a frame
+    if (::IsIconic(hwnd))
+        return false;
+
+    // The desktop is not a window that can be captured
+    if (hwnd == ::GetShellWindow())
+        return false;
+
+    // Windows without a class name are not real windows
+    wchar_t className[2] = {};
+    if (::GetClassNameW(hwnd, className, 2) == 0)
+        return false;
+
+    if (::GetWindowLongPtrW(hwnd, GWL_STYLE) & WS_DISABLED)
+        return false;
+
+    // Tool windows are helpers like the taskbar, tooltips and message windows
+    if (::GetWindowLongPtrW(hwnd, GWL_EXSTYLE) & WS_EX_TOOLWINDOW)
+        return false;
+
+    // Cloaked windows are visible according to IsWindowVisible, but are not shown on screen
+    // (e.g. suspended UWP apps, windows on other virtual desktops, or system helper windows)
+    DWORD cloaked = 0;
+    if (SUCCEEDED(::DwmGetWindowAttribute(hwnd, DWMWA_CLOAKED, &cloaked, sizeof(cloaked)))
+        && cloaked != 0)
         return false;
 
     RECT rect{};
