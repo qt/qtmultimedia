@@ -21,7 +21,8 @@ void CaptureSessionFixture::setVideoSink(QVideoSink *videoSink)
     m_videoSink = videoSink;
 }
 
-void CaptureSessionFixture::start(RunMode mode, AutoStop autoStop)
+void CaptureSessionFixture::start(RunMode mode, AutoStop autoStop,
+                                  std::optional<QIODevice *> outputDevice)
 {
     if (hasVideo()) {
         m_session.setVideoFrameInput(&m_videoInput);
@@ -60,7 +61,10 @@ void CaptureSessionFixture::start(RunMode mode, AutoStop autoStop)
     m_session.setRecorder(&m_recorder);
     m_recorder.setQuality(QMediaRecorder::VeryHighQuality);
 
-    if (m_recorder.outputLocation().isEmpty()) {
+    if (outputDevice)
+        m_recorder.setOutputDevice(*outputDevice);
+
+    if (!outputDevice && m_recorder.outputLocation().isEmpty()) {
         // Create a temporary file.
         // The file name is not available without opening.
         if (!m_tempFile.open()) {

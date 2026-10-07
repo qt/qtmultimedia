@@ -24,8 +24,11 @@
 #include <QtMultimedia/qmediacapturesession.h>
 #include <QtMultimedia/qmediarecorder.h>
 #include <QtMultimedia/qaudiobufferinput.h>
+#include <QtCore/qiodevice.h>
 #include <QtCore/qtemporaryfile.h>
 #include <QtTest/qsignalspy.h>
+
+#include <optional>
 
 QT_BEGIN_NAMESPACE
 
@@ -39,7 +42,8 @@ struct CaptureSessionFixture
     ~CaptureSessionFixture();
 
     void setVideoSink(QVideoSink *videoSink);
-    void start(RunMode mode, AutoStop autoStop);
+    void start(RunMode mode, AutoStop autoStop,
+               std::optional<QIODevice *> outputDevice = std::nullopt);
     bool waitForRecorderStopped(std::chrono::milliseconds duration);
     bool hasAudio() const;
     bool hasVideo() const;
