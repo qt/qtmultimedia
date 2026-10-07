@@ -50,7 +50,6 @@ public:
     QWasmGLTextureVideoBuffer::MapData map(QVideoFrame::MapMode) override;
     void unmap() override;
 
-    QVideoFrameFormat format() const override { return m_videoFrameFormat; }
     quint64 textureHandle(QRhi &, int plane) override;
 
     // Must return the RHI that owns the WebGL context the texture lives in.
@@ -65,7 +64,6 @@ public:
 private:
     QGlTextureHandle m_glTextureHandle;
     QSize m_size;
-    QVideoFrameFormat m_videoFrameFormat;
     // WebGL context the texture was created in
     EMSCRIPTEN_WEBGL_CONTEXT_HANDLE m_glContext;
     QRhi *m_rhi;

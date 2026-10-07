@@ -220,6 +220,10 @@ QVideoFrame::QVideoFrame(std::unique_ptr<QAbstractVideoBuffer> videoBuffer)
     if (!format.isValid())
         return;
 
+    Q_ASSERT(!dynamic_cast<QHwVideoBuffer *>(videoBuffer.get())
+             && "QHwVideoBuffer is not supported in this constructor. Use "
+                "QVideoFramePrivate::createFrame instead.");
+
     d = new QVideoFramePrivate{ std::move(format), std::move(videoBuffer) };
 }
 
