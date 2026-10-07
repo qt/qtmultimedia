@@ -143,7 +143,10 @@ float QFFmpegVideoBuffer::maxNits()
         // TODO: Longer term we might want to also support HDR10+ dynamic metadata
         if (sd->type == AV_FRAME_DATA_MASTERING_DISPLAY_METADATA) {
             auto *data = reinterpret_cast<AVMasteringDisplayMetadata *>(sd->data);
-            auto maybeLum = QFFmpeg::mul(qreal(10'000.), data->max_luminance);
+            // max_luminance is a rational in cd/m2 (nits) already, valid with has_luminance
+            if (!data->has_luminance)
+                continue;
+            auto maybeLum = QFFmpeg::mul(qreal(1.), data->max_luminance);
             if (maybeLum)
                 maxNits = float(maybeLum.value());
         }
