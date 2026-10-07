@@ -185,8 +185,19 @@ void QFFmpegImageCapture::newVideoFrame(const QVideoFrame &frame)
     Q_EMIT imageMetadataAvailable(pending.id, pending.metaData);
     Q_EMIT imageAvailable(pending.id, frame);
     QImage image = frame.toImage();
-    if (m_settings.resolution().isValid() && m_settings.resolution() != image.size())
-        image = image.scaled(m_settings.resolution());
+    // Assume image is rotated if its orientation differs from the requested resolution
+    const QSize resolution = m_settings.resolution();
+    const bool isRotated = image.width() != image.height()
+            && resolution.width() != resolution.height()
+            && (image.width() > image.height()) != (resolution.width() > resolution.height());
+    const QSize targetSize = isRotated ? resolution.transposed() : resolution;
+    if (targetSize.isValid() && image.size() != targetSize) {
+        qCWarning(qLcImageCapture)
+                << "Image needed to be scaled to match requested resolution (" << image.size()
+                << " -> " << targetSize
+                << ", consider using a resolution supported natively by the camera";
+        image = image.scaled(targetSize);
+    }
 
     Q_EMIT imageCaptured(pending.id, image);
     if (!pending.filename.isEmpty()) {
