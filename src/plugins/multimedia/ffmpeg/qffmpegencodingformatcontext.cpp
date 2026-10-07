@@ -103,9 +103,6 @@ void EncodingFormatContext::closeAVIO()
             freeAVIOContext(m_avFormatContext->pb);
         }
 
-        // delete url even though it might be delete by avformat_free_context to
-        // ensure consistency in openAVIO/closeAVIO.
-        av_freep(&m_avFormatContext->url);
         m_outputFile.reset();
     } else {
         Q_ASSERT(!m_outputFile);
