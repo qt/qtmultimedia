@@ -101,6 +101,8 @@ private:
     void updateCameraCharacteristics();
     void cleanCameraCharacteristics();
 
+    void restartCamera();
+
     State m_state = State::Closed;
     QCameraDevice m_cameraDevice;
     QtJniCamera2 m_jniCamera;
@@ -117,6 +119,7 @@ private:
     bool m_wasActive = false;
 
     bool m_waitingForFirstFrame = false;
+    QSize m_videoResolution;
 };
 
 } // namespace QFFmpeg

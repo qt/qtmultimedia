@@ -195,10 +195,13 @@ class QtCamera2 {
                     // Remember current used camera ID, because stopAndClose will clear the value
                     String cameraId = mCameraId;
                     stopAndClose();
-                    addImageReader(
-                        mPreviewImageReader.getWidth(),
-                        mPreviewImageReader.getHeight(),
-                        mPreviewImageReader.getImageFormat());
+                    // Re-register surfaces
+                    addPreviewImageReader(mPreviewImageReader.getWidth(),
+                                          mPreviewImageReader.getHeight());
+                    if (mStillPhotoImageReader != null) {
+                        addStillImageReader(mStillPhotoImageReader.getWidth(),
+                                            mStillPhotoImageReader.getHeight());
+                    }
                     open(cameraId);
                 }
             }
@@ -206,23 +209,25 @@ class QtCamera2 {
     };
 
     @UsedFromNativeCode
-    void prepareCamera(int width, int height, int format, int minFps, int maxFps) {
-
-        addImageReader(width, height, format);
+    void prepareCamera(int width, int height, int minFps, int maxFps) {
+        addPreviewImageReader(width, height);
         setFrameRate(minFps, maxFps);
+        addStillImageReader(width, height);
     }
 
-    private void addImageReader(int width, int height, int format) {
-
+    private void addPreviewImageReader(int width, int height) {
         if (mPreviewImageReader != null)
             removeSurface(mPreviewImageReader.getSurface());
 
-        if (mStillPhotoImageReader != null)
-            removeSurface(mStillPhotoImageReader.getSurface());
-
-        mPreviewImageReader = ImageReader.newInstance(width, height, format, MaxNumberFrames);
+        mPreviewImageReader =
+                ImageReader.newInstance(width, height, ImageFormat.YUV_420_888, MaxNumberFrames);
         mPreviewImageReader.setOnImageAvailableListener(mOnPreviewImageAvailableListener, mBackgroundHandler);
         addSurface(mPreviewImageReader.getSurface());
+    }
+
+    void addStillImageReader(int width, int height) {
+        if (mStillPhotoImageReader != null)
+            removeSurface(mStillPhotoImageReader.getSurface());
 
         mStillPhotoImageReader =
                 ImageReader.newInstance(width, height, ImageFormat.JPEG, MaxNumberFrames);
