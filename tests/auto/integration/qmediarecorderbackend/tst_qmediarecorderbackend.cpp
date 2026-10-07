@@ -20,6 +20,7 @@
 #include <QtMultimedia/qwavedecoder.h>
 #include <QtMultimedia/private/qplatformmediacapture_p.h>
 #include <QtMultimedia/private/qplatformvideosource_p.h>
+#include <QtCore/qbuffer.h>
 #include <QtCore/qmimetype.h>
 #include <QtCore/qtemporarydir.h>
 
@@ -129,6 +130,7 @@ private slots:
     void actualLocation_returnsNonEmptyLocation_whenRecorderEntersRecordingState();
 
     void record_writesToOutputDevice_whenWritableOutputDeviceAndLocationAreSet();
+    void record_toQIODevice();
 
     void record_writesToOutputLocation_whenNotWritableOutputDeviceAndLocationAreSet();
 
@@ -588,6 +590,28 @@ void tst_QMediaRecorderBackend::record_writesToOutputDevice_whenWritableOutputDe
     QVERIFY(!QFileInfo::exists(url.toLocalFile()));
     QCOMPARE(f.m_recorder.actualLocation(), QUrl());
     QCOMPARE_GT(tempFile.size(), 0);
+}
+
+void tst_QMediaRecorderBackend::record_toQIODevice()
+{
+    QSKIP_IF_NOT_FFMPEG();
+
+    CaptureSessionFixture f{ StreamType::Audio };
+    f.m_recorder.setMediaFormat({ QMediaFormat::Wave });
+    f.m_audioGenerator.setBufferCount(30);
+
+    QBuffer buffer;
+    QVERIFY(buffer.open(QIODevice::WriteOnly));
+
+    f.start(RunMode::Pull, AutoStop::EmitEmpty, &buffer);
+
+    QVERIFY(f.waitForRecorderStopped(60s));
+    buffer.close();
+
+    QCOMPARE(f.m_recorder.error(), QMediaRecorder::NoError);
+    QCOMPARE(f.m_recorder.actualLocation(), QUrl());
+    QCOMPARE_GT(buffer.size(), 0);
+    QVERIFY(buffer.data().startsWith("RIFF"));
 }
 
 void tst_QMediaRecorderBackend::record_writesToOutputLocation_whenNotWritableOutputDeviceAndLocationAreSet()
