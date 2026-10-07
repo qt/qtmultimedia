@@ -40,8 +40,14 @@ bool QAudioDevices::isSupported()
     if (!QPipeWireInstance::isLoaded())
         return false;
 
-    return QAudioContextManager::minimumRequirementMet()
-            && QAudioContextManager::instance()->isConnected();
+    if (!QAudioContextManager::minimumRequirementMet())
+        return false;
+
+    auto instance = QPipeWireInstance::instance();
+    if (!instance)
+        return false;
+
+    return QAudioContextManager::instance()->isConnected();
 }
 
 QList<QAudioDevice> QAudioDevices::findAudioInputs() const
