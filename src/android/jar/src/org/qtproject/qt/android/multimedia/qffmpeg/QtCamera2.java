@@ -15,6 +15,8 @@ import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureFailure;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.params.OutputConfiguration;
+import android.hardware.camera2.params.SessionConfiguration;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.Handler;
@@ -276,9 +278,14 @@ class QtCamera2 {
             return false;
 
         try {
-            // TODO: This API is deprecated and we should transition to the more modern method
-            // overload. See QTBUG-134750.
-            mCameraDevice.createCaptureSession(mTargetSurfaces, mCaptureStateCallback, mBackgroundHandler);
+            List<OutputConfiguration> outputs = new ArrayList<>(mTargetSurfaces.size());
+            for (Surface surface : mTargetSurfaces)
+                outputs.add(new OutputConfiguration(surface));
+
+            SessionConfiguration config =
+                    new SessionConfiguration(SessionConfiguration.SESSION_REGULAR, outputs,
+                                             mBackgroundHandler::post, mCaptureStateCallback);
+            mCameraDevice.createCaptureSession(config);
             return true;
         } catch (Exception exception) {
             Log.w(LOG_TAG, "Failed to create a capture session:" + exception);
