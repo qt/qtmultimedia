@@ -14,6 +14,7 @@
 #include <QtMultimedia/private/qavfhelpers_p.h>
 #endif
 
+#include <QtMultimediaTestLib/private/framegrabber_p.h>
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
 #include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
 #include <QtMultimediaTestLib/private/surfacecapturetestutils_p.h>
@@ -23,6 +24,7 @@
 #include <QtTest/qtest.h>
 
 #include <chrono>
+#include <optional>
 #include <utility>
 #include <vector>
 
@@ -37,6 +39,21 @@ Q_DECLARE_JNI_CLASS(Insets, "android/graphics/Insets")
 #endif
 
 using namespace Qt::StringLiterals;
+
+using QtMultimediaTest::FrameGrabber;
+using QtMultimediaTest::VideoFrameInfo;
+
+namespace {
+
+// Lets the grabber track stream boundaries, and stop waiting if the capture fails.
+void connectGrabber(QScreenCapture &capture, FrameGrabber &grabber)
+{
+    QObject::connect(
+        &capture, &QScreenCapture::activeChanged, &grabber, &FrameGrabber::onCaptureActiveChanged);
+    QObject::connect(&capture, &QScreenCapture::errorOccurred, &grabber, &FrameGrabber::stop);
+}
+
+} // namespace
 
 using namespace std::chrono_literals;
 
@@ -435,15 +452,16 @@ void tst_QScreenCaptureBackend::setActive_startsStreamWithValidFrame()
 {
     QFETCH(QScreen *, screen);
 
-    TestVideoSink sink;
+    FrameGrabber grabber;
     const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTest::makeScreenCapture();
     QScreenCapture &sc = *screenCapture;
 
     QSignalSpy errorsSpy(&sc, &QScreenCapture::errorOccurred);
+    connectGrabber(sc, grabber);
 
     QMediaCaptureSession session;
     session.setScreenCapture(&sc);
-    session.setVideoSink(&sink);
+    session.setVideoSink(&grabber);
 
     sc.setScreen(screen);
     sc.setActive(true);
@@ -451,8 +469,7 @@ void tst_QScreenCaptureBackend::setActive_startsStreamWithValidFrame()
     QVERIFY(sc.isActive());
 
     // The first frame may be delayed due to backend initialization, so wait for it.
-    const QVideoFrame firstFrame = sink.waitForFrame();
-    QVERIFY(firstFrame.isValid());
+    QVERIFY(grabber.tryWaitForFirstFrameInfo());
 
     QCOMPARE(errorsSpy.size(), 0);
 }
@@ -475,15 +492,16 @@ void tst_QScreenCaptureBackend::capturedFrame_hasExpectedSize()
 {
     QFETCH(QScreen *, screen);
 
-    TestVideoSink sink;
+    FrameGrabber grabber;
     const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTest::makeScreenCapture();
     QScreenCapture &sc = *screenCapture;
 
     QSignalSpy errorsSpy(&sc, &QScreenCapture::errorOccurred);
+    connectGrabber(sc, grabber);
 
     QMediaCaptureSession session;
     session.setScreenCapture(&sc);
-    session.setVideoSink(&sink);
+    session.setVideoSink(&grabber);
 
     sc.setScreen(screen);
     sc.setActive(true);
@@ -493,10 +511,10 @@ void tst_QScreenCaptureBackend::capturedFrame_hasExpectedSize()
     // logical size by its device pixel ratio to get the expected frame size.
     const QSize expectedSize = (QSizeF(screen->size()) * screen->devicePixelRatio()).toSize();
 
-    const QVideoFrame firstFrame = sink.waitForFrame();
-    QVERIFY2(firstFrame.isValid(), "Did not receive a frame from the screen capture");
+    const std::optional<VideoFrameInfo> firstFrame = grabber.tryWaitForFirstFrameInfo();
+    QVERIFY2(firstFrame, "Did not receive a frame from the screen capture");
 
-    const QSize actualSize = firstFrame.size();
+    const QSize actualSize = firstFrame->size;
     QVERIFY2(
         actualSize == expectedSize,
         qPrintable(
@@ -629,22 +647,24 @@ void tst_QScreenCaptureBackend::setActive_restartsScreenCapture_whenStartedAgain
 
     constexpr int restartCount = 3;
 
-    TestVideoSink sink;
+    FrameGrabber grabber;
     const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTest::makeScreenCapture();
     QScreenCapture &sc = *screenCapture;
 
     QSignalSpy errorsSpy(&sc, &QScreenCapture::errorOccurred);
     QSignalSpy activeStateSpy(&sc, &QScreenCapture::activeChanged);
 
+    connectGrabber(sc, grabber);
+
     QMediaCaptureSession session;
     session.setScreenCapture(&sc);
-    session.setVideoSink(&sink);
+    session.setVideoSink(&grabber);
 
     sc.setScreen(screen);
     sc.setActive(true);
 
     // Ensure capture is actually running before stopping it
-    QVERIFY(sink.waitForFrame().isValid());
+    QVERIFY(grabber.tryWaitForFirstFrameInfo());
     QVERIFY(sc.isActive());
 
     for (int i = 0; i < restartCount; ++i) {
@@ -653,7 +673,7 @@ void tst_QScreenCaptureBackend::setActive_restartsScreenCapture_whenStartedAgain
 
         sc.setActive(true);
 
-        QVERIFY(sink.waitForFrame().isValid());
+        QVERIFY(grabber.tryWaitForFirstFrameInfo());
         QVERIFY(sc.isActive());
     }
 
@@ -707,13 +727,14 @@ void tst_QScreenCaptureBackend::setFrameRate_emitsFramesAtCorrectRate()
     widget->setAnimated(true);
     QVERIFY(QTest::qWaitForWindowExposed(widget.get()));
 
-    TestVideoSink sink;
+    FrameGrabber grabber;
     const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTest::makeScreenCapture();
     QScreenCapture &capture = *screenCapture;
+    connectGrabber(capture, grabber);
     capture.setScreen(widget->screen());
     QMediaCaptureSession session;
     session.setScreenCapture(&capture);
-    session.setVideoSink(&sink);
+    session.setVideoSink(&grabber);
 
     float newFrameRate = 1.f;
 
@@ -727,7 +748,7 @@ void tst_QScreenCaptureBackend::setFrameRate_emitsFramesAtCorrectRate()
         slopFactor = 0.2;
 
     // Check framerate is roughly 1fps
-    auto durationBetweenFrames = sink.durationBetweenFrames(3);
+    auto durationBetweenFrames = grabber.durationBetweenFrames(3);
     QVERIFY2(
         durationBetweenFrames > 0ms,
         "Did not receive enough QVideoFrames to measure framerate");
