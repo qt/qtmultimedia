@@ -24,12 +24,12 @@ QT_BEGIN_NAMESPACE
 class QScreenCapture;
 class QWindowCapture;
 
-namespace QtMultimediaTestLib {
+namespace QtMultimediaTest {
 
 [[nodiscard]] std::unique_ptr<QScreenCapture> makeScreenCapture();
 [[nodiscard]] std::unique_ptr<QWindowCapture> makeWindowCapture();
 
-} // namespace QtMultimediaTestLib
+} // namespace QtMultimediaTest
 
 QT_END_NAMESPACE
 

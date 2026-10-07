@@ -10,7 +10,7 @@
 
 QT_BEGIN_NAMESPACE
 
-std::unique_ptr<QScreenCapture> QtMultimediaTestLib::makeScreenCapture()
+std::unique_ptr<QScreenCapture> QtMultimediaTest::makeScreenCapture()
 {
     auto capture = std::make_unique<QScreenCapture>();
     auto *capturePrivate = QScreenCapturePrivate::get(*capture);
@@ -18,7 +18,7 @@ std::unique_ptr<QScreenCapture> QtMultimediaTestLib::makeScreenCapture()
     return capture;
 }
 
-std::unique_ptr<QWindowCapture> QtMultimediaTestLib::makeWindowCapture()
+std::unique_ptr<QWindowCapture> QtMultimediaTest::makeWindowCapture()
 {
     auto capture = std::make_unique<QWindowCapture>();
     auto *capturePrivate = QWindowCapturePrivate::get(*capture);

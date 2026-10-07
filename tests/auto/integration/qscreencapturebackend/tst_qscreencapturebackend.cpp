@@ -275,7 +275,7 @@ void tst_QScreenCaptureBackend::capture(QTestWidget &widget, const QPoint &drawi
     publishScene(widget);
 
     TestVideoSink sink;
-    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTestLib::makeScreenCapture();
+    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTest::makeScreenCapture();
     QScreenCapture &sc = *screenCapture;
 
     QSignalSpy errorsSpy(&sc, &QScreenCapture::errorOccurred);
@@ -343,7 +343,7 @@ void tst_QScreenCaptureBackend::removeWhileCapture(
     std::function<void(QScreenCapture &)> scModifier, std::function<void()> deleter)
 {
     QVideoSink sink;
-    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTestLib::makeScreenCapture();
+    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTest::makeScreenCapture();
     QScreenCapture &sc = *screenCapture;
 
     QSignalSpy errorsSpy(&sc, &QScreenCapture::errorOccurred);
@@ -492,21 +492,21 @@ void tst_QScreenCaptureBackend::initTestCase()
 
 void tst_QScreenCaptureBackend::isActive_returnsFalse_whenNotStarted()
 {
-    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTestLib::makeScreenCapture();
+    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTest::makeScreenCapture();
     QScreenCapture &capture = *screenCapture;
     QVERIFY(!capture.isActive());
 }
 
 void tst_QScreenCaptureBackend::screen_isNull_whenNotSet()
 {
-    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTestLib::makeScreenCapture();
+    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTest::makeScreenCapture();
     QScreenCapture &capture = *screenCapture;
     QCOMPARE(capture.screen(), nullptr);
 }
 
 void tst_QScreenCaptureBackend::error_isNoError_whenNotStarted()
 {
-    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTestLib::makeScreenCapture();
+    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTest::makeScreenCapture();
     QScreenCapture &capture = *screenCapture;
     QCOMPARE(capture.error(), QScreenCapture::Error::NoError);
     QCOMPARE(capture.errorString(), "");
@@ -514,7 +514,7 @@ void tst_QScreenCaptureBackend::error_isNoError_whenNotStarted()
 
 void tst_QScreenCaptureBackend::screenCapture_returnsSession_whenAddedToSession()
 {
-    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTestLib::makeScreenCapture();
+    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTest::makeScreenCapture();
     QScreenCapture &capture = *screenCapture;
     QCOMPARE(capture.captureSession(), nullptr);
 
@@ -543,7 +543,7 @@ void tst_QScreenCaptureBackend::setActive_startsStreamWithValidFrame()
     QFETCH(QScreen *, screen);
 
     TestVideoSink sink;
-    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTestLib::makeScreenCapture();
+    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTest::makeScreenCapture();
     QScreenCapture &sc = *screenCapture;
 
     QSignalSpy errorsSpy(&sc, &QScreenCapture::errorOccurred);
@@ -583,7 +583,7 @@ void tst_QScreenCaptureBackend::capturedFrame_hasExpectedSize()
     QFETCH(QScreen *, screen);
 
     TestVideoSink sink;
-    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTestLib::makeScreenCapture();
+    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTest::makeScreenCapture();
     QScreenCapture &sc = *screenCapture;
 
     QSignalSpy errorsSpy(&sc, &QScreenCapture::errorOccurred);
@@ -620,7 +620,7 @@ void tst_QScreenCaptureBackend::capturedFrame_hasExpectedSize()
 void tst_QScreenCaptureBackend::setActive_startsAndStopsCapture()
 {
     TestVideoSink sink;
-    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTestLib::makeScreenCapture();
+    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTest::makeScreenCapture();
     QScreenCapture &sc = *screenCapture;
 
     QSignalSpy errorsSpy(&sc, &QScreenCapture::errorOccurred);
@@ -679,7 +679,7 @@ void tst_QScreenCaptureBackend::setActive_startsAndStopsCapture()
 
 void tst_QScreenCaptureBackend::setActive_isNoOp_whenStoppingCaptureThatNeverStarted()
 {
-    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTestLib::makeScreenCapture();
+    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTest::makeScreenCapture();
     QScreenCapture &capture = *screenCapture;
 
     QSignalSpy activeStateSpy(&capture, &QScreenCapture::activeChanged);
@@ -694,7 +694,7 @@ void tst_QScreenCaptureBackend::setActive_isNoOp_whenStoppingCaptureThatNeverSta
 
 void tst_QScreenCaptureBackend::setActive_isNoOp_whenAlreadyActive()
 {
-    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTestLib::makeScreenCapture();
+    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTest::makeScreenCapture();
     QScreenCapture &capture = *screenCapture;
 
     QSignalSpy errorsSpy(&capture, &QScreenCapture::errorOccurred);
@@ -737,7 +737,7 @@ void tst_QScreenCaptureBackend::setActive_restartsScreenCapture_whenStartedAgain
     constexpr int restartCount = 3;
 
     TestVideoSink sink;
-    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTestLib::makeScreenCapture();
+    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTest::makeScreenCapture();
     QScreenCapture &sc = *screenCapture;
 
     QSignalSpy errorsSpy(&sc, &QScreenCapture::errorOccurred);
@@ -771,7 +771,7 @@ void tst_QScreenCaptureBackend::setActive_restartsScreenCapture_whenStartedAgain
 
 void tst_QScreenCaptureBackend::setFrameRate_updatesPropertyAndEmitsSignal()
 {
-    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTestLib::makeScreenCapture();
+    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTest::makeScreenCapture();
     QScreenCapture &capture = *screenCapture;
 
     QSignalSpy errorsSpy(&capture, &QScreenCapture::errorOccurred);
@@ -816,7 +816,7 @@ void tst_QScreenCaptureBackend::setFrameRate_emitsFramesAtCorrectRate()
         QVERIFY(QTest::qWaitForWindowExposed(widget.get()));
 
     TestVideoSink sink;
-    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTestLib::makeScreenCapture();
+    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTest::makeScreenCapture();
     QScreenCapture &capture = *screenCapture;
     capture.setScreen(widget->screen());
     QMediaCaptureSession session;
@@ -859,7 +859,7 @@ void tst_QScreenCaptureBackend::portalSessionClosed_doesNotWarnAboutGrabbingThre
     QTest::failOnWarning(QRegularExpression(u".*another thread.*"_s));
 
     TestVideoSink sink;
-    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTestLib::makeScreenCapture();
+    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTest::makeScreenCapture();
     QScreenCapture &sc = *screenCapture;
 
     QSignalSpy errorsSpy(&sc, &QScreenCapture::errorOccurred);
@@ -948,7 +948,7 @@ void tst_QScreenCaptureBackend::capture_capturesToFile_whenConnectedToMediaRecor
     widget->setColors(QColor(0, 0, 0xFF), QColor(0, 0, 0xFF));
     publishScene(*widget);
 
-    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTestLib::makeScreenCapture();
+    const std::unique_ptr<QScreenCapture> screenCapture = QtMultimediaTest::makeScreenCapture();
     QScreenCapture &sc = *screenCapture;
     QSignalSpy errorsSpy(&sc, &QScreenCapture::errorOccurred);
     QMediaCaptureSession session;

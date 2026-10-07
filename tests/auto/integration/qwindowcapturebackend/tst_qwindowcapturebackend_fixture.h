@@ -82,7 +82,7 @@ public:
     void waitForWindowGeometryToSettle(FirstFrameSizePolicy policy) const;
 
     QMediaCaptureSession m_session;
-    std::unique_ptr<QWindowCapture> m_captureStorage = QtMultimediaTestLib::makeWindowCapture();
+    std::unique_ptr<QWindowCapture> m_captureStorage = QtMultimediaTest::makeWindowCapture();
     QWindowCapture &m_capture = *m_captureStorage;
     FrameGrabber m_grabber;
 
