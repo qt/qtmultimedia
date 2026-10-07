@@ -133,6 +133,16 @@ struct AVDictionaryHolder
     }
 };
 
+struct AVFreeDeleter
+{
+    template <typename T>
+    void operator()(T *object) const
+    {
+        if (object)
+            av_free(object);
+    }
+};
+
 template <auto F>
 struct AVDeleter
 {

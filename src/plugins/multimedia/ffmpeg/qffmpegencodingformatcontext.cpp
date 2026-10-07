@@ -39,8 +39,8 @@ bool EncodingFormatContext::openAVIO(const QString &filePath)
 
     const QByteArray filePathUtf8 = filePath.toUtf8();
 
-    std::unique_ptr<char, decltype(&av_free)> url(
-            reinterpret_cast<char *>(av_malloc(filePathUtf8.size() + 1)), &av_free);
+    std::unique_ptr<char, AVFreeDeleter> url(
+            reinterpret_cast<char *>(av_malloc(filePathUtf8.size() + 1)));
     memcpy(url.get(), filePathUtf8.constData(), filePathUtf8.size() + 1);
 
     // Initialize the AVIOContext for accessing the resource indicated by the url
