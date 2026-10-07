@@ -57,6 +57,9 @@ class QtCamera2 {
     ImageReader mStillPhotoImageReader = null;
     CameraManager mCameraManager;
     CameraCaptureSession mCaptureSession;
+    // Callback of the session being created or active. Events from callbacks of replaced
+    // sessions are ignored, see CameraCaptureSessionStateCallback.
+    volatile CameraCaptureSessionStateCallback mCurrentSessionCallback;
     CaptureRequest.Builder mPreviewRequestBuilder;
     CaptureRequest mPreviewRequest;
     String mCameraId;
@@ -70,9 +73,13 @@ class QtCamera2 {
     // All access to these variables must happen after locking the instance.
     class SyncedMembers {
         // Idle -> Started: start(). Started <-> Capturing: still photo begins/ends.
-        // Anything -> Idle: stopAndClose().
-        enum State { Idle, Started, Capturing }
+        // Idle/Started -> Reconfiguring: session rebuilt for a new still size, start() returns it
+        // to Started, a failure to Idle. Anything -> Idle: stopAndClose().
+        enum State { Idle, Started, Capturing, Reconfiguring }
         State mState = State.Idle;
+
+        // A still photo requested while reconfiguring runs once the session is configured.
+        boolean mStillCaptureDeferred = false;
 
         // Preview is running, settings are applied to it directly
         boolean isStarted() {
@@ -117,8 +124,8 @@ class QtCamera2 {
 
     native void onCaptureSessionConfigured(String cameraId);
     native void onCaptureSessionConfigureFailed(String cameraId);
+    native void onStillReaderSwapFailed(String cameraId);
 
-    CameraCaptureSessionStateCallback mCaptureStateCallback = new CameraCaptureSessionStateCallback(this);
 
     native void onSessionActive(String cameraId);
     native void onSessionClosed(String cameraId);
@@ -226,10 +233,10 @@ class QtCamera2 {
     };
 
     @UsedFromNativeCode
-    void prepareCamera(int width, int height, int minFps, int maxFps) {
+    void prepareCamera(int width, int height, int minFps, int maxFps, int stillWidth, int stillHeight) {
         addPreviewImageReader(width, height);
         setFrameRate(minFps, maxFps);
-        addStillImageReader(width, height);
+        addStillImageReader(stillWidth, stillHeight);
     }
 
     private void addPreviewImageReader(int width, int height) {
@@ -250,6 +257,70 @@ class QtCamera2 {
                 ImageReader.newInstance(width, height, ImageFormat.JPEG, MaxNumberFrames);
         mStillPhotoImageReader.setOnImageAvailableListener(mOnStillPhotoAvailableListener, mBackgroundHandler);
         addSurface(mStillPhotoImageReader.getSurface());
+    }
+
+    // Swaps the still ImageReader and rebuilds the session, keeping the camera open. Runs on the
+    // background handler so it can't interleave with session callbacks. Failure is reported
+    // through onStillReaderSwapFailed.
+    @UsedFromNativeCode
+    boolean updateStillImageReader(int width, int height) {
+        final Handler handler = mBackgroundHandler;
+        if (mCameraDevice == null || mStillPhotoImageReader == null || handler == null)
+            return false;
+
+        synchronized (mSyncedMembers) {
+            if (mSyncedMembers.isTakingStillPhoto())
+                return false;
+            mSyncedMembers.mState = SyncedMembers.State.Reconfiguring;
+        }
+
+        return handler.post(() -> {
+            if (mCameraDevice == null || mStillPhotoImageReader == null)
+                return; // Closed in the meantime
+
+            mCurrentSessionCallback = null;
+            if (mCaptureSession != null) {
+                mCaptureSession.close();
+                mCaptureSession = null;
+            }
+
+            // Not closed: native code may still hold its Images. GC releases it once they're gone.
+            mStillPhotoImageReader.setOnImageAvailableListener(null, null);
+            addStillImageReader(width, height);
+
+            if (!createSession())
+                onSessionConfigureFailed();
+        });
+    }
+
+    // Called on the background thread when configuring the session failed.
+    void onSessionConfigureFailed() {
+        final boolean isStillReaderSwap;
+        synchronized (mSyncedMembers) {
+            isStillReaderSwap = mSyncedMembers.mState == SyncedMembers.State.Reconfiguring;
+        }
+        if (isStillReaderSwap)
+            onStillReaderSwapFailed(mCameraId);
+        else
+            onCaptureSessionConfigureFailed(mCameraId);
+        onSessionReconfigured(false);
+    }
+
+    // Called on the background thread. Runs the deferred still capture, if any.
+    void onSessionReconfigured(boolean success) {
+        final boolean captureDeferred;
+        synchronized (mSyncedMembers) {
+            if (mSyncedMembers.mState == SyncedMembers.State.Reconfiguring)
+                mSyncedMembers.mState = SyncedMembers.State.Idle;
+            captureDeferred = mSyncedMembers.mStillCaptureDeferred;
+            mSyncedMembers.mStillCaptureDeferred = false;
+        }
+        if (!captureDeferred)
+            return;
+        if (success)
+            beginStillPhotoCapture();
+        else
+            onStillPhotoCaptureFailed(mCameraId);
     }
 
     private void setFrameRate(int minFrameRate, int maxFrameRate) {
@@ -287,9 +358,10 @@ class QtCamera2 {
             for (Surface surface : mTargetSurfaces)
                 outputs.add(new OutputConfiguration(surface));
 
-            SessionConfiguration config =
-                    new SessionConfiguration(SessionConfiguration.SESSION_REGULAR, outputs,
-                                             mBackgroundHandler::post, mCaptureStateCallback);
+            mCurrentSessionCallback = new CameraCaptureSessionStateCallback(this);
+            SessionConfiguration config = new SessionConfiguration(
+                    SessionConfiguration.SESSION_REGULAR, outputs,
+                    mBackgroundHandler::post, mCurrentSessionCallback);
             mCameraDevice.createCaptureSession(config);
             return true;
         } catch (Exception exception) {
@@ -330,7 +402,7 @@ class QtCamera2 {
 
         synchronized (mSyncedMembers) {
             try {
-                if (mSyncedMembers.isTakingStillPhoto())
+                if (mSyncedMembers.isTakingStillPhoto() || mSyncedMembers.mStillCaptureDeferred)
                     abortedStillPhotoCameraId = mCameraId;
                 if (null != mCaptureSession) {
                     mCaptureSession.close();
@@ -348,6 +420,7 @@ class QtCamera2 {
                 Log.w(LOG_TAG, "Failed to stop and close:" + exception);
             }
             mSyncedMembers.mState = SyncedMembers.State.Idle;
+            mSyncedMembers.mStillCaptureDeferred = false;
         }
 
         if (abortedStillPhotoCameraId != null)
@@ -406,6 +479,11 @@ class QtCamera2 {
     void beginStillPhotoCapture() {
         boolean abortCapture = false;
         synchronized (mSyncedMembers) {
+            if (mSyncedMembers.mState == SyncedMembers.State.Reconfiguring
+                    || mSyncedMembers.mStillCaptureDeferred) {
+                mSyncedMembers.mStillCaptureDeferred = true;
+                return;
+            }
             if (mSyncedMembers.isTakingStillPhoto()) {
                 // Queuing multiple still photos is not implemented.
                 // TODO: We might have to signal to QImageCapture here that capturing failed.

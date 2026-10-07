@@ -29,6 +29,7 @@ public:
 protected:
     void setupVideoSourceConnections() override;
     int doCapture(const QString &fileName) override;
+    void applySettingsToVideoSource() override;
 
 private Q_SLOTS:
     void updateExif(int id, const QString &filename);

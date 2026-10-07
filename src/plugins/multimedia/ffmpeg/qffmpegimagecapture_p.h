@@ -45,7 +45,9 @@ public:
 protected:
     virtual int doCapture(const QString &fileName);
     virtual void setupVideoSourceConnections();
+    virtual void applySettingsToVideoSource() { }
     QPlatformVideoSource *videoSource() const;
+    QFFmpegMediaCaptureSession *captureSession() const { return m_session; }
     void updateReadyForCapture();
 
 protected Q_SLOTS:
