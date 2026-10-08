@@ -17,7 +17,7 @@
 
 #include "evrvideowindowcontrol_p.h"
 
-QT_USE_NAMESPACE
+QT_BEGIN_NAMESPACE
 
 class MFEvrVideoWindowControl : public EvrVideoWindowControl
 {
@@ -34,5 +34,7 @@ private:
     IMFActivate *m_currentActivate;
     IMFMediaSink *m_evrSink;
 };
+
+QT_END_NAMESPACE
 
 #endif // MFEVRVIDEOWINDOWCONTROL_H

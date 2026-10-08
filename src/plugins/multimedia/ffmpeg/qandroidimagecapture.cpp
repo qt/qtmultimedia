@@ -33,8 +33,24 @@ int QAndroidImageCapture::doCapture(const QString &fileName)
 void QAndroidImageCapture::setupVideoSourceConnections()
 {
     auto androidCamera = qobject_cast<QAndroidCamera *>(videoSource());
-    if (androidCamera)
-        connect(androidCamera, &QAndroidCamera::onCaptured, this, &QAndroidImageCapture::newVideoFrame);
+    if (androidCamera) {
+        connect(
+            androidCamera,
+            &QAndroidCamera::onStillPhotoCaptured,
+            this,
+            &QAndroidImageCapture::newVideoFrame);
+
+        // The backend might call onImageCaptureFailed before the call to
+        // QAndroidImageCapture::doCapture() is finished and returns the request id to the user.
+        // Therefore we want to use queued connection for this to make sure any errors are raised
+        // after that function ends.
+        connect(
+            androidCamera,
+            &QAndroidCamera::onImageCaptureFailed,
+            this,
+            &QFFmpegImageCapture::cancelPendingImage,
+            Qt::QueuedConnection);
+    }
     else
         QFFmpegImageCapture::setupVideoSourceConnections();
 }

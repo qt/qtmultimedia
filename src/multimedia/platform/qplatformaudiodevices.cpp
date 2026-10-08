@@ -13,7 +13,7 @@
 #if defined(Q_OS_DARWIN)
 #  include <QtMultimedia/private/qdarwinaudiodevices_p.h>
 #endif
-#if defined(Q_OS_WINDOWS) && QT_CONFIG(wmf)
+#if defined(Q_OS_WINDOWS)
 #  include <QtMultimedia/private/qwindowsaudiodevices_p.h>
 #endif
 #if QT_CONFIG(alsa)
@@ -35,7 +35,7 @@ std::unique_ptr<QPlatformAudioDevices> QPlatformAudioDevices::create()
 {
 #ifdef Q_OS_DARWIN
     return std::make_unique<QDarwinAudioDevices>();
-#elif defined(Q_OS_WINDOWS) && QT_CONFIG(wmf)
+#elif defined(Q_OS_WINDOWS)
     return std::make_unique<QWindowsAudioDevices>();
 #elif defined(Q_OS_ANDROID)
     return std::make_unique<QAndroidAudioDevices>();

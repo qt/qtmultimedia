@@ -22,12 +22,12 @@
 #include <qstring.h>
 #include <optional>
 
-inline bool operator==(const AVRational &lhs, const AVRational &rhs)
+[[maybe_unused]] static inline bool operator==(const AVRational &lhs, const AVRational &rhs)
 {
     return lhs.num == rhs.num && lhs.den == rhs.den;
 }
 
-inline bool operator!=(const AVRational &lhs, const AVRational &rhs)
+[[maybe_unused]] static inline bool operator!=(const AVRational &lhs, const AVRational &rhs)
 {
     return !(lhs == rhs);
 }
@@ -311,11 +311,17 @@ bool isCVFormatSupported(uint32_t format);
 std::string cvFormatToString(uint32_t format);
 
 #endif
+
+enum class AVError : int {
+    Success = 0,
+};
+
 } // namespace QFFmpeg
 
 QDebug operator<<(QDebug, const AVRational &);
 QDebug operator<<(QDebug, const AVDictionary &);
 QDebug operator<<(QDebug, const QFFmpeg::AVDictionaryHolder &);
+QDebug operator<<(QDebug, QFFmpeg::AVError);
 
 #if QT_FFMPEG_HAS_AV_CHANNEL_LAYOUT
 QDebug operator<<(QDebug, const AVChannelLayout &);

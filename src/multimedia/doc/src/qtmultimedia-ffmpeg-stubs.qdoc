@@ -1,0 +1,111 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+/*!
+\page qtmultimedia-ffmpeg-stubs.html
+\title FFmpeg stub libraries on Linux and Android
+\brief This document explains the stub mechanism used for FFmpeg's dynamic dependencies on Linux
+and Android platforms.
+
+\section1 Overview
+
+To support dynamic linking of \l{FFmpeg} in compliance with the LGPL license, Qt Multimedia uses
+\b{stub libraries} to handle optional external dependencies on Linux and Android platforms.
+
+On these platforms, FFmpeg may require additional shared libraries that are not shipped with Qt:
+
+\list
+    \li \b{OpenSSL} - required for secure network streaming.
+    \li \b{VAAPI} (Linux only) - enables hardware-accelerated video decoding and encoding.
+\endlist
+
+These libraries are often not available or cannot be bundled due to licensing constraints. To ensure
+FFmpeg-based features remain functional (excluding the unsupported parts), Qt delivers
+\e{stub libraries} as fallbacks.
+
+\section1 Why Stubs Are Needed
+
+If these dependencies are not present at runtime, FFmpeg will fail to load or function properly.
+The stub mechanism allows:
+
+\list
+    \li Successful loading of FFmpeg even when OpenSSL or VAAPI are missing.
+    \li Graceful degradation of functionality (e.g., lack of VAAPI results in no hardware
+        acceleration, but playback still works).
+    \li Users to \b{opt-in} to using their own system-provided versions of these libraries if available.
+\endlist
+
+\section1 What Stubs Are
+
+Stub libraries mimic the interfaces of the real libraries (e.g., \c{libssl.so}, \c{libva.so}) but
+do not implement full functionality. Instead, they:
+
+\list
+    \li Provide dummy implementations that return safe fallback values or no-ops.
+    \li Dynamically attempt to resolve real symbols via \c{QLibrary::load} / \c{QLibrary::resolve}.
+    \li Fail gracefully if real libraries are not found.
+\endlist
+
+Qt ships these stubs under the names:
+
+\list
+    \li \c{libQt6FFmpegStub-ssl.so.x}
+    \li \c{libQt6FFmpegStub-crypto.so.x}
+    \li \c{libQt6FFmpegStub-va.so.x}
+    \li \c{libQt6FFmpegStub-va-drm.so.x}
+    \li \c{libQt6FFmpegStub-va-x11.so.x}
+    \li (more may be added in the future)
+\endlist
+
+\section1 How Stubs Work in Qt
+
+When FFmpeg is dynamically linked:
+
+\list
+    \li It normally expects to be linked against system libraries like \c{libssl.so.3} or \c{libva.so.2}.
+    \li Qt patches the FFmpeg binaries using the \c{patchelf} tool to replace these real
+        dependencies with stub equivalents.
+\endlist
+
+Example:
+
+\badcode
+    # Original linkage
+    libffmpegmediaplugin.so: needs libavcodec.so (depends on the FFmpeg libs)
+    libavcodec.so: needs libssl.so.3
+
+    # After patching
+    libffmpegmediaplugin.so: needs libavcodec.so (no changes)
+    libavcodec.so: needs libQt6FFmpegStub-ssl.so.3
+    libQt6FFmpegStub-ssl.so.3: optionally needs libssl.so.3 (no explicit linkage)
+\endcode
+
+This patching is performed automatically as part of the build/distribution process.
+
+\section1 Runtime Behavior and Security Notes
+
+\list
+    \li FFmpeg plugins are loaded with \c{dlopen(..., RTLD_LOCAL)}, so stub symbols do not leak into
+        the global symbol table.
+    \li If the application already uses OpenSSL or VAAPI, the system libraries may be picked up from
+        the global scope and must be binary compatible.
+    \li The shipped QtMultimedia and FFmpeg binaries are compatible with:
+        \list
+            \li \b{OpenSSL 3.x.x} (with symbol versioning \c{@OPENSSL_3.0.0})
+            \li \b{VAAPI ABI 0.33} (older ABI 0.32 is explicitly unsupported)
+        \endlist
+    \li It is also possible to build Qt Multimedia against \b{OpenSSL 1.x.x}, though compatibility
+        depends on your FFmpeg configuration.
+\endlist
+
+To completely remove the use of stub libraries, there are two options:
+
+\list
+    \li Use \c{patchelf} to restore FFmpeg's dependencies back to the system libraries (e.g., replace
+        \c{libQt6FFmpegStub-ssl.so.3} with \c{libssl.so.3}). This must be done for all FFmpeg libraries:
+        \c{libavcodec}, \c{libavformat}, \c{libavutil}, \c{libswresample}, and \c{libswscale}.
+    \li Replace the shipped FFmpeg libraries with ones built manually by the user.
+        See \l{Building FFmpeg from source}.
+\endlist
+
+*/

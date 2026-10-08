@@ -261,7 +261,7 @@ void QAndroidCamera::frameAvailable(QJniObject image, bool takePhoto)
     if (!takePhoto)
         emit newVideoFrame(videoFrame);
     else
-        emit onCaptured(videoFrame);
+        emit onStillPhotoCaptured(videoFrame);
 }
 
 QtVideo::Rotation QAndroidCamera::rotation() const
@@ -750,6 +750,16 @@ void QAndroidCamera::onCaptureSessionFailed(int reason, long frameNumber)
                         .arg(reason));
 }
 
+// Called by Java background thread if the on-going still-photo capture fails.
+void QAndroidCamera::onStillPhotoCaptureFailed()
+{
+    // TODO: Emit a more descriptive error signal. At the time of writing, there is no
+    // suitable QImageCapture::Error enumerator for this scenario.
+    emit onImageCaptureFailed(
+        QImageCapture::Error::ResourceError,
+        QStringLiteral("Unknown error"));
+}
+
 } // namespace QFFmpeg
 
 // JNI logic
@@ -765,7 +775,7 @@ void QAndroidCamera::onCaptureSessionFailed(int reason, long frameNumber)
   }                                                                                   \
   QFFmpeg::QAndroidCamera *camera = g_qcameras->find(key).value();
 
-static void onFrameAvailable(JNIEnv *env, jobject obj, jstring cameraId,
+static void onPreviewFrameAvailable(JNIEnv *env, jobject obj, jstring cameraId,
                              QtJniTypes::Image image)
 {
     Q_UNUSED(env);
@@ -774,9 +784,9 @@ static void onFrameAvailable(JNIEnv *env, jobject obj, jstring cameraId,
 
     camera->frameAvailable(QJniObject(image));
 }
-Q_DECLARE_JNI_NATIVE_METHOD(onFrameAvailable)
+Q_DECLARE_JNI_NATIVE_METHOD(onPreviewFrameAvailable)
 
-static void onPhotoAvailable(JNIEnv *env, jobject obj, jstring cameraId,
+static void onStillPhotoAvailable(JNIEnv *env, jobject obj, jstring cameraId,
                              QtJniTypes::Image image)
 {
     Q_UNUSED(env);
@@ -785,7 +795,7 @@ static void onPhotoAvailable(JNIEnv *env, jobject obj, jstring cameraId,
 
     camera->frameAvailable(QJniObject(image), true);
 }
-Q_DECLARE_JNI_NATIVE_METHOD(onPhotoAvailable)
+Q_DECLARE_JNI_NATIVE_METHOD(onStillPhotoAvailable)
 
 
 static void onCameraOpened(JNIEnv *env, jobject obj, jstring cameraId)
@@ -869,23 +879,34 @@ static void onCaptureSessionFailed(JNIEnv *env, jobject obj, jstring cameraId, j
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onCaptureSessionFailed)
 
+static void onStillPhotoCaptureFailed(JNIEnv *env, jobject obj, jstring cameraId)
+{
+    Q_UNUSED(env);
+    Q_UNUSED(obj);
+    GET_CAMERA(cameraId);
+
+    camera->onStillPhotoCaptureFailed();
+}
+Q_DECLARE_JNI_NATIVE_METHOD(onStillPhotoCaptureFailed)
+
 bool QFFmpeg::QAndroidCamera::registerNativeMethods()
 {
     static const bool registered = []() {
         return QJniEnvironment().registerNativeMethods(
-                QtJniTypes::Traits<QtJniTypes::QtCamera2>::className(),
-                {
-                        Q_JNI_NATIVE_METHOD(onCameraOpened),
-                        Q_JNI_NATIVE_METHOD(onCameraDisconnect),
-                        Q_JNI_NATIVE_METHOD(onCameraError),
-                        Q_JNI_NATIVE_METHOD(onCaptureSessionConfigured),
-                        Q_JNI_NATIVE_METHOD(onCaptureSessionConfigureFailed),
-                        Q_JNI_NATIVE_METHOD(onCaptureSessionFailed),
-                        Q_JNI_NATIVE_METHOD(onFrameAvailable),
-                        Q_JNI_NATIVE_METHOD(onPhotoAvailable),
-                        Q_JNI_NATIVE_METHOD(onSessionActive),
-                        Q_JNI_NATIVE_METHOD(onSessionClosed),
-                });
+            QtJniTypes::Traits<QtJniTypes::QtCamera2>::className(),
+            {
+                Q_JNI_NATIVE_METHOD(onCameraOpened),
+                Q_JNI_NATIVE_METHOD(onCameraDisconnect),
+                Q_JNI_NATIVE_METHOD(onCameraError),
+                Q_JNI_NATIVE_METHOD(onCaptureSessionConfigured),
+                Q_JNI_NATIVE_METHOD(onCaptureSessionConfigureFailed),
+                Q_JNI_NATIVE_METHOD(onCaptureSessionFailed),
+                Q_JNI_NATIVE_METHOD(onPreviewFrameAvailable),
+                Q_JNI_NATIVE_METHOD(onStillPhotoAvailable),
+                Q_JNI_NATIVE_METHOD(onSessionActive),
+                Q_JNI_NATIVE_METHOD(onSessionClosed),
+                Q_JNI_NATIVE_METHOD(onStillPhotoCaptureFailed),
+            });
     }();
     return registered;
 }

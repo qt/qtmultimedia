@@ -20,6 +20,7 @@
 #include <QtCore/private/qcomptr_p.h>
 
 #include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/private/qaudioformat_p.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtMultimedia/private/qaudiodevice_p.h>
 
@@ -35,6 +36,12 @@ public:
     ~QWindowsAudioDevice();
 
     ComPtr<IMMDevice> open() const;
+
+    std::pair<int, int> m_probedChannelCountRange{ 1, 2 }; // fallback: mono/stereo
+    std::pair<int, int> m_probedSampleRateRange{
+        QtMultimediaPrivate::allSupportedSampleRates.front(),
+        QtMultimediaPrivate::allSupportedSampleRates.back(),
+    }; // fallback: full range
 };
 
 QT_END_NAMESPACE

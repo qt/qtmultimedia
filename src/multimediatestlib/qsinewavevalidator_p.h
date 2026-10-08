@@ -17,6 +17,10 @@
 
 #include <array>
 
+#include <QtCore/qtconfigmacros.h>
+
+QT_BEGIN_NAMESPACE
+
 // sine wave validator: accumulating peak value and result of passing the signal through a notch
 // filter. A sine wave of that frequency should not pass the notch filter, so if the peak exceeds a
 // small threshold, it we can detect discontinuities for example.
@@ -46,5 +50,7 @@ private:
     float accumPeak{};
     float accumNotchPeak{};
 };
+
+QT_END_NAMESPACE
 
 #endif // QSINEWAVEVALIDATOR_H

@@ -1,16 +1,17 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include <qavfcamera_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qavfcamera_p.h>
+
+#include <QtCore/qscopeguard.h>
+
+#include <QtFFmpegMediaPluginImpl/private/qavfsamplebufferdelegate_p.h>
 
 #include <QtMultimedia/private/qavfcameradebug_p.h>
 #include <QtMultimedia/private/qavfcamerautility_p.h>
 #include <QtMultimedia/private/qavfhelpers_p.h>
+#include <QtMultimedia/private/qmultimediautils_p.h>
 #include <QtMultimedia/private/qplatformmediacapture_p.h>
-
-#include <QtCore/qscopeguard.h>
-
-#include "qavfsamplebufferdelegate_p.h"
 
 #define AVMediaType XAVMediaType
 extern "C" {
@@ -395,14 +396,6 @@ void QAVFCamera::clearRotationTracking() {
 // Will always return a result that is divisible by 90.
 int QAVFCamera::getCurrentRotationAngleDegrees() const
 {
-#ifdef Q_OS_IOS
-    if (!m_rotationCoordinator && m_receivingUiDeviceOrientationNotifications)
-        return 0;
-#else
-    if (!m_rotationCoordinator)
-        return 0;
-#endif
-
     if (@available(macOS 14.0, iOS 17.0, *)) {
         // This code assumes that AVCaptureDeviceRotationCoordinator.videoRotationAngleForHorizonLevelCapture
         // returns degrees that are divisible by 90. This has been the case during testing.

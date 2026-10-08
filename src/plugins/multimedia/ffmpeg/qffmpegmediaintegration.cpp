@@ -17,18 +17,17 @@
 #include "qffmpegconverter_p.h"
 
 #ifdef Q_OS_MACOS
-#include <VideoToolbox/VideoToolbox.h>
-
-#include "qcgcapturablewindows_p.h"
-#include "qcgwindowcapture_p.h"
-#include "qavfscreencapture_p.h"
+#include <QtFFmpegMediaPluginImpl/private/qcgcapturablewindows_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qcgwindowcapture_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qavfscreencapture_p.h>
 #endif
 
 #ifdef Q_OS_DARWIN
-#include "qavfcamera_p.h"
-#include "QtMultimedia/private/qavfvideodevices_p.h"
+#include <QtFFmpegMediaPluginImpl/private/qavfcamera_p.h>
+#include <QtMultimedia/private/qavfvideodevices_p.h>
 
 #elif defined(Q_OS_WINDOWS)
+#  include <QtMultimedia/private/qwindowsresampler_p.h>
 #  include <QtMultimedia/private/qwindowsvideodevices_p.h>
 #  include "qwindowscamera_p.h"
 #  include "qffmpegscreencapture_dxgi_p.h"
@@ -186,7 +185,17 @@ QMaybe<std::unique_ptr<QPlatformAudioResampler>>
 QFFmpegMediaIntegration::createAudioResampler(const QAudioFormat &inputFormat,
                                               const QAudioFormat &outputFormat)
 {
-    return { std::make_unique<QFFmpegResampler>(inputFormat, outputFormat) };
+    auto ffmpegResampler = QFFmpegResampler::createFromInputFormat(inputFormat, outputFormat);
+    if (ffmpegResampler)
+        return QMaybe<std::unique_ptr<QPlatformAudioResampler>>{std::move(ffmpegResampler)};
+
+#ifdef Q_OS_WINDOWS
+    auto windowsResampler = std::make_unique<QWindowsResampler>();
+    if (windowsResampler->setup(inputFormat, outputFormat))
+        return QMaybe<std::unique_ptr<QPlatformAudioResampler>>{std::move(windowsResampler)};
+#endif
+
+    return QUnexpected{ notAvailable };
 }
 
 QMaybe<QPlatformMediaCaptureSession *> QFFmpegMediaIntegration::createCaptureSession()

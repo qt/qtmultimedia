@@ -4,7 +4,6 @@
 #include <system_error>
 #include <mferror.h>
 #include <qglobal.h>
-#include "wmcodecdsp.h"
 #include "mfaudiodecodercontrol_p.h"
 #include <private/qwindowsaudioutils_p.h>
 
@@ -180,7 +179,7 @@ void MFAudioDecoderControl::handleNewSample(ComPtr<IMFSample> sample)
     Q_ASSERT(sample);
 
     qint64 sampleStartTimeUs = m_resampler.outputFormat().durationForBytes(m_resampler.totalOutputBytes());
-    QByteArray out = m_resampler.resample(sample.Get());
+    QByteArray out = m_resampler.resample(sample);
 
     if (out.isEmpty()) {
         error(QAudioDecoder::Error::ResourceError, tr("Failed processing a sample"));

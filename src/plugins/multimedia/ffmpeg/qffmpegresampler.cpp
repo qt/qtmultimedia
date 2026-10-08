@@ -12,8 +12,9 @@ QT_BEGIN_NAMESPACE
 
 using namespace QFFmpeg;
 
-QFFmpegResampler::QFFmpegResampler(const QAudioFormat &inputFormat, const QAudioFormat &outputFormat) :
-    m_inputFormat(inputFormat), m_outputFormat(outputFormat)
+QFFmpegResampler::QFFmpegResampler(const QAudioFormat &inputFormat,
+                                   const QAudioFormat &outputFormat, qint64 startTime)
+    : m_inputFormat(inputFormat), m_outputFormat(outputFormat), m_startTime(startTime)
 {
     Q_ASSERT(inputFormat.isValid());
     Q_ASSERT(outputFormat.isValid());
@@ -47,6 +48,36 @@ QFFmpegResampler::QFFmpegResampler(const CodecContext *codecContext,
 
     qCDebug(qLcResampler).nospace() << "Created QFFmpegResampler. Offset: " << m_startTime
                                     << "us. From: " << inputAvFormat << " to: " << outputAvFormat;
+}
+
+template <typename... Args>
+std::unique_ptr<QFFmpegResampler> QFFmpegResampler::createImpl(Args... args)
+{
+    std::unique_ptr<QFFmpegResampler> resampler{
+        new QFFmpegResampler(std::forward<Args>(args)...),
+    };
+    if (resampler->isInitialized())
+        return resampler;
+    return nullptr;
+}
+
+std::unique_ptr<QFFmpegResampler>
+QFFmpegResampler::createFromInputFormat(const QAudioFormat &inputFormat,
+                                        const QAudioFormat &outputFormat, qint64 startTime)
+{
+    return createImpl(inputFormat, outputFormat, startTime);
+}
+
+std::unique_ptr<QFFmpegResampler>
+QFFmpegResampler::createFromCodecContext(const CodecContext *codecContext,
+                                         const QAudioFormat &outputFormat, qint64 startTime)
+{
+    return createImpl(codecContext, outputFormat, startTime);
+}
+
+bool QFFmpegResampler::isInitialized() const
+{
+    return m_resampler != nullptr;
 }
 
 QFFmpegResampler::~QFFmpegResampler() = default;

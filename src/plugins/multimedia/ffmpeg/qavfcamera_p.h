@@ -15,12 +15,13 @@
 // We mean it.
 //
 
-#include "qavfcamerabase_p.h"
-#include <QtMultimedia/private/qplatformmediaintegration_p.h>
+#include <QtMultimedia/private/qavfcamerabase_p.h>
 
 #define AVMediaType XAVMediaType
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 #undef AVMediaType
+
+#include <QtMultimedia/private/qplatformmediacapture_p.h>
 
 #include <dispatch/dispatch.h>
 
@@ -86,6 +87,7 @@ private:
     // to get the camera rotation directly from the camera-device.
     //
     // Gives us rotational information about the camera-device.
+    API_AVAILABLE(macos(14.0), ios(17.0))
     AVCaptureDeviceRotationCoordinator *m_rotationCoordinator = nullptr;
 #ifdef Q_OS_IOS
     // If running iOS 16 or older, we use the UIDeviceOrientation

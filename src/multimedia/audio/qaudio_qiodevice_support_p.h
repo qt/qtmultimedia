@@ -201,7 +201,7 @@ qsizetype pullFromQIODeviceToRingbuffer(QIODevice &device, QAudioRingBuffer<Samp
             return QSpan<SampleType>{};
         }
 
-        return writeRegion;
+        return take(writeRegion, bytesRead / sizeof(SampleType));
     });
 
     return totalSamplesWritten * sizeof(SampleType);

@@ -27,14 +27,27 @@ class CodecContext;
 
 class QFFmpegResampler : public QPlatformAudioResampler
 {
-public:
-    QFFmpegResampler(const QAudioFormat &inputFormat, const QAudioFormat &outputFormat);
+    QFFmpegResampler(const QAudioFormat &inputFormat, const QAudioFormat &outputFormat,
+                     qint64 startTime);
     QFFmpegResampler(const QFFmpeg::CodecContext *codecContext, const QAudioFormat &outputFormat,
-                     qint64 startTime = 0);
+                     qint64 startTime);
+
+    template <typename... Args>
+    static std::unique_ptr<QFFmpegResampler> createImpl(Args...);
+
+public:
+    static std::unique_ptr<QFFmpegResampler> createFromInputFormat(const QAudioFormat &input,
+                                                                   const QAudioFormat &output,
+                                                                   qint64 startTime = 0);
+    static std::unique_ptr<QFFmpegResampler> createFromCodecContext(const QFFmpeg::CodecContext *,
+                                                                    const QAudioFormat &output,
+                                                                    qint64 startTime = 0);
 
     ~QFFmpegResampler() override;
 
-    QAudioBuffer resample(const char* data, size_t size) override;
+    bool isInitialized() const;
+
+    QAudioBuffer resample(const char *data, size_t size) override;
 
     QAudioBuffer resample(const AVFrame *frame);
 

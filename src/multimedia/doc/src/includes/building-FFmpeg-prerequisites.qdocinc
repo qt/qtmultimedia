@@ -1,0 +1,315 @@
+// Copyright (C) 2025 The Qt Company Ltd.
+// SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GFDL-1.3-no-invariants-only
+
+//! [windows]
+
+    \include building-FFmpeg-prerequisites.qdocinc {common-header}
+
+    \list
+        \li Microsoft Visual Studio compiler (MSVC) or MinGW-w64.
+        \li \l{https://www.msys2.org/}{MSYS2}.
+        \li MSYS packages (make, yasm).
+    \endlist
+
+    \include building-FFmpeg-prerequisites.qdocinc {windows-compiler}
+    \include building-FFmpeg-prerequisites.qdocinc {windows-msys-install}
+    \include building-FFmpeg-prerequisites.qdocinc {windows-msys-prepare-mingw}
+    \include building-FFmpeg-prerequisites.qdocinc {windows-msys-prepare-msvc}
+
+//! [windows]
+
+//! [macos]
+
+    \include building-FFmpeg-prerequisites.qdocinc {common-header}
+
+    \list
+        \li \l{https://brew.sh/}{Homebrew}.
+        \li Homebrew packages (yasm).
+    \endlist
+
+    \include building-FFmpeg-prerequisites.qdocinc {macos-homebrew}
+
+//! [macos]
+
+//! [linux]
+
+    \include building-FFmpeg-prerequisites.qdocinc {common-header}
+
+    \list
+        \li Yasm.
+        \li Developer packages for your chosen security backend (see below).
+    \endlist
+
+    \include building-FFmpeg-prerequisites.qdocinc {linux-packages}
+    \include building-FFmpeg-prerequisites.qdocinc {linux-security-backend}
+
+//! [linux]
+
+//! [android-windows]
+
+    \include building-FFmpeg-prerequisites.qdocinc {common-header}
+
+    \list
+        \li MinGW-w64 compiler.
+        \li \l{https://www.msys2.org/}{MSYS2}.
+        \li MSYS packages (make, yasm).
+    \endlist
+
+    \include building-FFmpeg-prerequisites.qdocinc {android-sdk}
+    \include building-FFmpeg-prerequisites.qdocinc {windows-compiler}
+    \include building-FFmpeg-prerequisites.qdocinc {windows-msys-install}
+    \include building-FFmpeg-prerequisites.qdocinc {windows-msys-prepare-mingw}
+    \include building-FFmpeg-prerequisites.qdocinc {android-environment-variables}
+        {\androidndkversion} {C:\\Users\\<USER>\\AppData\\Local\\Android\\Sdk} {/c/Users/<USER>/AppData/Local/Android/Sdk/ndk/}
+
+//! [android-windows]
+
+//! [android-macos]
+
+    \include building-FFmpeg-prerequisites.qdocinc {common-header}
+
+    \list
+        \li \l{https://brew.sh/}{Homebrew}.
+        \li Homebrew packages (yasm).
+    \endlist
+
+    \include building-FFmpeg-prerequisites.qdocinc {android-sdk}
+    \include building-FFmpeg-prerequisites.qdocinc {macos-homebrew}
+    \include building-FFmpeg-prerequisites.qdocinc {android-environment-variables}
+        {\androidndkversion} {~/Library/Android/sdk} {~/Library/Android/sdk/ndk/}
+
+//! [android-macos]
+
+//! [android-linux]
+
+    \include building-FFmpeg-prerequisites.qdocinc {common-header}
+
+    \list
+        \li Yasm.
+        \li Developer packages for your chosen security backend (see below).
+    \endlist
+
+    \include building-FFmpeg-prerequisites.qdocinc {android-sdk}
+    \include building-FFmpeg-prerequisites.qdocinc {linux-packages}
+    \include building-FFmpeg-prerequisites.qdocinc {linux-security-backend}
+    \include building-FFmpeg-prerequisites.qdocinc {android-environment-variables}
+        {\androidndkversion} {~/Android/sdk} {~/Android/sdk/ndk/}
+
+//! [android-linux]
+
+//! [common-header]
+
+    \section1 Prerequisites
+
+    To build FFmpeg, these tools and packages are required:
+
+//! [common-header]
+
+//! [windows-compiler]
+
+    See \l{Qt for Windows - Building from Source} for recommended compilers that are
+    also supported by Qt. You can install a supported MinGW-w64 compiler using the
+    Qt Online Installer.
+
+//! [windows-compiler]
+
+//! [windows-msys-install]
+
+    \section2 Installing MSYS2
+
+    To install MSYS2, you can:
+
+    \list
+        \li Use the \l{https://www.msys2.org/#installation}{MSYS2 installer}.
+        \li Use the \l{https://learn.microsoft.com/en-us/windows/package-manager/}{winget} package manager.
+
+            \badcode
+                winget install msys2.msys2
+            \endcode
+    \endlist
+
+    The instructions in this document rely on MSYS2 installed to \c{C:\msys64\},
+    which is the default path when using \c{winget}.
+
+    Once installed, start the \c{MSYS2 MINGW64} shell from the Windows start menu,
+    and use it to install the necessary libraries.
+
+    \badcode
+        pacman -S --noconfirm make yasm diffutils
+    \endcode
+
+    Before building FFmpeg, MSYS2 must have a compiler in its \c PATH. This is done
+    differently for MSVC and MinGW-w64. Prepare the MSYS2 environment for the
+    compiler you use.
+
+//! [windows-msys-install]
+
+//! [windows-msys-prepare-mingw]
+
+    \section2 Preparing the MSYS environment for building with Mingw-w64
+
+    For MinGW-w64 installed under \c{C:\Qt\Tools\mingw1310_64\bin}, you can add it
+    to the \c PATH by exporting the PATH environment variable.
+
+    \badcode
+        export PATH=/c/Qt/Tools/mingw1310_64/bin:$PATH
+    \endcode
+
+    Note that it is also possible to install MinGW-w64 using pacman.
+
+    \badcode
+        pacman -S mingw-w64-x86_64-toolchain
+    \endcode
+
+//! [windows-msys-prepare-mingw]
+
+//! [windows-msys-prepare-msvc]
+
+    \section2 Preparing the MSYS2 environment for the MSVC
+
+    Building FFmpeg with the MSVC compiler under MSYS2 requires that MSYS2 is
+    started with the appropriate C and C++ compiler in the path. For a 64 bit build,
+    you can:
+
+    \list
+        \li Start \b{Visual Studio x64 Native Tools Command Prompt} from the Windows start menu.
+        \li Enable the MSVC compiler from an existing command prompt by running:
+
+            \badcode
+                "C:\Program Files\Microsoft Visual Studio\2022\BuildTools\VC\Auxiliary\Build\vcvarsall.bat" amd64
+            \endcode
+    \endlist
+
+    From this command prompt, launch the MSYS2 shell with the options to select the
+    MINGW64 environment and enable path inheritance.
+
+    \badcode
+        C:\msys64\msys2_shell.cmd -mingw64 -full-path
+    \endcode
+
+    This launches a new shell window where you can verify that the MSVC compiler is
+    available.
+
+    \badcode
+        which cl.exe
+    \endcode
+
+//! [windows-msys-prepare-msvc]
+
+//! [macos-homebrew]
+
+    \section2 Installing Homebrew
+
+    To install Homebrew, run:
+
+    \badcode
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    \endcode
+
+    \section2 Installing Homebrew packages
+
+    To install Homebrew package Yasm, run:
+
+    \badcode
+        brew install yasm
+    \endcode
+
+//! [macos-homebrew]
+
+//! [linux-packages]
+
+    \section2 Installing packages
+
+    To install the required packages (including Yasm for FFmpeg), run:
+
+    \badcode
+        apt-get install yasm
+    \endcode
+
+//! [linux-packages]
+
+//! [linux-security-backend]
+
+    Additionally, if you're enabling a security backend, you need the corresponding
+    developer package, for example:
+
+    \badcode
+        apt-get install libssl-dev
+    \endcode
+
+    For other backends, install the relevant packages:
+
+    \list
+        \li For OpenSSL: \c{libssl-dev}.
+        \li For GnuTLS: \c{libgnutls-dev}.
+        \li For LibreSSL (libtls): \c{libtls-dev}.
+        \li For MbedTLS: \c{libmbedtls-dev}.
+    \endlist
+
+//! [linux-security-backend]
+
+//! [android-sdk]
+
+    You'll also need the Android NDK, SDK, and JDK installed and configured.
+    You can find more information on setting these up here \l {Getting Started with Qt for Android}.
+
+//! [android-sdk]
+
+// \1 is always "\androidndkversion"
+// \2 is the Android SDK directory.
+// \3 is the Android NDK directory.
+//! [android-environment-variables]
+
+    \section1 Set environment variables
+
+    This part is not strictly necessary but it'll help with keeping configure command
+    a bit cleaner and shorter.
+
+    The following command assumes that Andorid SDK is installed to
+    \c \2 and Android NDK version is \1.
+
+    \badcode
+        export ANDROID_NDK_ROOT=\3\1
+    \endcode
+
+    It is recommended to use the same NDK version as documented in the \l {Getting Started with Qt for Android}.
+
+    The architecture you should build for depends on the target devices:
+
+    \list
+        \li aarch64 (ARM64-v8a): Used by most modern Android devices (64-bit).
+        \li armv7 (armeabi-v7a): For older 32-bit ARM devices.
+        \li x86: Mainly for Android emulators running on Intel processors.
+        \li x86_64: For 64-bit Intel-based emulators or specialized devices.
+    \endlist
+
+    Setup architecture-specific variables
+
+    \list
+        \li aarch64
+            \badcode
+                export ARCH=aarch64
+                export TOOLCHAIN_ARCH=aarch64-linux-android
+                export CPU=armv8-a
+            \endcode
+        \li armv7
+            \badcode
+                export ARCH=armv7
+                export TOOLCHAIN_ARCH=armv7a-linux-androideabi
+                export CPU=armv7-a
+            \endcode
+        \li x86
+            \badcode
+                export ARCH=x86
+                export TOOLCHAIN_ARCH=i686-linux-android
+                export CPU=i686
+            \endcode
+        \li x86_64
+            \badcode
+                export ARCH=x86_64
+                export TOOLCHAIN_ARCH=x86_64-linux-android
+                export CPU=x86-64
+            \endcode
+    \endlist
+
+//! [android-environment-variables]

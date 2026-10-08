@@ -858,7 +858,7 @@ static QVideoFrameTexturesUPtr createTexturesFromMemory(QVideoFrame frame, QRhi 
 
 QVideoFrameTexturesUPtr createTextures(const QVideoFrame &frame, QRhi &rhi,
                                        QRhiResourceUpdateBatch &rub,
-                                       QVideoFrameTexturesUPtr oldTextures)
+                                       QVideoFrameTexturesUPtr &oldTextures)
 {
     if (!frame.isValid())
         return {};

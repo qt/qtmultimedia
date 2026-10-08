@@ -44,12 +44,11 @@ qt_internal_add_plugin(QWindowsMediaPlugin
     DEFINES
         QT_NO_CAST_FROM_ASCII
         QT_NO_CAST_TO_ASCII
-        QT_NO_CONTEXTLESS_CONNECT
     LIBRARIES
         Qt::MultimediaPrivate
         Qt::CorePrivate
+        Qt::Concurrent
         uuid
-        WMF::WMF
         d3d9
         dxva2
         evr

@@ -1,7 +1,10 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtTest/QtTest>
+#include <QtTest/qtest.h>
+#include <QtTest/qsignalspy.h>
+#include <QtCore/qbuffer.h>
+#include <QtCore/qsemaphore.h>
 #include <QtCore/qtemporarydir.h>
 
 #include <QtMultimedia/qaudio.h>
@@ -10,6 +13,7 @@
 #include <QtMultimedia/qaudiosource.h>
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/qwavedecoder.h>
+#include <QtMultimedia/private/qaudiosystem_p.h>
 
 #include <private/mediabackendutils_p.h>
 #include <private/qmockiodevice_p.h>
@@ -81,8 +85,12 @@ private slots:
 
     void stateChanged_stringBasedConnect();
 
+
     void start_withSamplingRate_data();
     void start_withSamplingRate();
+
+    void callbackAPI();
+    void callbackAPI_startFailsWithWrongType();
 
 private:
     using FilePtr = std::shared_ptr<QFile>;
@@ -1036,6 +1044,49 @@ void tst_QAudioSource::start_withSamplingRate()
     audioSource.start();
 
     QTRY_COMPARE(audioSource.state(), QAudio::State::IdleState);
+}
+
+void tst_QAudioSource::callbackAPI()
+{
+#if QT_CONFIG(thread)
+    using namespace std::chrono_literals;
+
+    QAudioFormat format = audioDevice.preferredFormat();
+    format.setSampleFormat(QAudioFormat::SampleFormat::Float);
+
+    QAudioSource audioSource(audioDevice, format);
+    QPlatformAudioSource *platformSource = QPlatformAudioSource::get(audioSource);
+    if (!platformSource->hasCallbackAPI())
+        QSKIP("Callback API not supported by this backend");
+
+    QSemaphore sync;
+
+    platformSource->start([&](QSpan<const float> outputBuffer) {
+        QCOMPARE_GT(outputBuffer.size(), 0);
+        sync.release();
+    });
+    QCOMPARE(audioSource.error(), QAudio::Error::NoError);
+
+    bool callbackExecuted = sync.try_acquire_for(1s);
+    QVERIFY(callbackExecuted);
+#endif
+}
+
+void tst_QAudioSource::callbackAPI_startFailsWithWrongType()
+{
+    using namespace std::chrono_literals;
+
+    QAudioFormat format = audioDevice.preferredFormat();
+    format.setSampleFormat(QAudioFormat::SampleFormat::Float);
+
+    QAudioSource audioSource(audioDevice, format);
+    QPlatformAudioSource *platformSource = QPlatformAudioSource::get(audioSource);
+    if (!platformSource->hasCallbackAPI())
+        QSKIP("Callback API not supported by this backend");
+
+    platformSource->start([&](QSpan<const int32_t>) {
+    });
+    QCOMPARE(audioSource.error(), QAudio::Error::OpenError);
 }
 
 QTEST_MAIN(tst_QAudioSource)

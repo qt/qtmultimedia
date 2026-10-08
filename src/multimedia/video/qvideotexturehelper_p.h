@@ -136,7 +136,7 @@ createTexturesFromHandles(QVideoFrameTexturesHandlesUPtr handles, QRhi &rhi,
  */
 Q_MULTIMEDIA_EXPORT QVideoFrameTexturesUPtr createTextures(const QVideoFrame &frame, QRhi &rhi,
                                                            QRhiResourceUpdateBatch &rub,
-                                                           QVideoFrameTexturesUPtr oldTextures);
+                                                           QVideoFrameTexturesUPtr &oldTextures);
 
 /**
  * @brief Returns a QRhiTexture::Format taking into account rhi capabilities and explicitly excluded

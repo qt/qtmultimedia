@@ -3,5 +3,4 @@ Multimedia options:
   -pulseaudio .......... Enable PulseAudio support [auto] (Unix only)
   -alsa ................ Enable ALSA support [auto] (Unix only)
   -no-gstreamer ........ Disable support for GStreamer
-  -gstreamer [version] . Enable GStreamer support [auto]
-                         With no parameter, 1.0 is tried first, then 0.10.
+  -gstreamer............ Enable GStreamer support [auto]

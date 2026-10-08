@@ -3,7 +3,8 @@
 
 // TESTED_COMPONENT=src/multimedia
 
-#include <QtTest/QtTest>
+#include <QtTest/qtest.h>
+#include <QtTest/qsignalspy.h>
 #include <QDebug>
 
 #include "qmockintegration.h"

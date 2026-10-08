@@ -40,6 +40,7 @@ public:
 
     bool start(QIODevice *);
     QIODevice *start();
+    bool start(AudioCallback &&);
     void stop(ShutdownPolicy);
 
     void suspend();
@@ -61,9 +62,13 @@ private:
                                   const AudioTimeStamp *inTimeStamp, UInt32 inBusNumber,
                                   UInt32 inNumberFrames, AudioBufferList *ioData);
 
-    OSStatus process(AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *,
-                     UInt32 inBusNumber, UInt32 inNumberFrames,
-                     AudioBufferList *ioData) noexcept QT_MM_NONBLOCKING;
+    OSStatus processRingbuffer(AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *,
+                               UInt32 inBusNumber, UInt32 inNumberFrames,
+                               AudioBufferList *ioData) noexcept QT_MM_NONBLOCKING;
+
+    OSStatus processAudioCallback(AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *,
+                                  UInt32 inBusNumber, UInt32 inNumberFrames,
+                                  AudioBufferList *ioData) noexcept QT_MM_NONBLOCKING;
 
 #ifdef Q_OS_MACOS
     bool addDisconnectListener(AudioObjectID id);
@@ -76,18 +81,18 @@ private:
     QCoreAudioUtils::AudioUnitHandle m_audioUnit;
     bool m_audioUnitRunning{};
 
+    std::optional<AudioCallback> m_audioCallback;
     QDarwinAudioSource *m_parent;
 
     AudioBufferList m_bufferList{};
 };
 
 class QDarwinAudioSource final
-    : public QtMultimediaPrivate::QPlatformAudioSourceImplementation<QCoreAudioSourceStream,
-                                                                     QDarwinAudioSource>
+    : public QtMultimediaPrivate::QPlatformAudioSourceImplementationWithCallback<
+              QCoreAudioSourceStream, QDarwinAudioSource>
 {
-    using BaseClass =
-            QtMultimediaPrivate::QPlatformAudioSourceImplementation<QCoreAudioSourceStream,
-                                                                    QDarwinAudioSource>;
+    using BaseClass = QtMultimediaPrivate::QPlatformAudioSourceImplementationWithCallback<
+            QCoreAudioSourceStream, QDarwinAudioSource>;
 
 public:
     QDarwinAudioSource(QAudioDevice device, const QAudioFormat &format, QObject *parent);

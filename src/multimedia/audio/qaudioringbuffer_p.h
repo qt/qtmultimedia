@@ -184,7 +184,7 @@ public:
     int used() const { return m_bufferUsed.load(std::memory_order_relaxed); }
     int free() const { return m_bufferSize - m_bufferUsed.load(std::memory_order_relaxed); }
 
-    int size() const { return m_bufferSize; };
+    int size() const { return m_bufferSize; }
 
     void reset()
 #ifdef __cpp_concepts

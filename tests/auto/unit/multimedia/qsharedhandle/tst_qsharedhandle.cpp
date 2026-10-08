@@ -70,7 +70,7 @@ struct GlobalResource
         return 0;
     }
 
-    int openResourceCount() const { return m_openResourceRefCounts.size(); }
+    int openResourceCount() const { return int(m_openResourceRefCounts.size()); }
 
     std::map<int, int> m_openResourceRefCounts;
     int m_allocator = 0;

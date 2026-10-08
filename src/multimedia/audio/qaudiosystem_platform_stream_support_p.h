@@ -24,6 +24,7 @@
 #include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtMultimedia/private/qaudiohelpers_p.h>
 #include <QtMultimedia/private/qaudioringbuffer_p.h>
+#include <QtCore/qscopedvaluerollback.h>
 #include <QtCore/qthread.h>
 
 #include <optional>
@@ -64,7 +65,7 @@ protected:
     Q_DISABLE_COPY_MOVE(QPlatformAudioIOStream)
 
     void setVolume(float);
-    float volume() const { return m_volume.load(std::memory_order_relaxed); };
+    float volume() const { return m_volume.load(std::memory_order_relaxed); }
 
     template <typename Functor>
     auto visitRingbuffer(Functor &&f)
@@ -157,9 +158,9 @@ protected:
     void stopIdleDetection();
 
     template <typename Functor>
-    auto connectIdleHandler(Functor f)
+    auto connectIdleHandler(Functor &&f)
     {
-        return m_streamIdleDetectionNotifier.callOnActivated(std::move(f));
+        return m_streamIdleDetectionNotifier.callOnActivated(std::forward<Functor>(f));
     }
 
     template <typename ParentType>
@@ -175,6 +176,13 @@ protected:
     }
 
     QThread *thread() const;
+
+    template <typename Functor>
+    void invokeOnAppThread(Functor &&f)
+    {
+        // note: this is not a QObject, so we use the first QObject member of the stream as context
+        QMetaObject::invokeMethod(&m_streamIdleDetectionNotifier, std::forward<Functor>(f));
+    }
 
 private:
     // qiodevice
@@ -198,6 +206,29 @@ private:
 
     void convertToNative(QSpan<const std::byte> internal, QSpan<std::byte> native, float volume,
                          NativeSampleFormat) noexcept QT_MM_NONBLOCKING;
+
+    // pullFromQIODeviceToRingbuffer is not reentrant. however we might end up in situations where a
+    // QIODevice emits readReady from within QIODevice::readData. We protect against this using a
+    // reentrancy guard and queue invocations if we detect a reentrant call
+    template <typename Functor>
+    void withPullIODeviceReentrancyGuard(Functor f)
+    {
+        if (!m_pullIODeviceReentrancyGuard) {
+            QScopedValueRollback<bool> guard{
+                m_pullIODeviceReentrancyGuard,
+                true,
+            };
+            f();
+        } else {
+            QMetaObject::invokeMethod(&m_streamIdleDetectionNotifier,
+                                      [this, f = std::move(f)]() mutable {
+                withPullIODeviceReentrancyGuard(std::move(f));
+            }, Qt::QueuedConnection);
+        }
+    }
+    bool m_pullIODeviceReentrancyGuard = false;
+
+    void pullFromQIODeviceImpl();
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -206,6 +237,7 @@ class QPlatformAudioSourceStream : protected QPlatformAudioIOStream
 {
 public:
     using QPlatformAudioIOStream::ShutdownPolicy;
+    using AudioCallback = QPlatformAudioSource::AudioCallback;
 
 protected:
     QPlatformAudioSourceStream(QAudioDevice, const QAudioFormat &,
@@ -253,6 +285,13 @@ protected:
     }
 
     QThread *thread() const;
+
+    template <typename Functor>
+    void invokeOnAppThread(Functor &&f)
+    {
+        // note: this is not a QObject, so we use the first QObject member of the stream as context
+        QMetaObject::invokeMethod(&m_ringbufferHasData, std::forward<Functor>(f));
+    }
 
 private:
     // qiodevice

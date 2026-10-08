@@ -1,15 +1,14 @@
 // Copyright (C) 2022 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qavfsamplebufferdelegate_p.h"
+#include <QtFFmpegMediaPluginImpl/private/qavfsamplebufferdelegate_p.h>
+
+#include <QtMultimedia/private/qavfhelpers_p.h>
+#include <QtMultimedia/private/qvideoframe_p.h>
 
 #define AVMediaType XAVMediaType
-
-#include "qffmpeghwaccel_p.h"
-#include <QtMultimedia/private/qavfhelpers_p.h>
-#include "qffmpegvideobuffer_p.h"
-#include "private/qvideoframe_p.h"
-
+#include <QtFFmpegMediaPluginImpl/private/qffmpegvideobuffer_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 #undef AVMediaType
 
 #include <optional>

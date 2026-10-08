@@ -3,7 +3,8 @@
 
 //TESTED_COMPONENT=plugins/declarative/multimedia
 
-#include <QtTest/QtTest>
+#include <QtTest/qtest.h>
+#include <QtTest/qsignalspy.h>
 
 #include <QtCore/qobject.h>
 #include <QtMultimedia/qmediaplayer.h>

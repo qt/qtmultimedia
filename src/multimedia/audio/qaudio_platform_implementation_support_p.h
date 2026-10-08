@@ -565,9 +565,56 @@ void QPlatformAudioSourceImplementation<StreamType, DerivedType>::setVolume(floa
         m_stream->setVolume(volume);
 }
 
-#undef STREAM_TYPE_ARG
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <STREAM_TYPE_ARG, typename DerivedType = void>
+class QPlatformAudioSourceImplementationWithCallback
+    : public QPlatformAudioSourceImplementation<StreamType, DerivedType>
+{
+protected:
+    using BaseClass = QPlatformAudioSourceImplementation<StreamType, DerivedType>;
+    using BaseClass::BaseClass;
+    using BaseClass::start;
+
+    QT_WARNING_PUSH
+    QT_WARNING_DISABLE_CLANG("-Woverloaded-virtual")
+    void start(QPlatformAudioSource::AudioCallback &&) override;
+    QT_WARNING_POP
+    bool hasCallbackAPI() override { return true; }
+};
+
+template <STREAM_TYPE_ARG, typename DerivedType>
+void QPlatformAudioSourceImplementationWithCallback<StreamType, DerivedType>::start(
+        QPlatformAudioSource::AudioCallback &&audioCallback)
+{
+    using namespace QtMultimediaPrivate;
+    if (!validateAudioCallback(audioCallback, BaseClass::m_format)) {
+        BaseClass::setError(QAudio::OpenError);
+        return;
+    }
+
+    BaseClass::m_stream = std::make_shared<StreamType>(
+            BaseClass::m_audioDevice, BaseClass::m_format, BaseClass::m_internalBufferSize,
+            static_cast<typename BaseClass::ConcreteSourceType *>(this), BaseClass::volume(),
+            BaseClass::m_hardwareBufferFrames);
+
+    if (!BaseClass::m_stream->open()) {
+        BaseClass::setError(QAudio::OpenError);
+        BaseClass::m_stream = {};
+        return;
+    }
+
+    bool started = BaseClass::m_stream->start(std::move(audioCallback));
+    if (!started) {
+        BaseClass::setError(QAudio::OpenError);
+        BaseClass::m_stream = {};
+        return;
+    }
+
+    BaseClass::updateStreamState(QAudio::ActiveState);
+}
+
+#undef STREAM_TYPE_ARG
 
 } // namespace QtMultimediaPrivate
 

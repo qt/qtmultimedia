@@ -13,7 +13,6 @@
 #include <QtCore/qdebug.h>
 
 #include <mmdeviceapi.h>
-#include <initguid.h>
 #include <mfidl.h>
 #include <cguid.h>
 

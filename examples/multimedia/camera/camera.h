@@ -62,7 +62,6 @@ private slots:
     void updateCameraActive(bool active);
     void updateCaptureMode();
     void updateRecorderState(QMediaRecorder::RecorderState state);
-    void setExposureCompensation(int index);
 
     void updateRecordTime();
 

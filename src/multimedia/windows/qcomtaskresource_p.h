@@ -22,6 +22,8 @@
 #include <type_traits>
 #include <utility>
 
+QT_BEGIN_NAMESPACE
+
 class QEmptyDeleter final
 {
 public:
@@ -148,5 +150,7 @@ private:
 
     using Base::m_resource;
 };
+
+QT_END_NAMESPACE
 
 #endif

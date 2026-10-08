@@ -58,7 +58,6 @@ qt_add_qmake_lib_dependency(gstreamer_gl_x11_1_0 gstreamer_1_0)
 qt_find_package(MMRendererCore PROVIDED_TARGETS MMRendererCore::MMRendererCore MODULE_NAME multimedia QMAKE_LIB mmrndcore)
 qt_find_package(MMRenderer PROVIDED_TARGETS MMRenderer::MMRenderer MODULE_NAME multimedia QMAKE_LIB mmrndclient)
 qt_find_package(WrapPulseAudio PROVIDED_TARGETS WrapPulseAudio::WrapPulseAudio MODULE_NAME multimedia QMAKE_LIB pulseaudio)
-qt_find_package(WMF PROVIDED_TARGETS WMF::WMF MODULE_NAME multimedia QMAKE_LIB wmf)
 if(TARGET EGL::EGL)
     qt_internal_disable_find_package_global_promotion(EGL::EGL)
 endif()
@@ -224,10 +223,13 @@ qt_feature("wasm" PRIVATE
     LABEL "Web Assembly"
     CONDITION WASM
 )
-
+qt_feature("wasapi" PRIVATE
+    LABEL "WASAPI (Windows Audio Session API)"
+    CONDITION WIN32
+)
 qt_feature("wmf" PRIVATE
     LABEL "Windows Media Foundation"
-    CONDITION WIN32 AND WMF_FOUND
+    CONDITION WIN32
 )
 
 qt_feature("spatialaudio" PRIVATE
@@ -236,6 +238,13 @@ qt_feature("spatialaudio" PRIVATE
 qt_feature("spatialaudio_quick3d" PRIVATE
     LABEL "Spatial Audio (Quick3D)"
     CONDITION TARGET Qt::Quick3D AND QT_FEATURE_spatialaudio
+)
+
+# Caveat: FEATURE_ffmpeg_stubs cannot really be used to disable stubbing, it is just used to inform
+# downstream targets that stubbed ffmpeg is used
+qt_feature("ffmpeg_stubs" PRIVATE
+    LABEL     "FFmpeg stubs"
+    CONDITION QT_FEATURE_ffmpeg AND FFMPEG_STUBS
 )
 
 qt_configure_add_summary_section(NAME "Qt Multimedia")
@@ -248,6 +257,7 @@ qt_configure_add_summary_entry(ARGS "mmrenderer")
 qt_configure_add_summary_entry(ARGS "coreaudio")
 qt_configure_add_summary_entry(ARGS "opensles")
 qt_configure_add_summary_entry(ARGS "wasm")
+qt_configure_add_summary_entry(ARGS "wasapi")
 qt_configure_end_summary_section()
 qt_configure_add_summary_section(NAME "Plugin")
 qt_configure_add_summary_entry(ARGS "gstreamer")

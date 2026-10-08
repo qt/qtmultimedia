@@ -11,9 +11,6 @@
 
 #include <dbt.h>
 
-#ifndef INITGUID
-#  include <initguid.h>
-#endif
 #include <mfapi.h>
 #include <mfidl.h>
 #include <mfreadwrite.h>

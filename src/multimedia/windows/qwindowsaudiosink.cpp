@@ -4,7 +4,9 @@
 #include "qwindowsaudiosink_p.h"
 
 #include <QtCore/private/qsystemerror_p.h>
+#include <QtCore/private/qfunctions_win_p.h>
 #include <QtMultimedia/private/qwindowsaudiodevice_p.h>
+#include <QtMultimedia/private/qwindowsresampler_p.h>
 
 #include <audioclient.h>
 #include <mmdeviceapi.h>
@@ -15,6 +17,31 @@ namespace QtWASAPI {
 
 using QWindowsAudioUtils::audioClientErrorString;
 using namespace std::chrono_literals;
+
+namespace {
+
+QAudioFormat makeHostFormatForSink(const QAudioDevice &device, const QAudioFormat &format)
+{
+    const QWindowsAudioDevice *winDevice = QAudioDevicePrivate::handle<QWindowsAudioDevice>(device);
+
+    QAudioFormat hostFormat = format;
+    const int requestedChannelCount = format.channelCount();
+    auto [minProbedChannels, maxProbedChannels] = winDevice->m_probedChannelCountRange;
+
+    if (requestedChannelCount < device.minimumChannelCount()) {
+        hostFormat.setChannelCount(minProbedChannels);
+        hostFormat.setChannelConfig(
+                QAudioFormat::defaultChannelConfigForChannelCount(minProbedChannels));
+    } else if (requestedChannelCount > device.maximumChannelCount()) {
+        hostFormat.setChannelCount(maxProbedChannels);
+        hostFormat.setChannelConfig(
+                QAudioFormat::defaultChannelConfigForChannelCount(maxProbedChannels));
+    }
+
+    return hostFormat;
+}
+
+} // namespace
 
 QWASAPIAudioSinkStream::QWASAPIAudioSinkStream(QAudioDevice device, const QAudioFormat &format, std::optional<qsizetype> ringbufferSize,
                                                QWindowsAudioSink *parent, float volume, std::optional<int32_t> hardwareBufferFrames, AudioEndpointRole role):
@@ -33,6 +60,9 @@ QWASAPIAudioSinkStream::QWASAPIAudioSinkStream(QAudioDevice device, const QAudio
     },
     m_parent{
         parent
+    },
+    m_hostFormat {
+        makeHostFormatForSink(m_audioDevice, format),
     }
 {
 }
@@ -145,7 +175,7 @@ bool QWASAPIAudioSinkStream::openAudioClient(ComPtr<IMMDevice> device, AudioEndp
     using namespace QWindowsAudioUtils;
 
     std::optional<AudioClientCreationResult> clientData =
-            createAudioClient(device, m_format, m_hardwareBufferFrames, m_wasapiHandle, role);
+            createAudioClient(device, m_hostFormat, m_hardwareBufferFrames, m_wasapiHandle, role);
 
     if (!clientData)
         return false;
@@ -161,8 +191,8 @@ bool QWASAPIAudioSinkStream::openAudioClient(ComPtr<IMMDevice> device, AudioEndp
         return false;
     }
 
-    if (m_audioDevice.preferredFormat().sampleRate() != m_format.sampleRate())
-        audioClientSetRate(m_audioClient, m_format.sampleRate());
+    if (m_audioDevice.preferredFormat().sampleRate() != m_hostFormat.sampleRate())
+        audioClientSetRate(m_audioClient, m_hostFormat.sampleRate());
 
     return true;
 }
@@ -173,6 +203,25 @@ bool QWASAPIAudioSinkStream::startAudioClient(StreamType streamType)
     m_workerThread.reset(QThread::create([this, streamType] {
         setMCSSForPeriodSize(m_periodSize);
         fillInitialHostBuffer();
+        std::optional<QComHelper> m_comHelper;
+
+        if (m_hostFormat != m_format) {
+            m_comHelper.emplace();
+            m_resampler = std::make_unique<QWindowsResampler>();
+            m_resampler->setup(m_format, m_hostFormat);
+
+            m_preallocatedBuffer = std::make_unique<char[]>(512 * 1024); // 512 KiB
+
+            m_pmrBufferResource = std::make_unique<std::pmr::monotonic_buffer_resource>(
+                    m_preallocatedBuffer.get(), 512 * 1024, std::pmr::get_default_resource());
+
+            std::pmr::pool_options poolOptions{
+                /*.largest_required_pool_block =*/256 * 1024,
+                /*.min_blocks_per_chunk        =*/2,
+            };
+            m_pmrPoolResource = std::make_unique<std::pmr::unsynchronized_pool_resource>(
+                    poolOptions, m_pmrBufferResource.get());
+        }
 
         switch (streamType) {
         case StreamType::Ringbuffer:
@@ -263,7 +312,8 @@ void QWASAPIAudioSinkStream::runProcessCallbackLoop()
     }
 }
 
-bool QWASAPIAudioSinkStream::processRingbuffer() noexcept QT_MM_NONBLOCKING
+template <typename Functor>
+bool QWASAPIAudioSinkStream::visitAudioClientBuffer(Functor &&f)
 {
     uint32_t numFramesPadding;
     HRESULT hr = m_audioClient->GetCurrentPadding(&numFramesPadding);
@@ -272,45 +322,7 @@ bool QWASAPIAudioSinkStream::processRingbuffer() noexcept QT_MM_NONBLOCKING
         return false;
     }
 
-    uint32_t requiredFrames = m_audioClientFrames - numFramesPadding;
-    if (requiredFrames == 0)
-        return true;
-
-    // Grab the next empty buffer from the audio device.
-    unsigned char *hostBuffer{};
-    hr = m_renderClient->GetBuffer(requiredFrames, &hostBuffer);
-    if (FAILED(hr)) {
-        qWarning() << "IAudioRenderClient::getBuffer failed" << audioClientErrorString(hr);
-        return false;
-    }
-
-    uint32_t requiredDataSize = m_format.bytesForFrames(requiredFrames);
-    auto hostBufferSpan = as_writable_bytes(QSpan{ hostBuffer, qsizetype(requiredDataSize) });
-    uint64_t consumedFrames = QPlatformAudioSinkStream::process(hostBufferSpan, requiredFrames);
-
-    DWORD flags = consumedFrames != 0 ? 0 : AUDCLNT_BUFFERFLAGS_SILENT;
-
-    hr = m_renderClient->ReleaseBuffer(requiredFrames, flags);
-    if (FAILED(hr)) {
-        qWarning() << "IAudioRenderClient::ReleaseBuffer failed" << audioClientErrorString(hr);
-        return false;
-    }
-
-    return true;
-}
-
-bool QWASAPIAudioSinkStream::processCallback() noexcept QT_MM_NONBLOCKING
-{
-    using namespace QtMultimediaPrivate;
-
-    uint32_t numFramesPadding;
-    HRESULT hr = m_audioClient->GetCurrentPadding(&numFramesPadding);
-    if (FAILED(hr)) {
-        qWarning() << "IAudioClient3::GetCurrentPadding failed" << audioClientErrorString(hr);
-        return false;
-    }
-
-    uint32_t requiredFrames = m_audioClientFrames - numFramesPadding;
+    const uint32_t requiredFrames = m_audioClientFrames - numFramesPadding;
     if (requiredFrames == 0)
         return true;
 
@@ -324,12 +336,28 @@ bool QWASAPIAudioSinkStream::processCallback() noexcept QT_MM_NONBLOCKING
 
     QSpan<std::byte> hostBufferSpan{
         reinterpret_cast<std::byte *>(hostBuffer),
-        m_format.bytesForFrames(requiredFrames),
+        m_hostFormat.bytesForFrames(requiredFrames),
     };
 
-    runAudioCallback(m_audioCallback, hostBufferSpan, m_format);
+    uint64_t consumedFrames;
+    if (m_resampler) {
 
-    constexpr DWORD flags = 0;
+        std::pmr::vector<std::byte> resampleBuffer{
+            size_t(m_format.bytesForFrames(requiredFrames)),
+            m_pmrPoolResource.get(),
+        };
+        consumedFrames = f(as_writable_bytes(QSpan{ resampleBuffer }), requiredFrames);
+
+        auto resampledBuffer = m_resampler->resample(resampleBuffer, m_pmrPoolResource.get());
+
+        Q_ASSERT(resampledBuffer.size() == size_t(hostBufferSpan.size()));
+        std::copy_n(resampledBuffer.data(), resampledBuffer.size(), hostBufferSpan.data());
+    } else {
+        consumedFrames = f(hostBufferSpan, requiredFrames);
+    }
+
+    const DWORD flags = consumedFrames != 0 ? 0 : AUDCLNT_BUFFERFLAGS_SILENT;
+
     hr = m_renderClient->ReleaseBuffer(requiredFrames, flags);
     if (FAILED(hr)) {
         qWarning() << "IAudioRenderClient::ReleaseBuffer failed" << audioClientErrorString(hr);
@@ -339,13 +367,29 @@ bool QWASAPIAudioSinkStream::processCallback() noexcept QT_MM_NONBLOCKING
     return true;
 }
 
+bool QWASAPIAudioSinkStream::processRingbuffer() noexcept QT_MM_NONBLOCKING
+{
+    return visitAudioClientBuffer([&](QSpan<std::byte> hostBuffer, uint32_t requiredFrames) {
+        uint64_t consumedFrames = QPlatformAudioSinkStream::process(hostBuffer, requiredFrames);
+        return consumedFrames;
+    });
+}
+
+bool QWASAPIAudioSinkStream::processCallback() noexcept QT_MM_NONBLOCKING
+{
+    return visitAudioClientBuffer([&](QSpan<std::byte> hostBuffer, uint32_t requiredFrames) {
+        runAudioCallback(m_audioCallback, hostBuffer, m_format);
+        return requiredFrames;
+    });
+}
+
 void QWASAPIAudioSinkStream::handleAudioClientError()
 {
     using namespace QWindowsAudioUtils;
     audioClientStop(m_audioClient);
     audioClientReset(m_audioClient);
 
-    QMetaObject::invokeMethod(&m_ringbufferDrained, [this] {
+    invokeOnAppThread([this] {
         handleIOError(m_parent);
     });
 }

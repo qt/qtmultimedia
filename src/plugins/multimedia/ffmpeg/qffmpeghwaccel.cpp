@@ -5,7 +5,7 @@
 
 #include "qffmpeghwaccel_p.h"
 
-#if QT_CONFIG(wmf)
+#ifdef Q_OS_WINDOWS
 #  include "qffmpeghwaccel_d3d11_p.h"
 #  include <QtCore/private/qsystemlibrary_p.h>
 #endif
@@ -393,7 +393,7 @@ void HWAccel::createFramesContext(AVPixelFormat swFormat, const QSize &size)
     qCDebug(qLHWAccel) << "init frames context";
     int err = av_hwframe_ctx_init(m_hwFramesContext.get());
     if (err < 0)
-        qWarning() << "failed to init HW frame context" << err << err2str(err);
+        qWarning() << "failed to init HW frame context" << err << AVError(err);
     else
         qCDebug(qLHWAccel) << "Initialized frames context" << size << c->format << c->sw_format;
 }
@@ -426,7 +426,7 @@ HwFrameContextData &HwFrameContextData::ensure(AVFrame &hwFrame)
 
 AVFrameUPtr copyFromHwPool(AVFrameUPtr frame)
 {
-#if QT_CONFIG(wmf)
+#ifdef Q_OS_WINDOWS
     return copyFromHwPoolD3D11(std::move(frame));
 #else
     return frame;

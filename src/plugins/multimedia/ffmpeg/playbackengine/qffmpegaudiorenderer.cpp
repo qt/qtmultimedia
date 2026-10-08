@@ -67,8 +67,8 @@ QAudioFormat audioFormatFromFrame(const Frame &frame)
 std::unique_ptr<QFFmpegResampler> createResampler(const Frame &frame,
                                                   const QAudioFormat &outputFormat)
 {
-    return std::make_unique<QFFmpegResampler>(frame.codecContext(), outputFormat,
-                                              frame.startTime().get());
+    return QFFmpegResampler::createFromCodecContext(frame.codecContext(), outputFormat,
+                                                    frame.startTime().get());
 }
 
 } // namespace

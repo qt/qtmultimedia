@@ -26,7 +26,6 @@ qt_internal_add_qml_module(Quick3DSpatialAudioPrivate
     DEFINES
         QT_NO_CAST_FROM_ASCII
         QT_NO_CAST_TO_ASCII
-        QT_NO_CONTEXTLESS_CONNECT
     QML_FILES
     PUBLIC_LIBRARIES
         Qt::Quick3DPrivate

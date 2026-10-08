@@ -47,6 +47,7 @@ struct QPulseAudioSourceStream final : QPlatformAudioSourceStream
     using QPlatformAudioSourceStream::setVolume;
 
     bool start(QIODevice *device);
+    bool start(AudioCallback &&);
     QIODevice *start();
     void stop(ShutdownPolicy);
     void suspend();
@@ -56,33 +57,43 @@ struct QPulseAudioSourceStream final : QPlatformAudioSourceStream
     void updateStreamIdle(bool idle) override;
 
 private:
-    bool startStream();
-    void installCallbacks();
+    enum class StreamType : uint8_t
+    {
+        Ringbuffer,
+        Callback,
+    };
+
+    bool startStream(StreamType);
+    void installCallbacks(StreamType);
     void uninstallCallbacks();
 
     QPulseAudioSource *m_parent;
     PAStreamHandle m_stream;
+    std::optional<AudioCallback> m_audioCallback;
 
     // PulseAudio callbacks
     void underflowCallback() { }
     void overflowCallback() { }
     void stateCallback() { }
-    void readCallback(size_t bytesToRead);
+    void readCallbackRingbuffer(size_t bytesToRead);
+    void readCallbackAudioCallback(size_t bytesToRead);
     void latencyUpdateCallback() { }
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class QPulseAudioSource final
-    : public QPlatformAudioSourceImplementation<QPulseAudioSourceStream, QPulseAudioSource>
+    : public QPlatformAudioSourceImplementationWithCallback<QPulseAudioSourceStream,
+                                                            QPulseAudioSource>
 {
-    using BaseClass =
-            QPlatformAudioSourceImplementation<QPulseAudioSourceStream, QPulseAudioSource>;
+    using BaseClass = QPlatformAudioSourceImplementationWithCallback<QPulseAudioSourceStream,
+                                                                     QPulseAudioSource>;
 
 public:
     QPulseAudioSource(QAudioDevice, const QAudioFormat &, QObject *parent);
 
     void start(QIODevice *device) override;
+    void start(AudioCallback &&) override;
     QIODevice *start() override;
 
 private:

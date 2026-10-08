@@ -16,8 +16,9 @@
 //
 
 #include <QtMultimedia/private/qplatformsurfacecapture_p.h>
-#include <qmutex.h>
-#include <qwaitcondition.h>
+
+#include <QtCore/qmutex.h>
+#include <QtCore/qwaitcondition.h>
 
 QT_BEGIN_NAMESPACE
 

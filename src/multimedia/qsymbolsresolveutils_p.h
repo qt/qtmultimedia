@@ -8,6 +8,7 @@
 #include <QtMultimedia/qtmultimediaexports.h>
 #include <tuple>
 #include <memory>
+#include <string_view>
 
 //
 //  W A R N I N G
@@ -24,11 +25,7 @@ QT_BEGIN_NAMESPACE
 
 constexpr bool areVersionsEqual(const char lhs[], const char rhs[])
 {
-    int i = 0;
-    for (; lhs[i] && rhs[i]; ++i)
-        if (lhs[i] != rhs[i])
-            return false;
-    return lhs[i] == rhs[i];
+    return std::string_view(lhs) == std::string_view(rhs);
 }
 
 constexpr bool areVersionsEqual(const char lhs[], int rhsInt)

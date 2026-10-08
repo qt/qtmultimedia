@@ -26,7 +26,6 @@
 #include "sourceresolver_p.h"
 #include <wmcodecdsp.h>
 
-#include <initguid.h>
 #include <mfidl.h>
 #include <mmdeviceapi.h>
 #include <propvarutil.h>

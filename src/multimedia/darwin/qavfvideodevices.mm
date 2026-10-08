@@ -7,6 +7,7 @@
 #include <QtMultimedia/private/qavfcamerautility_p.h>
 
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/qset.h>
 
 #import <AVFoundation/AVFoundation.h>
 

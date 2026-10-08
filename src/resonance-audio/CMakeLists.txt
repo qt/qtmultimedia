@@ -198,6 +198,7 @@ set(RA_SOURCES
 qt_internal_add_3rdparty_library(BundledResonanceAudio
     STATIC
     INSTALL
+    SKIP_AUTOMOC
     DEFINES
         EIGEN_MPL2_ONLY
         ${NO_SIMD_DEFINES}

@@ -318,7 +318,7 @@ void MeterChannel::updateRms(float sumOfSquaresForOneBuffer, milliseconds durati
     m_sumOfSquares += sumOfSquaresForOneBuffer;
 
     // Remove the oldest sumOfSquares to stay within the RMS window
-    if (m_sumOfSquaresQueue.size() * duration.count() > RMS_WINDOW.count()) {
+    if (int64_t(m_sumOfSquaresQueue.size() * duration.count()) > int64_t(RMS_WINDOW.count())) {
         m_sumOfSquares -= m_sumOfSquaresQueue.front();
         m_sumOfSquaresQueue.pop();
     }

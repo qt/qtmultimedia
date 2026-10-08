@@ -16,13 +16,18 @@
 // We mean it.
 //
 
-#include <qbytearray.h>
-#include <qbytearrayview.h>
-#include <qaudioformat.h>
+#include <QtCore/qbytearray.h>
+#include <QtCore/qbytearrayview.h>
 #include <QtCore/private/qcomptr_p.h>
-#include <private/qwindowsmediafoundation_p.h>
-#include <private/qcominitializer_p.h>
+#include <QtMultimedia/qaudioformat.h>
+#include <QtMultimedia/private/qcominitializer_p.h>
+#include <QtMultimedia/private/qmaybe_p.h>
+#include <QtMultimedia/private/qplatformaudioresampler_p.h>
+#include <QtMultimedia/private/qwindowsmediafoundation_p.h>
+
 #include <mftransform.h>
+
+#include <memory_resource>
 
 struct IMFSample;
 struct IMFTransform;
@@ -31,16 +36,26 @@ QT_BEGIN_NAMESPACE
 
 class QWindowsMediaFoundation;
 
-class Q_MULTIMEDIA_EXPORT QWindowsResampler
+class Q_MULTIMEDIA_EXPORT QWindowsResampler : public QPlatformAudioResampler
 {
 public:
+    static bool isAvailable();
+
     QWindowsResampler();
     ~QWindowsResampler();
 
     bool setup(const QAudioFormat &in, const QAudioFormat &out);
+    void setStartTimeOffset(std::chrono::microseconds); // for QPlatformAudioResampler
 
-    QByteArray resample(const QByteArrayView &in);
-    QByteArray resample(IMFSample *sample);
+    QByteArray resample(QByteArray);
+    QByteArray resample(const QByteArrayView &);
+    QByteArray resample(const ComPtr<IMFSample> &);
+
+    QAudioBuffer resample(const char *data, size_t size) override;
+
+    // Caveat: the memory resource needs outlive the QWindowsResampler instance (the IMFTransform
+    // API does not rule out that the input buffers are kept alive)
+    std::pmr::vector<std::byte> resample(QSpan<const std::byte>, std::pmr::memory_resource *);
 
     QAudioFormat inputFormat() const { return m_inputFormat; }
     QAudioFormat outputFormat() const { return m_outputFormat; }
@@ -52,21 +67,28 @@ public:
     quint64 totalOutputBytes() const { return m_totalOutputBytes; }
 
 private:
-    HRESULT processInput(const QByteArrayView &in);
-    HRESULT processOutput(QByteArray &out);
+    qsizetype overAllocatedOutputBufferSize();
+    template <typename Functor>
+    auto processOutput(ComPtr<IMFMediaBuffer> buffer, Functor &&f)
+            -> std::invoke_result_t<Functor, const ComPtr<IMFMediaBuffer> &>;
+
+    QMaybe<QByteArray, HRESULT> processOutput();
 
     QComInitializer m_comInitializer;
     QWindowsMediaFoundation *m_wmf{ QWindowsMediaFoundation::instance() };
     QMFRuntimeInit m_wmfRuntime{ m_wmf };
     ComPtr<IMFTransform> m_resampler;
+    ComPtr<IMFSample> m_inputSample;
+    ComPtr<IMFSample> m_outputSample;
 
-    bool m_resamplerNeedsSampleBuffer = false;
     quint64 m_totalInputBytes = 0;
     quint64 m_totalOutputBytes = 0;
     QAudioFormat m_inputFormat;
     QAudioFormat m_outputFormat;
 
     DWORD m_inputStreamID = 0;
+
+    std::chrono::microseconds m_startTimeOffset;
 };
 
 QT_END_NAMESPACE

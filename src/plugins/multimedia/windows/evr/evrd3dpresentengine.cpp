@@ -645,8 +645,95 @@ HRESULT D3DPresentEngine::createVideoSamples(IMFMediaType *format,
         videoSampleQueue.append(videoSample);
     }
 
+    std::optional<QVideoFrameFormat::ColorRange> colorRange =
+            [&]() -> std::optional<QVideoFrameFormat::ColorRange> {
+        MFNominalRange range;
+        if (SUCCEEDED(format->GetUINT32(MF_MT_VIDEO_NOMINAL_RANGE,
+                                        reinterpret_cast<UINT32 *>(&range)))) {
+            qCDebug(qLcEvrD3DPresentEngine) << "MF_MT_VIDEO_NOMINAL_RANGE =" << range;
+            switch (range) {
+            case MFNominalRange::MFNominalRange_16_235:
+                return QVideoFrameFormat::ColorRange::ColorRange_Video;
+            case MFNominalRange::MFNominalRange_0_255:
+                return QVideoFrameFormat::ColorRange::ColorRange_Full;
+            default:
+                break;
+            }
+        } else {
+            qCDebug(qLcEvrD3DPresentEngine) << "MF_MT_VIDEO_NOMINAL_RANGE not set";
+        }
+        return std::nullopt;
+    }();
+
+    std::optional<QVideoFrameFormat::ColorTransfer> colorTransfer =
+            [&]() -> std::optional<QVideoFrameFormat::ColorTransfer> {
+        MFVideoTransferMatrix transferMatrix;
+        if (SUCCEEDED(format->GetUINT32(MF_MT_YUV_MATRIX,
+                                        reinterpret_cast<UINT32 *>(&transferMatrix)))) {
+            qCDebug(qLcEvrD3DPresentEngine) << "MF_MT_YUV_MATRIX =" << transferMatrix;
+
+            switch (transferMatrix) {
+            case MFVideoTransferMatrix_BT709:
+                return QVideoFrameFormat::ColorTransfer::ColorTransfer_BT709;
+            case MFVideoTransferMatrix_BT601:
+                return QVideoFrameFormat::ColorTransfer::ColorTransfer_BT601;
+            case MFVideoTransferMatrix_SMPTE240M:
+                return QVideoFrameFormat::ColorTransfer::ColorTransfer_BT709;
+            case MFVideoTransferMatrix_BT2020_10:
+            case MFVideoTransferMatrix_BT2020_12:
+                return QVideoFrameFormat::ColorTransfer::ColorTransfer_ST2084;
+            default:
+                break;
+            }
+        } else {
+            qCDebug(qLcEvrD3DPresentEngine) << "MF_MT_YUV_MATRIX not set";
+        }
+        return std::nullopt;
+    }();
+
+    std::optional<QVideoFrameFormat::ColorSpace> colorSpace =
+            [&]() -> std::optional<QVideoFrameFormat::ColorSpace> {
+        MFVideoPrimaries primaries;
+        if (SUCCEEDED(format->GetUINT32(MF_MT_VIDEO_PRIMARIES,
+                                        reinterpret_cast<UINT32 *>(&primaries)))) {
+            qCDebug(qLcEvrD3DPresentEngine) << "MFVideoPrimaries =" << primaries;
+
+            switch (primaries) {
+            case MFVideoPrimaries_BT709:
+                return QVideoFrameFormat::ColorSpace::ColorSpace_BT709;
+            case MFVideoPrimaries_BT470_2_SysM:
+            case MFVideoPrimaries_BT470_2_SysBG:
+            case MFVideoPrimaries_SMPTE170M:
+            case MFVideoPrimaries_EBU3213:
+            case MFVideoPrimaries_SMPTE_C:
+                return QVideoFrameFormat::ColorSpace::ColorSpace_BT601;
+
+            case MFVideoPrimaries_SMPTE240M:
+                return QVideoFrameFormat::ColorSpace::ColorSpace_BT709;
+            case MFVideoPrimaries_BT2020:
+                return QVideoFrameFormat::ColorSpace::ColorSpace_BT2020;
+            case MFVideoPrimaries_DCI_P3:
+                return QVideoFrameFormat::ColorSpace::ColorSpace_BT2020;
+            case MFVideoPrimaries_XYZ:
+            case MFVideoPrimaries_ACES:
+                return QVideoFrameFormat::ColorSpace::ColorSpace_Undefined;
+            default:
+                return QVideoFrameFormat::ColorSpace::ColorSpace_Undefined;
+            }
+        } else {
+            qCDebug(qLcEvrD3DPresentEngine) << "MF_MT_YUV_MATRIX not set";
+        }
+        return std::nullopt;
+    }();
+
     if (SUCCEEDED(hr)) {
         m_surfaceFormat = QVideoFrameFormat(QSize(width, height), qt_evr_pixelFormatFromD3DFormat(d3dFormat));
+        if (colorRange)
+            m_surfaceFormat.setColorRange(*colorRange);
+        if (colorTransfer)
+            m_surfaceFormat.setColorTransfer(*colorTransfer);
+        if (colorSpace)
+            m_surfaceFormat.setColorSpace(*colorSpace);
     } else {
         releaseResources();
     }

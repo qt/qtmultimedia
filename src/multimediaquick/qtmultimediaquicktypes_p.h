@@ -15,9 +15,24 @@
 // We mean it.
 //
 
-#include <QtQml/qqml.h>
-#include <QtMultimedia/QtMultimedia>
-#include <private/qtmultimediaquickglobal_p.h>
+#include <QtMultimediaQuick/private/qtmultimediaquickglobal_p.h>
+
+#include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qaudioinput.h>
+#include <QtMultimedia/qaudiooutput.h>
+#include <QtMultimedia/qcamera.h>
+#include <QtMultimedia/qcameradevice.h>
+#include <QtMultimedia/qcapturablewindow.h>
+#include <QtMultimedia/qimagecapture.h>
+#include <QtMultimedia/qmediacapturesession.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/qmediaformat.h>
+#include <QtMultimedia/qmediametadata.h>
+#include <QtMultimedia/qmediarecorder.h>
+#include <QtMultimedia/qscreencapture.h>
+#include <QtMultimedia/qwindowcapture.h>
+
+#include <QtQml/qqmlregistration.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -82,7 +97,7 @@ namespace QMediaMetaDataNamespaceForeign
     Q_NAMESPACE
     QML_FOREIGN_NAMESPACE(QMediaMetaDataDerived)
     QML_NAMED_ELEMENT(MediaMetaData)
-};
+} // namespace QMediaMetaDataNamespaceForeign
 
 struct QMediaDevicesForeign
 {
@@ -124,7 +139,7 @@ namespace QAudioDeviceNamespaceForeign
     Q_NAMESPACE
     QML_FOREIGN_NAMESPACE(QAudioDeviceDerived)
     QML_NAMED_ELEMENT(AudioDevice)
-};
+} // namespace QAudioDeviceNamespaceForeign
 
 struct QCameraDeviceForeign
 {
@@ -145,7 +160,7 @@ namespace QCameraDeviceNamespaceForeign
     Q_NAMESPACE
     QML_FOREIGN_NAMESPACE(QCameraDeviceDerived)
     QML_NAMED_ELEMENT(CameraDevice)
-};
+} // namespace QCameraDeviceNamespaceForeign
 
 struct QMediaFormatForeign
 {
@@ -166,7 +181,7 @@ namespace QMediaFormatNamespaceForeign
     Q_NAMESPACE
     QML_FOREIGN_NAMESPACE(QMediaFormatDerived)
     QML_NAMED_ELEMENT(MediaFormat)
-};
+} // namespace QMediaFormatNamespaceForeign
 
 struct QCameraFormatForeign
 {

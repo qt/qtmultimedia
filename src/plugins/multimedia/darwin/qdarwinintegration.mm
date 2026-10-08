@@ -14,7 +14,6 @@
 #include <VideoToolbox/VideoToolbox.h>
 #include <qdebug.h>
 #include <private/qplatformmediaplugin_p.h>
-#include <qavfcamerabase_p.h>
 
 QT_BEGIN_NAMESPACE
 
