@@ -39,6 +39,7 @@ qt_internal_add_module(MultimediaTestLibPrivate
         Qt::Multimedia
         Qt::MultimediaPrivate
         Qt::Test
+        Qt::TestPrivate
     NO_GENERATE_CPP_EXPORTS
     QT_LICENSE_ID QT_COMMERCIAL_OR_GPL3
 )

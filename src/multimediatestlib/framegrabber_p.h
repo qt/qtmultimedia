@@ -27,7 +27,8 @@ QT_BEGIN_NAMESPACE
 
 namespace QtMultimediaTest {
 
-// Generous timeout on CI, where machines are slow and heavily loaded.
+// Generous timeout on CI, where machines are slow and heavily loaded. Short for
+// blacklisted test cases, which are expected to fail.
 [[nodiscard]] std::chrono::milliseconds surfaceCaptureTestTimeout();
 
 struct VideoFrameInfo
