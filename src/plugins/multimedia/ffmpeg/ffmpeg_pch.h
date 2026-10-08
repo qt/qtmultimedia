@@ -21,7 +21,7 @@
 
 #ifdef Q_OS_WINDOWS
 #  include <qt_windows.h>
-#  include <D3d11.h>
+#  include <d3d11.h>
 #  include <dxgi1_2.h>
 #  include <mfapi.h>
 #  include <mfidl.h>
