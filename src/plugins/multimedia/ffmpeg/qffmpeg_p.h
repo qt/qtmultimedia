@@ -70,9 +70,15 @@ inline std::optional<qint64> timeStampUs(qint64 ts, AVRational base)
     return mul(1'000'000 * ts, base);
 }
 
-inline std::optional<float> toFloat(AVRational r)
+template <typename Float>
+inline std::optional<Float> toFloat(AVRational r)
 {
-    return r.den != 0 ? float(r.num) / float(r.den) : std::optional<float>{};
+    return r.den != 0 ? Float(r.num) / Float(r.den) : std::optional<Float>{};
+}
+
+inline std::optional<qreal> toReal(AVRational r)
+{
+    return toFloat<qreal>(r);
 }
 
 inline QString err2str(int errnum)

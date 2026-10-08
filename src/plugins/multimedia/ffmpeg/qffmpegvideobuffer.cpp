@@ -146,9 +146,9 @@ float QFFmpegVideoBuffer::maxNits()
             // max_luminance is a rational in cd/m2 (nits) already, valid with has_luminance
             if (!data->has_luminance)
                 continue;
-            auto maybeLum = QFFmpeg::mul(qreal(1.), data->max_luminance);
+            auto maybeLum = QFFmpeg::toReal(data->max_luminance);
             if (maybeLum)
-                maxNits = float(maybeLum.value());
+                maxNits = float(*maybeLum);
         }
     }
     return maxNits;
