@@ -319,9 +319,7 @@ void QGstreamerImageCapture::convertBufferToImage(const QMutexLocker<QRecursiveM
                 fmt = qVideoFrameFormatFromGstVideoInfo(previewInfo);
             }
 
-            auto gstBuffer = std::make_unique<QGstVideoBuffer>(std::move(buffer), previewInfo, fmt);
-
-            QVideoFrame frame = QVideoFramePrivate::createFrame(std::move(gstBuffer), fmt);
+            QVideoFrame frame = qCreateFrameFromGstBuffer(std::move(buffer), previewInfo, fmt);
             QImage img = frame.toImage();
             if (img.isNull()) {
                 qDebug() << "received a null image";

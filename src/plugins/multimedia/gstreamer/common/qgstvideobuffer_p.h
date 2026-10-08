@@ -19,13 +19,13 @@
 #include <QtCore/qvariant.h>
 
 #include <common/qgst_p.h>
+#include <common/qgstbufferprovider_p.h>
 #include <gst/video/video.h>
 
 QT_BEGIN_NAMESPACE
 class QVideoFrameFormat;
-class QOpenGLContext;
 
-class QGstVideoBuffer final : public QHwVideoBuffer
+class QGstVideoBuffer final : public QHwVideoBuffer, public QGstBufferProvider
 {
 public:
     QGstVideoBuffer(QGstBufferHandle buffer, const QGstVideoInfo &videoInfo,
@@ -35,10 +35,8 @@ public:
     MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;
 
-    bool isDmaBuf() const override;
-
     QVideoFrameTexturesUPtr mapTextures(QRhi &) override;
-    GstBuffer *gstBuffer() const { return m_buffer.get(); }
+    GstBuffer *gstBuffer() const override { return m_buffer.get(); }
 
 private:
     const QGstCaps::MemoryFormat m_memoryFormat = QGstCaps::CpuMemory;

@@ -9,6 +9,10 @@
 #include <common/qgstutils_p.h>
 #include <common/qgstvideobuffer_p.h>
 
+#if QT_CONFIG(linux_dmabuf)
+#  include <common/qgstdmabufvideobuffer_p.h>
+#endif
+
 #include <QtCore/qdebug.h>
 #include <QtMultimedia/private/qvideoframe_p.h>
 #include <QtMultimedia/qcameradevice.h>
@@ -1720,11 +1724,21 @@ QGstCaps::MemoryFormat qMemoryFormatFromGstBuffer(GstBuffer *buffer)
     return memoryFormat;
 }
 
+QVideoFrame qCreateFrameFromGstBuffer(QGstBufferHandle buffer, const QGstVideoInfo &videoInfo,
+                                      const QVideoFrameFormat &format)
+{
+#if QT_CONFIG(linux_dmabuf)
+    if (auto dmaBufBuffer = QGstDmaBufVideoBuffer::create(buffer, videoInfo, format))
+        return QVideoFramePrivate::createFrame(std::move(dmaBufBuffer), format);
+#endif
+    auto videoBuffer = std::make_unique<QGstVideoBuffer>(std::move(buffer), videoInfo, format);
+    return QVideoFramePrivate::createFrame(std::move(videoBuffer), format);
+}
+
 QVideoFrame qCreateFrameFromGstBuffer(QGstBufferHandle buffer, const QGstVideoInfo &videoInfo)
 {
     auto format = qVideoFrameFormatFromGstVideoInfo(videoInfo);
-    auto videoBuffer = std::make_unique<QGstVideoBuffer>(buffer, videoInfo, format);
-    return QVideoFramePrivate::createFrame(std::move(videoBuffer), format);
+    return qCreateFrameFromGstBuffer(std::move(buffer), videoInfo, format);
 }
 
 QT_END_NAMESPACE

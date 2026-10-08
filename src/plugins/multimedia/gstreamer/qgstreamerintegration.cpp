@@ -8,6 +8,7 @@
 #include <audio/qgstreameraudiodecoder_p.h>
 #include <common/qgstreameraudioinput_p.h>
 #include <common/qgstreameraudiooutput_p.h>
+#include <common/qgstbufferprovider_p.h>
 #include <common/qgstreamermediaplayer_p.h>
 #include <common/qgstreamervideosink_p.h>
 #include <mediacapture/qgstreamercamera_p.h>
@@ -135,8 +136,8 @@ GstBuffer *QGStreamerInterfaceImplementation::gstBuffer(const QVideoFrame &frame
     QHwVideoBuffer *hwBuffer = QVideoFramePrivate::hwBuffer(frame);
     if (!hwBuffer)
         return nullptr;
-    QGstVideoBuffer *gstBuffer = dynamic_cast<QGstVideoBuffer *>(hwBuffer);
-    return gstBuffer ? gstBuffer->gstBuffer() : nullptr;
+    QGstBufferProvider *provider = dynamic_cast<QGstBufferProvider *>(hwBuffer);
+    return provider ? provider->gstBuffer() : nullptr;
 }
 
 QVideoFrame QGStreamerInterfaceImplementation::createFrameFromGstBuffer(

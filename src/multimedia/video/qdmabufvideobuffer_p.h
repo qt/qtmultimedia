@@ -33,7 +33,7 @@ class QRhi;
 
 namespace QtMultimediaPrivate {
 
-class Q_MULTIMEDIA_EXPORT QDmaBufVideoBuffer final : public QHwVideoBuffer
+class Q_MULTIMEDIA_EXPORT QDmaBufVideoBuffer : public QHwVideoBuffer
 {
 public:
     QDmaBufVideoBuffer(QVideoFrameFormat::PixelFormat format, QSize size,

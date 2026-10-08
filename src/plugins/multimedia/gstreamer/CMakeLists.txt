@@ -64,6 +64,12 @@ qt_internal_add_module(GstreamerMediaPluginImplPrivate
         GStreamer::Play
 )
 
+qt_internal_extend_target(GstreamerMediaPluginImplPrivate CONDITION QT_FEATURE_linux_dmabuf
+    SOURCES
+        common/qgstbufferprovider_p.h
+        common/qgstdmabufvideobuffer.cpp common/qgstdmabufvideobuffer_p.h
+)
+
 qt_internal_extend_target(GstreamerMediaPluginImplPrivate CONDITION QT_FEATURE_gstreamer_photography
     PUBLIC_LIBRARIES
         GStreamer::Photography

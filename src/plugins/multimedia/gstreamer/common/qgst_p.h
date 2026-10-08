@@ -1029,6 +1029,8 @@ void qForeachStreamInCollection(const QGstStreamCollectionHandle &collection, Fu
 QVideoFrameFormat qVideoFrameFormatFromGstVideoInfo(const QGstVideoInfo &vidInfo);
 QGstCaps::MemoryFormat qMemoryFormatFromGstBuffer(GstBuffer *buffer);
 QVideoFrame qCreateFrameFromGstBuffer(QGstBufferHandle buffer, const QGstVideoInfo &videoInfo);
+QVideoFrame qCreateFrameFromGstBuffer(QGstBufferHandle, const QGstVideoInfo &,
+                                      const QVideoFrameFormat &);
 
 QT_END_NAMESPACE
 
