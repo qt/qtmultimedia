@@ -44,22 +44,22 @@ static QString windowTitle(HWND hwnd) {
     return QString::fromStdWString(buffer);
 }
 
+static BOOL CALLBACK windowHandler(HWND hwnd, LPARAM lParam) {
+    if (!canCaptureWindow(hwnd))
+        return TRUE; // Ignore window and continue enumerating
+
+    auto &windows = *reinterpret_cast<QList<QCapturableWindow> *>(lParam);
+
+    windows.push_back(QCapturableWindowPrivate::create(
+        reinterpret_cast<QCapturableWindowPrivate::Id>(hwnd),
+        windowTitle(hwnd)));
+
+    return TRUE;
+}
+
 QList<QCapturableWindow> QWinCapturableWindows::windows() const
 {
     QList<QCapturableWindow> result;
-
-    auto windowHandler = [](HWND hwnd, LPARAM lParam) {
-        if (!canCaptureWindow(hwnd))
-            return TRUE; // Ignore window and continue enumerating
-
-        auto& windows = *reinterpret_cast<QList<QCapturableWindow>*>(lParam);
-
-        windows.push_back(QCapturableWindowPrivate::create(
-            reinterpret_cast<QCapturableWindowPrivate::Id>(hwnd),
-            windowTitle(hwnd)));
-
-        return TRUE;
-    };
 
     ::EnumWindows(windowHandler, reinterpret_cast<LPARAM>(&result));
 
