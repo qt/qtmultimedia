@@ -36,7 +36,7 @@ auto wait_for(Async const& async, Windows::Foundation::TimeSpan const& timeout);
 #include <Windows.Graphics.Capture.Interop.h>
 #include <windows.graphics.directx.direct3d11.interop.h>
 
-#include <D3d11.h>
+#include <d3d11.h>
 #include <dwmapi.h>
 #include <lowlevelmonitorconfigurationapi.h>
 #include <physicalmonitorenumerationapi.h>

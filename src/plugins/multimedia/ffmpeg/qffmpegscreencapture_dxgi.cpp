@@ -15,7 +15,7 @@
 #include <QtCore/private/qsystemerror_p.h>
 #include <QtCore/private/qexpected_p.h>
 
-#include "D3d11.h"
+#include "d3d11.h"
 #include "dxgi1_2.h"
 
 #include <system_error>
