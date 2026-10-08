@@ -13,6 +13,7 @@
 #include <QtMultimedia/qvideoframe.h>
 
 #include <QtTest/qtest.h>
+#include <QtTest/private/qtestblacklist_p.h>
 
 #include <utility>
 
@@ -22,6 +23,13 @@ namespace QtMultimediaTest {
 
 std::chrono::milliseconds surfaceCaptureTestTimeout()
 {
+    // A blacklisted test is expected to fail, so don't make it wait for the full
+    // timeout to do so.
+    if (const char *testFunction = QTest::currentTestFunction();
+        testFunction && QTestPrivate::checkBlackLists(testFunction, QTest::currentDataTag())) {
+        return std::chrono::seconds(1);
+    }
+
     if (isCI())
         return std::chrono::seconds(60);
     return std::chrono::seconds(5);
