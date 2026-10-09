@@ -63,11 +63,9 @@ qt_internal_extend_target(MultimediaTestLibPrivate CONDITION WIN32
         d3d11
 )
 
-# TODO: widen to "OR QT_FEATURE_pipewire_camera" once that feature lands, since
-# the fixture also fakes org.freedesktop.portal.Camera.
 qt_internal_extend_target(MultimediaTestLibPrivate
     CONDITION
-        QT_FEATURE_pipewire_screencapture
+        QT_FEATURE_pipewire_screencapture OR (QT_FEATURE_pipewire AND QT_FEATURE_dbus)
     SOURCES
         qfakexdgportalfixture_p.h qfakexdgportalfixture.cpp
         qfakexdgportal_p.h qfakexdgportal.cpp

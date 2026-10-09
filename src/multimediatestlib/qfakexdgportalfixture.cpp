@@ -152,6 +152,7 @@ public:
     QProcess helper;
     QByteArray helperOutput;
     QSize frameSize;
+    QtFakeXdgPortal::Role role = QtFakeXdgPortal::Role::ScreenCast;
     QtPipeWire::ObjectId nodeId{ 0 };
     bool active = false;
 
@@ -183,21 +184,37 @@ int QFakeXdgPortalFixture::runHelperProcess(int argc, char **argv)
     return QtFakeXdgPortal::runPortalHelper(argc, argv);
 }
 
-bool QFakeXdgPortalFixture::isRequested()
+bool QFakeXdgPortalFixture::isForced()
 {
 #ifndef Q_OS_LINUX
     return false;
 #else
-    // This file is only compiled when QT_FEATURE_pipewire_screencapture is on.
+    const QString mode = qEnvironmentVariable(FixtureModeVariable).toLower();
+    return mode == u"fake" || mode == u"1";
+#endif
+}
+
+bool QFakeXdgPortalFixture::isRequested(QtFakeXdgPortal::Role role)
+{
+#ifndef Q_OS_LINUX
+    return false;
+#else
     const QString mode = qEnvironmentVariable(FixtureModeVariable, u"auto"_s).toLower();
     if (mode == u"none" || mode == u"0")
         return false;
-    if (mode == u"fake" || mode == u"1")
+    if (isForced())
         return true;
 
-    // auto: only where the real portal would need a human. On X11 the native
-    // X11 capture backend is used and needs no portal at all.
-    return qEnvironmentVariable("XDG_SESSION_TYPE").toLower() != u"x11";
+    switch (role) {
+    case QtFakeXdgPortal::Role::ScreenCast:
+        // auto: only where the real portal would need a human. On X11 the native
+        // X11 capture backend is used and needs no portal at all.
+        return qEnvironmentVariable("XDG_SESSION_TYPE").toLower() != u"x11";
+    case QtFakeXdgPortal::Role::Camera:
+        // There is no native alternative to the portal path to fall back on.
+        return true;
+    }
+    Q_UNREACHABLE_RETURN(false);
 #endif
 }
 
@@ -221,9 +238,10 @@ bool QFakeXdgPortalFixture::isRunningOnPrivateBus()
     return qEnvironmentVariableIsSet(PrivateBusMarker);
 }
 
-void QFakeXdgPortalFixture::reexecUnderPrivateBusIfRequested(int argc, char **argv)
+void QFakeXdgPortalFixture::reexecUnderPrivateBusIfRequested(int argc, char **argv,
+                                                             QtFakeXdgPortal::Role role)
 {
-    if (isRunningOnPrivateBus() || isHelperProcess(argc, argv) || !isRequested())
+    if (isRunningOnPrivateBus() || isHelperProcess(argc, argv) || !isRequested(role))
         return;
     if (!prerequisitesAvailable(nullptr))
         return; // start() reports this properly; here we simply do not re-exec
@@ -263,9 +281,17 @@ void QFakeXdgPortalFixture::reexecUnderPrivateBusIfRequested(int argc, char **ar
     }
 
     environment.insert(QString::fromLatin1(PrivateBusMarker), u"1"_s);
-    // The fixture only makes sense against the PipeWire capture backend, and the
-    // value is cached on first use inside the FFmpeg integration.
-    environment.insert(u"QT_SCREEN_CAPTURE_BACKEND"_s, u"pipewire"_s);
+    // The fixture only makes sense against the PipeWire backends, and the values
+    // are cached on first use inside the FFmpeg integration.
+    switch (role) {
+    case QtFakeXdgPortal::Role::ScreenCast:
+        environment.insert(u"QT_SCREEN_CAPTURE_BACKEND"_s, u"pipewire"_s);
+        break;
+    case QtFakeXdgPortal::Role::Camera:
+        environment.insert(u"QT_CAMERA_BACKEND"_s, u"pipewire"_s);
+        environment.insert(u"QT_PIPEWIRE_CAMERA_FORCE_PORTAL"_s, u"1"_s);
+        break;
+    }
 
     QVarLengthArray<char *, 64> arguments;
     QByteArray program = dbusRunSession.toLocal8Bit();
@@ -325,6 +351,8 @@ q23::expected<void, QString> QFakeXdgPortalFixture::startHelper(QSize frameSize)
             QString::fromLatin1(QtFakeXdgPortal::HelperArgument),
             u"--frame-size"_s,
             u"%1x%2"_s.arg(frameSize.width()).arg(frameSize.height()),
+            u"--role"_s,
+            d->role == QtFakeXdgPortal::Role::Camera ? u"camera"_s : u"screencast"_s,
     });
     d->helper.start();
     if (!d->helper.waitForStarted(StartupTimeoutMs))
@@ -354,7 +382,8 @@ void QFakeXdgPortalFixture::stopHelper()
     d->frameSize = {};
 }
 
-q23::expected<void, QString> QFakeXdgPortalFixture::start(const SyntheticVideoScene &initialScene)
+q23::expected<void, QString> QFakeXdgPortalFixture::start(const SyntheticVideoScene &initialScene,
+                                                          QtFakeXdgPortal::Role role)
 {
     const auto fail = [this](const QString &reason) {
         stop();
@@ -410,6 +439,7 @@ q23::expected<void, QString> QFakeXdgPortalFixture::start(const SyntheticVideoSc
     }
 
     d->environment = environment;
+    d->role = role;
 
     if (auto result = startHelper(initialScene.frameSize); !result)
         return fail(result.error());

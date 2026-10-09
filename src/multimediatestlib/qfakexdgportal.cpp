@@ -390,6 +390,46 @@ private:
     FakePortalObject *m_portal;
 };
 
+class FakeCameraAdaptor : public QDBusAbstractAdaptor
+{
+    Q_OBJECT
+    Q_CLASSINFO("D-Bus Interface", "org.freedesktop.portal.Camera")
+    Q_PROPERTY(uint version READ version)
+    Q_PROPERTY(bool IsCameraPresent READ isCameraPresent)
+
+public:
+    explicit FakeCameraAdaptor(FakePortalObject *portal)
+        : QDBusAbstractAdaptor(portal), m_portal(portal)
+    {
+    }
+
+    uint version() const { return 1; }
+    bool isCameraPresent() const { return true; }
+
+public Q_SLOTS:
+    QDBusObjectPath AccessCamera(const QVariantMap &options)
+    {
+        m_portal->supersedePending(FakePortalObject::RequestScope::Camera);
+        return m_portal->respond(options, {}, FakePortalObject::RequestScope::Camera);
+    }
+
+    QDBusUnixFileDescriptor OpenPipeWireRemote(const QVariantMap &options)
+    {
+        Q_UNUSED(options);
+
+        auto fd = connectToPipeWire();
+        if (!fd) {
+            m_portal->failWith(QDBusError::Failed, fd.error());
+            return QDBusUnixFileDescriptor();
+        }
+
+        return QDBusUnixFileDescriptor(fd->get()); // duplicates the descriptor
+    }
+
+private:
+    FakePortalObject *m_portal;
+};
+
 //! Control interface used by QFakeXdgPortalFixture to drive the helper.
 class FakeXdgPortalControl : public QObject
 {
@@ -442,6 +482,7 @@ struct CLIArgs
     QSize frameSize;
     std::chrono::milliseconds responseDelay;
     int frameRate = 0;
+    QtFakeXdgPortal::Role role = QtFakeXdgPortal::Role::ScreenCast;
 };
 
 std::optional<CLIArgs> parseArgs(int argc, char **argv)
@@ -453,8 +494,10 @@ std::optional<CLIArgs> parseArgs(int argc, char **argv)
                                            u"ms"_s, u"25"_s);
     QCommandLineOption frameRateOption(u"frame-rate"_s, u"frames per second to publish"_s, u"fps"_s,
                                        u"60"_s);
+    QCommandLineOption roleOption(u"role"_s, u"portal to fake, screencast or camera"_s, u"role"_s,
+                                  u"screencast"_s);
     QCommandLineParser parser;
-    parser.addOptions({ frameSizeOption, responseDelayOption, frameRateOption });
+    parser.addOptions({ frameSizeOption, responseDelayOption, frameRateOption, roleOption });
     parser.addOption(
             QCommandLineOption(QString::fromLatin1(QtFakeXdgPortal::HelperArgument).mid(2)));
 
@@ -473,10 +516,18 @@ std::optional<CLIArgs> parseArgs(int argc, char **argv)
         return std::nullopt;
     }
 
+    const QString role = parser.value(roleOption);
+    if (role != u"screencast" && role != u"camera") {
+        qCritical("fake xdg portal helper: invalid --role");
+        return std::nullopt;
+    }
+
     return CLIArgs{
         .frameSize = frameSize,
         .responseDelay = std::chrono::milliseconds(parser.value(responseDelayOption).toInt()),
         .frameRate = std::max(1, parser.value(frameRateOption).toInt()),
+        .role = role == u"camera" ? QtFakeXdgPortal::Role::Camera
+                                  : QtFakeXdgPortal::Role::ScreenCast,
     };
 }
 
@@ -507,7 +558,10 @@ int runPortalHelper(int argc, char **argv)
     scene.frameSize = frameSize;
 
     QSyntheticPipeWireVideoSource source;
-    if (auto result = source.start(scene); !result) {
+    const QSyntheticPipeWireVideoSourceConfig sourceConfig = args->role == Role::Camera
+            ? QSyntheticPipeWireVideoSourceConfig::camera()
+            : QSyntheticPipeWireVideoSourceConfig::screenCast();
+    if (auto result = source.start(scene, sourceConfig); !result) {
         qCritical("fake xdg portal helper: %s", qPrintable(result.error()));
         return 1;
     }
@@ -520,7 +574,14 @@ int runPortalHelper(int argc, char **argv)
     frameTimer.start();
 
     auto *portal = new FakePortalObject(source, frameSize, args->responseDelay, &app);
-    new FakeScreenCastAdaptor(portal);
+    switch (args->role) {
+    case Role::ScreenCast:
+        new FakeScreenCastAdaptor(portal);
+        break;
+    case Role::Camera:
+        new FakeCameraAdaptor(portal);
+        break;
+    }
 
     if (!bus.registerObject(u"/org/freedesktop/portal/desktop"_s, portal,
                             QDBusConnection::ExportAdaptors)) {

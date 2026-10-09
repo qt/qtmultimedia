@@ -3,6 +3,9 @@
 
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
 #include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
+#ifdef QT_MM_HAVE_FAKE_XDG_PORTAL
+#  include <QtMultimediaTestLib/private/qfakexdgportalfixture_p.h>
+#endif
 #include <QtTest/qsignalspy.h>
 #include <QtTest/qtest.h>
 #include <QtMultimedia/qaudiooutput.h>
@@ -34,6 +37,7 @@
 #include <memory>
 
 using namespace std::chrono_literals;
+using namespace Qt::StringLiterals;
 
 /*
  This is the backend conformance test.
@@ -117,6 +121,9 @@ private:
     bool m_vcamAvailable = false;
     VCamParameters m_defaultCamera {"VCam"};
     QByteArray m_vcamPath;
+#ifdef QT_MM_HAVE_FAKE_XDG_PORTAL
+    QFakeXdgPortalFixture m_fakePortal;
+#endif
 };
 
 class TestVideoFormat : public QVideoSink
@@ -177,6 +184,22 @@ void tst_QCameraBackend::initTestCase()
     if (!initIntegrationTestCase())
         return;
 
+#ifdef QT_MM_HAVE_FAKE_XDG_PORTAL
+    if (QFakeXdgPortalFixture::isForced()) {
+        QString unavailableReason;
+        if (!QFakeXdgPortalFixture::prerequisitesAvailable(&unavailableReason))
+            QSKIP(qPrintable(u"Fake Camera portal unavailable: "_s + unavailableReason));
+
+        SyntheticVideoScene scene;
+        scene.frameSize = QSize(640, 480);
+        scene.patternRect = QRect(50, 40, 300, 240);
+        auto result = m_fakePortal.start(scene, QtFakeXdgPortal::Role::Camera);
+        QVERIFY2(result,
+                 qPrintable(u"Could not start the fake Camera portal: "_s
+                            + (result ? QString() : result.error())));
+    }
+#endif
+
 #if QT_CONFIG(process)
     m_vcamPath = qgetenv("VCAM_PATH");
 #endif
@@ -195,6 +218,9 @@ void tst_QCameraBackend::cleanupTestCase()
 {
     if (m_vcamAvailable)
         removeVcam(m_defaultCamera);
+#ifdef QT_MM_HAVE_FAKE_XDG_PORTAL
+    m_fakePortal.stop();
+#endif
 }
 
 bool tst_QCameraBackend::callVcam(const QString &command, const VCamParameters &parameters) const
@@ -1311,6 +1337,29 @@ void tst_QCameraBackend::multipleCameraSet()
     }
 }
 
+#ifdef QT_MM_HAVE_FAKE_XDG_PORTAL
+
+// QTEST_MAIN's main() is renamed so that the fake portal can get in first: the
+// helper process must not build a QApplication, and the re-exec has to precede
+// the first use of the session bus.
+#  define main testlib_main
 QTEST_MAIN(tst_QCameraBackend)
+#  undef main
+
+int main(int argc, char *argv[])
+{
+    if (QFakeXdgPortalFixture::isHelperProcess(argc, argv))
+        return QFakeXdgPortalFixture::runHelperProcess(argc, argv);
+
+    if (QFakeXdgPortalFixture::isForced()) {
+        QFakeXdgPortalFixture::reexecUnderPrivateBusIfRequested(argc, argv,
+                                                                QtFakeXdgPortal::Role::Camera);
+    }
+    return testlib_main(argc, argv);
+}
+
+#else
+QTEST_MAIN(tst_QCameraBackend)
+#endif
 
 #include "tst_qcamerabackend.moc"

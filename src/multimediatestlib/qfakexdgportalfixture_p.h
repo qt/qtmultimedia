@@ -19,6 +19,7 @@
 #include <QtCore/qstring.h>
 #include <QtCore/private/qexpected_p.h>
 
+#include <private/qfakexdgportal_p.h>
 #include <private/qsyntheticvideoscene_p.h>
 
 #include <memory>
@@ -30,8 +31,8 @@ QT_BEGIN_NAMESPACE
 
     Runs an unattended stand-in for xdg-desktop-portal, so that tests can exercise
     the portal-backed PipeWire code paths end to end without a human approving a
-    consent dialog. Today it implements the ScreenCast interface; the intent is that
-    every portal interface qtmultimedia talks to is faked here.
+    consent dialog. Today it implements the ScreenCast and Camera interfaces; the
+    intent is that every portal interface qtmultimedia talks to is faked here.
 
     It brings up, and tears down:
     \list
@@ -79,7 +80,10 @@ public:
         off, and the default "auto" enables it on Linux for non-X11 sessions, where
         the real portal would otherwise block on a consent dialog.
     */
-    static bool isRequested();
+    //! Whether QT_MULTIMEDIA_TEST_XDG_PORTAL_FIXTURE explicitly forces the fixture on.
+    static bool isForced();
+
+    static bool isRequested(QtFakeXdgPortal::Role role = QtFakeXdgPortal::Role::ScreenCast);
 
     //! Whether the external pieces (pipewire, dbus-run-session) are present.
     static bool prerequisitesAvailable(QString *unavailableReason = nullptr);
@@ -89,12 +93,15 @@ public:
         prerequisites hold, so the whole test runs against a private session bus.
         Returns normally when no re-exec is needed or possible.
     */
-    static void reexecUnderPrivateBusIfRequested(int argc, char **argv);
+    static void reexecUnderPrivateBusIfRequested(
+            int argc, char **argv, QtFakeXdgPortal::Role role = QtFakeXdgPortal::Role::ScreenCast);
 
     //! True if the current process is already running on the fixture's private bus.
     static bool isRunningOnPrivateBus();
 
-    q23::expected<void, QString> start(const SyntheticVideoScene &initialScene);
+    q23::expected<void, QString>
+    start(const SyntheticVideoScene &initialScene,
+          QtFakeXdgPortal::Role role = QtFakeXdgPortal::Role::ScreenCast);
     void stop();
     [[nodiscard]] bool isActive() const;
 

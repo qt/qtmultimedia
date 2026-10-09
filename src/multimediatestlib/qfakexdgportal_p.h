@@ -51,6 +51,11 @@ namespace QtFakeXdgPortal {
 
 inline constexpr const char *HelperArgument = "--qt-fake-xdg-portal";
 
+enum class Role {
+    ScreenCast,
+    Camera,
+};
+
 int runPortalHelper(int argc, char **argv);
 
 } // namespace QtFakeXdgPortal

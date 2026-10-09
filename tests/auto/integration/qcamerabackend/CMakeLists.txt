@@ -18,3 +18,9 @@ qt_internal_multimedia_add_test(tst_qcamerabackend
         Qt::Widgets
         Qt::MultimediaTestLibPrivate
 )
+
+if(QT_FEATURE_pipewire AND QT_FEATURE_dbus)
+    target_compile_definitions(tst_qcamerabackend
+        PRIVATE QT_MM_HAVE_FAKE_XDG_PORTAL)
+    set_property(TEST tst_qcamerabackend APPEND PROPERTY LABELS pipewire_camera)
+endif()

@@ -1,0 +1,31 @@
+type: Group
+enable_if:
+  condition: and
+  conditions:
+    - condition: runtime
+      env_var: TARGET_OS_COIN
+      contains_value: linux
+    - condition: runtime
+      env_var: TARGET_OSVERSION_COIN
+      not_equals_value: ubuntu_22_04
+    - condition: property
+      property: features
+      not_contains_value: LicenseCheckV2
+
+instructions:
+  - type: EnvironmentVariable
+    variableName: QT_MEDIA_BACKEND
+    variableValue: ffmpeg
+  - type: EnvironmentVariable
+    variableName: QT_CAMERA_BACKEND
+    variableValue: pipewire
+
+  - type: EnvironmentVariable
+    variableName: QT_MULTIMEDIA_TEST_XDG_PORTAL_FIXTURE
+    variableValue: fake
+
+  - type: AppendToEnvironmentVariable
+    variableName: CTEST_ARGS
+    variableValue: " -L '^pipewire_camera$'"
+
+  - !include "{{qt/qtbase}}/coin_module_test_template_v3.yaml"
