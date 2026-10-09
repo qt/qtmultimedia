@@ -62,6 +62,11 @@ extern "C" {
 #  include <QtMultimedia/private/qpipewire_screencapture_p.h>
 #endif
 
+#if QT_CONFIG(pipewire)
+#  include <QtMultimedia/private/qpipewire_camera_p.h>
+#  include <QtMultimedia/private/qpipewire_cameradevices_p.h>
+#endif
+
 #if QT_CONFIG(eglfs)
 #include "qeglfsscreencapture_p.h"
 #endif
@@ -120,6 +125,7 @@ void setupFFmpegLogger()
 
 enum class CameraBackend {
     V4L2,
+    PipeWire,
 };
 
 std::optional<CameraBackend> requestedBackend()
@@ -129,6 +135,10 @@ std::optional<CameraBackend> requestedBackend()
         return std::nullopt;
     if (requested == "v4l2"_ba)
         return CameraBackend::V4L2;
+#  if QT_CONFIG(pipewire)
+    if (requested == "pipewire"_ba)
+        return CameraBackend::PipeWire;
+#  endif
     qWarning() << "Unknown QT_CAMERA_BACKEND:" << requested << "... Using default.";
     return std::nullopt;
 }
@@ -137,6 +147,17 @@ std::optional<CameraBackend> requestedBackend()
 {
     static const CameraBackend backend = [] {
         std::optional<CameraBackend> requested = requestedBackend();
+
+#  if QT_CONFIG(pipewire)
+        if (requested == CameraBackend::PipeWire) {
+            if (QtPipeWire::QCameraDevices::isSupported())
+                return CameraBackend::PipeWire;
+
+            if (requested == CameraBackend::PipeWire)
+                qWarning() << "QT_CAMERA_BACKEND=pipewire requested but PipeWire is not supported "
+                              "on this system.";
+        }
+#  endif
         if (!requested || requested == CameraBackend::V4L2)
             return CameraBackend::V4L2;
 
@@ -269,6 +290,10 @@ q23::expected<QPlatformCamera *, QString> QFFmpegMediaIntegration::createCamera(
     switch (backend) {
     case CameraBackend::V4L2:
         return new QV4L2Camera(camera);
+#  if QT_CONFIG(pipewire)
+    case CameraBackend::PipeWire:
+        return new QtPipeWire::QPipeWireCamera(camera);
+#  endif
     default:
         return q23::unexpected{ notAvailable };
     }
@@ -404,6 +429,10 @@ QPlatformVideoDevices *QFFmpegMediaIntegration::createVideoDevices()
     switch (backend) {
     case CameraBackend::V4L2:
         return new QV4L2CameraDevices(this);
+#  if QT_CONFIG(pipewire)
+    case CameraBackend::PipeWire:
+        return new QtPipeWire::QCameraDevices(this);
+#  endif
     default:
         return nullptr;
     }
