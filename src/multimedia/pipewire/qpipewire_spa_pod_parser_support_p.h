@@ -94,13 +94,15 @@ struct SpaEnum
         return m_values.front();
     }
 
-    size_t size() const { return m_values.size(); }
-
-    QSpan<const T> values() const
+    QSpan<const T> alternativeValues() const
     {
         Q_ASSERT(m_values.size() > 1);
         return drop(QSpan{ m_values }, 1);
     }
+
+    QSpan<const T> allValues() const { return m_values; }
+
+    size_t size() const { return m_values.size(); }
 
 private:
     explicit SpaEnum(QSpan<const T> args)

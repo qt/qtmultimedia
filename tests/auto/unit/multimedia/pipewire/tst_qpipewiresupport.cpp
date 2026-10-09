@@ -295,9 +295,9 @@ void tst_QPipeWireSupport::parsePropertyChoice()
             *object, SPA_TYPE_OBJECT_Format, SPA_FORMAT_AUDIO_channels);
     QVERIFY(channelChoice.has_value());
     QCOMPARE(channelChoice->defaultValue(), 2);
-    QCOMPARE(channelChoice->values().size(), 2u);
-    QCOMPARE(channelChoice->values()[0], 1);
-    QCOMPARE(channelChoice->values()[1], 6);
+    QCOMPARE(channelChoice->alternativeValues().size(), 2u);
+    QCOMPARE(channelChoice->alternativeValues()[0], 1);
+    QCOMPARE(channelChoice->alternativeValues()[1], 6);
 }
 
 void tst_QPipeWireSupport::spaRange_wrongElementCount()

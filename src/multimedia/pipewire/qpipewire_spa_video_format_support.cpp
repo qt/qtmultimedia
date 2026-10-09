@@ -61,7 +61,7 @@ std::vector<QVideoFrameFormat::PixelFormat> parsePixelFormats(const spa_pod &pod
                 pod, SPA_TYPE_OBJECT_Format, SPA_FORMAT_VIDEO_format)) {
         appendUnique(result, toQtPixelFormat(choice->defaultValue()));
         if (choice->size() > 1) {
-            for (spa_video_format format : choice->values())
+            for (spa_video_format format : choice->alternativeValues())
                 appendUnique(result, toQtPixelFormat(format));
         }
     }
@@ -74,7 +74,7 @@ SpaObjectVideoFormat::ResolutionSet parseResolutions(SpaEnum<spa_rectangle> valu
     std::vector<QSize> result;
     appendUnique(result, toSize(values.defaultValue()));
     if (values.size() > 1) {
-        for (spa_rectangle size : values.values())
+        for (spa_rectangle size : values.alternativeValues())
             appendUnique(result, toSize(size));
     }
     return result;
@@ -151,7 +151,7 @@ std::pair<qreal, qreal> parseFrameRateRange(const SpaEnum<spa_fraction> &values)
 {
     std::vector<qreal> fpsValues{ fpsFromFraction(values.defaultValue()) };
     if (values.size() > 1)
-        ranges::transform(values.values(), std::back_inserter(fpsValues), fpsFromFraction);
+        ranges::transform(values.alternativeValues(), std::back_inserter(fpsValues), fpsFromFraction);
 
     return { ranges::min(fpsValues), ranges::max(fpsValues) };
 }
