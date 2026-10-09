@@ -33,6 +33,10 @@
 #  include "qgdiwindowcapture_p.h"
 #endif
 
+#ifdef Q_OS_LINUX
+#  include <QtMultimedia/private/qplatformlibcameraintegration_p.h>
+#endif
+
 #ifdef Q_OS_ANDROID
 #include <QtFFmpegMediaPluginImpl/private/qandroidcamera_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qandroidimagecapture_p.h>
@@ -127,6 +131,7 @@ void setupFFmpegLogger()
 enum class CameraBackend {
     V4L2,
     PipeWire,
+    Libcamera,
 };
 
 std::optional<CameraBackend> requestedBackend()
@@ -136,6 +141,8 @@ std::optional<CameraBackend> requestedBackend()
         return std::nullopt;
     if (requested == "v4l2"_ba)
         return CameraBackend::V4L2;
+    if (requested == "libcamera"_ba)
+        return CameraBackend::Libcamera;
 #  if QT_CONFIG(pipewire)
     if (requested == "pipewire"_ba)
         return CameraBackend::PipeWire;
@@ -159,10 +166,16 @@ std::optional<CameraBackend> requestedBackend()
                               "on this system.";
         }
 #  endif
+        if (requested == CameraBackend::Libcamera) {
+            if (QLibCamera::libCameraIntegration())
+                return CameraBackend::Libcamera;
+            qWarning() << "QT_CAMERA_BACKEND=libcamera requested but libcamera is not supported on "
+                          "this system.";
+        }
         if (!requested || requested == CameraBackend::V4L2)
             return CameraBackend::V4L2;
 
-        Q_UNREACHABLE_RETURN(CameraBackend::V4L2);
+        return CameraBackend::V4L2;
     }();
 
     return backend;
@@ -295,6 +308,8 @@ q23::expected<QPlatformCamera *, QString> QFFmpegMediaIntegration::createCamera(
 #  endif
     case CameraBackend::V4L2:
         return new QtV4L2::QV4L2Camera(camera);
+    case CameraBackend::Libcamera:
+        return QLibCamera::libCameraIntegration()->createCamera(camera);
     default:
         return q23::unexpected{ notAvailable };
     }
@@ -434,6 +449,8 @@ QPlatformVideoDevices *QFFmpegMediaIntegration::createVideoDevices()
 #  endif
     case CameraBackend::V4L2:
         return new QtV4L2::QV4L2CameraDevices(this);
+    case CameraBackend::Libcamera:
+        return QLibCamera::libCameraIntegration()->createVideoDevices(this);
     default:
         return nullptr;
     }
