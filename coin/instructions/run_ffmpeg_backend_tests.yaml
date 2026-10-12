@@ -8,6 +8,14 @@ disable_if:
     - condition: runtime
       env_var: TARGET_OSVERSION_COIN
       equals_value: vxworks
+      # Only run tests for the darwin/avfoundation backend.
+    - condition: property
+      property: features
+      contains_value: DarwinNativeMediaBackendTests
+      # Only run tests for the windows media foundation backend.
+    - condition: property
+      property: features
+      contains_value: WindowsNativeMediaBackendTests
 instructions:
   - type: EnvironmentVariable
     variableName: QT_MEDIA_BACKEND
