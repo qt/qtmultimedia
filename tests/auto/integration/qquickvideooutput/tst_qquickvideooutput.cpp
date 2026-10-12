@@ -33,6 +33,8 @@ void presentDummyFrame(QVideoSink *sink, const QSize &size)
     }
 }
 
+using namespace QtMultimediaTest;
+
 class tst_QQuickVideoOutput : public QIntegrationTestBase
 {
     Q_OBJECT

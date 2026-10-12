@@ -111,6 +111,8 @@ void compareMonoReferenceToInterleaved(QSpan<const qint16> monoRef, QSpan<const 
  it may be less stable.
 */
 
+using namespace QtMultimediaTest;
+
 class tst_QAudioDecoderBackend : public QIntegrationTestBase
 {
     Q_OBJECT

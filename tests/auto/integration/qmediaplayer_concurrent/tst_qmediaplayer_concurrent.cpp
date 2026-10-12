@@ -21,6 +21,8 @@ using namespace std::chrono_literals;
 
 using namespace Qt::StringLiterals;
 
+using namespace QtMultimediaTest;
+
 class tst_qmediaplayer_concurrent : public QIntegrationTestBase
 {
     Q_OBJECT

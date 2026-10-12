@@ -35,6 +35,8 @@ public:
     }
 };
 
+using namespace QtMultimediaTest;
+
 class tst_QQuickVideoOutputWindow : public QIntegrationTestBase
 {
     Q_OBJECT

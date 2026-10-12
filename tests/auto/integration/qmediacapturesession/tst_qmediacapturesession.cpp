@@ -47,6 +47,8 @@ using namespace std::chrono_literals;
  it may be less stable.
 */
 
+using namespace QtMultimediaTest;
+
 class tst_QMediaCaptureSession : public QIntegrationTestBase
 {
     Q_OBJECT

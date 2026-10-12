@@ -96,6 +96,8 @@ void verifyEncodedFrames(const MediaInfo &info, const std::vector<QColor> &expec
 
 using namespace Qt::StringLiterals;
 
+using namespace QtMultimediaTest;
+
 class tst_QMediaRecorderBackend : public QIntegrationTestBase
 {
     Q_OBJECT
