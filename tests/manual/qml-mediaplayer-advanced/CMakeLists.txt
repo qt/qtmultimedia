@@ -31,18 +31,17 @@ if(ANDROID)
 endif()
 
 qt_add_executable(qml-mediaplayer-advanced
-    WIN32
     MACOSX_BUNDLE
-    main.cpp)
+    qml-mediaplayer-advanced.cpp)
 
 qt_policy(SET QTP0001 NEW)
 qt_add_qml_module(qml-mediaplayer-advanced
     URI QmlMediaPlayerAdvanced
     SOURCES
-        qmlmediaplayeradvanced.cpp
-        qmlmediaplayeradvanced.h
+        qmlmediaplayeradvancedhelper.cpp
+        qmlmediaplayeradvancedhelper.h
     QML_FILES
-        Main.qml
+        QmlMediaPlayerAdvanced.qml
         BackendSettings.qml
         PlayerSettings.qml
         RecentSources.qml
@@ -51,7 +50,7 @@ qt_add_qml_module(qml-mediaplayer-advanced
         MediaDevicesHelper.qml
         SettingsWindowButton.qml
     RESOURCES
-        onlinesamples.json
+        qml-mediaplayer-advanced-onlinesamples.json
 )
 
 qt_add_ios_ffmpeg_libraries(qml-mediaplayer-advanced)
