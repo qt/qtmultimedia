@@ -3,6 +3,10 @@
 
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
 #include <QtMultimediaTestLib/private/osdetection_p.h>
+#ifdef Q_OS_MACOS
+#  include <QtMultimediaTestLib/private/qcoreaudioaggregatedevice_p.h>
+#endif
+#include <QtTest/qsignalspy.h>
 #include <QtTest/qtest.h>
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qmediadevices.h>
@@ -34,6 +38,9 @@ private slots:
     void id();
     void defaultConstructor();
     void equalityOperator();
+#ifdef Q_OS_MACOS
+    void coreaudio_deviceMonitor_notifiesOnAggregateAddRemove();
+#endif
 #ifdef Q_OS_ANDROID
     void noDeadlockOnDestroy();
 #endif
@@ -177,6 +184,35 @@ void tst_QAudioDeviceBackend::equalityOperator()
 
     // XXX Perhaps each available device should not be equal to any other
 }
+
+#ifdef Q_OS_MACOS
+void tst_QAudioDeviceBackend::coreaudio_deviceMonitor_notifiesOnAggregateAddRemove()
+{
+    using namespace std::chrono_literals;
+
+    QMediaDevices mediaDevices;
+    QSignalSpy outputsChanged{ &mediaDevices, &QMediaDevices::audioOutputsChanged };
+    QSignalSpy inputsChanged{ &mediaDevices, &QMediaDevices::audioInputsChanged };
+    QVERIFY(outputsChanged.isValid() && inputsChanged.isValid());
+
+    auto aggregate =
+            QCoreAudioAggregateDevice::create(QCoreAudioAggregateDevice::Direction::Output);
+    if (!aggregate)
+        QSKIP("Could not create a CoreAudio aggregate device");
+
+    const auto device = aggregate->waitForQtDevice(5s);
+    if (!device)
+        QSKIP("The CoreAudio aggregate device was not listed by QMediaDevices");
+    QVERIFY(QMediaDevices::audioOutputs().contains(*device)
+            || QMediaDevices::audioInputs().contains(*device));
+    QTRY_VERIFY(!outputsChanged.isEmpty() || !inputsChanged.isEmpty());
+
+    outputsChanged.clear();
+    inputsChanged.clear();
+    aggregate.reset();
+    QTRY_VERIFY_WITH_TIMEOUT(!outputsChanged.isEmpty() || !inputsChanged.isEmpty(), 5s);
+}
+#endif
 
 #ifdef Q_OS_ANDROID
 void tst_QAudioDeviceBackend::noDeadlockOnDestroy()
