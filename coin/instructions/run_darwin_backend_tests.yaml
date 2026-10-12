@@ -1,10 +1,8 @@
 type: Group
 enable_if:
-  condition: or
-  conditions:
-    - condition: runtime
-      env_var: TARGET_OS_COIN
-      contains_value: macos
+  condition: property
+  property: features
+  contains_value: DarwinNativeMediaBackendTests
 
 instructions:
   - type: EnvironmentVariable
