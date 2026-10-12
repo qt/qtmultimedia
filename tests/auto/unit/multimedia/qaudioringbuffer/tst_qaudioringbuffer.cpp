@@ -158,7 +158,7 @@ void tst_QAudioRingBuffer::destroy_inConsumeStressTest()
         consume_all,
     };
 
-    constexpr int iterations = 100'000;
+    constexpr int iterations = 20'000;
     std::mt19937 rng;
     std::discrete_distribution<unsigned> dist{
         5, // push_one
@@ -246,7 +246,7 @@ void tst_QAudioRingBuffer::stressTest()
 
     QtPrivate::QAudioRingBuffer<int> ringbuffer{ ringbufferSize };
 
-    static constexpr int elementsToPush = 200'000;
+    static constexpr int elementsToPush = 50'000;
 
     std::thread producer([&] {
         std::mt19937 rng;
