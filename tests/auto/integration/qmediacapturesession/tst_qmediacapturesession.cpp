@@ -415,6 +415,8 @@ void tst_QMediaCaptureSession::can_change_AudioDevices_on_attached_AudioInput()
 
 void tst_QMediaCaptureSession::can_change_AudioInput_during_recording()
 {
+    QSKIP_WMF("QTBUG-151355: fails/crashes with audio device present on Windows backend");
+
     QAudioInput input;
     if (input.device().isNull())
         QSKIP("No audio input available");
@@ -902,6 +904,8 @@ void tst_QMediaCaptureSession::can_change_VideoOutput_when_recording()
 
 void tst_QMediaCaptureSession::can_add_and_remove_recorders()
 {
+    QSKIP_WMF("QTBUG-151355: fails/crashes with audio device present on Windows backend");
+
     QAudioInput input;
     if (input.device().isNull())
         QSKIP("Recording source not available");
@@ -969,6 +973,8 @@ void tst_QMediaCaptureSession::cannot_record_without_Camera_and_AudioInput()
 
 void tst_QMediaCaptureSession::can_record_AudioInput_with_null_AudioDevice()
 {
+    QSKIP_WMF("QTBUG-151355: fails/crashes with audio device present on Windows backend");
+
     if (QMediaDevices().audioInputs().size() == 0)
         QSKIP("No audio input is not available");
 
@@ -1008,6 +1014,8 @@ void tst_QMediaCaptureSession::can_record_Camera_with_null_CameraDevice()
 
 void tst_QMediaCaptureSession::recording_stops_when_recorder_removed()
 {
+    QSKIP_WMF("QTBUG-151355: fails/crashes with audio device present on Windows backend");
+
     QAudioInput input;
     if (input.device().isNull())
         QSKIP("Recording source not available");

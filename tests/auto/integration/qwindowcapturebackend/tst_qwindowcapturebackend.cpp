@@ -553,6 +553,8 @@ private slots:
 
     void setWindow_stopsCapture_whenSwitchedToInvalidWindow()
     {
+        QSKIP_FFMPEG("QTBUG-151355: fails on Windows CI with audio device present");
+
         WindowCaptureWithWidgetFixture fixture;
         QVERIFY(fixture.start());
 
@@ -671,6 +673,8 @@ private slots:
 
     void firstFrame_hasZeroStartTime_whenCaptureIsStartedOrRestarted()
     {
+        QSKIP_FFMPEG("QTBUG-151355: fails on Windows CI with audio device present");
+
         constexpr int restartCount = 2;
 
         WindowCaptureWithWidgetFixture fixture;
@@ -698,6 +702,8 @@ private slots:
 
     void capturedFrames_havePresentationTimesInIncreasingOrder()
     {
+        QSKIP_FFMPEG("QTBUG-151355: fails on Windows CI with audio device present");
+
         WindowCaptureWithWidgetFixture fixture;
 
         // Animated content so the backend keeps producing new frames rather than
@@ -802,6 +808,8 @@ private slots:
 
     void capturedImage_equals_imageFromGrab()
     {
+        QSKIP_FFMPEG("QTBUG-151355: fails on Windows CI with audio device present");
+
         QFETCH(QSize, windowSize);
 
         WindowCaptureWithWidgetFixture fixture;
@@ -830,6 +838,8 @@ private slots:
 
     void capturedFrame_hasExpectedSize()
     {
+        QSKIP_FFMPEG("QTBUG-151355: fails on Windows CI with audio device present");
+
         QFETCH(QSize, windowSize);
 
         WindowCaptureWithWidgetFixture fixture;
@@ -873,6 +883,8 @@ private slots:
     // when the QCapturableWindow handle was constructed.
     void capture_startsAtCurrentSize_whenWindowResizedBeforeStart()
     {
+        QSKIP_FFMPEG("QTBUG-151355: fails on Windows CI with audio device present");
+
         WindowCaptureWithWidgetFixture fixture;
 
         const QSize initialSize{ 200, 150 };
@@ -927,6 +939,8 @@ private slots:
 
     void capturedFrame_hasNewSize_whenWindowResizedOnce()
     {
+        QSKIP_FFMPEG("QTBUG-151355: fails on Windows CI with audio device present");
+
         // The captured frame is delivered in physical pixels, so scale the
         // window's logical size by the device pixel ratio to get the expected
         // frame size.
@@ -1026,6 +1040,8 @@ private slots:
 
     void capturedImage_changes_whenWindowContentChanges()
     {
+        QSKIP_FFMPEG("QTBUG-151355: fails on Windows CI with audio device present");
+
         WindowCaptureWithWidgetFixture fixture;
         QVERIFY(fixture.start());
 
@@ -1102,6 +1118,8 @@ private slots:
 
     void recorder_encodesFrames_toValidMediaFile()
     {
+        QSKIP_FFMPEG("QTBUG-151355: fails on Windows CI with audio device present");
+
         QFETCH(QSize, windowSize);
 
         WindowCaptureWithWidgetAndRecorderFixture fixture;
@@ -1127,6 +1145,8 @@ private slots:
 
     void recorder_encodesFrames_toValidMediaFile_whenWindowResizes()
     {
+        QSKIP_FFMPEG("QTBUG-151355: fails on Windows CI with audio device present");
+
         QFETCH(int, increment);
 
         QSize windowSize = { 200, 150 };
@@ -1267,6 +1287,8 @@ private slots:
 
     void windowCapture_capturesWindowsInOtherProcesses()
     {
+        QSKIP_FFMPEG("QTBUG-151355: fails on Windows CI with audio device present");
+
         if (isMacOS) {
             QSKIP("Separate process tests do not work on macOS "
                   "because they are launched without bundle identifiers");
