@@ -175,7 +175,7 @@ ColumnLayout {
             Layout.fillWidth: true
             textRole: "name"
             valueRole: "url"
-            model: QmlMediaPlayerAdvanced.onlineSamples
+            model: QmlMediaPlayerAdvancedHelper.onlineSamples
             // source is a url, which does not compare equal to the strings in the model.
             currentValue: root.mediaPlayer.source.toString()
             displayText: currentIndex === -1 ? "Select…" : currentText
@@ -189,7 +189,7 @@ ColumnLayout {
         Layout.fillWidth: true
         visible: onlineSampleBox.currentIndex !== -1
         text: {
-            const sample = QmlMediaPlayerAdvanced.onlineSamples[onlineSampleBox.currentIndex]
+            const sample = QmlMediaPlayerAdvancedHelper.onlineSamples[onlineSampleBox.currentIndex]
             return sample ? sample.description + "\nLicense: " + sample.license : ""
         }
         wrapMode: Text.Wrap

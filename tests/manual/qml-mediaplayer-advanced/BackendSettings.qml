@@ -18,7 +18,7 @@ ColumnLayout {
     }
 
     Label {
-        text: "Current: " + QmlMediaPlayerAdvanced.mediaBackendName
+        text: "Current: " + QmlMediaPlayerAdvancedHelper.mediaBackendName
     }
 
     RowLayout {
@@ -30,13 +30,13 @@ ColumnLayout {
             textRole: "text"
             valueRole: "value"
             model: [{ text: "Default", value: "" }].concat(
-                QmlMediaPlayerAdvanced.availableMediaBackends.map((name) => {
+                QmlMediaPlayerAdvancedHelper.availableMediaBackends.map((name) => {
                     return { text: name, value: name }
                 }))
-            enabled: !QmlMediaPlayerAdvanced.mediaBackendOverriddenByEnvironment
-            currentValue: QmlMediaPlayerAdvanced.preferredMediaBackend
+            enabled: !QmlMediaPlayerAdvancedHelper.mediaBackendOverriddenByEnvironment
+            currentValue: QmlMediaPlayerAdvancedHelper.preferredMediaBackend
             onActivated: () => {
-                QmlMediaPlayerAdvanced.setPreferredMediaBackend(currentValue)
+                QmlMediaPlayerAdvancedHelper.setPreferredMediaBackend(currentValue)
             }
         }
     }
@@ -46,17 +46,19 @@ ColumnLayout {
         wrapMode: Text.WordWrap
         color: "orange"
         text: "Restart the application for the media backend change to take effect."
-        visible: !QmlMediaPlayerAdvanced.mediaBackendOverriddenByEnvironment
-            && QmlMediaPlayerAdvanced.preferredMediaBackend !== ""
-            && QmlMediaPlayerAdvanced.preferredMediaBackend !== QmlMediaPlayerAdvanced.mediaBackendName
+        visible: !QmlMediaPlayerAdvancedHelper.mediaBackendOverriddenByEnvironment
+            && QmlMediaPlayerAdvancedHelper.preferredMediaBackend !== ""
+            && QmlMediaPlayerAdvancedHelper.preferredMediaBackend
+                !== QmlMediaPlayerAdvancedHelper.mediaBackendName
     }
 
     Label {
         Layout.fillWidth: true
         wrapMode: Text.WordWrap
         color: "red"
-        text: "QT_MEDIA_BACKEND is set in the environment; the selection above is ignored."
-        visible: QmlMediaPlayerAdvanced.mediaBackendOverriddenByEnvironment
+        text: "QT_MEDIA_BACKEND is set in the environment, or --media-backend on the command line; "
+            + "the selection above is ignored."
+        visible: QmlMediaPlayerAdvancedHelper.mediaBackendOverriddenByEnvironment
     }
 
     Label {
@@ -67,7 +69,8 @@ ColumnLayout {
 
     Label {
         id: currentGraphicsApiLabel
-        readonly property string apiName: QmlMediaPlayerAdvanced.graphicsApiName(GraphicsInfo.api)
+        readonly property string apiName:
+            QmlMediaPlayerAdvancedHelper.graphicsApiName(GraphicsInfo.api)
         text: "Current: " + apiName
     }
 
@@ -80,13 +83,13 @@ ColumnLayout {
             textRole: "text"
             valueRole: "value"
             model: [{ text: "Default", value: "" }].concat(
-                QmlMediaPlayerAdvanced.availableGraphicsApis.map((name) => {
+                QmlMediaPlayerAdvancedHelper.availableGraphicsApis.map((name) => {
                     return { text: name, value: name }
                 }))
-            enabled: !QmlMediaPlayerAdvanced.graphicsApiOverriddenByEnvironment
-            currentValue: QmlMediaPlayerAdvanced.preferredGraphicsApi
+            enabled: !QmlMediaPlayerAdvancedHelper.graphicsApiOverriddenByEnvironment
+            currentValue: QmlMediaPlayerAdvancedHelper.preferredGraphicsApi
             onActivated: () => {
-                QmlMediaPlayerAdvanced.setPreferredGraphicsApi(currentValue)
+                QmlMediaPlayerAdvancedHelper.setPreferredGraphicsApi(currentValue)
             }
         }
     }
@@ -96,17 +99,18 @@ ColumnLayout {
         wrapMode: Text.WordWrap
         color: "orange"
         text: "Restart the application for the graphics API change to take effect."
-        visible: !QmlMediaPlayerAdvanced.graphicsApiOverriddenByEnvironment
-            && QmlMediaPlayerAdvanced.preferredGraphicsApi !== ""
-            && QmlMediaPlayerAdvanced.preferredGraphicsApi !== currentGraphicsApiLabel.apiName
+        visible: !QmlMediaPlayerAdvancedHelper.graphicsApiOverriddenByEnvironment
+            && QmlMediaPlayerAdvancedHelper.preferredGraphicsApi !== ""
+            && QmlMediaPlayerAdvancedHelper.preferredGraphicsApi !== currentGraphicsApiLabel.apiName
     }
 
     Label {
         Layout.fillWidth: true
         wrapMode: Text.WordWrap
         color: "red"
-        text: "QSG_RHI_BACKEND, QT_QUICK_BACKEND or QMLSCENE_DEVICE is set in the environment; "
+        text: "QSG_RHI_BACKEND, QT_QUICK_BACKEND or QMLSCENE_DEVICE is set in the environment, or "
+            + "--graphics-api on the command line; "
             + "the selection above is ignored."
-        visible: QmlMediaPlayerAdvanced.graphicsApiOverriddenByEnvironment
+        visible: QmlMediaPlayerAdvancedHelper.graphicsApiOverriddenByEnvironment
     }
 }

@@ -14,7 +14,7 @@ ApplicationWindow {
     width: 800
     height: 600
     visible: true
-    title: qsTr("QmlMinimalPlayer")
+    title: qsTr("QmlMediaPlayerAdvanced")
 
     readonly property double overlayOpacity: 0.75
 
@@ -50,7 +50,7 @@ ApplicationWindow {
             lastSourceSettings.lastSource = sourceString
             if (sourceString === "")
                 return
-            const isOnlineSample = QmlMediaPlayerAdvanced.onlineSamples.some((sample) => {
+            const isOnlineSample = QmlMediaPlayerAdvancedHelper.onlineSamples.some((sample) => {
                 return sample.url === sourceString
             })
             if (!isOnlineSample)
@@ -58,7 +58,16 @@ ApplicationWindow {
         }
         // Settings has loaded its values by the time any Component.onCompleted runs.
         Component.onCompleted: () => {
-            source = lastSourceSettings.lastSource
+            // A source from the command line takes precedence over the remembered one and
+            // starts playing right away.
+            if (QmlMediaPlayerAdvancedHelper.startupLoops !== 0)
+                loops = QmlMediaPlayerAdvancedHelper.startupLoops
+            if (QmlMediaPlayerAdvancedHelper.startupSource.toString() !== "") {
+                source = QmlMediaPlayerAdvancedHelper.startupSource
+                play()
+            } else {
+                source = lastSourceSettings.lastSource
+            }
         }
         videoOutput: mainVideoOutput
         audioOutput: mainAudioOutput
@@ -97,10 +106,16 @@ ApplicationWindow {
                 + "[" + mediaPlayerErrorToString(error) + "]"
                 + " "
                 + (string ? string : "(no message)"))
+            // A source given on the command line means the run is scripted, so report the
+            // failure through the exit code instead of leaving the window open.
+            if (QmlMediaPlayerAdvancedHelper.startupSource.toString() !== "")
+                Qt.exit(1)
         }
 
         onMediaStatusChanged: {
             console.log("onMediaStatusChanged: " + mediaStatusToString(mediaStatus));
+            if (mediaStatus === MediaPlayer.EndOfMedia && QmlMediaPlayerAdvancedHelper.exitOnEnd)
+                Qt.exit(0)
         }
 
         onPlaybackRateChanged: console.log("onPlaybackRateChanged: " + playbackRate)
@@ -129,6 +144,7 @@ ApplicationWindow {
         anchors.top: parent.top
         anchors.right: parent.right
         opacity: root.overlayOpacity
+        visible: !QmlMediaPlayerAdvancedHelper.noGui
 
         SettingsWindowButton {
             title: "Settings"
@@ -184,6 +200,7 @@ ApplicationWindow {
         anchors.left: parent.left
         anchors.right: parent.right
         opacity: root.overlayOpacity
+        visible: !QmlMediaPlayerAdvancedHelper.noGui
 
         // Formats milliseconds as m:ss.
         function formatTime(ms) {
