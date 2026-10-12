@@ -5,6 +5,9 @@
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
 #include <QtMultimediaTestLib/private/multimedia_debug_support_p.h>
 #include <QtMultimediaTestLib/private/osdetection_p.h>
+#ifdef Q_OS_MACOS
+#  include <QtMultimediaTestLib/private/qcoreaudioaggregatedevice_p.h>
+#endif
 #include <QtMultimediaTestLib/private/qmockiodevice_p.h>
 #include <QtTest/qsignalspy.h>
 #include <QtTest/qtest.h>
@@ -194,6 +197,9 @@ private slots:
     void start_afterStopAndReset();
 
     void pipewire_deletedOnDeviceRemoval_doesNotUseAfterFree(); // QTBUG-150678
+#ifdef Q_OS_MACOS
+    void coreaudio_resetAfterDeviceDisconnect_doesNotUseAfterFree(); // QTBUG-151333
+#endif
     void destroy_while_running(); // should be last test to catch crash on exit
 
 private:
@@ -1719,6 +1725,43 @@ void tst_QAudioSink::pipewire_deletedOnDeviceRemoval_doesNotUseAfterFree()
     QTest::qWait(2s);
 #endif // QT_CONFIG(process)
 }
+
+#ifdef Q_OS_MACOS
+void tst_QAudioSink::coreaudio_resetAfterDeviceDisconnect_doesNotUseAfterFree()
+{
+    // Destroying the device queues the disconnect handler on the main thread. reset() destroys
+    // the stream before it runs; without sanitizers a use-after-free may not crash reliably,
+    // but this still covers the reported code path.
+
+    constexpr int cycles = 5;
+    for (int cycle = 0; cycle != cycles; ++cycle) {
+        const auto aggregate =
+                QCoreAudioAggregateDevice::create(QCoreAudioAggregateDevice::Direction::Output);
+        if (!aggregate)
+            QSKIP("Could not create a CoreAudio aggregate device");
+
+        const auto device = aggregate->waitForQtDevice(5s);
+        if (!device)
+            QSKIP("The CoreAudio aggregate device was not listed by QMediaDevices");
+
+        const QAudioFormat format = device->preferredFormat();
+        QAudioSink sink{ *device, format };
+        AudioPullSource source{ /*isContinuous=*/true, format };
+        source.open(QIODeviceBase::ReadOnly);
+        sink.start(&source);
+        QCOMPARE(sink.error(), QAudio::NoError);
+        QTRY_COMPARE_GT(sink.processedUSecs(), 0);
+
+        // The disconnect handler is queued on the main thread and has not run yet
+        QVERIFY(aggregate->destroyAndWaitForDisconnectNotification(5s));
+
+        sink.reset();
+
+        // Drain the queued handler while the sink is still alive
+        QTest::qWait(100ms);
+    }
+}
+#endif
 
 void tst_QAudioSink::destroy_while_running()
 {

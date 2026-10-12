@@ -81,8 +81,10 @@ private:
 
 #ifdef Q_OS_MACOS
     bool setDisconnectListener(AudioObjectID id);
+    void cancelDisconnectFutures();
 
     QCoreAudioUtils::DeviceDisconnectMonitor m_disconnectMonitor;
+    QFuture<void> m_disconnectFuture;
     QFuture<void> m_stopOnDisconnected;
 #endif
 
