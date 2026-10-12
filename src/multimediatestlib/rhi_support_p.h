@@ -25,6 +25,8 @@
 #  include <QtMultimediaTestLib/private/qwindowsd3d11testdevicecontext_p.h>
 #endif
 
+QT_BEGIN_NAMESPACE
+
 namespace QtMultimediaTest {
 
 std::unique_ptr<QRhi> createNullRhi();
@@ -58,5 +60,7 @@ q23::expected<QByteArray, QString> readBackExternalOesTexture(QRhi &, quint64 ha
 #endif
 
 } // namespace QtMultimediaTest
+
+QT_END_NAMESPACE
 
 #endif // RHI_SUPPORT_P_H

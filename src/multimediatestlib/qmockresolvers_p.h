@@ -18,6 +18,8 @@
 #include <QtCore/qurl.h>
 #include <QtMultimedia/private/qmultimedia_source_resolver_p.h>
 
+QT_BEGIN_NAMESPACE
+
 namespace QtMultimediaTest {
 
 class MockSourceResolver : public QMultimediaPrivate::AbstractSourceResolver
@@ -39,5 +41,7 @@ public:
 };
 
 } // namespace QtMultimediaTest
+
+QT_END_NAMESPACE
 
 #endif // QMOCKRESOLVERS_P_H

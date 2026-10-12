@@ -5,6 +5,8 @@
 
 #include <cstring>
 
+QT_BEGIN_NAMESPACE
+
 namespace QtMultimediaTest {
 
 QByteArray makeBytes(std::initializer_list<uchar> bytes)
@@ -36,3 +38,5 @@ q23::expected<void, QString> comparePlaneRows(const uchar *data, qsizetype strid
 }
 
 } // namespace QtMultimediaTest
+
+QT_END_NAMESPACE

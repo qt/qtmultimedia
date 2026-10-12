@@ -23,6 +23,8 @@
 
 #include <initializer_list>
 
+QT_BEGIN_NAMESPACE
+
 namespace QtMultimediaTest {
 
 // Builds an owned byte pattern from a brace-init list of byte values, e.g. a multi-byte texel:
@@ -42,5 +44,7 @@ q23::expected<void, QString> comparePlaneRows(const uchar *data, qsizetype strid
                                               int height, QByteArrayView texel);
 
 } // namespace QtMultimediaTest
+
+QT_END_NAMESPACE
 
 #endif // QVIDEOFRAMETESTUTILS_P_H
