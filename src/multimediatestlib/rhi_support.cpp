@@ -8,6 +8,8 @@
 
 #include <QtCore/qfile.h>
 
+QT_BEGIN_NAMESPACE
+
 namespace QtMultimediaTest {
 
 using namespace Qt::Literals;
@@ -253,3 +255,5 @@ q23::expected<QByteArray, QString> readBackExternalOesTexture(QRhi &rhi, quint64
 #endif // QT_CONFIG(opengl)
 
 } // namespace QtMultimediaTest
+
+QT_END_NAMESPACE
