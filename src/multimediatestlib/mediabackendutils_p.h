@@ -64,12 +64,17 @@ inline bool isWMFPlatform()
     return QPlatformMediaIntegration::instance()->name() != "fallback"_L1;
 }
 
+// Appends "<backend>-mediabackend" to QTEST_ENVIRONMENT, so that BLACKLIST files can
+// target a media backend, e.g. "macos darwin-mediabackend".
+void addMediaBackendToTestEnvironment(const QString &backend);
+
 inline void initIntegrationTestMain()
 {
     QString backend = qEnvironmentVariable("QT_MEDIA_BACKEND");
     if (backend.isEmpty())
         backend = QPlatformMediaIntegration::defaultBackend();
     QPlatformMediaIntegration::setBackend(backend);
+    addMediaBackendToTestEnvironment(backend);
 }
 
 // Returns true if initialization is successful
