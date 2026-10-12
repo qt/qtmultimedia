@@ -15,10 +15,14 @@
 // We mean it.
 //
 
-#include <QtTest/qtestcase.h>
-#include <private/qplatformmediaintegration_p.h>
 #include <QtGui/private/qguiapplication_p.h>
 #include <QtGui/qpa/qplatformintegration.h>
+
+#include <QtMultimedia/private/qplatformmediaintegration_p.h>
+
+#include <QtTest/qtestcase.h>
+
+#include <optional>
 
 namespace BackendUtilsImpl {
 
@@ -68,6 +72,13 @@ inline bool isWMFPlatform()
 // target a media backend, e.g. "macos darwin-mediabackend".
 void addMediaBackendToTestEnvironment(const QString &backend);
 
+// The backend requested by initIntegrationTestMain(). Unset if it was not called.
+[[nodiscard]] inline std::optional<QString> &intendedMediaBackend()
+{
+    static std::optional<QString> backend;
+    return backend;
+}
+
 inline void initIntegrationTestMain()
 {
     QString backend = qEnvironmentVariable("QT_MEDIA_BACKEND");
@@ -75,6 +86,7 @@ inline void initIntegrationTestMain()
         backend = QPlatformMediaIntegration::defaultBackend();
     QPlatformMediaIntegration::setBackend(backend);
     addMediaBackendToTestEnvironment(backend);
+    intendedMediaBackend() = backend.toLower();
 }
 
 // Returns true if initialization is successful
@@ -86,6 +98,12 @@ inline void initIntegrationTestMain()
             isMediaBackendPluginLoaded(),
             "No media backend plugin was loaded; the fallback integration was used. "
             "Integration tests require a real backend plugin.");
+
+        const std::optional<QString> &intended = intendedMediaBackend();
+        const QString loaded = QPlatformMediaIntegration::instance()->name();
+        QVERIFY2(
+            !intended || loaded == *intended,
+            qPrintable(u"Expected media backend '%1', but '%2' was loaded."_s.arg(*intended, loaded)));
     }();
     return !QTest::currentTestFailed();
 }
