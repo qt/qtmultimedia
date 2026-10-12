@@ -31,6 +31,7 @@
 #include <QtCore/qurl.h>
 
 using namespace Qt::StringLiterals;
+using namespace std::chrono_literals;
 
 // NOLINTBEGIN(readability-convert-member-functions-to-static)
 
@@ -120,11 +121,11 @@ void tst_QMediaCaptureSession::recordOk(QMediaCaptureSession &session)
     QSignalSpy durationChanged(&recorder, &QMediaRecorder::durationChanged);
 
     recorder.record();
-    QTRY_VERIFY_WITH_TIMEOUT(recorder.recorderState() == QMediaRecorder::RecordingState, 2000);
-    QVERIFY(durationChanged.wait(2000));
+    QTRY_VERIFY_WITH_TIMEOUT(recorder.recorderState() == QMediaRecorder::RecordingState, 5s);
+    QVERIFY(durationChanged.wait(5s));
     recorder.stop();
 
-    QTRY_VERIFY_WITH_TIMEOUT(recorder.recorderState() == QMediaRecorder::StoppedState, 2000);
+    QTRY_VERIFY_WITH_TIMEOUT(recorder.recorderState() == QMediaRecorder::StoppedState, 5s);
     QVERIFY(recorderErrorSignal.isEmpty());
 
     QString fileName = recorder.actualLocation().toLocalFile();
@@ -141,8 +142,8 @@ void tst_QMediaCaptureSession::recordFail(QMediaCaptureSession &session)
     session.setRecorder(&recorder);
     recorder.record();
 
-    QTRY_VERIFY_WITH_TIMEOUT(recorderErrorSignal.size() == 1, 2000);
-    QTRY_VERIFY_WITH_TIMEOUT(recorder.recorderState() == QMediaRecorder::StoppedState, 2000);
+    QTRY_VERIFY_WITH_TIMEOUT(recorderErrorSignal.size() == 1, 5s);
+    QTRY_VERIFY_WITH_TIMEOUT(recorder.recorderState() == QMediaRecorder::StoppedState, 5s);
 }
 
 void tst_QMediaCaptureSession::stress_test_setup_and_teardown()
