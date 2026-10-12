@@ -31,7 +31,7 @@ PwPropertiesHandle makeProperties(QSpan<const spa_dict_item> keyValuePairs)
 
 PwPropertyDict toPropertyDict(const spa_dict &dict)
 {
-    QSpan<const spa_dict_item> items{ dict.items, dict.n_items };
+    QSpan<const spa_dict_item> items{ dict.items, qsizetype(dict.n_items) };
 
     PwPropertyDict map;
     for (const spa_dict_item &item : items)
