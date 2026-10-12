@@ -44,7 +44,7 @@ QCoreAudioSourceStream::QCoreAudioSourceStream(QAudioDevice audioDevice,
 QCoreAudioSourceStream::~QCoreAudioSourceStream()
 {
 #ifdef Q_OS_MACOS
-    m_stopOnDisconnected.cancelChain();
+    cancelDisconnectFutures();
 #endif
 
     if (m_audioConverter)
@@ -276,7 +276,7 @@ void QCoreAudioSourceStream::stopAudioUnit()
     invalidateAudioUnit();
 
 #ifdef Q_OS_MACOS
-    m_stopOnDisconnected.cancelChain();
+    cancelDisconnectFutures();
 #endif
 }
 
@@ -389,12 +389,13 @@ OSStatus QCoreAudioSourceStream::processAudioCallback(QSpan<const std::byte> inp
 #ifdef Q_OS_MACOS
 bool QCoreAudioSourceStream::setDisconnectListener(AudioObjectID id)
 {
-    m_stopOnDisconnected.cancelChain();
+    cancelDisconnectFutures();
 
     auto disconnectionFuture = m_disconnectMonitor.setDisconnectListener(id);
     if (!disconnectionFuture)
         return false;
 
+    m_disconnectFuture = *disconnectionFuture;
     m_stopOnDisconnected = disconnectionFuture->then(m_parent, [this] {
         // Coreaudio will pause for a bit and restart the audio unit with a different device.
         // This is problematic, as it switches kAudioOutputUnitProperty_CurrentDevice and
@@ -409,6 +410,13 @@ bool QCoreAudioSourceStream::setDisconnectListener(AudioObjectID id)
     });
 
     return true;
+}
+
+void QCoreAudioSourceStream::cancelDisconnectFutures()
+{
+    m_stopOnDisconnected.cancelChain();
+    // cancelChain() stops at a finished parent, so cancel it explicitly
+    m_disconnectFuture.cancel();
 }
 #endif
 

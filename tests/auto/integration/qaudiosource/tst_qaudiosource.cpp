@@ -1,6 +1,13 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/osdetection_p.h>
+#ifdef Q_OS_MACOS
+#  include <QtMultimediaTestLib/private/qcoreaudioaggregatedevice_p.h>
+#endif
+#include <QtMultimediaTestLib/private/qmockiodevice_p.h>
+
 #include <QtTest/qtest.h>
 #include <QtTest/qsignalspy.h>
 #include <QtCore/qbuffer.h>
@@ -14,10 +21,6 @@
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/qwavedecoder.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
-
-#include <private/mediabackendutils_p.h>
-#include <private/osdetection_p.h>
-#include <private/qmockiodevice_p.h>
 
 #include <memory>
 
@@ -104,6 +107,10 @@ private slots:
     void callbackAPI();
     void callbackAPI_startFailsWithWrongType();
     void callbackAPI_startWithMoveOnlyFunctor();
+
+#ifdef Q_OS_MACOS
+    void coreaudio_resetAfterDeviceDisconnect_doesNotUseAfterFree(); // QTBUG-151333
+#endif
 
 private:
     using FilePtr = std::shared_ptr<QFile>;
@@ -1215,6 +1222,41 @@ void tst_QAudioSource::callbackAPI_startWithMoveOnlyFunctor()
     QVERIFY(callbackExecuted);
 #endif
 }
+
+#ifdef Q_OS_MACOS
+void tst_QAudioSource::coreaudio_resetAfterDeviceDisconnect_doesNotUseAfterFree()
+{
+    using namespace std::chrono_literals;
+
+    // Same scenario as tst_QAudioSink::coreaudio_resetAfterDeviceDisconnect_doesNotUseAfterFree.
+
+    constexpr int cycles = 5;
+    for (int cycle = 0; cycle != cycles; ++cycle) {
+        const auto aggregate =
+                QCoreAudioAggregateDevice::create(QCoreAudioAggregateDevice::Direction::Input);
+        if (!aggregate)
+            QSKIP("Could not create a CoreAudio aggregate device");
+
+        const auto device = aggregate->waitForQtDevice(5s);
+        if (!device)
+            QSKIP("The CoreAudio aggregate device was not listed by QMediaDevices");
+
+        QAudioSource source{ *device, device->preferredFormat() };
+        source.start();
+        if (source.error() != QAudio::NoError)
+            QSKIP("Could not start recording from the aggregate device");
+        QTRY_COMPARE_GT(source.bytesAvailable(), 0);
+
+        // The disconnect handler is queued on the main thread and has not run yet
+        QVERIFY(aggregate->destroyAndWaitForDisconnectNotification(5s));
+
+        source.reset();
+
+        // Drain the queued handler while the source is still alive
+        QTest::qWait(100ms);
+    }
+}
+#endif
 
 QTEST_MAIN(tst_QAudioSource)
 
