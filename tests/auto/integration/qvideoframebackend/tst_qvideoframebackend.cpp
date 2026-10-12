@@ -18,6 +18,8 @@
 
 #include <list>
 
+using namespace QtMultimediaTest;
+
 class tst_QVideoFrameBackend : public QIntegrationTestBase
 {
     Q_OBJECT

@@ -9,7 +9,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class tst_QMediaFrameInputsBackend : public QIntegrationTestBase
+class tst_QMediaFrameInputsBackend : public QtMultimediaTest::QIntegrationTestBase
 {
     Q_OBJECT
 

@@ -192,6 +192,8 @@ private:
     unsigned m_animationTick = 0;
 };
 
+using namespace QtMultimediaTest;
+
 class tst_QScreenCaptureBackend : public QIntegrationTestBase
 {
     Q_OBJECT

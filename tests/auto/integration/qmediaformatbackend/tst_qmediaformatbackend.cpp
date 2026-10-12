@@ -687,6 +687,8 @@ QString enumToString(T enumValue)
             .arg(metaEnum.scope(), metaEnum.name(), metaEnum.valueToKey(qToUnderlying(enumValue)));
 }
 
+using namespace QtMultimediaTest;
+
 class tst_qmediaformatbackend : public QIntegrationTestBase
 {
     Q_OBJECT

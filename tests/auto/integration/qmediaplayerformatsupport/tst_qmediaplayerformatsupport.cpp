@@ -37,6 +37,8 @@ void addTestData(QLatin1StringView dir)
     }
 }
 
+using namespace QtMultimediaTest;
+
 class tst_qmediaplayerformatsupport : public QIntegrationTestBase
 {
     Q_OBJECT

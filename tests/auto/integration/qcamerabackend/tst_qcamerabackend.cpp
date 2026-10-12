@@ -58,6 +58,8 @@ struct VCamParameters
 static constexpr std::chrono::milliseconds VCamProcessTimeout = 15s;
 static constexpr std::chrono::milliseconds VCamDetectTimeout = 5s;
 
+using namespace QtMultimediaTest;
+
 class tst_QCameraBackend : public QIntegrationTestBase
 {
     Q_OBJECT

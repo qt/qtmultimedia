@@ -45,6 +45,8 @@ using QtMultimediaTest::surfaceCaptureTestTimeout;
 
 using namespace std::chrono_literals;
 
+using namespace QtMultimediaTest;
+
 class tst_QWindowCaptureBackend : public QIntegrationTestBase
 {
     Q_OBJECT

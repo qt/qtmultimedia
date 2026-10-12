@@ -86,6 +86,8 @@ auto findSimilarColorIndex(const Colors &colors, QRgb color)
  it may be less stable.
 */
 
+using namespace QtMultimediaTest;
+
 class tst_QMediaPlayerBackend : public QIntegrationTestBase
 {
     Q_OBJECT

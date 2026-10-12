@@ -19,12 +19,16 @@
 
 QT_BEGIN_NAMESPACE
 
+namespace QtMultimediaTest {
+
 class QIntegrationTestBase : public QObject
 {
     Q_OBJECT
 public:
     static void initMain();
 };
+
+} // namespace QtMultimediaTest
 
 QT_END_NAMESPACE
 
