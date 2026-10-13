@@ -5,6 +5,11 @@
 
 QT_BEGIN_NAMESPACE
 
+QVideoFrameTextures::QVideoFrameTextures(QVideoFrame sourceFrame)
+    : m_sourceFrame(std::move(sourceFrame))
+{
+}
+
 QVideoFrameTextures::~QVideoFrameTextures() = default;
 
 QVideoFrameTexturesHandles::~QVideoFrameTexturesHandles() = default;

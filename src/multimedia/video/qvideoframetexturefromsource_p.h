@@ -29,24 +29,27 @@ using RhiTextureArray = std::array<std::unique_ptr<QRhiTexture>, TextureDescript
 class QVideoFrameTexturesFromRhiTextureArray : public QVideoFrameTextures
 {
 public:
-    QVideoFrameTexturesFromRhiTextureArray(RhiTextureArray &&rhiTextures = {});
+    explicit QVideoFrameTexturesFromRhiTextureArray(RhiTextureArray &&rhiTextures,
+                                                    QVideoFrame sourceFrame = {});
+    Q_DISABLE_COPY(QVideoFrameTexturesFromRhiTextureArray)
 
     ~QVideoFrameTexturesFromRhiTextureArray() override;
 
     QRhiTexture *texture(uint plane) const override;
 
-    RhiTextureArray &textureArray() { return m_rhiTextures; }
+    const RhiTextureArray &textureArray() const { return m_rhiTextures; }
+    [[nodiscard]] RhiTextureArray takeTextureArray() &&;
 
 private:
     RhiTextureArray m_rhiTextures;
 };
 
-class QVideoFrameTexturesFromMemory : public QVideoFrameTexturesFromRhiTextureArray
+class QVideoFrameTexturesFromMemory final : public QVideoFrameTexturesFromRhiTextureArray
 {
 public:
-    using QVideoFrameTexturesFromRhiTextureArray::QVideoFrameTexturesFromRhiTextureArray;
-
-    void setMappedFrame(QVideoFrame mappedFrame);
+    explicit QVideoFrameTexturesFromMemory(RhiTextureArray &&rhiTextures,
+                                           QVideoFrame mappedFrame = {});
+    Q_DISABLE_COPY(QVideoFrameTexturesFromMemory)
 
     ~QVideoFrameTexturesFromMemory() override;
 
@@ -56,15 +59,17 @@ private:
     QVideoFrame m_mappedFrame;
 };
 
-class QVideoFrameTexturesFromHandlesSet : public QVideoFrameTexturesFromRhiTextureArray
+class QVideoFrameTexturesFromHandlesSet final : public QVideoFrameTexturesFromRhiTextureArray
 {
 public:
-    QVideoFrameTexturesFromHandlesSet(RhiTextureArray &&rhiTextures,
-                                      QVideoFrameTexturesHandlesUPtr handles);
+    explicit QVideoFrameTexturesFromHandlesSet(RhiTextureArray &&rhiTextures,
+                                               QVideoFrameTexturesHandlesUPtr handles,
+                                               QVideoFrame sourceFrame = {});
+    Q_DISABLE_COPY(QVideoFrameTexturesFromHandlesSet)
 
     ~QVideoFrameTexturesFromHandlesSet() override;
 
-    QVideoFrameTexturesHandlesUPtr takeHandles() override { return std::move(m_textureHandles); }
+    [[nodiscard]] QVideoFrameTexturesHandlesUPtr takeHandles() override;
 
 private:
     QVideoFrameTexturesHandlesUPtr m_textureHandles;

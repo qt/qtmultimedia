@@ -31,8 +31,8 @@ class QVideoFrame;
  *        Instances of the class may own textures, share ownership, or refer to inner hw textures
  *        of QVideoFrame. Referencing to inner frame's textures without shared ownership is
  *        not recommended, we strive to get around it; if texture are referencing,
- *        the source frame must be kept in QVideoFrameTextures's instance
- *        (see QVideoFrameTextures::setSourceFrame).
+ *        the source frame is kept in the QVideoFrameTextures instance via its
+ *        constructor-provided source frame.
  */
 class Q_MULTIMEDIA_EXPORT QVideoFrameTexturesHandles
 {
@@ -55,6 +55,7 @@ using QVideoFrameTexturesHandlesUPtr = std::unique_ptr<QVideoFrameTexturesHandle
 class Q_MULTIMEDIA_EXPORT QVideoFrameTextures
 {
 public:
+    explicit QVideoFrameTextures(QVideoFrame sourceFrame = {});
     virtual ~QVideoFrameTextures();
     virtual QRhiTexture *texture(uint plane) const = 0;
 
@@ -65,14 +66,6 @@ public:
     virtual void onFrameEndInvoked() { }
 
     virtual QVideoFrameTexturesHandlesUPtr takeHandles() { return nullptr; }
-
-    /**
-     * @brief Sets the source frame. It is a temporary solution to delegate
-     *        frame's shared ownership to the instance.
-     *        Ideally, the creators of QVideoFrameTextures's or QVideoFrameTexturesHandles's
-     *        instances should manage ownership.
-     */
-    void setSourceFrame(QVideoFrame sourceFrame) { m_sourceFrame = std::move(sourceFrame); }
 
 private:
     QVideoFrame m_sourceFrame;

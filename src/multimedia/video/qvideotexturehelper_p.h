@@ -15,14 +15,14 @@
 // We mean it.
 //
 
-#include <qvideoframeformat.h>
-#include <rhi/qrhi.h>
+#include <QtMultimedia/qvideoframeformat.h>
+#include <QtMultimedia/qvideoframe.h>
 
+#include <QtGui/rhi/qrhi.h>
 #include <QtGui/qtextlayout.h>
 
 QT_BEGIN_NAMESPACE
 
-class QVideoFrame;
 class QTextLayout;
 class QVideoFrameTextures;
 using QVideoFrameTexturesUPtr = std::unique_ptr<QVideoFrameTextures>;
@@ -131,10 +131,9 @@ Q_MULTIMEDIA_EXPORT void updateUniformData(QByteArray *dst, QRhi *rhi,
  *        refer to the owned handles set.
  *        If the specified size is empty or pixelFormat is invalid, null is returned.
  */
-Q_MULTIMEDIA_EXPORT QVideoFrameTexturesUPtr
-createTexturesFromHandles(QVideoFrameTexturesHandlesUPtr handles, QRhi &rhi,
-                          QVideoFrameFormat::PixelFormat pixelFormat, QSize size);
-
+Q_MULTIMEDIA_EXPORT QVideoFrameTexturesUPtr createTexturesFromHandles(
+        QVideoFrameTexturesHandlesUPtr handles, QRhi &rhi,
+        QVideoFrameFormat::PixelFormat pixelFormat, QSize size, QVideoFrame sourceFrame = {});
 
 /**
  * @brief Creates plane textures from a video frame by the specified rhi.

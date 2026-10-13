@@ -358,8 +358,8 @@ QImage qImageFromVideoFrame(const QVideoFrame &frame, const VideoTransformation 
     rub->uploadStaticBuffer(vertexBuffer.get(), g_quad);
 
     QVideoFrame frameTmp = frame;
-    QVideoFrameTexturesUPtr texturesTmp;
-    auto videoFrameTextures = QVideoTextureHelper::createTextures(frameTmp, *rhi, *rub, texturesTmp);
+    QVideoFrameTexturesUPtr noOldTextures;
+    auto videoFrameTextures = QVideoTextureHelper::createTextures(frameTmp, *rhi, *rub, noOldTextures);
     if (!videoFrameTextures) {
         qCDebug(qLcVideoFrameConverter) << "Failed obtain textures. Using CPU conversion.";
         return convertCPU(frame, transformation);
