@@ -243,7 +243,7 @@ void tst_QMediaCodecTextureConverter::createTextureHandles_returnsRedTexture_for
     QCOMPARE(frame->format, AV_PIX_FMT_MEDIACODEC);
 
     std::shared_ptr converter = MediaCodecTextureConverter::create(rhi.get());
-    QVideoFrameTexturesHandlesUPtr handles = converter->createTextureHandles(frame.get(), nullptr);
+    QVideoFrameTexturesHandlesUPtr handles = converter->createTextureHandles(frame.get());
     QVERIFY(handles);
 
     const quint64 textureHandle = handles->textureHandle(*rhi, 0);
@@ -288,7 +288,7 @@ void tst_QMediaCodecTextureConverter::createTextureHandles_reusesTexture_onSecon
     AVFrameUPtr firstFrame = deviceContext->decodeNextFrame();
     QVERIFY(firstFrame);
     QVideoFrameTexturesHandlesUPtr firstHandles =
-            converter->createTextureHandles(firstFrame.get(), nullptr);
+            converter->createTextureHandles(firstFrame.get());
     QVERIFY(firstHandles);
     const quint64 firstHandle = firstHandles->textureHandle(*rhi, 0);
     QVERIFY(firstHandle != 0);
@@ -344,7 +344,7 @@ void tst_QMediaCodecTextureConverter::createTextureHandles_returnsNull_forFrameW
     // Deliberately no hw_frames_ctx: getTextureSurface() bails out on that check alone, so this
     // needs no real decode.
 
-    QVideoFrameTexturesHandlesUPtr handles = converter->createTextureHandles(frame.get(), nullptr);
+    QVideoFrameTexturesHandlesUPtr handles = converter->createTextureHandles(frame.get());
     QVERIFY(!handles);
 }
 

@@ -89,8 +89,7 @@ void MediaCodecTextureConverter::setupDecoderSurface(AVCodecContext *avCodecCont
 }
 
 QVideoFrameTexturesUPtr
-MediaCodecTextureConverter::createTextures(AVFrame * /*frame*/,
-                                           QVideoFrameTexturesUPtr & /*oldTextures*/)
+MediaCodecTextureConverter::createTextures(AVFrame * /*frame*/)
 {
     // Most likely, this method should be used instead of createTextureHandles, QRhiTexture is
     // already created, and we don't need to convert it to handle and back. This work should be done
@@ -99,8 +98,7 @@ MediaCodecTextureConverter::createTextures(AVFrame * /*frame*/,
 }
 
 QVideoFrameTexturesHandlesUPtr
-MediaCodecTextureConverter::createTextureHandles(AVFrame *frame,
-                                                 QVideoFrameTexturesHandlesUPtr /*oldHandles*/)
+MediaCodecTextureConverter::createTextureHandles(AVFrame *frame)
 {
     // TODO: reuse oldHandles: the underlying QRhiTexture must be taken from it instead of
     // keeping it in AndroidTextureConverter. See QTBUG-132174

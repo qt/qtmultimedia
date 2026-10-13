@@ -50,8 +50,10 @@ public:
     static std::shared_ptr<VideoToolBoxTextureConverter> create(QRhi *rhi);
 
     ~VideoToolBoxTextureConverter();
+
+    using TextureConverterBackend::createTextureHandles;
     QVideoFrameTexturesHandlesUPtr
-    createTextureHandles(AVFrame *frame, QVideoFrameTexturesHandlesUPtr oldHandles) override;
+    createTextureHandles(AVFrame *frame) override;
 
 protected:
     explicit VideoToolBoxTextureConverter(QRhi *rhi);

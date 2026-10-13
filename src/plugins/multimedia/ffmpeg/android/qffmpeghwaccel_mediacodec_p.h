@@ -33,11 +33,11 @@ public:
         return std::shared_ptr<MediaCodecTextureConverter>(new MediaCodecTextureConverter(rhi));
     }
 
-    QVideoFrameTexturesUPtr createTextures(AVFrame *frame,
-                                           QVideoFrameTexturesUPtr &oldTextures) override;
+    QVideoFrameTexturesUPtr createTextures(AVFrame *frame) override;
 
     QVideoFrameTexturesHandlesUPtr
-    createTextureHandles(AVFrame *frame, QVideoFrameTexturesHandlesUPtr oldHandles) override;
+    createTextureHandles(AVFrame *frame) override;
+    using TextureConverterBackend::createTextureHandles;
 
     static void setupDecoderSurface(AVCodecContext *s);
 

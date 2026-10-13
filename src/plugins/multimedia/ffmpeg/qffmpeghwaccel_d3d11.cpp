@@ -160,8 +160,7 @@ bool D3D11TextureConverter::isSupported(AVFrame &hwFrame, QRhi &rhi)
 }
 
 QVideoFrameTexturesHandlesUPtr
-D3D11TextureConverter::createTextureHandles(AVFrame *frame,
-                                            QVideoFrameTexturesHandlesUPtr /*oldHandles*/)
+D3D11TextureConverter::createTextureHandles(AVFrame *frame)
 {
     if (!frame || !frame->hw_frames_ctx || frame->format != AV_PIX_FMT_D3D11)
         return nullptr;

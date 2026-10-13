@@ -40,14 +40,20 @@ public:
 
     virtual ~TextureConverterBackend();
 
-    virtual QVideoFrameTexturesUPtr createTextures(AVFrame * /*hwFrame*/,
+    virtual QVideoFrameTexturesUPtr createTextures(AVFrame *hwFrame,
                                                    QVideoFrameTexturesUPtr & /*oldTextures*/)
     {
-        return nullptr;
+        return createTextures(hwFrame);
     }
+    virtual QVideoFrameTexturesUPtr createTextures(AVFrame * /*hwFrame*/) { return nullptr; }
 
     virtual QVideoFrameTexturesHandlesUPtr
-    createTextureHandles(AVFrame * /*hwFrame*/, QVideoFrameTexturesHandlesUPtr /*oldHandles*/)
+    createTextureHandles(AVFrame *hwFrame, QVideoFrameTexturesHandlesUPtr /*oldHandles*/)
+    {
+        return createTextureHandles(hwFrame);
+    }
+
+    virtual QVideoFrameTexturesHandlesUPtr createTextureHandles(AVFrame * /*hwFrame*/)
     {
         return nullptr;
     }

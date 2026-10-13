@@ -54,9 +54,7 @@ VAAPITextureConverter::VAAPITextureConverter(QRhi *rhi)
 
 VAAPITextureConverter::~VAAPITextureConverter() = default;
 
-QVideoFrameTexturesHandlesUPtr
-VAAPITextureConverter::createTextureHandles(AVFrame *frame,
-                                            QVideoFrameTexturesHandlesUPtr /*oldHandles*/)
+QVideoFrameTexturesHandlesUPtr VAAPITextureConverter::createTextureHandles(AVFrame *frame)
 {
     //        qCDebug(qLHWAccelVAAPI) << "VAAPIAccel::createTextureHandles";
     if (frame->format != AV_PIX_FMT_VAAPI || !eglContext.eglDisplay()) {

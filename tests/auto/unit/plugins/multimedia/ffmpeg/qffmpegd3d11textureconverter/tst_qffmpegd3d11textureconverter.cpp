@@ -297,7 +297,7 @@ void tst_QFFmpegD3D11TextureConverter::createTextureHandles_returnsNull_whenFram
     frame->width = kFrameSize.width();
     frame->height = kFrameSize.height();
 
-    QVERIFY(!converter->createTextureHandles(frame.get(), nullptr));
+    QVERIFY(!converter->createTextureHandles(frame.get()));
 }
 
 void tst_QFFmpegD3D11TextureConverter::createTextureHandles_returnsNull_whenFrameHasNoHwFramesCtx()
@@ -316,7 +316,7 @@ void tst_QFFmpegD3D11TextureConverter::createTextureHandles_returnsNull_whenFram
     frame->width = kFrameSize.width();
     frame->height = kFrameSize.height();
 
-    QVERIFY(!converter->createTextureHandles(frame.get(), nullptr));
+    QVERIFY(!converter->createTextureHandles(frame.get()));
 }
 
 void tst_QFFmpegD3D11TextureConverter::createTextureHandles_roundTripsPixelData_forHwFrame_data()
@@ -382,7 +382,7 @@ void tst_QFFmpegD3D11TextureConverter::createTextureHandles_roundTripsPixelData_
     std::shared_ptr<D3D11TextureConverter> converter = D3D11TextureConverter::create(rhi.get());
     QVERIFY(converter);
 
-    QVideoFrameTexturesHandlesUPtr handles = converter->createTextureHandles(frame.get(), nullptr);
+    QVideoFrameTexturesHandlesUPtr handles = converter->createTextureHandles(frame.get());
     QVERIFY(handles);
 
     const auto *desc = QVideoTextureHelper::textureDescription(pixelFormat);
@@ -514,7 +514,7 @@ void tst_QFFmpegD3D11TextureConverter::createTextureHandles_splitsPlanes_whenRhi
     std::shared_ptr<D3D11TextureConverter> converter = D3D11TextureConverter::create(rhi.get());
     QVERIFY(converter);
 
-    QVideoFrameTexturesHandlesUPtr handles = converter->createTextureHandles(frame.get(), nullptr);
+    QVideoFrameTexturesHandlesUPtr handles = converter->createTextureHandles(frame.get());
     QVERIFY(handles);
 
     // Native ID3D12Resource* handles can't be read back via the D3D11 fixture (as in the
@@ -623,7 +623,7 @@ void tst_QFFmpegD3D11TextureConverter::
     std::shared_ptr<D3D11TextureConverter> converter = D3D11TextureConverter::create(rhi.get());
     QVERIFY(converter);
 
-    QVideoFrameTexturesHandlesUPtr handles = converter->createTextureHandles(frame.get(), nullptr);
+    QVideoFrameTexturesHandlesUPtr handles = converter->createTextureHandles(frame.get());
     QVERIFY(handles);
 
     const quint64 lumaHandle = handles->textureHandle(*rhi, 0);
@@ -658,7 +658,7 @@ void tst_QFFmpegD3D11TextureConverter::createTextureHandles_acceptsOldHandles_on
     QVERIFY(converter);
 
     QVideoFrameTexturesHandlesUPtr firstHandles =
-            converter->createTextureHandles(firstFrame.get(), nullptr);
+            converter->createTextureHandles(firstFrame.get());
     QVERIFY(firstHandles);
 
     constexpr quint8 secondLumaValue = 210;

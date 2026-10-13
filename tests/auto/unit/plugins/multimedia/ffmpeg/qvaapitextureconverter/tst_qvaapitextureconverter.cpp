@@ -207,7 +207,7 @@ void tst_QVaapiTextureConverter::createTextureHandles_roundTripsPixelData_forHwF
                          + frameContext.error()));
 
     QVideoFrameTexturesHandlesUPtr handles =
-            converter->createTextureHandles(frameContext->hwFrame.get(), nullptr);
+            converter->createTextureHandles(frameContext->hwFrame.get());
     if (!handles)
         QSKIP("VAAPI texture import failed on this system; see qWarning above for details");
 
@@ -285,7 +285,7 @@ void tst_QVaapiTextureConverter::
     std::optional<VaapiFrameContext> frameContext = std::move(*frameContextResult);
 
     QVideoFrameTexturesHandlesUPtr handles =
-            converter->createTextureHandles(frameContext->hwFrame.get(), nullptr);
+            converter->createTextureHandles(frameContext->hwFrame.get());
     if (!handles)
         QSKIP("VAAPI texture import failed on this system; see qWarning above for details");
 
@@ -324,7 +324,7 @@ void tst_QVaapiTextureConverter::createTextureHandles_acceptsOldHandles_onSecond
                          + frameContext.error()));
 
     QVideoFrameTexturesHandlesUPtr firstHandles =
-            converter->createTextureHandles(frameContext->hwFrame.get(), nullptr);
+            converter->createTextureHandles(frameContext->hwFrame.get());
     if (!firstHandles)
         QSKIP("VAAPI texture import failed on this system; see qWarning above for details");
 

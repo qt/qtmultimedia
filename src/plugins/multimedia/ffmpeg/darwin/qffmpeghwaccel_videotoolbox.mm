@@ -188,8 +188,7 @@ static MTLPixelFormat rhiTextureFormatToMetalFormat(QRhiTexture::Format f)
 }
 
 QVideoFrameTexturesHandlesUPtr
-VideoToolBoxTextureConverter::createTextureHandles(AVFrame *frame,
-                                                   QVideoFrameTexturesHandlesUPtr /*oldHandles*/)
+VideoToolBoxTextureConverter::createTextureHandles(AVFrame *frame)
 {
     if (!rhi)
         return nullptr;

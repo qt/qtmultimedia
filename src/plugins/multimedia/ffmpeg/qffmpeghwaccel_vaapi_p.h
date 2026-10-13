@@ -30,15 +30,15 @@ using QtMultimediaPrivate::DmaBufPlane;
 using QtMultimediaPrivate::FailureSeverity;
 using QtMultimediaPrivate::importDmaBufTextures;
 
-class VAAPITextureConverter : public TextureConverterBackend
+class VAAPITextureConverter final : public TextureConverterBackend
 {
 public:
     static std::shared_ptr<VAAPITextureConverter> create(QRhi *rhi);
 
     ~VAAPITextureConverter() override;
 
-    QVideoFrameTexturesHandlesUPtr
-    createTextureHandles(AVFrame *frame, QVideoFrameTexturesHandlesUPtr oldHandles) override;
+    using TextureConverterBackend::createTextureHandles;
+    QVideoFrameTexturesHandlesUPtr createTextureHandles(AVFrame *frame) override;
 
     DmaBufEglContext eglContext;
 

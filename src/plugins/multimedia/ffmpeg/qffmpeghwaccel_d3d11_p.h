@@ -36,7 +36,8 @@ public:
     static std::shared_ptr<D3D11TextureConverter> create(QRhi *rhi);
 
     QVideoFrameTexturesHandlesUPtr
-    createTextureHandles(AVFrame *frame, QVideoFrameTexturesHandlesUPtr oldHandles) override;
+    createTextureHandles(AVFrame *frame) override;
+    using TextureConverterBackend::createTextureHandles;
 
     static void SetupDecoderTextures(AVCodecContext *s);
 

@@ -169,7 +169,7 @@ void tst_QVideoToolboxTextureConverter::createTextureHandles_roundTripsPixelData
                          + frameContext.error()));
 
     QVideoFrameTexturesHandlesUPtr handles =
-            converter->createTextureHandles(frameContext->hwFrame.get(), nullptr);
+            converter->createTextureHandles(frameContext->hwFrame.get());
     if (!handles)
         QSKIP("VideoToolbox texture import failed on this system; see qWarning above for details");
 
@@ -241,7 +241,7 @@ void tst_QVideoToolboxTextureConverter::
     std::optional<VideoToolboxFrameContext> frameContext = std::move(*frameContextResult);
 
     QVideoFrameTexturesHandlesUPtr handles =
-            converter->createTextureHandles(frameContext->hwFrame.get(), nullptr);
+            converter->createTextureHandles(frameContext->hwFrame.get());
     if (!handles)
         QSKIP("VideoToolbox texture import failed on this system; see qWarning above for details");
 
@@ -276,7 +276,7 @@ void tst_QVideoToolboxTextureConverter::createTextureHandles_acceptsOldHandles_o
                          + frameContext.error()));
 
     QVideoFrameTexturesHandlesUPtr firstHandles =
-            converter->createTextureHandles(frameContext->hwFrame.get(), nullptr);
+            converter->createTextureHandles(frameContext->hwFrame.get());
     if (!firstHandles)
         QSKIP("VideoToolbox texture import failed on this system; see qWarning above for details");
 
