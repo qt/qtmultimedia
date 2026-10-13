@@ -506,7 +506,7 @@ static GlTextures mapFromDmaBuffer(QRhi *rhi, const QGstBufferHandle &bufferHand
 #endif
 #endif
 
-QVideoFrameTexturesUPtr QGstVideoBuffer::mapTextures(QRhi &rhi, QVideoFrameTexturesUPtr& /*oldTextures*/)
+QVideoFrameTexturesUPtr QGstVideoBuffer::mapTextures(QRhi &rhi)
 {
     using namespace QtMultimediaPrivate;
 

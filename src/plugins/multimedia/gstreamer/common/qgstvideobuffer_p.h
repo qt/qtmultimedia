@@ -37,7 +37,7 @@ public:
 
     bool isDmaBuf() const override;
 
-    QVideoFrameTexturesUPtr mapTextures(QRhi &, QVideoFrameTexturesUPtr& /*oldTextures*/) override;
+    QVideoFrameTexturesUPtr mapTextures(QRhi &) override;
     GstBuffer *gstBuffer() const { return m_buffer.get(); }
 
 private:

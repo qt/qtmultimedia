@@ -68,10 +68,8 @@ QDmaBufVideoBuffer::~QDmaBufVideoBuffer()
     }
 }
 
-QVideoFrameTexturesUPtr QDmaBufVideoBuffer::mapTextures(QRhi &rhi,
-                                                        QVideoFrameTexturesUPtr &oldTextures)
+QVideoFrameTexturesUPtr QDmaBufVideoBuffer::mapTextures(QRhi &rhi)
 {
-    Q_UNUSED(oldTextures);
     Q_ASSERT(rhi.thread()->isCurrentThread());
 
     if (rhi.backend() != QRhi::OpenGLES2)

@@ -43,7 +43,7 @@ public:
 
     bool isDmaBuf() const override { return true; }
 
-    QVideoFrameTexturesUPtr mapTextures(QRhi &rhi, QVideoFrameTexturesUPtr &oldTextures) override;
+    QVideoFrameTexturesUPtr mapTextures(QRhi &rhi) override;
 
     MapData map(QVideoFrame::MapMode mode) override;
     void unmap() override;

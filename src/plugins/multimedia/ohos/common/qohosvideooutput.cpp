@@ -57,7 +57,7 @@ private:
     std::unique_ptr<QRhiTexture> m_tex;
 };
 
-class QOhosTextureVideoBuffer : public QHwVideoBuffer
+class QOhosTextureVideoBuffer final : public QHwVideoBuffer
 {
 public:
     QOhosTextureVideoBuffer(std::unique_ptr<QRhiTexture> tex, const QSize &size,
@@ -96,7 +96,7 @@ public:
         m_mapMode = QVideoFrame::NotMapped;
     }
 
-    QVideoFrameTexturesUPtr mapTextures(QRhi &rhi, QVideoFrameTexturesUPtr & /*old*/) override
+    QVideoFrameTexturesUPtr mapTextures(QRhi &rhi) override
     {
         // The texture lives in the producer (texture-thread) GL context. Sampling
         // requires the caller's RHI to share that GL context's resources. The main

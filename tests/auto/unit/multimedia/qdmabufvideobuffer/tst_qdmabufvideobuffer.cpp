@@ -125,8 +125,7 @@ void tst_QDmaBufVideoBuffer::mapTextures_roundTripsPixelData_whenGivenUdmabufBac
     QDmaBufVideoBuffer buffer(QVideoFrameFormat::Format_RGBA8888, QSize(width, height),
                               QSpan(&plane, 1));
 
-    QVideoFrameTexturesUPtr oldTextures;
-    QVideoFrameTexturesUPtr textures = buffer.mapTextures(*rhi, oldTextures);
+    QVideoFrameTexturesUPtr textures = buffer.mapTextures(*rhi);
     if (!textures)
         QSKIP("Importing a CPU-backed dma-buf as a GL texture failed; the driver/EGL "
               "implementation on this system likely doesn't support it (see the qWarning "
