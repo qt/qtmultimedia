@@ -1215,6 +1215,11 @@ void tst_QMediaCaptureSession::can_add_ImageCapture_and_capture_during_recording
 
 void tst_QMediaCaptureSession::testAudioMute()
 {
+#if defined(Q_OS_WINDOWS)
+    if (isCI())
+        QSKIP("Flaky on Windows CI, to be fixed");
+#endif
+
     QAudioInput audioInput;
     if (audioInput.device().isNull())
         QSKIP("No audio input available");

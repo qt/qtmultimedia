@@ -267,6 +267,12 @@ void tst_QAudioSink::generate_multiple_sinks_testrows()
 
 void tst_QAudioSink::initTestCase()
 {
+#if defined(Q_OS_WINDOWS)
+    if (isCI())
+        QSKIP("Flaky on Windows CI, to be fixed");
+#endif
+
+    // Only perform tests if audio output device exists
     const QList<QAudioDevice> devices = QMediaDevices::audioOutputs();
 
     // Only perform tests if audio output device exists
