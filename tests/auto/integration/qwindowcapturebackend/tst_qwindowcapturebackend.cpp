@@ -3,8 +3,8 @@
 
 // TESTED_COMPONENT=src/multimedia
 
-#include "fixture.h"
-#include "widget.h"
+#include "tst_qwindowcapturebackend_fixture.h"
+#include "tst_qwindowcapturebackend_widget.h"
 
 #include <QtCore/qcommandlineparser.h>
 #include <QtCore/qoperatingsystemversion.h>

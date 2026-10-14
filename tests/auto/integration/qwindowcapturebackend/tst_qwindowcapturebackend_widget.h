@@ -1,8 +1,8 @@
 // Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#ifndef WINDOW_CAPTURE_WIDGET_H
-#define WINDOW_CAPTURE_WIDGET_H
+#ifndef TST_QWINDOWCAPTUREBACKEND_WIDGET_H
+#define TST_QWINDOWCAPTUREBACKEND_WIDGET_H
 
 #include <QtCore/quuid.h>
 

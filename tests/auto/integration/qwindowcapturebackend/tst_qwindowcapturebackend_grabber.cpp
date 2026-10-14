@@ -1,8 +1,8 @@
 // Copyright (C) 2023 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include "grabber.h"
-#include "fixture.h"
+#include "tst_qwindowcapturebackend_grabber.h"
+#include "tst_qwindowcapturebackend_fixture.h"
 
 #include <QtCore/q20vector.h>
 #include <QtCore/qelapsedtimer.h>
@@ -133,4 +133,4 @@ void FrameGrabber::stop()
     m_stopped = true;
 }
 
-#include "moc_grabber.cpp"
+#include "moc_tst_qwindowcapturebackend_grabber.cpp"
