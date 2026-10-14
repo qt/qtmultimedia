@@ -13,8 +13,6 @@ qt_internal_multimedia_add_test(tst_qwindowcapturebackend
         tst_qwindowcapturebackend.cpp
         tst_qwindowcapturebackend_widget.h
         tst_qwindowcapturebackend_widget.cpp
-        tst_qwindowcapturebackend_grabber.h
-        tst_qwindowcapturebackend_grabber.cpp
         tst_qwindowcapturebackend_fixture.h
         tst_qwindowcapturebackend_fixture.cpp
 

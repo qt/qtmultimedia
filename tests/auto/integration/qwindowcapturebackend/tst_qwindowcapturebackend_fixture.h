@@ -4,7 +4,6 @@
 #ifndef TST_QWINDOWCAPTUREBACKEND_FIXTURE_H
 #define TST_QWINDOWCAPTUREBACKEND_FIXTURE_H
 
-#include "tst_qwindowcapturebackend_grabber.h"
 #include "tst_qwindowcapturebackend_widget.h"
 
 #include <QtCore/qobject.h>
@@ -15,6 +14,7 @@
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qwindowcapture.h>
 
+#include <QtMultimediaTestLib/private/framegrabber_p.h>
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
 #include <QtMultimediaTestLib/private/surfacecapturetestutils_p.h>
 
@@ -24,13 +24,6 @@
 #include <chrono>
 #include <memory>
 #include <optional>
-
-inline std::chrono::milliseconds globalTestTimeout() {
-    if (isCI())
-        return std::chrono::seconds(60);
-    else
-        return std::chrono::seconds(5);
-}
 
 /*!
     Utility used to hide application cursor for image comparison tests.
@@ -87,7 +80,7 @@ public:
     QMediaCaptureSession m_session;
     std::unique_ptr<QWindowCapture> m_captureStorage = QtMultimediaTest::makeWindowCapture();
     QWindowCapture &m_capture = *m_captureStorage;
-    FrameGrabber m_grabber;
+    QtMultimediaTest::FrameGrabber m_grabber;
 
     QSignalSpy m_errors{ &m_capture, &QWindowCapture::errorOccurred };
     QSignalSpy m_activations{ &m_capture, &QWindowCapture::activeChanged };

@@ -1,10 +1,12 @@
-// Copyright (C) 2023 The Qt Company Ltd.
+// Copyright (C) 2026 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include "tst_qwindowcapturebackend_grabber.h"
-#include "tst_qwindowcapturebackend_fixture.h"
+#include "framegrabber_p.h"
+
+#include "mediabackendutils_p.h"
 
 #include <QtCore/q20vector.h>
+#include <QtCore/qcoreapplication.h>
 #include <QtCore/qelapsedtimer.h>
 #include <QtCore/qscopeguard.h>
 
@@ -13,6 +15,17 @@
 #include <QtTest/qtest.h>
 
 #include <utility>
+
+QT_BEGIN_NAMESPACE
+
+namespace QtMultimediaTest {
+
+std::chrono::milliseconds surfaceCaptureTestTimeout()
+{
+    if (isCI())
+        return std::chrono::seconds(60);
+    return std::chrono::seconds(5);
+}
 
 static qint64 startTimeOf(const QVideoFrame &frame)
 {
@@ -109,7 +122,7 @@ std::vector<Frame> FrameGrabber::waitAndTake(
         return frames.size() >= minCount;
     };
 
-    if (!QTest::qWaitFor(enoughFramesOrStopped, globalTestTimeout()))
+    if (!QTest::qWaitFor(enoughFramesOrStopped, surfaceCaptureTestTimeout()))
         return {};
 
     if (m_stopped)
@@ -124,7 +137,7 @@ std::optional<QVideoFrame> FrameGrabber::consumeFirstFrame()
         return m_stopped || m_firstFrame;
     };
 
-    if (!QTest::qWaitFor(firstFrameReceivedOrStopped, globalTestTimeout()))
+    if (!QTest::qWaitFor(firstFrameReceivedOrStopped, surfaceCaptureTestTimeout()))
         return std::nullopt;
 
     if (m_stopped)
@@ -184,4 +197,8 @@ void FrameGrabber::stop()
     m_stopped = true;
 }
 
-#include "moc_tst_qwindowcapturebackend_grabber.cpp"
+} // namespace QtMultimediaTest
+
+QT_END_NAMESPACE
+
+#include "moc_framegrabber_p.cpp"

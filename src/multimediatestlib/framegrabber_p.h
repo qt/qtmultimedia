@@ -1,15 +1,34 @@
-// Copyright (C) 2023 The Qt Company Ltd.
+// Copyright (C) 2026 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#ifndef TST_QWINDOWCAPTUREBACKEND_GRABBER_H
-#define TST_QWINDOWCAPTUREBACKEND_GRABBER_H
+#ifndef FRAMEGRABBER_P_H
+#define FRAMEGRABBER_P_H
 
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the Qt API. It exists purely as an
+// implementation detail. This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+//
+
+#include <QtCore/qtconfigmacros.h>
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qvideosink.h>
 
 #include <chrono>
 #include <optional>
 #include <vector>
+
+QT_BEGIN_NAMESPACE
+
+namespace QtMultimediaTest {
+
+// Generous timeout on CI, where machines are slow and heavily loaded.
+[[nodiscard]] std::chrono::milliseconds surfaceCaptureTestTimeout();
 
 struct VideoFrameInfo
 {
@@ -21,7 +40,7 @@ struct VideoFrameInfo
 };
 
 /*!
-    The FrameGrabber stores frames that arrive from the window capture,
+    The FrameGrabber stores frames that arrive from a surface capture,
     and is used to inspect captured frames in the tests.
 */
 class FrameGrabber : public QVideoSink
@@ -98,4 +117,8 @@ private:
     bool m_stopped = false;
 };
 
-#endif
+} // namespace QtMultimediaTest
+
+QT_END_NAMESPACE
+
+#endif // FRAMEGRABBER_P_H

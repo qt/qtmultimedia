@@ -40,6 +40,9 @@ using std::chrono::high_resolution_clock;
 using std::chrono::microseconds;
 using std::chrono::milliseconds;
 
+using QtMultimediaTest::VideoFrameInfo;
+using QtMultimediaTest::surfaceCaptureTestTimeout;
+
 using namespace std::chrono_literals;
 
 using namespace QtMultimediaTest;
@@ -64,7 +67,7 @@ private:
                 const std::vector<VideoFrameInfo> &frames = fixture.m_grabber.getFrameInfos();
                 return !frames.empty() && frames.back().size == expectedSize;
             },
-            globalTestTimeout());
+            surfaceCaptureTestTimeout());
 
         const std::vector<VideoFrameInfo> &frames = fixture.m_grabber.getFrameInfos();
         QSize lastFrameSize = frames.empty() ? QSize{} : frames.back().size;
@@ -178,7 +181,7 @@ private slots:
 
         TestWidget widget;
         widget.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&widget, globalTestTimeout()));
+        QVERIFY(QTest::qWaitForWindowExposed(&widget, surfaceCaptureTestTimeout()));
 
         // Our visible window should be discoverable in the list of capturable windows.
         QList<QCapturableWindow> windows = QWindowCapture::capturableWindows();
@@ -199,7 +202,7 @@ private slots:
 
         TestWidget widget;
         widget.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&widget, globalTestTimeout()));
+        QVERIFY(QTest::qWaitForWindowExposed(&widget, surfaceCaptureTestTimeout()));
 
         QWindow *const window = widget.windowHandle();
         QVERIFY(window);
@@ -471,7 +474,7 @@ private slots:
         TestWidget secondWidget;
         secondWidget.setSize({ 120, 80 });
         secondWidget.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&secondWidget, globalTestTimeout()));
+        QVERIFY(QTest::qWaitForWindowExposed(&secondWidget, surfaceCaptureTestTimeout()));
 
         std::optional<QCapturableWindow> secondWindow =
             WindowCaptureWithWidgetFixture::findCaptureWindow(
@@ -497,7 +500,7 @@ private slots:
         QTRY_VERIFY_WITH_TIMEOUT(
             !fixture.m_grabber.getFrameInfos().empty()
             && fixture.m_grabber.getFrameInfos().back().size == expectedSize,
-            globalTestTimeout());
+            surfaceCaptureTestTimeout());
 
         QVERIFY(fixture.m_errors.empty());
     }
@@ -516,7 +519,7 @@ private slots:
         TestWidget secondWidget;
         secondWidget.setSize({ 120, 80 });
         secondWidget.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&secondWidget, globalTestTimeout()));
+        QVERIFY(QTest::qWaitForWindowExposed(&secondWidget, surfaceCaptureTestTimeout()));
 
         const std::optional<QCapturableWindow> secondWindow =
             WindowCaptureWithWidgetFixture::findCaptureWindow(
@@ -589,7 +592,7 @@ private slots:
         fixture.m_widget.show();
         QVERIFY(QTest::qWaitForWindowExposed(
             &fixture.m_widget,
-            globalTestTimeout()));
+            surfaceCaptureTestTimeout()));
 
         const std::optional<QCapturableWindow> window =
             WindowCaptureWithWidgetFixture::findCaptureWindow(
@@ -849,7 +852,7 @@ private slots:
             (QSizeF(fixture.m_widget.size()) * fixture.m_widget.devicePixelRatio()).toSize();
 
         QVERIFY(QTest::qWaitFor(
-            [&] { return !fixture.m_grabber.getFrameInfos().empty(); }, globalTestTimeout()));
+            [&] { return !fixture.m_grabber.getFrameInfos().empty(); }, surfaceCaptureTestTimeout()));
 
         const std::vector<VideoFrameInfo> frames = fixture.m_grabber.getFrameInfos();
         for (size_t i = 0; i < frames.size(); ++i) {
@@ -890,7 +893,7 @@ private slots:
 
         fixture.m_widget.setSize(initialSize);
         fixture.m_widget.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&fixture.m_widget, globalTestTimeout()));
+        QVERIFY(QTest::qWaitForWindowExposed(&fixture.m_widget, surfaceCaptureTestTimeout()));
 
         // Create the capturable-window handle while the window is still at the
         // initial size.
@@ -902,7 +905,7 @@ private slots:
         fixture.m_widget.setSize(resizedSize);
         QVERIFY(QTest::qWaitFor(
             [&] { return fixture.m_widget.size() == resizedSize; },
-            globalTestTimeout()));
+            surfaceCaptureTestTimeout()));
         // This test inspects the very first captured frame's size, so let the
         // capture backend observe the new geometry before we start the stream
         fixture.waitForWindowGeometryToSettle(FirstFrameSizePolicy::MustMatchWindowSize);
@@ -918,7 +921,7 @@ private slots:
             (QSizeF(resizedSize) * fixture.m_widget.devicePixelRatio()).toSize();
 
         QVERIFY(QTest::qWaitFor(
-            [&] { return !fixture.m_grabber.getFrameInfos().empty(); }, globalTestTimeout()));
+            [&] { return !fixture.m_grabber.getFrameInfos().empty(); }, surfaceCaptureTestTimeout()));
 
         const std::vector<VideoFrameInfo> frames = fixture.m_grabber.getFrameInfos();
         for (size_t i = 0; i < frames.size(); ++i) {
@@ -1069,7 +1072,7 @@ private slots:
 
         QTRY_VERIFY_WITH_TIMEOUT(
             anyNewFrameMatchesNewContent,
-            globalTestTimeout());
+            surfaceCaptureTestTimeout());
     }
 
     void sequenceOfCapturedImages_compareEqual_whenWindowContentIsUnchanged()
@@ -1180,7 +1183,7 @@ private slots:
         secondWidget.setSize(windowSize);
         secondWidget.setDisplayPattern(TestWidget::Pattern::Animated);
         secondWidget.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&secondWidget, globalTestTimeout()));
+        QVERIFY(QTest::qWaitForWindowExposed(&secondWidget, surfaceCaptureTestTimeout()));
 
         const std::optional<QCapturableWindow> secondWindow =
             WindowCaptureWithWidgetFixture::findCaptureWindow(
@@ -1196,7 +1199,7 @@ private slots:
         QTRY_COMPARE_WITH_TIMEOUT(
             fixture.m_recorderState,
             QMediaRecorder::RecorderState::RecordingState,
-            globalTestTimeout());
+            surfaceCaptureTestTimeout());
 
         QElapsedTimer recordingTimer;
         recordingTimer.start();
@@ -1239,7 +1242,7 @@ private slots:
         secondWidget.setSize(windowSize);
         secondWidget.setDisplayPattern(TestWidget::Pattern::Animated);
         secondWidget.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&secondWidget, globalTestTimeout()));
+        QVERIFY(QTest::qWaitForWindowExposed(&secondWidget, surfaceCaptureTestTimeout()));
 
         const std::optional<QCapturableWindow> secondWindow =
             WindowCaptureWithWidgetFixture::findCaptureWindow(
@@ -1255,7 +1258,7 @@ private slots:
         QTRY_COMPARE_WITH_TIMEOUT(
             fixture.m_recorderState,
             QMediaRecorder::RecorderState::RecordingState,
-            globalTestTimeout());
+            surfaceCaptureTestTimeout());
 
         QSignalSpy recorderStateChanges{
             &fixture.m_recorder,
@@ -1277,7 +1280,7 @@ private slots:
         QTRY_COMPARE_WITH_TIMEOUT(
             fixture.m_recorderState,
             QMediaRecorder::RecorderState::StoppedState,
-            globalTestTimeout());
+            surfaceCaptureTestTimeout());
 
         QVERIFY(fixture.m_errors.empty());
         QVERIFY(fixture.m_recorderErrors.empty());
@@ -1329,7 +1332,7 @@ private slots:
 
         QTRY_VERIFY_WITH_TIMEOUT(
             !fixture.m_errors.empty(),
-            globalTestTimeout());
+            surfaceCaptureTestTimeout());
 
         // TODO: Verify that the QWindowCapture goes inactive whenever we encounter an error
         // like this.
