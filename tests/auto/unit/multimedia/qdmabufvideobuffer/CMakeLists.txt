@@ -12,6 +12,7 @@ if(NOT LINUX OR NOT QT_FEATURE_linux_dmabuf)
 endif()
 
 qt_internal_multimedia_add_test(tst_qdmabufvideobuffer
+    GPU_DRIVER_SENSITIVE
     SOURCES
         tst_qdmabufvideobuffer.cpp
     LIBRARIES

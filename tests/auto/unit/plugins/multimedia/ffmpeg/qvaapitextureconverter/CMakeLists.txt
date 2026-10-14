@@ -14,6 +14,7 @@ endif()
 add_subdirectory(../shared shared)
 
 qt_internal_multimedia_add_test(tst_qvaapitextureconverter
+    GPU_DRIVER_SENSITIVE
     LINK_FFMPEG_STUBS
     SOURCES
         tst_qvaapitextureconverter.cpp

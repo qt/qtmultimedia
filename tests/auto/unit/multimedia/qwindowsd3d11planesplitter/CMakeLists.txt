@@ -8,6 +8,7 @@ if(NOT QT_BUILD_STANDALONE_TESTS AND NOT QT_BUILDING_QT)
 endif()
 
 qt_internal_multimedia_add_test(tst_qwindowsd3d11planesplitter
+    GPU_DRIVER_SENSITIVE
     SOURCES
         tst_qwindowsd3d11planesplitter.cpp
     LIBRARIES

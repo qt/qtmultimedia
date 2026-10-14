@@ -12,6 +12,7 @@ if(NOT ANDROID)
 endif()
 
 qt_internal_multimedia_add_test(tst_qmediacodectextureconverter
+    GPU_DRIVER_SENSITIVE
     LINK_FFMPEG_STUBS
     SOURCES
         tst_qmediacodectextureconverter.cpp

@@ -14,6 +14,7 @@ endif()
 add_subdirectory(../shared shared)
 
 qt_internal_multimedia_add_test(tst_qffmpegd3d11textureconverter
+    GPU_DRIVER_SENSITIVE
     SOURCES
         tst_qffmpegd3d11textureconverter.cpp
     LIBRARIES

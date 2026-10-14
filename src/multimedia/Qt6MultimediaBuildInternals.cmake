@@ -66,6 +66,8 @@ function(qt_internal_multimedia_add_test name)
         NEEDS_MEDIA_BACKEND_PLUGINS # Add dependency to qt_plugins_qtmultimedia target
                               # IOS: Add ffmpeg libraries to the target
         LINK_FFMPEG_STUBS     # Required for executables linking Qt::FFmpegMediaPluginImplPrivate
+        GPU_DRIVER_SENSITIVE  # Results depend on GPU driver features (e.g. hw decode, video
+                              # processing); full coverage needs a physical GPU.
     )
     set(oneValueArgs)
     set(multiValueArgs)
@@ -82,6 +84,14 @@ function(qt_internal_multimedia_add_test name)
             MACOSX_BUNDLE TRUE
             MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist
         )
+    endif()
+
+    if(TEST ${name})
+        if(args_GPU_DRIVER_SENSITIVE)
+            set_property(TEST ${name}
+                APPEND PROPERTY
+                    LABELS "gpu-driver-sensitive")
+        endif()
     endif()
 
     if(args_NEEDS_MEDIA_BACKEND_PLUGINS)
