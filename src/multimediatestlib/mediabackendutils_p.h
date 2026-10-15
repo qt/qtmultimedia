@@ -101,9 +101,10 @@ inline void initIntegrationTestMain()
 
         const std::optional<QString> &intended = intendedMediaBackend();
         const QString loaded = QPlatformMediaIntegration::instance()->name();
-        QVERIFY2(
-            !intended || loaded == *intended,
-            qPrintable(u"Expected media backend '%1', but '%2' was loaded."_s.arg(*intended, loaded)));
+
+        QVERIFY2(!intended || loaded == *intended,
+                 qPrintable(u"Expected media backend '%1', but '%2' was loaded."_s.arg(
+                         intended.value_or(u"any"_s), loaded)));
     }();
     return !QTest::currentTestFailed();
 }
