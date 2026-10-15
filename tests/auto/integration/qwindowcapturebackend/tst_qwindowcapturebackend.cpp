@@ -553,6 +553,73 @@ private slots:
         QVERIFY(fixture.m_errors.empty());
     }
 
+    // The maximum frame rate must apply to the new source after a switch, both
+    // in not exceeding it and in not stalling.
+    void setWindow_maintainsFrameRate_whenSwitchedWhileActive()
+    {
+        WindowCaptureWithWidgetFixture fixture;
+
+        // Animated content, so the backend does not consider the content idle.
+        fixture.m_widget.setDisplayPattern(TestWidget::Pattern::Animated);
+
+        const float frameRate = 5.f;
+        fixture.m_capture.setMaximumFrameRate(frameRate);
+
+        QVERIFY(fixture.start({ 60, 40 }));
+        QVERIFY(fixture.tryWaitForFirstFrameInfo());
+
+        TestWidget secondWidget;
+        secondWidget.setDisplayPattern(TestWidget::Pattern::Animated);
+        secondWidget.setSize({ 120, 80 });
+        secondWidget.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&secondWidget, surfaceCaptureTestTimeout()));
+
+        const std::optional<QCapturableWindow> secondWindow =
+            WindowCaptureWithWidgetFixture::findCaptureWindow(
+                secondWidget.windowTitle(),
+                secondWidget.windowHandle());
+        QVERIFY(secondWindow && secondWindow->isValid());
+
+        // The captured frame is delivered in physical pixels.
+        const auto expectedFrameSize = [](const TestWidget &widget) {
+            return (QSizeF(widget.size()) * widget.devicePixelRatio()).toSize();
+        };
+
+        // Range [0, 1]. Lower is better, but may increase flakiness.
+        const float slopFactor = isCI() ? 0.2f : 0.1f;
+
+        // Wait for the switch to settle, then check the rate of the new source.
+        auto verifyFrameRateAfterSwitch = [&](
+            const QCapturableWindow &window,
+            const TestWidget &widget,
+            const QString &description)
+        {
+            fixture.m_capture.setWindow(window);
+            waitForVideoFrameExpectedSize(fixture, expectedFrameSize(widget), description);
+
+            std::optional<std::chrono::milliseconds> durationBetweenFrames =
+                fixture.m_grabber.durationBetweenFrames(3, frameRate);
+            QVERIFY2(
+                durationBetweenFrames.has_value(),
+                qPrintable(description + u": did not receive enough QVideoFrames to measure framerate"_s));
+
+            const qreal actualFps = 1000.0 / durationBetweenFrames->count();
+            QCOMPARE_LT(actualFps, frameRate * (1 + slopFactor));
+            QCOMPARE_GT(actualFps, frameRate * (1 - slopFactor * 2));
+        };
+
+        verifyFrameRateAfterSwitch(
+            *secondWindow, secondWidget, u"Switched to second window"_s);
+        if (QTest::currentTestFailed())
+            return;
+        verifyFrameRateAfterSwitch(
+            fixture.m_captureWindow, fixture.m_widget, u"Switched back to first window"_s);
+        if (QTest::currentTestFailed())
+            return;
+
+        QVERIFY(fixture.m_errors.empty());
+    }
+
     void setWindow_stopsCapture_whenSwitchedToInvalidWindow()
     {
         QSKIP_FFMPEG("QTBUG-151355: fails on Windows CI with audio device present");
