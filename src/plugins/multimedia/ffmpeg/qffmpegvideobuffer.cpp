@@ -31,8 +31,7 @@ static bool isFrameFlipped(const AVFrame& frame) {
 
 QFFmpegVideoBuffer::QFFmpegVideoBuffer(AVFrameUPtr frame, AVRational pixelAspectRatio)
     : m_frame(frame.get()),
-      m_size(qCalculateFrameSize({ frame->width, frame->height },
-                                 { pixelAspectRatio.num, pixelAspectRatio.den }))
+      m_size(qCalculateFrameSize(frameSize(frame), { pixelAspectRatio.num, pixelAspectRatio.den }))
 {
     if (frame->hw_frames_ctx) {
         m_hwFrame = std::move(frame);
@@ -55,7 +54,7 @@ void QFFmpegVideoBuffer::convertSWFrame()
     const auto actualAVPixelFormat = AVPixelFormat(m_swFrame->format);
     const auto targetAVPixelFormat = toAVPixelFormat(m_pixelFormat);
 
-    const QSize actualSize(m_swFrame->width, m_swFrame->height);
+    const QSize actualSize = frameSize(m_swFrame);
     if (actualAVPixelFormat != targetAVPixelFormat || isFrameFlipped(*m_swFrame)
         || m_size != actualSize) {
         Q_ASSERT(toQtPixelFormat(targetAVPixelFormat) == m_pixelFormat);
@@ -236,8 +235,7 @@ QVideoFrameTexturesUPtr QFFmpegVideoBuffer::createTexturesFromHwFrame(QRhi &rhi,
 
     if (newTextureHandles) {
         QVideoFrameTexturesUPtr newTextures = QVideoTextureHelper::createTexturesFromHandles(
-                std::move(newTextureHandles), rhi, m_pixelFormat,
-                { m_hwFrame->width, m_hwFrame->height });
+                std::move(newTextureHandles), rhi, m_pixelFormat, frameSize(m_hwFrame));
 
         return newTextures;
     }

@@ -336,6 +336,10 @@ AVHWDeviceContext *avFrameDeviceContext(const AVFrame *frame);
 SwsContextUPtr createSwsContext(const QSize &srcSize, AVPixelFormat srcPixFmt, const QSize &dstSize,
                                 AVPixelFormat dstPixFmt, SwsFlags conversionType = SWS_BICUBIC);
 
+QSize frameSize(const AVFrame &);
+QSize frameSize(const AVFrame *);
+QSize frameSize(const AVFrameUPtr &);
+
 #ifdef Q_OS_DARWIN
 bool isCVFormatSupported(uint32_t format);
 

@@ -349,6 +349,21 @@ void freeAVIOContext(AVIOContext *&ctx)
     Q_ASSERT(ctx == nullptr);
 }
 
+QSize frameSize(const AVFrame &frame)
+{
+    return QSize(frame.width, frame.height);
+}
+
+QSize frameSize(const AVFrame *frame)
+{
+    return frame ? frameSize(*frame) : QSize();
+}
+
+QSize frameSize(const AVFrameUPtr &frame)
+{
+    return frame ? frameSize(*frame) : QSize();
+}
+
 #ifdef Q_OS_DARWIN
 bool isCVFormatSupported(uint32_t cvFormat)
 {

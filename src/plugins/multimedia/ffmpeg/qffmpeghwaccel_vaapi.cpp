@@ -139,9 +139,8 @@ VAAPITextureConverter::createTextureHandles(AVFrame *frame,
                 prime.objects[prime.layers[layer].object_index[plane]].drm_format_modifier);
     }
 
-    auto textureHandles =
-            importDmaBufTextures(*rhi, eglContext, QSpan(planes, nPlanes), qtFormat,
-                                 QSize(frame->width, frame->height), shared_from_this());
+    auto textureHandles = importDmaBufTextures(*rhi, eglContext, QSpan(planes, nPlanes), qtFormat,
+                                               frameSize(frame), shared_from_this());
     if (!textureHandles) {
         if (textureHandles.error() == FailureSeverity::unrecoverable) {
             qWarning() << "VAAPI driver:" << vaQueryVendorString(vaDisplay);

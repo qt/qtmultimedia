@@ -188,7 +188,7 @@ D3D11TextureConverter::createTextureHandles(AVFrame *frame,
     bool canImportDirectly =
             QWindowsD3D11RhiTextureImporter::isPixelFormatSupportedByRhiBackend(*rhi, pixelFormat);
 
-    const QSize frameSize{ frame->width, frame->height };
+    const QSize size = frameSize(frame);
     QVideoFrameTexturesHandlesUPtr handles;
     {
         // Lock the FFmpeg device context while we read from FFmpeg's frame pool because the
@@ -199,18 +199,18 @@ D3D11TextureConverter::createTextureHandles(AVFrame *frame,
             // Import a copy of the slice, cropping away FFmpeg's surface alignment padding.
             handles =
                     m_importer.importTexture(*rhi, avDeviceCtx->device, avDeviceCtx->device_context,
-                                             ffmpegTex, frameSize, pixelFormat, index);
+                                             ffmpegTex, size, pixelFormat, index);
         } else {
             // The video processor reads the (possibly padded) pool slice directly, so no
             // separate cropping copy is needed here.
             const ComPtr<ID3D11Texture2D> converted = m_videoProcessor.convertToBGRA(
-                    avDeviceCtx->device, avDeviceCtx->device_context, ffmpegTex, frameSize,
+                    avDeviceCtx->device, avDeviceCtx->device_context, ffmpegTex, size,
                     fromAvColorSpace(frame->colorspace), fromAvColorRange(frame->color_range),
                     fromAvColorTransfer(frame->color_trc), index);
             if (converted) {
                 handles = m_importer.importTexture(*rhi, avDeviceCtx->device,
-                                                   avDeviceCtx->device_context, converted,
-                                                   frameSize, QVideoFrameFormat::Format_BGRA8888);
+                                                   avDeviceCtx->device_context, converted, size,
+                                                   QVideoFrameFormat::Format_BGRA8888);
             }
         }
     }

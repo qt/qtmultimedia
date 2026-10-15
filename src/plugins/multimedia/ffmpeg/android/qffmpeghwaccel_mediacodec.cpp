@@ -112,9 +112,8 @@ MediaCodecTextureConverter::createTextureHandles(AVFrame *frame,
     if (!externalTexture || m_currentSurfaceIndex != androidSurfaceTexture->index()) {
         m_currentSurfaceIndex = androidSurfaceTexture->index();
         androidSurfaceTexture->detachFromGLContext();
-        externalTexture = std::unique_ptr<QRhiTexture>(
-                rhi->newTexture(QRhiTexture::Format::RGBA8, { frame->width, frame->height }, 1,
-                                QRhiTexture::ExternalOES));
+        externalTexture = std::unique_ptr<QRhiTexture>(rhi->newTexture(
+                QRhiTexture::Format::RGBA8, frameSize(frame), 1, QRhiTexture::ExternalOES));
 
         if (!externalTexture->create()) {
             qWarning() << "Failed to create the external texture!";
