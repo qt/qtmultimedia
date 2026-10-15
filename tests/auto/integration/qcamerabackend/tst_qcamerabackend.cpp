@@ -818,7 +818,7 @@ void tst_QCameraBackend::testCaptureResolutionChangeRapid()
     // Changes arrive before earlier ones have been applied
     for (int i = 0; i < 12; ++i)
         imageCapture.setResolution(sizes.at(i % sizes.size()));
-    const QSize last = imageCapture.resolution();
+    [[maybe_unused]] const QSize last = imageCapture.resolution();
 
     QTRY_VERIFY_WITH_TIMEOUT(camera.isActive(), 8s);
     const QSize captured = captureToFileAndGetSize(imageCapture);
