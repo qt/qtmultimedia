@@ -234,7 +234,6 @@ void FrameGrabber::onCaptureActiveChanged(bool active)
 
 void FrameGrabber::stop()
 {
-    qWarning() << "Stopping grabber";
     m_stopped = true;
 }
 
