@@ -675,14 +675,14 @@ bool VideoFrameEncoder::updateSourceFormatAndSize(const AVFrame *frame)
 {
     Q_ASSERT(frame);
 
-    const QSize frameSize(frame->width, frame->height);
+    const QSize size = frameSize(frame);
     const AVPixelFormat frameFormat = static_cast<AVPixelFormat>(frame->format);
 
-    if (frameSize == m_sourceSize && frameFormat == m_sourceFormat)
+    if (size == m_sourceSize && frameFormat == m_sourceFormat)
         return true;
 
     auto applySourceFormatAndSize = [&](AVPixelFormat swFormat) {
-        m_sourceSize = frameSize;
+        m_sourceSize = size;
         m_sourceFormat = frameFormat;
         m_sourceSWFormat = swFormat;
         updateConversions();

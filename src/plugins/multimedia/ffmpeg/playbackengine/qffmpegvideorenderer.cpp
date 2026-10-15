@@ -57,8 +57,7 @@ VideoRenderer::RenderingResult VideoRenderer::renderInternal(Frame frame)
         HWAccel *hwaccel = codecContext->hwAccel();
         AVFrame *avframe = frame.avFrame();
         if (!hwaccel->hwFramesContext())
-            hwaccel->createFramesContext(AVPixelFormat(avframe->format),
-                                         { avframe->width, avframe->height });
+            hwaccel->createFramesContext(AVPixelFormat(avframe->format), frameSize(avframe));
 
         if (hwaccel->hwFramesContext())
             avframe->hw_frames_ctx = av_buffer_ref(hwaccel->hwFramesContextAsBuffer());

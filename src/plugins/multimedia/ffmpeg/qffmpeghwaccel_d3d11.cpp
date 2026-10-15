@@ -165,7 +165,7 @@ D3D11TextureConverter::createTextureHandles(AVFrame *frame,
         // Import a copy of the slice from the frame pool, cropping away extra surface
         // alignment areas that FFmpeg adds to the textures.
         handles = m_importer.importTexture(*rhi, avDeviceCtx->device, avDeviceCtx->device_context,
-                                           ffmpegTex, QSize{ frame->width, frame->height }, index);
+                                           ffmpegTex, frameSize(frame), index);
     }
 
     if (!handles)
