@@ -914,6 +914,9 @@ void tst_QCameraBackend::captureToFile_createsFileWithExpectedExtension()
     if (noCamera)
         QSKIP("No camera available");
 
+    if (isAndroidPlatform())
+        QSKIP("Crashes in QImageCapture::setFileFormat() with the android backend");
+
     QFETCH(const QString, inputFilename);
     QFETCH(const QImageCapture::FileFormat, format);
     QFETCH(const QString, expectedFilename);

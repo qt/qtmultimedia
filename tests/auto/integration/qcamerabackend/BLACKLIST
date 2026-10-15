@@ -1,12 +1,37 @@
 ci
 
-[testCameraCaptureMetadata]
-osx
-ios
-
-[testCameraStartParallel]
-ios
-
 [testCameraFormat]
-osx
-ios
+macos darwin-mediabackend
+ios darwin-mediabackend
+ios ffmpeg-mediabackend
+android
+
+[testCameraCaptureMetadata]
+macos darwin-mediabackend
+ios darwin-mediabackend
+android android-mediabackend
+
+[captureToFile_createsFileWithExpectedExtension]
+macos darwin-mediabackend
+ios darwin-mediabackend
+macos ffmpeg-mediabackend
+ios ffmpeg-mediabackend
+android ffmpeg-mediabackend
+
+[testVideoRecording]
+macos darwin-mediabackend
+ios darwin-mediabackend
+macos ffmpeg-mediabackend
+ios ffmpeg-mediabackend
+
+[testCaptureToBuffer]
+android android-mediabackend
+
+[testCaptureResolutionSetBeforeStart]
+android android-mediabackend
+
+[testExposureMode]
+android android-mediabackend
+
+[testNativeMetadata]
+android android-mediabackend
