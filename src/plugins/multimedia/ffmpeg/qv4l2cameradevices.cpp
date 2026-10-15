@@ -5,6 +5,7 @@
 #include "qv4l2filedescriptor_p.h"
 #include "qv4l2camera_p.h"
 
+#include <QtMultimedia/private/qmultimediautils_p.h>
 #include <private/qcameradevice_p.h>
 #include <private/qcore_unix_p.h>
 
@@ -52,6 +53,8 @@ void QV4L2CameraDevices::checkCameras()
 
 bool QV4L2CameraDevices::doCheckCameras()
 {
+    using namespace QtMultimediaPrivate;
+
     QList<QCameraDevice> newCameras;
 
     QDir dir(QLatin1String("/dev"));
@@ -74,7 +77,7 @@ bool QV4L2CameraDevices::doCheckCameras()
         v4l2_fmtdesc formatDesc = {};
 
         struct v4l2_capability cap;
-        if (xioctl(fd, VIDIOC_QUERYCAP, &cap) < 0)
+        if (qt_safe_ioctl(fd, VIDIOC_QUERYCAP, &cap) < 0)
             continue;
 
         if (cap.device_caps & V4L2_CAP_META_CAPTURE)
@@ -92,7 +95,7 @@ bool QV4L2CameraDevices::doCheckCameras()
 
         formatDesc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
-        while (!xioctl(fd, VIDIOC_ENUM_FMT, &formatDesc)) {
+        while (!qt_safe_ioctl(fd, VIDIOC_ENUM_FMT, &formatDesc)) {
             auto pixelFmt = formatForV4L2Format(formatDesc.pixelformat);
             qCDebug(qLcV4L2CameraDevices) << "    " << pixelFmt;
 
@@ -105,7 +108,7 @@ bool QV4L2CameraDevices::doCheckCameras()
             v4l2_frmsizeenum frameSize = {};
             frameSize.pixel_format = formatDesc.pixelformat;
 
-            while (!xioctl(fd, VIDIOC_ENUM_FRAMESIZES, &frameSize)) {
+            while (!qt_safe_ioctl(fd, VIDIOC_ENUM_FRAMESIZES, &frameSize)) {
                 QList<QSize> resolutions;
                 if (frameSize.type == V4L2_FRMSIZE_TYPE_DISCRETE) {
                     resolutions.append(QSize(frameSize.discrete.width,
@@ -134,7 +137,7 @@ bool QV4L2CameraDevices::doCheckCameras()
                     frameInterval.width = resolution.width();
                     frameInterval.height = resolution.height();
 
-                    while (!xioctl(fd, VIDIOC_ENUM_FRAMEINTERVALS, &frameInterval)) {
+                    while (!qt_safe_ioctl(fd, VIDIOC_ENUM_FRAMEINTERVALS, &frameInterval)) {
                         if (frameInterval.type == V4L2_FRMIVAL_TYPE_DISCRETE) {
                             updateMaxMinFrameRate(frameInterval.discrete);
                         } else {

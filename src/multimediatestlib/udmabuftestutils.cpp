@@ -8,10 +8,11 @@
 
 #include "udmabuftestutils_p.h"
 
+#include <QtMultimedia/private/qmultimediautils_p.h>
+
 #include <fcntl.h>
 #include <linux/memfd.h>
 #include <linux/udmabuf.h>
-#include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <unistd.h>
 
@@ -56,7 +57,7 @@ QUniqueFileDescriptorHandle createUdmabufFd(const QUniqueFileDescriptorHandle &m
     };
 
     QUniqueFileDescriptorHandle dmabufFd{
-        ::ioctl(device.get(), UDMABUF_CREATE, &create),
+        QtMultimediaPrivate::qt_safe_ioctl(device.get(), UDMABUF_CREATE, &create),
     };
     return dmabufFd;
 }

@@ -19,8 +19,6 @@
 
 QT_BEGIN_NAMESPACE
 
-int xioctl(int fd, int request, void *arg);
-
 class QV4L2FileDescriptor
 {
 public:

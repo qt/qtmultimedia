@@ -6,6 +6,7 @@
 #include <QtMultimedia/qcameradevice.h>
 #include <QtMultimedia/qmediacapturesession.h>
 #include <QtMultimedia/private/qcameradevice_p.h>
+#include <QtMultimedia/private/qmultimediautils_p.h>
 #include <QtCore/qdebug.h>
 
 #include <common/qgst_debug_p.h>
@@ -627,6 +628,8 @@ bool QGstreamerCamera::isV4L2Camera() const
 
 void QGstreamerCamera::initV4L2Controls()
 {
+    using namespace QtMultimediaPrivate;
+
     v4l2AutoWhiteBalanceSupported = false;
     v4l2ColorTemperatureSupported = false;
     QCamera::Features features{};
@@ -638,14 +641,14 @@ void QGstreamerCamera::initV4L2Controls()
         struct v4l2_queryctrl queryControl = {};
         queryControl.id = V4L2_CID_AUTO_WHITE_BALANCE;
 
-        if (::ioctl(fd, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+        if (qt_safe_ioctl(fd, VIDIOC_QUERYCTRL, &queryControl) == 0) {
             v4l2AutoWhiteBalanceSupported = true;
             setV4L2Parameter(V4L2_CID_AUTO_WHITE_BALANCE, true);
         }
 
         queryControl = {};
         queryControl.id = V4L2_CID_WHITE_BALANCE_TEMPERATURE;
-        if (::ioctl(fd, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+        if (qt_safe_ioctl(fd, VIDIOC_QUERYCTRL, &queryControl) == 0) {
             v4l2MinColorTemp = queryControl.minimum;
             v4l2MaxColorTemp = queryControl.maximum;
             v4l2ColorTemperatureSupported = true;
@@ -654,13 +657,13 @@ void QGstreamerCamera::initV4L2Controls()
 
         queryControl = {};
         queryControl.id = V4L2_CID_EXPOSURE_AUTO;
-        if (::ioctl(fd, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+        if (qt_safe_ioctl(fd, VIDIOC_QUERYCTRL, &queryControl) == 0) {
             v4l2AutoExposureSupported = true;
         }
 
         queryControl = {};
         queryControl.id = V4L2_CID_EXPOSURE_ABSOLUTE;
-        if (::ioctl(fd, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+        if (qt_safe_ioctl(fd, VIDIOC_QUERYCTRL, &queryControl) == 0) {
             v4l2ManualExposureSupported = true;
             v4l2MinExposure = queryControl.minimum;
             v4l2MaxExposure = queryControl.maximum;
@@ -669,7 +672,7 @@ void QGstreamerCamera::initV4L2Controls()
 
         queryControl = {};
         queryControl.id = V4L2_CID_AUTO_EXPOSURE_BIAS;
-        if (::ioctl(fd, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+        if (qt_safe_ioctl(fd, VIDIOC_QUERYCTRL, &queryControl) == 0) {
             v4l2MinExposureAdjustment = queryControl.minimum;
             v4l2MaxExposureAdjustment = queryControl.maximum;
             features |= QCamera::Feature::ExposureCompensation;
@@ -677,9 +680,9 @@ void QGstreamerCamera::initV4L2Controls()
 
         queryControl = {};
         queryControl.id = V4L2_CID_ISO_SENSITIVITY_AUTO;
-        if (::ioctl(fd, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+        if (qt_safe_ioctl(fd, VIDIOC_QUERYCTRL, &queryControl) == 0) {
             queryControl.id = V4L2_CID_ISO_SENSITIVITY;
-            if (::ioctl(fd, VIDIOC_QUERYCTRL, &queryControl) == 0) {
+            if (qt_safe_ioctl(fd, VIDIOC_QUERYCTRL, &queryControl) == 0) {
                 features |= QCamera::Feature::IsoSensitivity;
                 minIsoChanged(queryControl.minimum);
                 maxIsoChanged(queryControl.minimum);
@@ -713,7 +716,7 @@ bool QGstreamerCamera::setV4L2Parameter(quint32 id, qint32 value)
 {
     return withV4L2DeviceFileDescriptor([&](int fd) {
         v4l2_control control{ id, value };
-        if (::ioctl(fd, VIDIOC_S_CTRL, &control) != 0) {
+        if (QtMultimediaPrivate::qt_safe_ioctl(fd, VIDIOC_S_CTRL, &control) != 0) {
             qWarning() << "Unable to set the V4L2 Parameter" << Qt::hex << id << "to" << value
                        << qt_error_string(errno);
             return false;
@@ -726,7 +729,7 @@ int QGstreamerCamera::getV4L2Parameter(quint32 id) const
 {
     return withV4L2DeviceFileDescriptor([&](int fd) {
         v4l2_control control{ id, 0 };
-        if (::ioctl(fd, VIDIOC_G_CTRL, &control) != 0) {
+        if (QtMultimediaPrivate::qt_safe_ioctl(fd, VIDIOC_G_CTRL, &control) != 0) {
             qWarning() << "Unable to get the V4L2 Parameter" << Qt::hex << id
                        << qt_error_string(errno);
             return 0;

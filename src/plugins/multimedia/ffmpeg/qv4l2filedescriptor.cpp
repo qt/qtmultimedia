@@ -3,23 +3,12 @@
 
 #include "qv4l2filedescriptor_p.h"
 
-#include <sys/ioctl.h>
-#include <private/qcore_unix_p.h>
+#include <QtMultimedia/private/qmultimediautils_p.h>
+#include <QtCore/private/qcore_unix_p.h>
 
 #include <linux/videodev2.h>
 
 QT_BEGIN_NAMESPACE
-
-int xioctl(int fd, int request, void *arg)
-{
-    int res;
-
-    do {
-        res = ::ioctl(fd, request, arg);
-    } while (res == -1 && EINTR == errno);
-
-    return res;
-}
 
 QV4L2FileDescriptor::QV4L2FileDescriptor(int descriptor) : m_descriptor(descriptor)
 {
@@ -33,7 +22,7 @@ QV4L2FileDescriptor::~QV4L2FileDescriptor()
 
 bool QV4L2FileDescriptor::call(int request, void *arg) const
 {
-    return ::xioctl(m_descriptor, request, arg) >= 0;
+    return QtMultimediaPrivate::qt_safe_ioctl(m_descriptor, request, arg) >= 0;
 }
 
 bool QV4L2FileDescriptor::requestBuffers(quint32 memoryType, quint32 &buffersCount) const

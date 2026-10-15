@@ -15,6 +15,10 @@
 #include <QtCore/quuid.h>
 
 #include <cmath>
+#ifdef Q_OS_UNIX
+#  include <cerrno>
+#  include <sys/ioctl.h>
+#endif
 
 QT_BEGIN_NAMESPACE
 
@@ -239,6 +243,20 @@ VideoTransformationOpt qVideoTransformationFromMatrix(const QTransform &matrix)
 }
 
 namespace QtMultimediaPrivate {
+
+#ifdef Q_OS_UNIX
+int qt_safe_ioctl(int fd, int request, void *arg)
+{
+    int res;
+
+    do {
+        res = ::ioctl(fd, request, arg);
+    } while (res == -1 && EINTR == errno);
+
+    return res;
+}
+#endif
+
 q23::expected<QrcMedia, QString> qCopyQrcToTemporaryFile([[maybe_unused]] QFile &qrcFile,
                                                           [[maybe_unused]] const QUrl &qrcUrl)
 {

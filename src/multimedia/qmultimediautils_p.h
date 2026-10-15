@@ -143,6 +143,10 @@ struct QrcMedia
 
 q23::expected<QrcMedia, QString> qCopyQrcToTemporaryFile(QFile &, const QUrl &);
 
+#ifdef Q_OS_UNIX
+Q_MULTIMEDIA_EXPORT int qt_safe_ioctl(int fd, int request, void *arg);
+#endif
+
 // clang-format off
 template <typename Key, typename Value, size_t N>
 #ifdef __cpp_concepts
