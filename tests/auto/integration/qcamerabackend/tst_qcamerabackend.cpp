@@ -29,6 +29,7 @@
 #include <QtCore/qscopeguard.h>
 #include <QtCore/qtemporarydir.h>
 #include <QtCore/qurl.h>
+#include <QtCore/qpermissions.h>
 #if QT_CONFIG(process)
 #  include <QtCore/qprocess.h>
 #endif
@@ -50,6 +51,7 @@
 
 #include <chrono>
 #include <memory>
+#include <optional>
 
 using namespace std::chrono_literals;
 using namespace Qt::StringLiterals;
@@ -282,6 +284,9 @@ private:
     static void addRowPerCameraDevice();
     // Waits for the recorder to stop on its own, and verifies the recording
     static void verifyRecorderAutoStopped(CameraRecorderSetup &setup);
+#ifdef QT_TST_QCAMERABACKEND_USE_PERMISSION_WORKAROUND
+    static void waitForCameraPermission();
+#endif
     // Returns up to \a count distinct photo resolutions supported by the default camera
     static QList<QSize> photoResolutionsToTest(int count);
     // Saved images can be rotated according to device orientation
@@ -301,10 +306,46 @@ private:
     QByteArray m_vcamPath;
 };
 
+#ifdef QT_TST_QCAMERABACKEND_USE_PERMISSION_WORKAROUND
+// Note: Will often raise a prompt for the end-user to press within the timeout.
+void tst_QCameraBackend::waitForCameraPermission()
+{
+    // If we don't have permissions, request it now.
+    constexpr auto permissionTimeout = 20s;
+    if (qApp->checkPermission(QCameraPermission{}) == Qt::PermissionStatus::Granted)
+        return;
+
+    std::optional<Qt::PermissionStatus> permissionStatus;
+    qApp->requestPermission(
+        QCameraPermission{},
+        qApp,
+        [&](const QPermission &permission) {
+            permissionStatus = permission.status();
+        });
+    auto checkPermissionReceived = [&] {
+        return permissionStatus.has_value();
+    };
+    QVERIFY2(
+        QTest::qWaitFor(checkPermissionReceived, permissionTimeout),
+        "Timed out while waiting for permissions to be granted");
+    QVERIFY(permissionStatus == Qt::PermissionStatus::Granted);
+}
+#endif
+
 void tst_QCameraBackend::initTestCase()
 {
     if (!initIntegrationTestCase())
         return;
+
+// QTBUG-145822
+#ifdef QT_TST_QCAMERABACKEND_USE_PERMISSION_WORKAROUND
+    // CI is never able to request permissions.
+    if (!isCI()) {
+        waitForCameraPermission();
+        if (QTest::currentTestFailed())
+            return;
+    }
+#endif
 
 #if QT_CONFIG(process)
     m_vcamPath = qgetenv("VCAM_PATH");
