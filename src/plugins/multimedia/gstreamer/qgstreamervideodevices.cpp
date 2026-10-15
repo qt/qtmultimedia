@@ -6,6 +6,7 @@
 #include <QtMultimedia/qmediadevices.h>
 #include <QtMultimedia/private/qcameradevice_p.h>
 #include <QtMultimedia/private/qmultimedia_ranges_p.h>
+#include <QtMultimedia/private/qmultimediautils_p.h>
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qset.h>
 #include <QtCore/private/quniquehandle_types_p.h>
@@ -178,7 +179,7 @@ void QGstreamerVideoDevices::addDevice(QGstDeviceHandle device)
         }
 
         struct v4l2_capability cap;
-        if (::ioctl(fd.get(), VIDIOC_QUERYCAP, &cap) < 0) {
+        if (QtMultimediaPrivate::qt_safe_ioctl(fd.get(), VIDIOC_QUERYCAP, &cap) < 0) {
             qCWarning(ltVideoDevices)
                     << "ioctl failed: VIDIOC_QUERYCAP" << qt_error_string(errno) << p;
             return;
@@ -203,7 +204,7 @@ void QGstreamerVideoDevices::addDevice(QGstDeviceHandle device)
         }
 
         int index;
-        if (::ioctl(fd.get(), VIDIOC_G_INPUT, &index) < 0) {
+        if (QtMultimediaPrivate::qt_safe_ioctl(fd.get(), VIDIOC_G_INPUT, &index) < 0) {
             switch (errno) {
             case ENOTTY:
                 qCDebug(ltVideoDevices) << "Device does not support VIDIOC_G_INPUT, but it could"
