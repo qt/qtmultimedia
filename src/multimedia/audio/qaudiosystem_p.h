@@ -267,7 +267,8 @@ runAudioCallback(std::conditional_t<IsSink, AudioSinkCallback, AudioSourceCallba
     bool callbackIsValid = validateAudioCallback(audioCallback, format);
     Q_PRESUME(callbackIsValid);
 
-    int numberOfSamples = format.framesForBytes(hostBuffer.size()) * format.channelCount();
+    int numberOfSamples =
+            format.framesForBytes(qint32(hostBuffer.size())) * format.channelCount();
 
     std::visit([&](auto &callback) {
         using FunctorType = std::decay_t<decltype(callback)>;
@@ -301,7 +302,8 @@ inline void runAudioCallback(AudioSinkCallback &audioCallback, QSpan<std::byte> 
                              const QAudioFormat &hostFormat)
 {
     using namespace QAudioHelperInternal;
-    const int32_t numberOfFrames = hostFormat.framesForBytes(hostBuffer.size());
+    const int32_t numberOfFrames =
+            hostFormat.framesForBytes(qint32(hostBuffer.size()));
     const int32_t applicationBufferSize = applicationFormat.bytesForFrames(numberOfFrames);
 
     withTemporaryBuffer(applicationBufferSize, [&](QSpan<std::byte> tempBuffer) {
@@ -316,8 +318,8 @@ inline void runAudioCallback(AudioSinkCallback &audioCallback, QSpan<std::byte> 
                              QAudioHelperInternal::NativeSampleFormat nativeHostFormat)
 {
     using namespace QAudioHelperInternal;
-    const int32_t numberOfFrames = hostBuffer.size()
-            / (bytesPerSample(nativeHostFormat) * applicationFormat.channelCount());
+    const int32_t numberOfFrames = int32_t(
+            hostBuffer.size() / (bytesPerSample(nativeHostFormat) * applicationFormat.channelCount()));
     const int32_t applicationBufferSize = applicationFormat.bytesForFrames(numberOfFrames);
 
     withTemporaryBuffer(applicationBufferSize, [&](QSpan<std::byte> tempBuffer) {
@@ -360,7 +362,8 @@ inline void runAudioCallback(AudioSourceCallback &audioCallback, QSpan<HostBuffe
 
     using namespace QAudioHelperInternal;
 
-    const int32_t numberOfFrames = hostFormat.framesForBytes(hostBuffer.size());
+    const int32_t numberOfFrames =
+            hostFormat.framesForBytes(qint32(hostBuffer.size()));
     const int32_t applicationBufferSize = applicationFormat.bytesForFrames(numberOfFrames);
 
     withTemporaryBuffer(applicationBufferSize, [&](QSpan<std::byte> tempBuffer) {
@@ -380,8 +383,8 @@ inline void runAudioCallback(AudioSourceCallback &audioCallback, QSpan<HostBuffe
 
     using namespace QAudioHelperInternal;
 
-    const int32_t numberOfFrames = hostBuffer.size()
-            / (bytesPerSample(nativeHostFormat) * applicationFormat.channelCount());
+    const int32_t numberOfFrames = int32_t(
+            hostBuffer.size() / (bytesPerSample(nativeHostFormat) * applicationFormat.channelCount()));
     const int32_t applicationBufferSize = applicationFormat.bytesForFrames(numberOfFrames);
 
     withTemporaryBuffer(applicationBufferSize, [&](QSpan<std::byte> tempBuffer) {
