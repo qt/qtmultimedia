@@ -297,8 +297,13 @@ WindowsFormatResult performFormatProbe(ComPtr<IMMDevice> immDev)
         if (SUCCEEDED(hr))
             format.preferredFormat = QWindowsAudioUtils::waveFormatExToFormat(*mixFormat);
     } else {
-        qWarning() << "QWindowsAudioDeviceInfo: could not activate audio client:"
-                   << QSystemError::windowsComString(hr);
+        // The endpoint can disappear between enumeration and probing (e.g. Bluetooth/USB/HDMI
+        // hot-unplug or the device being disabled). This is expected, so don't warn.
+        if (hr == AUDCLNT_E_DEVICE_INVALIDATED)
+            qCDebug(qLcAudioDeviceProbes) << "device invalidated before probing";
+        else
+            qWarning() << "QWindowsAudioDeviceInfo: could not activate audio client:"
+                       << QWindowsAudioUtils::audioClientErrorString(hr);
         return {format, probeData};
     }
 
