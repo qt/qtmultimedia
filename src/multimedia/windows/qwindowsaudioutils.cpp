@@ -9,6 +9,7 @@
 
 
 #include <audioclient.h>
+#include <avrt.h>
 #include <mmdeviceapi.h>
 #include <ks.h>
 #include <ksmedia.h>
@@ -484,7 +485,12 @@ bool audioClientSetRate(const ComPtr<IAudioClient3> &client, int rate)
     return true;
 }
 
-void setMCSSForPeriodSize(QWMF::reference_time periodSize)
+bool MMCSSThreadTraits::close(Qt::HANDLE handle) noexcept
+{
+    return AvRevertMmThreadCharacteristics(handle);
+}
+
+MMCSSThreadRegistration registerMMCSSThreadForPeriod(QWMF::reference_time periodSize)
 {
     // heuristics are similar to what windows does for exclusive mode:
     // 10ms is the default, when going lower, "Pro Audio" is the way to go
@@ -495,6 +501,7 @@ void setMCSSForPeriodSize(QWMF::reference_time periodSize)
     if (hTask == NULL) {
         qWarning() << "AvSetMmThreadCharacteristics failed to set thread characteristics"
                    << QSystemError::windowsString();
+        return {};
     }
 
     AVRT_PRIORITY priority = periodSize < 10ms ? AVRT_PRIORITY_CRITICAL : AVRT_PRIORITY_HIGH;
@@ -502,6 +509,8 @@ void setMCSSForPeriodSize(QWMF::reference_time periodSize)
     if (!success)
         qWarning() << "AvSetMmThreadPriority failed to set thread priority"
                    << QSystemError::windowsString();
+
+    return MMCSSThreadRegistration{ hTask };
 }
 } // namespace QWindowsAudioUtils
 

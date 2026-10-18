@@ -206,7 +206,7 @@ bool QWASAPIAudioSourceStream::startAudioClient()
 {
     using namespace QWindowsAudioUtils;
     m_workerThread.reset(QThread::create([this] {
-        setMCSSForPeriodSize(m_periodSize);
+        const auto mmcssRegistration = registerMMCSSThreadForPeriod(m_periodSize);
 
         std::optional<QComHelper> m_comHelper;
 
