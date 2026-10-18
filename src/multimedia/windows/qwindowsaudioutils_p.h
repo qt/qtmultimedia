@@ -78,7 +78,18 @@ struct AudioClientDevicePeriod
 std::optional<AudioClientDevicePeriod> getDevicePeriod(const ComPtr<IAudioClient3> &client);
 
 // wasapi thread helper
-void setMCSSForPeriodSize(QWMF::reference_time);
+
+struct MMCSSThreadTraits
+{
+    using Type = Qt::HANDLE;
+
+    static Type invalidValue() noexcept { return nullptr; }
+    static bool close(Type handle) noexcept;
+};
+
+using MMCSSThreadRegistration = QUniqueHandle<MMCSSThreadTraits>;
+
+[[nodiscard]] MMCSSThreadRegistration registerMMCSSThreadForPeriod(QWMF::reference_time);
 
 // error stringification
 QString audioClientErrorString(HRESULT);

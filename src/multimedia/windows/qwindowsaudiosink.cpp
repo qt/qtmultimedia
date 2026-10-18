@@ -214,7 +214,7 @@ bool QWASAPIAudioSinkStream::startAudioClient(StreamType streamType)
 {
     using namespace QWindowsAudioUtils;
     m_workerThread.reset(QThread::create([this, streamType] {
-        setMCSSForPeriodSize(m_periodSize);
+        const auto mmcssRegistration = registerMMCSSThreadForPeriod(m_periodSize);
         fillInitialHostBuffer(streamType);
         std::optional<QComHelper> m_comHelper;
 
