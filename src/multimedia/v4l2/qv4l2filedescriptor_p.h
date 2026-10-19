@@ -15,11 +15,15 @@
 // We mean it.
 //
 
-#include <QtMultimedia/private/qtmultimediaglobal_p.h>
-#include <QtCore/private/quniquehandle_types_p.h>
 #include <QtCore/qtclasshelpermacros.h>
+#include <QtCore/private/quniquehandle_types_p.h>
+#include <QtCore/private/qexpected_p.h>
+
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 
 #include <linux/videodev2.h>
+
+#include <system_error>
 
 QT_BEGIN_NAMESPACE
 
@@ -32,9 +36,10 @@ public:
 
     Q_DISABLE_COPY_MOVE(QV4L2FileDescriptor)
 
-    bool call(int request, void *arg) const;
+    q23::expected<int, std::error_code> call(int request, void *arg) const;
 
-    bool requestBuffers(v4l2_memory memoryType, quint32 &buffersCount) const;
+    q23::expected<int, std::error_code> requestBuffers(v4l2_memory memoryType,
+                                                       uint32_t bufferCount) const;
 
     bool startStream();
 

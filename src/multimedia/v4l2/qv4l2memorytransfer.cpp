@@ -33,16 +33,18 @@ class UserPtrMemoryTransfer : public QV4L2MemoryTransfer
 public:
     static QV4L2MemoryTransferUPtr create(QV4L2FileDescriptorPtr fileDescriptor, quint32 imageSize)
     {
-        quint32 buffersCount = 2;
-        if (!fileDescriptor->requestBuffers(V4L2_MEMORY_USERPTR, buffersCount)) {
+        if (auto requestResult = fileDescriptor->requestBuffers(V4L2_MEMORY_USERPTR, 2)) {
+            std::unique_ptr<UserPtrMemoryTransfer> result(new UserPtrMemoryTransfer{
+                    std::move(fileDescriptor),
+                    quint32(*requestResult),
+                    imageSize,
+            });
+
+            return result->enqueueBuffers() ? std::move(result) : nullptr;
+        } else {
             qCDebug(qLcV4L2MemoryTransfer) << "Cannot request V4L2_MEMORY_USERPTR buffers";
             return {};
         }
-
-        std::unique_ptr<UserPtrMemoryTransfer> result(
-                new UserPtrMemoryTransfer(std::move(fileDescriptor), buffersCount, imageSize));
-
-        return result->enqueueBuffers() ? std::move(result) : nullptr;
     }
 
     std::optional<Buffer> dequeueBuffer() override
@@ -112,8 +114,8 @@ public:
 
     static QV4L2MemoryTransferUPtr create(QV4L2FileDescriptorPtr fileDescriptor)
     {
-        quint32 buffersCount = 2;
-        if (!fileDescriptor->requestBuffers(V4L2_MEMORY_MMAP, buffersCount)) {
+        auto requestResult = fileDescriptor->requestBuffers(V4L2_MEMORY_MMAP, 2);
+        if (!requestResult) {
             qCWarning(qLcV4L2MemoryTransfer) << "Cannot request V4L2_MEMORY_MMAP buffers";
             return {};
         }
@@ -121,7 +123,7 @@ public:
         std::unique_ptr<MMapMemoryTransfer> result(
                 new MMapMemoryTransfer(std::move(fileDescriptor)));
 
-        return result->init(buffersCount) ? std::move(result) : nullptr;
+        return result->init(*requestResult) ? std::move(result) : nullptr;
     }
 
     bool init(quint32 buffersCount)

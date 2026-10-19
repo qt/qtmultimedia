@@ -16,25 +16,29 @@ QV4L2FileDescriptor::QV4L2FileDescriptor(QUniqueFileDescriptorHandle descriptor)
     Q_ASSERT(isValid());
 }
 
-bool QV4L2FileDescriptor::call(int request, void *arg) const
+q23::expected<int, std::error_code> QV4L2FileDescriptor::call(int request, void *arg) const
 {
-    return QtMultimediaPrivate::qt_safe_ioctl(get(), request, arg) >= 0;
+    const int result = QtMultimediaPrivate::qt_safe_ioctl(get(), request, arg);
+    if (result < 0)
+        return q23::unexpected(std::error_code{ errno, std::system_category() });
+
+    return result;
 }
 
-bool QV4L2FileDescriptor::requestBuffers(v4l2_memory memoryType, quint32 &buffersCount) const
+q23::expected<int, std::error_code> QV4L2FileDescriptor::requestBuffers(v4l2_memory memoryType,
+                                                                        uint32_t bufferCount) const
 {
     v4l2_requestbuffers req = {};
-    req.count = buffersCount;
+    req.count = bufferCount;
     req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     req.memory = memoryType;
 
-    if (!call(VIDIOC_REQBUFS, &req))
-        return false;
+    auto callResult = call(VIDIOC_REQBUFS, &req);
+    if (!callResult)
+        return q23::unexpected(callResult.error());
 
-    buffersCount = req.count;
-    return true;
+    return int(req.count);
 }
-
 bool QV4L2FileDescriptor::startStream()
 {
     int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -48,9 +52,9 @@ bool QV4L2FileDescriptor::startStream()
 bool QV4L2FileDescriptor::stopStream()
 {
     int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    auto result = call(VIDIOC_STREAMOFF, &type);
+    const auto result = call(VIDIOC_STREAMOFF, &type);
     m_streamStarted = false;
-    return result;
+    return bool(result);
 }
 
 } // namespace QtV4L2
