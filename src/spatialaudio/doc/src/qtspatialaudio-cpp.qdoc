@@ -3,7 +3,7 @@
 
 /*!
     \module QtSpatialAudio
-    \title Qt Spatial Audio Module C++ Classes
+    \title Qt Spatial Audio C++ Classes
     \ingroup modules
     \qtvariable spatialaudio
     \qtcmakepackage SpatialAudio
@@ -13,18 +13,4 @@
     \include module-use.qdocinc using qt module
 
     \include cmake-find-package-multimedia.qdocinc {find-and-link} {SpatialAudio} {PRIVATE} {Qt6::SpatialAudio}
-*/
-
-/*!
-    \page qtspatialaudio-modules.html
-    \title Qt Spatial Audio C++ Classes
-    \brief Provides C++ class for spatial audio use cases.
-
-    The C++ classes provide the same functionality as the Qt Quick3D spatial audio
-    module.
-
-    \section1 Classes
-
-    \generatelist {classesbymodule QtSpatialAudio}
-
 */
