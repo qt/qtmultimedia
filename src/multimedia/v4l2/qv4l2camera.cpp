@@ -4,7 +4,6 @@
 #include "qv4l2camera_p.h"
 
 #include <QtMultimedia/private/qcameradevice_p.h>
-#include <QtMultimedia/private/qmemoryvideobuffer_p.h>
 #include <QtMultimedia/private/qmultimediautils_p.h>
 #include <QtMultimedia/private/qv4l2filedescriptor_p.h>
 #include <QtMultimedia/private/qv4l2memorytransfer_p.h>
@@ -365,8 +364,8 @@ void QV4L2Camera::readFrame()
 {
     Q_ASSERT(m_memoryTransfer);
 
-    auto buffer = m_memoryTransfer->dequeueBuffer();
-    if (!buffer) {
+    auto dequeued = m_memoryTransfer->dequeueFrame();
+    if (!dequeued) {
         qCWarning(qLcV4L2Camera) << "Cannot take buffer";
 
         if (errno == ENODEV) {
@@ -378,22 +377,17 @@ void QV4L2Camera::readFrame()
         return;
     }
 
-    auto videoBuffer = std::make_unique<QMemoryVideoBuffer>(buffer->data, m_bytesPerLine);
-    QVideoFrame frame = QVideoFramePrivate::createFrame(std::move(videoBuffer), frameFormat());
-
-    auto &v4l2Buffer = buffer->v4l2Buffer;
+    QVideoFrame frame =
+            QVideoFramePrivate::createFrame(std::move(dequeued->videoBuffer), frameFormat());
 
     if (m_firstFrameTime.tv_sec == -1)
-        m_firstFrameTime = v4l2Buffer.timestamp;
-    qint64 secs = v4l2Buffer.timestamp.tv_sec - m_firstFrameTime.tv_sec;
-    qint64 usecs = v4l2Buffer.timestamp.tv_usec - m_firstFrameTime.tv_usec;
+        m_firstFrameTime = dequeued->timestamp;
+    qint64 secs = dequeued->timestamp.tv_sec - m_firstFrameTime.tv_sec;
+    qint64 usecs = dequeued->timestamp.tv_usec - m_firstFrameTime.tv_usec;
     frame.setStartTime(secs * 1000000 + usecs);
     frame.setEndTime(frame.startTime() + m_frameDuration);
 
     Q_EMIT newVideoFrame(frame);
-
-    if (!m_memoryTransfer->enqueueBuffer(v4l2Buffer.index))
-        qCWarning(qLcV4L2Camera) << "Cannot add buffer";
 }
 
 void QV4L2Camera::setCameraBusy()
@@ -642,7 +636,7 @@ void QV4L2Camera::initV4L2MemoryTransfer()
 
     Q_ASSERT(!m_memoryTransfer);
 
-    m_memoryTransfer = makeUserPtrMemoryTransfer(m_v4l2FileDescriptor, m_imageSize);
+    m_memoryTransfer = makeUserPtrMemoryTransfer(m_v4l2FileDescriptor, m_imageSize, m_bytesPerLine);
 
     if (m_memoryTransfer)
         return;
@@ -654,7 +648,7 @@ void QV4L2Camera::initV4L2MemoryTransfer()
 
     qCDebug(qLcV4L2Camera) << "Cannot init V4L2_MEMORY_USERPTR; trying V4L2_MEMORY_MMAP";
 
-    m_memoryTransfer = makeMMapMemoryTransfer(m_v4l2FileDescriptor);
+    m_memoryTransfer = makeMMapMemoryTransfer(m_v4l2FileDescriptor, m_bytesPerLine);
 
     if (!m_memoryTransfer) {
         qCWarning(qLcV4L2Camera) << "Cannot init v4l2 memory transfer," << qt_error_string(errno);

@@ -3,13 +3,16 @@
 
 #include "qv4l2memorytransfer_p.h"
 
+#include <QtMultimedia/private/qmemoryvideobuffer_p.h>
 #include <QtMultimedia/private/qv4l2filedescriptor_p.h>
+#include <QtCore/qbytearray.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qloggingcategory.h>
 
 #include <sys/mman.h>
 
 #include <optional>
+#include <vector>
 
 QT_BEGIN_NAMESPACE
 
@@ -31,13 +34,15 @@ v4l2_buffer makeV4l2Buffer(v4l2_memory memoryType, quint32 index = 0)
 class UserPtrMemoryTransfer : public QV4L2MemoryTransfer
 {
 public:
-    static QV4L2MemoryTransferUPtr create(QV4L2FileDescriptorPtr fileDescriptor, quint32 imageSize)
+    static QV4L2MemoryTransferUPtr create(QV4L2FileDescriptorPtr fileDescriptor, quint32 imageSize,
+                                          int bytesPerLine)
     {
         if (auto requestResult = fileDescriptor->requestBuffers(V4L2_MEMORY_USERPTR, 2)) {
             std::unique_ptr<UserPtrMemoryTransfer> result(new UserPtrMemoryTransfer{
                     std::move(fileDescriptor),
                     quint32(*requestResult),
                     imageSize,
+                    bytesPerLine,
             });
 
             return result->enqueueBuffers() ? std::move(result) : nullptr;
@@ -47,7 +52,7 @@ public:
         }
     }
 
-    std::optional<Buffer> dequeueBuffer() override
+    std::optional<Frame> dequeueFrame() override
     {
         auto v4l2Buffer = makeV4l2Buffer(V4L2_MEMORY_USERPTR);
         if (!fileDescriptor().call(VIDIOC_DQBUF, &v4l2Buffer))
@@ -62,7 +67,27 @@ public:
 
         // truncate jpeg
         byteArray.resize(v4l2Buffer.bytesused);
-        return Buffer{ v4l2Buffer, std::move(byteArray) };
+        Frame frame{
+            v4l2Buffer.timestamp,
+            std::make_unique<QMemoryVideoBuffer>(std::move(byteArray), m_bytesPerLine),
+        };
+
+        if (!enqueueBuffer(v4l2Buffer.index))
+            qCWarning(qLcV4L2MemoryTransfer) << "Cannot add buffer";
+
+        return frame;
+    }
+
+    quint32 buffersCount() const override { return static_cast<quint32>(m_byteArrays.size()); }
+
+private:
+    UserPtrMemoryTransfer(QV4L2FileDescriptorPtr fileDescriptor, quint32 buffersCount,
+                          quint32 imageSize, int bytesPerLine)
+        : QV4L2MemoryTransfer(std::move(fileDescriptor)),
+          m_imageSize(imageSize),
+          m_bytesPerLine(bytesPerLine),
+          m_byteArrays(buffersCount)
+    {
     }
 
     bool enqueueBuffer(quint32 index) override
@@ -86,19 +111,8 @@ public:
         return true;
     }
 
-    quint32 buffersCount() const override { return static_cast<quint32>(m_byteArrays.size()); }
-
-private:
-    UserPtrMemoryTransfer(QV4L2FileDescriptorPtr fileDescriptor, quint32 buffersCount,
-                          quint32 imageSize)
-        : QV4L2MemoryTransfer(std::move(fileDescriptor)),
-          m_imageSize(imageSize),
-          m_byteArrays(buffersCount)
-    {
-    }
-
-private:
-    quint32 m_imageSize;
+    const quint32 m_imageSize;
+    const int m_bytesPerLine;
     std::vector<QByteArray> m_byteArrays;
 };
 
@@ -112,7 +126,7 @@ public:
         bool inQueue = false;
     };
 
-    static QV4L2MemoryTransferUPtr create(QV4L2FileDescriptorPtr fileDescriptor)
+    static QV4L2MemoryTransferUPtr create(QV4L2FileDescriptorPtr fileDescriptor, int bytesPerLine)
     {
         auto requestResult = fileDescriptor->requestBuffers(V4L2_MEMORY_MMAP, 2);
         if (!requestResult) {
@@ -121,7 +135,7 @@ public:
         }
 
         std::unique_ptr<MMapMemoryTransfer> result(
-                new MMapMemoryTransfer(std::move(fileDescriptor)));
+                new MMapMemoryTransfer(std::move(fileDescriptor), bytesPerLine));
 
         return result->init(*requestResult) ? std::move(result) : nullptr;
     }
@@ -158,7 +172,7 @@ public:
             munmap(span.data, span.size);
     }
 
-    std::optional<Buffer> dequeueBuffer() override
+    std::optional<Frame> dequeueFrame() override
     {
         auto v4l2Buffer = makeV4l2Buffer(V4L2_MEMORY_MMAP);
         if (!fileDescriptor().call(VIDIOC_DQBUF, &v4l2Buffer))
@@ -178,7 +192,23 @@ public:
         // truncate jpeg
         QByteArray byteArray(reinterpret_cast<const char *>(span.data), v4l2Buffer.bytesused);
 
-        return Buffer{ v4l2Buffer, std::move(byteArray) };
+        Frame frame{
+            v4l2Buffer.timestamp,
+            std::make_unique<QMemoryVideoBuffer>(std::move(byteArray), m_bytesPerLine),
+        };
+
+        if (!enqueueBuffer(index))
+            qCWarning(qLcV4L2MemoryTransfer) << "Cannot add buffer";
+
+        return frame;
+    }
+
+    quint32 buffersCount() const override { return static_cast<quint32>(m_spans.size()); }
+
+private:
+    MMapMemoryTransfer(QV4L2FileDescriptorPtr fileDescriptor, int bytesPerLine)
+        : QV4L2MemoryTransfer(std::move(fileDescriptor)), m_bytesPerLine(bytesPerLine)
+    {
     }
 
     bool enqueueBuffer(quint32 index) override
@@ -194,12 +224,7 @@ public:
         return true;
     }
 
-    quint32 buffersCount() const override { return static_cast<quint32>(m_spans.size()); }
-
-private:
-    using QV4L2MemoryTransfer::QV4L2MemoryTransfer;
-
-private:
+    const int m_bytesPerLine;
     std::vector<MemorySpan> m_spans;
 };
 } // namespace
@@ -226,14 +251,15 @@ bool QV4L2MemoryTransfer::enqueueBuffers()
 }
 
 QV4L2MemoryTransferUPtr makeUserPtrMemoryTransfer(QV4L2FileDescriptorPtr fileDescriptor,
-                                                  quint32 imageSize)
+                                                  quint32 imageSize, int bytesPerLine)
 {
-    return UserPtrMemoryTransfer::create(std::move(fileDescriptor), imageSize);
+    return UserPtrMemoryTransfer::create(std::move(fileDescriptor), imageSize, bytesPerLine);
 }
 
-QV4L2MemoryTransferUPtr makeMMapMemoryTransfer(QV4L2FileDescriptorPtr fileDescriptor)
+QV4L2MemoryTransferUPtr makeMMapMemoryTransfer(QV4L2FileDescriptorPtr fileDescriptor,
+                                               int bytesPerLine)
 {
-    return MMapMemoryTransfer::create(std::move(fileDescriptor));
+    return MMapMemoryTransfer::create(std::move(fileDescriptor), bytesPerLine);
 }
 
 } // namespace QtV4L2
