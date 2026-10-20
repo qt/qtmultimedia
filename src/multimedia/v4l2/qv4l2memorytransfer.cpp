@@ -55,7 +55,7 @@ public:
     std::optional<Frame> dequeueFrame() override
     {
         auto v4l2Buffer = makeV4l2Buffer(V4L2_MEMORY_USERPTR);
-        if (!fileDescriptor().call(VIDIOC_DQBUF, &v4l2Buffer))
+        if (!ioctl(VIDIOC_DQBUF, &v4l2Buffer))
             return {};
 
         Q_ASSERT(v4l2Buffer.index < m_byteArrays.size());
@@ -103,7 +103,7 @@ private:
         buf.m.userptr = (decltype(buf.m.userptr))m_byteArrays[index].data();
         buf.length = m_byteArrays[index].size();
 
-        if (!fileDescriptor().call(VIDIOC_QBUF, &buf)) {
+        if (!ioctl(VIDIOC_QBUF, &buf)) {
             qWarning() << "Couldn't add V4L2 buffer" << errno << qt_error_string(errno) << index;
             return false;
         }
@@ -145,7 +145,7 @@ public:
         for (quint32 index = 0; index < buffersCount; ++index) {
             auto buf = makeV4l2Buffer(V4L2_MEMORY_MMAP, index);
 
-            if (!fileDescriptor().call(VIDIOC_QUERYBUF, &buf)) {
+            if (!ioctl(VIDIOC_QUERYBUF, &buf)) {
                 qWarning() << "Can't map buffer" << index;
                 return false;
             }
@@ -175,7 +175,7 @@ public:
     std::optional<Frame> dequeueFrame() override
     {
         auto v4l2Buffer = makeV4l2Buffer(V4L2_MEMORY_MMAP);
-        if (!fileDescriptor().call(VIDIOC_DQBUF, &v4l2Buffer))
+        if (!ioctl(VIDIOC_DQBUF, &v4l2Buffer))
             return {};
 
         const auto index = v4l2Buffer.index;
@@ -217,7 +217,7 @@ private:
         Q_ASSERT(!m_spans[index].inQueue);
 
         auto buf = makeV4l2Buffer(V4L2_MEMORY_MMAP, index);
-        if (!fileDescriptor().call(VIDIOC_QBUF, &buf))
+        if (!ioctl(VIDIOC_QBUF, &buf))
             return false;
 
         m_spans[index].inQueue = true;
@@ -248,6 +248,11 @@ bool QV4L2MemoryTransfer::enqueueBuffers()
             return false;
 
     return true;
+}
+
+q23::expected<int, std::error_code> QV4L2MemoryTransfer::ioctl(int request, void *arg)
+{
+    return m_fileDescriptor->call(request, arg);
 }
 
 QV4L2MemoryTransferUPtr makeUserPtrMemoryTransfer(QV4L2FileDescriptorPtr fileDescriptor,
