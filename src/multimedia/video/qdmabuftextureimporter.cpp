@@ -18,7 +18,7 @@ static_assert(QT_CONFIG(linux_dmabuf));
 
 QT_BEGIN_NAMESPACE
 
-Q_STATIC_LOGGING_CATEGORY(qLDmaBuf, "qt.multimedia.dmabuf");
+Q_STATIC_LOGGING_CATEGORY(qLDmaBuf, "qt.multimedia.dmabuf")
 
 namespace QtMultimediaPrivate {
 
