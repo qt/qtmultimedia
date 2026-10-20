@@ -18,6 +18,7 @@
 #include <QtMultimedia/qabstractvideobuffer.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtCore/qtypes.h>
+#include <QtCore/private/qexpected_p.h>
 
 #include <linux/videodev2.h>
 #include <sys/time.h>
@@ -54,6 +55,7 @@ protected:
 
     bool enqueueBuffers();
 
+    q23::expected<int, std::error_code> ioctl(int request, void *arg);
     const QV4L2FileDescriptor &fileDescriptor() const { return *m_fileDescriptor; }
 
 private:
