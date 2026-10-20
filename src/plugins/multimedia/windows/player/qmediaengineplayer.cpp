@@ -333,6 +333,9 @@ void QMediaEnginePlayer::handleMediaEngineEvent(DWORD event, DWORD_PTR param1, D
 
     case MF_MEDIA_ENGINE_EVENT_PAUSE:
         qCDebug(lcMediaEngine) << "PAUSE";
+        // Events are queued: ignore a stale PAUSE if playback was resumed meanwhile.
+        if (!m_mediaEngine->IsPaused())
+            break;
         if (state() != QMediaPlayer::StoppedState && state() != QMediaPlayer::PausedState) {
             stateChanged(QMediaPlayer::PausedState);
             stopPlaybackTimers();
@@ -355,6 +358,7 @@ void QMediaEnginePlayer::handleMediaEngineEvent(DWORD event, DWORD_PTR param1, D
             positionChanged(m_duration.count());
             stateChanged(QMediaPlayer::StoppedState);
             mediaStatusChanged(QMediaPlayer::EndOfMedia);
+            bufferProgressChanged(0.f);
             resetCurrentLoop();
         }
         break;
@@ -531,7 +535,10 @@ void QMediaEnginePlayer::play()
 
     if (mediaStatus() == QMediaPlayer::EndOfMedia) {
         if (!m_seekTarget) {
-            m_mediaEngine->SetCurrentTime(0);
+            // Play() on an ended engine restarts from the beginning (HTML5 semantics).
+            // Seeking explicitly before Play() makes the engine report ENDED again.
+            if (!m_mediaEngine->IsEnded())
+                m_mediaEngine->SetCurrentTime(0);
             positionChanged(0);
         }
         resetCurrentLoop();
@@ -557,11 +564,23 @@ void QMediaEnginePlayer::pause()
         return;
 
     m_pendingPlay = false;
+
+    // Like play(), pause() from EndOfMedia rewinds to the beginning.
+    const bool fromEndOfMedia = mediaStatus() == QMediaPlayer::EndOfMedia;
+    if (fromEndOfMedia) {
+        if (!m_seekTarget)
+            setPosition(0);
+        resetCurrentLoop();
+    }
+
     HRESULT hr = m_mediaEngine->Pause();
     if (FAILED(hr)) {
         qCWarning(lcMediaEngine) << "Pause:" << QSystemError::windowsComString(hr);
         return;
     }
+
+    if (fromEndOfMedia)
+        mediaStatusChanged(QMediaPlayer::BufferedMedia);
 
     if (mediaStatus() != QMediaPlayer::NoMedia && mediaStatus() != QMediaPlayer::InvalidMedia) {
         stateChanged(QMediaPlayer::PausedState);

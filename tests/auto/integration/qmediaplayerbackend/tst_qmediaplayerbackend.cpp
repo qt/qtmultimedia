@@ -2260,9 +2260,6 @@ void tst_QMediaPlayerBackend::processEOS()
 {
     QSKIP_GSTREAMER("QTBUG-124005: spurious failure with gstreamer");
     QSKIP_OHOS("OH_AVPlayer end-of-stream handling does not follow the cross-platform signal contract");
-    QSKIP_WMF("IMFMediaEngine: short files reach EndOfMedia before playbackStateChanged can be "
-              "checked");
-
     QMediaPlayer &player = m_fixture->player;
     QSignalSpy &mediaStatusChanged = m_fixture->mediaStatusChanged;
     QSignalSpy &playbackStateChanged = m_fixture->playbackStateChanged;
