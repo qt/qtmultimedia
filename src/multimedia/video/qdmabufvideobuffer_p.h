@@ -23,7 +23,6 @@
 #include <QtCore/qspan.h>
 #include <QtCore/qvarlengtharray.h>
 
-#include <array>
 #include <memory>
 
 static_assert(QT_CONFIG(linux_dmabuf));
@@ -54,8 +53,7 @@ public:
 private:
     const QVideoFrameFormat::PixelFormat m_format;
     const QSize m_size;
-    std::array<DmaBufPlane, 4> m_planes;
-    const int m_planeCount = 0;
+    QVarLengthArray<DmaBufPlane, 4> m_planes; // later: std::inplace_vector
 
     const std::shared_ptr<void> m_keepAlive;
 

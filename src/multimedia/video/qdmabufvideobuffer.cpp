@@ -7,6 +7,7 @@
 #include <QtMultimedia/private/qrhivaluemapper_p.h>
 #include <QtGui/rhi/qrhi.h>
 #include <QtCore/qloggingcategory.h>
+#include <QtCore/private/qcore_unix_p.h>
 
 #if QT_CONFIG(opengl) && QT_CONFIG(egl)
 #  include <QtMultimedia/private/qdmabuftextureimporter_p.h>
@@ -33,27 +34,22 @@ static QRhiValueMapper<DmaBufEglContext> g_eglContexts;
 QDmaBufVideoBuffer::QDmaBufVideoBuffer(QVideoFrameFormat::PixelFormat format, QSize size,
                                        QSpan<const DmaBufPlane> planes,
                                        std::shared_ptr<void> keepAlive)
-    : m_format(format),
-      m_size(size),
-      m_planeCount(std::clamp(0, int(planes.size()), 4)),
-      m_keepAlive(std::move(keepAlive))
+    : m_format(format), m_size(size), m_keepAlive(std::move(keepAlive))
 {
     Q_ASSERT(!planes.empty() && planes.size() <= 4);
 
-    for (int i = 0; i < m_planeCount; ++i) {
-        m_planes[i] = planes[i];
+    for (const DmaBufPlane &plane : planes) {
+        m_planes.push_back(plane);
 
         // Take our own, independent reference: the producer may close its
         // fd at any point while this buffer is still alive.
-        if (m_planes[i].fd >= 0) {
-            const int dupped = ::fcntl(m_planes[i].fd, F_DUPFD_CLOEXEC, 0);
-            if (dupped < 0) {
-                qCWarning(qLcDmaBufVideoBuffer) << "Failed to dup DMABUF fd for plane" << i << ':'
-                                                << qt_error_string(errno);
-                m_planes[i].fd = -1;
-            } else {
-                m_planes[i].fd = dupped;
-            }
+        const int dupped = ::fcntl(m_planes.back().fd, F_DUPFD_CLOEXEC, 0);
+        if (dupped < 0) {
+            qCWarning(qLcDmaBufVideoBuffer) << "Failed to dup DMABUF fd for plane"
+                                            << m_planes.size() - 1 << ':' << qt_error_string(errno);
+            m_planes.back().fd = -1;
+        } else {
+            m_planes.back().fd = dupped;
         }
     }
 }
@@ -62,10 +58,9 @@ QDmaBufVideoBuffer::~QDmaBufVideoBuffer()
 {
     Q_ASSERT(m_mapMode == QVideoFrame::NotMapped);
 
-    for (int i = 0; i < m_planeCount; ++i) {
-        if (m_planes[i].fd >= 0)
-            ::close(m_planes[i].fd);
-    }
+    for (const DmaBufPlane &plane : m_planes)
+        if (plane.fd >= 0)
+            qt_safe_close(plane.fd);
 }
 
 QVideoFrameTexturesUPtr QDmaBufVideoBuffer::mapTextures(QRhi &rhi)
@@ -89,8 +84,7 @@ QVideoFrameTexturesUPtr QDmaBufVideoBuffer::mapTextures(QRhi &rhi)
         return {};
     }
 
-    auto handles = importDmaBufTextures(rhi, eglContext, QSpan(m_planes.data(), m_planeCount),
-                                        m_format, m_size, m_keepAlive);
+    auto handles = importDmaBufTextures(rhi, eglContext, m_planes, m_format, m_size, m_keepAlive);
     if (!handles) {
         if (handles.error() == FailureSeverity::unrecoverable) {
             qCWarning(qLcDmaBufVideoBuffer)
@@ -123,7 +117,7 @@ QAbstractVideoBuffer::MapData QDmaBufVideoBuffer::map(QVideoFrame::MapMode mode)
 
     QVarLengthArray<std::pair<int, std::pair<void *, size_t>>, 4> mappedByFd;
 
-    for (int i = 0; i < m_planeCount; ++i) {
+    for (qsizetype i = 0; i < m_planes.size(); ++i) {
         const DmaBufPlane &plane = m_planes[i];
 
         void *base = nullptr;
@@ -165,7 +159,7 @@ QAbstractVideoBuffer::MapData QDmaBufVideoBuffer::map(QVideoFrame::MapMode mode)
         mapData.dataSize[i] = int(plane.pitch) * desc->heightForPlane(m_size.height(), i);
     }
 
-    mapData.planeCount = m_planeCount;
+    mapData.planeCount = m_planes.size();
 
     m_mappedRegions.clear();
     for (const auto &entry : mappedByFd)
