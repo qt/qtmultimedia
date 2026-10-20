@@ -39,6 +39,9 @@ private slots:
 
     void dmaBufFourccFromPixelFormat_and_pixelFormatFromDrmFourcc_agree_forSinglePlaneFormats();
 
+    void dmaBufSingleImageFourccFromPixelFormat_returnsCombinedFourcc_data();
+    void dmaBufSingleImageFourccFromPixelFormat_returnsCombinedFourcc();
+
     void toString_decodesModifier_data();
     void toString_decodesModifier();
 
@@ -166,6 +169,36 @@ void tst_QMultimediaDrmSupport::
         QCOMPARE_EQ(planes.size(), 1);
         QCOMPARE_EQ(pixelFormatFromDrmFourcc(planes[0]), std::optional(pixelFormat));
     }
+}
+
+void tst_QMultimediaDrmSupport::dmaBufSingleImageFourccFromPixelFormat_returnsCombinedFourcc_data()
+{
+    using PixelFormat = QVideoFrameFormat::PixelFormat;
+
+    QTest::addColumn<QVideoFrameFormat::PixelFormat>("pixelFormat");
+    QTest::addColumn<QString>("expectedFourcc");
+
+    QTest::newRow("NV12") << PixelFormat::Format_NV12 << u"NV12"_s;
+    QTest::newRow("NV21") << PixelFormat::Format_NV21 << u"NV21"_s;
+    QTest::newRow("P010") << PixelFormat::Format_P010 << u"P010"_s;
+    QTest::newRow("P016") << PixelFormat::Format_P016 << u"P016"_s;
+    QTest::newRow("YUV420P") << PixelFormat::Format_YUV420P << u"YU12"_s;
+    QTest::newRow("YV12") << PixelFormat::Format_YV12 << u"YV12"_s;
+    QTest::newRow("YUV422P") << PixelFormat::Format_YUV422P << u"YU16"_s;
+
+    // Formats without a combined equivalent keep using the first plane's format.
+    QTest::newRow("AYUV") << PixelFormat::Format_AYUV << QString();
+    QTest::newRow("RGBA8888") << PixelFormat::Format_RGBA8888 << QString();
+    QTest::newRow("YUV420P10") << PixelFormat::Format_YUV420P10 << QString();
+}
+
+void tst_QMultimediaDrmSupport::dmaBufSingleImageFourccFromPixelFormat_returnsCombinedFourcc()
+{
+    QFETCH(const QVideoFrameFormat::PixelFormat, pixelFormat);
+    QFETCH(const QString, expectedFourcc);
+
+    const std::optional<DRMFormat> fourcc = dmaBufSingleImageFourccFromPixelFormat(pixelFormat);
+    QCOMPARE_EQ(fourcc ? toString(*fourcc) : QString(), expectedFourcc);
 }
 
 void tst_QMultimediaDrmSupport::toString_decodesModifier_data()

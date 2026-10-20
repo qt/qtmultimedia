@@ -158,6 +158,9 @@ setExcludedRhiTextureFormats(QList<QRhiTexture::Format> formats); // for tests o
 Q_MULTIMEDIA_EXPORT bool
 forceGlTextureExternalOesIsSet();
 
+// override QT_MULTIMEDIA_FORCE_GL_TEXTURE_EXTERNAL_OES
+Q_MULTIMEDIA_EXPORT void setForceGlTextureExternalOesIsSet(bool);
+
 struct UniformData {
     float transformMatrix[4][4];
     float colorMatrix[4][4];

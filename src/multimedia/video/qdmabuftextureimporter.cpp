@@ -5,6 +5,7 @@
 
 #include <QtMultimedia/private/qeglimagefunctions_p.h>
 #include <QtMultimedia/private/qmultimedia_gl_support_p.h>
+#include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtMultimedia/private/qvideotexturehelper_p.h>
 
 #include <QtGui/qopenglcontext.h>
@@ -13,6 +14,9 @@
 
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
+
+#include <array>
+#include <vector>
 
 static_assert(QT_CONFIG(linux_dmabuf));
 
@@ -55,9 +59,13 @@ DmaBufEglContext::DmaBufEglContext(QRhi *rhi)
     m_valid = true;
 }
 
-DmaBufTextureHandles::DmaBufTextureHandles(QRhi &rhi, std::array<GlTextureHandle, 4> textures,
+DmaBufTextureHandles::DmaBufTextureHandles(QRhi &rhi, std::vector<GlTextureHandle> textures,
+                                           QVideoFrameFormat::PixelFormat format,
                                            std::shared_ptr<void> parentKeepAlive)
-    : m_parentKeepAlive(std::move(parentKeepAlive)), m_rhi(rhi), m_textures(std::move(textures))
+    : m_parentKeepAlive(std::move(parentKeepAlive)),
+      m_rhi(rhi),
+      m_textures(std::move(textures)),
+      m_texturePixelFormat(format)
 {
 }
 
@@ -83,8 +91,9 @@ static bool dmaModifierIsNotSupportedByDisplay(const DmaBufPlane &plane, EGLDisp
 q23::expected<QVideoFrameTexturesHandlesUPtr, FailureSeverity>
 importDmaBufTextures(QRhi &rhi, const DmaBufEglContext &eglContext, QSpan<const DmaBufPlane> planes,
                      QVideoFrameFormat::PixelFormat qtFormat, QSize frameSize,
-                     std::shared_ptr<void> parentKeepAlive)
+                     std::shared_ptr<void> parentKeepAlive, DmaBufImportMode importMode)
 {
+    qCDebug(qLDmaBuf) << "Importing textures from DMA buffer," << qtFormat;
     Qt::HANDLE eglDisplay = eglContext.eglDisplay();
     QOpenGLContext *glContext = eglContext.glContext();
 
@@ -97,54 +106,104 @@ importDmaBufTextures(QRhi &rhi, const DmaBufEglContext &eglContext, QSpan<const 
 
     rhi.makeThreadLocalNativeContextCurrent();
 
+    QVideoFrameFormat::PixelFormat texturePixelFormat = qtFormat;
+    GLenum glTarget = GL_TEXTURE_2D;
+    if (importMode == DmaBufImportMode::SingleImage) {
+        // the driver converts the planes to RGB when sampling
+        texturePixelFormat = QVideoFrameFormat::Format_RGBA8888;
+#ifdef GL_OES_EGL_image_external
+        if (QVideoTextureHelper::forceGlTextureExternalOesIsSet()) {
+            texturePixelFormat = QVideoFrameFormat::Format_SamplerExternalOES;
+            glTarget = GL_TEXTURE_EXTERNAL_OES;
+        }
+#endif
+    }
+
+    const int nImages = importMode == DmaBufImportMode::SingleImage ? 1 : nPlanes;
+
     std::array<EGLImageHandle, 4> images;
     std::array<GLuint, 4> rawGlTextures{};
-    functions.glGenTextures(nPlanes, rawGlTextures.data());
+    functions.glGenTextures(nImages, rawGlTextures.data());
 
-    std::array<GlTextureHandle, 4> glTextures;
-    for (int i = 0; i < nPlanes; ++i)
-        glTextures[i] = GlTextureHandle(rawGlTextures[i], GlTextureDeleter(glContext));
+    std::vector<GlTextureHandle> glTextures;
+    glTextures.reserve(nImages);
+    for (int i = 0; i < nImages; ++i)
+        glTextures.emplace_back(rawGlTextures[i], GlTextureDeleter(glContext));
 
-    for (int i = 0; i < nPlanes; ++i) {
-        const DmaBufPlane &plane = planes[i];
-
-        QSize planeSize = desc->rhiPlaneSize(frameSize, i, &rhi);
-        constexpr uint32_t maxAttrCount = 18;
-        EGLAttrib img_attr[maxAttrCount] = {
-            EGL_LINUX_DRM_FOURCC_EXT,
-            (EGLint)qToUnderlying(plane.drmFormat),
-            EGL_WIDTH,
-            planeSize.width(),
-            EGL_HEIGHT,
-            planeSize.height(),
+    auto importImage =
+            [&](int image, DRMFormat drmFormat, QSize imageSize,
+                QSpan<const DmaBufPlane> imagePlanes) -> q23::expected<void, FailureSeverity> {
+        constexpr EGLint fdAttrs[4] = {
             EGL_DMA_BUF_PLANE0_FD_EXT,
-            plane.fd,
-            EGL_DMA_BUF_PLANE0_OFFSET_EXT,
-            (EGLint)plane.offset,
-            EGL_DMA_BUF_PLANE0_PITCH_EXT,
-            (EGLint)plane.pitch,
+            EGL_DMA_BUF_PLANE1_FD_EXT,
+            EGL_DMA_BUF_PLANE2_FD_EXT,
+            EGL_DMA_BUF_PLANE3_FD_EXT,
         };
-        uint32_t img_attr_idx = 12;
-        if (plane.modifier != DmaBufFormatModifierInvalid) {
-            const auto modifier = qToUnderlying(plane.modifier);
-            img_attr[img_attr_idx++] = EGL_DMA_BUF_PLANE0_MODIFIER_LO_EXT;
-            img_attr[img_attr_idx++] = EGLAttrib(modifier & 0xFFFFFFFF);
-            img_attr[img_attr_idx++] = EGL_DMA_BUF_PLANE0_MODIFIER_HI_EXT;
-            img_attr[img_attr_idx++] = EGLAttrib(modifier >> 32);
+        constexpr EGLint offsetAttrs[4] = {
+            EGL_DMA_BUF_PLANE0_OFFSET_EXT,
+            EGL_DMA_BUF_PLANE1_OFFSET_EXT,
+            EGL_DMA_BUF_PLANE2_OFFSET_EXT,
+            EGL_DMA_BUF_PLANE3_OFFSET_EXT,
+        };
+        constexpr EGLint pitchAttrs[4] = {
+            EGL_DMA_BUF_PLANE0_PITCH_EXT,
+            EGL_DMA_BUF_PLANE1_PITCH_EXT,
+            EGL_DMA_BUF_PLANE2_PITCH_EXT,
+            EGL_DMA_BUF_PLANE3_PITCH_EXT,
+        };
+        constexpr EGLint modifierLoAttrs[4] = {
+            EGL_DMA_BUF_PLANE0_MODIFIER_LO_EXT,
+            EGL_DMA_BUF_PLANE1_MODIFIER_LO_EXT,
+            EGL_DMA_BUF_PLANE2_MODIFIER_LO_EXT,
+            EGL_DMA_BUF_PLANE3_MODIFIER_LO_EXT,
+        };
+        constexpr EGLint modifierHiAttrs[4] = {
+            EGL_DMA_BUF_PLANE0_MODIFIER_HI_EXT,
+            EGL_DMA_BUF_PLANE1_MODIFIER_HI_EXT,
+            EGL_DMA_BUF_PLANE2_MODIFIER_HI_EXT,
+            EGL_DMA_BUF_PLANE3_MODIFIER_HI_EXT,
+        };
+
+        constexpr size_t maxAttrCount = 6 + 4 * 10 + 1;
+        std::array<EGLAttrib, maxAttrCount> img_attr = {
+            EGL_LINUX_DRM_FOURCC_EXT,
+            (EGLint)qToUnderlying(drmFormat),
+            EGL_WIDTH,
+            imageSize.width(),
+            EGL_HEIGHT,
+            imageSize.height(),
+        };
+        size_t img_attr_idx = 6;
+        for (int plane = 0; plane < imagePlanes.size() && plane < 4; ++plane) {
+            const DmaBufPlane &dmabuf = imagePlanes[plane];
+            img_attr[img_attr_idx++] = fdAttrs[plane];
+            img_attr[img_attr_idx++] = dmabuf.fd;
+            img_attr[img_attr_idx++] = offsetAttrs[plane];
+            img_attr[img_attr_idx++] = (EGLint)dmabuf.offset;
+            img_attr[img_attr_idx++] = pitchAttrs[plane];
+            img_attr[img_attr_idx++] = (EGLint)dmabuf.pitch;
+            if (dmabuf.modifier != DmaBufFormatModifierInvalid) {
+                const auto modifier = qToUnderlying(dmabuf.modifier);
+                img_attr[img_attr_idx++] = modifierLoAttrs[plane];
+                img_attr[img_attr_idx++] = EGLAttrib(modifier & 0xFFFFFFFF);
+                img_attr[img_attr_idx++] = modifierHiAttrs[plane];
+                img_attr[img_attr_idx++] = EGLAttrib(modifier >> 32);
+            }
         }
         img_attr[img_attr_idx++] = EGL_NONE;
         Q_ASSERT(img_attr_idx <= maxAttrCount);
-        images[i] = elgImageFunctions.eglCreateImage(
+
+        images[image] = elgImageFunctions.eglCreateImage(
                 eglDisplay, EGL_NO_CONTEXT, EGL_LINUX_DMA_BUF_EXT, nullptr,
-                QSpan<const EGLAttrib>(img_attr, img_attr_idx));
-        if (!images[i]) {
+                QSpan<const EGLAttrib>(img_attr.data(), img_attr_idx));
+        if (!images[image]) {
             const EGLError error = EGLError(eglGetError());
             switch (error) {
             case EGLError::Success: {
                 break;
             }
             case EGLError::BadMatch: {
-                qWarning() << "eglCreateImage failed for plane" << i << "with" << error
+                qWarning() << "eglCreateImage failed for image" << image << "with" << error
                            << ", disabling hardware acceleration. "
                               "This could indicate an EGL implementation issue."
                               "\nEGL vendor:"
@@ -154,9 +213,11 @@ importDmaBufTextures(QRhi &rhi, const DmaBufEglContext &eglContext, QSpan<const 
             }
             case EGLError::BadParameter: {
                 bool dmaModifierNotSupported =
-                        dmaModifierIsNotSupportedByDisplay(plane, eglDisplay);
+                        ranges::any_of(imagePlanes, [&](const DmaBufPlane &plane) {
+                    return dmaModifierIsNotSupportedByDisplay(plane, eglDisplay);
+                });
                 if (dmaModifierNotSupported) {
-                    qWarning() << "eglCreateImage failed for plane" << i << "with" << error
+                    qWarning() << "eglCreateImage failed for image" << image << "with" << error
                                << ", disabling hardware acceleration. "
                                   "This could indicate an EGL implementation issue."
                                   "\nEGL vendor:"
@@ -167,29 +228,54 @@ importDmaBufTextures(QRhi &rhi, const DmaBufEglContext &eglContext, QSpan<const 
                 [[fallthrough]];
             }
             default: {
-                qWarning() << "eglCreateImage failed for plane" << i << "with" << error;
+                qWarning() << "eglCreateImage failed for image" << image << "with" << error;
                 return q23::unexpected{ FailureSeverity::recoverable };
             }
             }
         }
-        functions.glActiveTexture(GL_TEXTURE0 + i);
-        functions.glBindTexture(GL_TEXTURE_2D, glTextures[i].get());
+        functions.glActiveTexture(GL_TEXTURE0 + image);
+        functions.glBindTexture(glTarget, glTextures[image].get());
 
-        elgImageFunctions.glEGLImageTargetTexture2DOES(GL_TEXTURE_2D, images[i].get());
+        elgImageFunctions.glEGLImageTargetTexture2DOES(glTarget, images[image].get());
         const GLError error = GLError(glGetError());
         if (error != GLError::NoError) {
-            qWarning() << "eglImageTargetTexture2D failed for plane" << i << "with" << error
+            qWarning() << "eglImageTargetTexture2D failed for image" << image << "with" << error
                        << "(the driver may not support importing this dma-buf as a GL texture)";
             return q23::unexpected{ FailureSeverity::recoverable };
         }
+        return {};
+    };
+
+    switch (importMode) {
+    case DmaBufImportMode::SingleImage: {
+        const auto combinedFormat = dmaBufSingleImageFourccFromPixelFormat(qtFormat);
+        if (!combinedFormat) {
+            qCWarning(qLDmaBuf) << "No single-image DRM format for" << qtFormat;
+            return q23::unexpected(FailureSeverity::recoverable);
+        }
+        auto result = importImage(0, *combinedFormat, frameSize, planes.first(nPlanes));
+        if (!result)
+            return q23::unexpected(result.error());
+        break;
+    }
+    case DmaBufImportMode::PerPlane:
+        for (int i = 0; i < nPlanes; ++i) {
+            const QSize planeSize = desc->rhiPlaneSize(frameSize, i, &rhi);
+            auto result = importImage(i, planes[i].drmFormat, planeSize, planes.subspan(i, 1));
+            if (!result)
+                return q23::unexpected(result.error());
+        }
+        break;
+    default:
+        Q_UNREACHABLE();
     }
 
-    for (int i = 0; i < nPlanes; ++i) {
+    for (int i = 0; i < nImages; ++i) {
         functions.glActiveTexture(GL_TEXTURE0 + i);
-        functions.glBindTexture(GL_TEXTURE_2D, 0);
+        functions.glBindTexture(glTarget, 0);
     }
 
-    return std::make_unique<DmaBufTextureHandles>(rhi, std::move(glTextures),
+    return std::make_unique<DmaBufTextureHandles>(rhi, std::move(glTextures), texturePixelFormat,
                                                   std::move(parentKeepAlive));
 }
 

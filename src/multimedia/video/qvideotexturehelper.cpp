@@ -23,10 +23,25 @@ Q_STATIC_LOGGING_CATEGORY(qLcVideoTextureHelper, "qt.multimedia.video.texturehel
 namespace QVideoTextureHelper
 {
 
-bool forceGlTextureExternalOesIsSet() {
-    static const bool isSet =
+namespace {
+
+bool &glTextureExternalOesSetting()
+{
+    static bool isSet =
             qEnvironmentVariableIntValue("QT_MULTIMEDIA_FORCE_GL_TEXTURE_EXTERNAL_OES") != 0;
     return isSet;
+}
+
+} // namespace
+
+bool forceGlTextureExternalOesIsSet()
+{
+    return glTextureExternalOesSetting();
+}
+
+void setForceGlTextureExternalOesIsSet(bool isSet)
+{
+    glTextureExternalOesSetting() = isSet;
 }
 
 static const TextureDescription descriptions[QVideoFrameFormat::NPixelFormats] = {
@@ -724,15 +739,12 @@ void updateUniformData(QByteArray *dst, QRhi *rhi, const QVideoFrameFormat &form
 
 namespace {
 
-QRhiTexture::Flags textureFlagsFor(QVideoFrameFormat::PixelFormat pixelFormat,
-                                   [[maybe_unused]] QRhi &rhi)
+QRhiTexture::Flags textureFlagsFor(QVideoFrameFormat::PixelFormat pixelFormat, QRhi &rhi)
 {
     switch (pixelFormat) {
     case QVideoFrameFormat::Format_SamplerExternalOES:
-#ifdef Q_OS_ANDROID
         if (rhi.backend() == QRhi::OpenGLES2)
             return QRhiTexture::ExternalOES;
-#endif
         break;
     case QVideoFrameFormat::Format_SamplerRect:
 #ifdef Q_OS_MACOS
@@ -838,11 +850,13 @@ std::unique_ptr<QRhiTexture> createTextureFromHandle(QVideoFrameTexturesHandles 
 std::optional<RhiTextureArray> buildWrappers(QVideoFrameTexturesHandles &texturesSet, QRhi &rhi,
                                              QVideoFrameFormat::PixelFormat pixelFormat, QSize size)
 {
-    const TextureDescription &texDesc = descriptions[pixelFormat];
+    const QVideoFrameFormat::PixelFormat texturesFormat =
+            texturesSet.texturePixelFormat().value_or(pixelFormat);
+    const TextureDescription &texDesc = descriptions[texturesFormat];
     RhiTextureArray textures;
-    for (quint8 plane = 0; plane < texDesc.nplanes; ++plane) {
+    for (int plane = 0; plane < texDesc.nplanes; ++plane) {
         textures[plane] = QVideoTextureHelper::createTextureFromHandle(texturesSet, rhi,
-                                                                       pixelFormat, size, plane);
+                                                                       texturesFormat, size, plane);
         if (!textures[plane])
             return std::nullopt;
     }

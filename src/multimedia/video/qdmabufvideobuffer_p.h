@@ -37,7 +37,8 @@ class Q_MULTIMEDIA_EXPORT QDmaBufVideoBuffer final : public QHwVideoBuffer
 {
 public:
     QDmaBufVideoBuffer(QVideoFrameFormat::PixelFormat format, QSize size,
-                       QSpan<const DmaBufPlane> planes, std::shared_ptr<void> keepAlive = {});
+                       QSpan<const DmaBufPlane> planes, std::shared_ptr<void> keepAlive = {},
+                       DmaBufImportMode importMode = DmaBufImportMode::PerPlane);
     ~QDmaBufVideoBuffer() override;
 
     bool isDmaBuf() const override { return true; }
@@ -49,6 +50,7 @@ public:
 
     QVideoFrameFormat::PixelFormat pixelFormat() const { return m_format; }
     QSize size() const { return m_size; }
+    DmaBufImportMode importMode() const { return m_importMode; }
 
 private:
     const QVideoFrameFormat::PixelFormat m_format;
@@ -56,6 +58,7 @@ private:
     QVarLengthArray<DmaBufPlane, 4> m_planes; // later: std::inplace_vector
 
     const std::shared_ptr<void> m_keepAlive;
+    const DmaBufImportMode m_importMode;
 
     QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;
     QVarLengthArray<std::pair<void *, size_t>, 4> m_mappedRegions;

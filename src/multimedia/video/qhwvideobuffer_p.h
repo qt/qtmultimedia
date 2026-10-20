@@ -20,6 +20,8 @@
 
 #include <QtGui/qmatrix4x4.h>
 
+#include <optional>
+
 QT_BEGIN_NAMESPACE
 
 class QRhi;
@@ -40,6 +42,10 @@ public:
     virtual ~QVideoFrameTexturesHandles();
 
     virtual quint64 textureHandle(QRhi &, int /*plane*/) { return 0; }
+
+    // Set when the textures don't have the layout of the frame's pixel format, e.g. a
+    // single-image import, which exposes one texture for a multi-plane frame.
+    virtual std::optional<QVideoFrameFormat::PixelFormat> texturePixelFormat() const { return {}; }
 };
 using QVideoFrameTexturesHandlesUPtr = std::unique_ptr<QVideoFrameTexturesHandles>;
 

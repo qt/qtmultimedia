@@ -33,8 +33,8 @@ static QRhiValueMapper<DmaBufEglContext> g_eglContexts;
 
 QDmaBufVideoBuffer::QDmaBufVideoBuffer(QVideoFrameFormat::PixelFormat format, QSize size,
                                        QSpan<const DmaBufPlane> planes,
-                                       std::shared_ptr<void> keepAlive)
-    : m_format(format), m_size(size), m_keepAlive(std::move(keepAlive))
+                                       std::shared_ptr<void> keepAlive, DmaBufImportMode importMode)
+    : m_format(format), m_size(size), m_keepAlive(std::move(keepAlive)), m_importMode(importMode)
 {
     Q_ASSERT(!planes.empty() && planes.size() <= 4);
 
@@ -84,7 +84,8 @@ QVideoFrameTexturesUPtr QDmaBufVideoBuffer::mapTextures(QRhi &rhi)
         return {};
     }
 
-    auto handles = importDmaBufTextures(rhi, eglContext, m_planes, m_format, m_size, m_keepAlive);
+    auto handles = importDmaBufTextures(rhi, eglContext, m_planes, m_format, m_size, m_keepAlive,
+                                        m_importMode);
     if (!handles) {
         if (handles.error() == FailureSeverity::unrecoverable) {
             qCWarning(qLcDmaBufVideoBuffer)

@@ -28,8 +28,8 @@
 
 #include <EGL/egl.h>
 
-#include <array>
 #include <memory>
+#include <vector>
 
 static_assert(QT_CONFIG(linux_dmabuf));
 
@@ -60,17 +60,23 @@ private:
 class Q_MULTIMEDIA_EXPORT DmaBufTextureHandles final : public QVideoFrameTexturesHandles
 {
 public:
-    DmaBufTextureHandles(QRhi &rhi, std::array<GlTextureHandle, 4> textures,
+    DmaBufTextureHandles(QRhi &rhi, std::vector<GlTextureHandle> textures,
+                         QVideoFrameFormat::PixelFormat format,
                          std::shared_ptr<void> parentKeepAlive = {});
 
     ~DmaBufTextureHandles() override;
 
     quint64 textureHandle(QRhi &, int plane) override { return m_textures[plane].get(); }
+    std::optional<QVideoFrameFormat::PixelFormat> texturePixelFormat() const override
+    {
+        return m_texturePixelFormat;
+    }
 
 private:
     const std::shared_ptr<void> m_parentKeepAlive; // keep the backend alive
     QRhi &m_rhi;
-    const std::array<GlTextureHandle, 4> m_textures;
+    const std::vector<GlTextureHandle> m_textures;
+    const QVideoFrameFormat::PixelFormat m_texturePixelFormat;
 };
 
 // Severity of a failure to import DMABUF planes as GL textures.
@@ -82,7 +88,8 @@ enum class FailureSeverity {
 Q_MULTIMEDIA_EXPORT q23::expected<QVideoFrameTexturesHandlesUPtr, FailureSeverity>
 importDmaBufTextures(QRhi &rhi, const DmaBufEglContext &eglContext, QSpan<const DmaBufPlane> planes,
                      QVideoFrameFormat::PixelFormat qtFormat, QSize frameSize,
-                     std::shared_ptr<void> parentKeepAlive = {});
+                     std::shared_ptr<void> parentKeepAlive = {},
+                     DmaBufImportMode importMode = DmaBufImportMode::PerPlane);
 
 } // namespace QtMultimediaPrivate
 

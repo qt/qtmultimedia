@@ -167,6 +167,29 @@ dmaBufFourccFromPixelFormat(const QVideoFrameFormat::PixelFormat format)
     return {};
 }
 
+constexpr_cxx23 std::optional<DRMFormat>
+dmaBufSingleImageFourccFromPixelFormat(const QVideoFrameFormat::PixelFormat format)
+{
+    switch (format) {
+    case QVideoFrameFormat::Format_NV12:
+        return DRMFormat::NV12;
+    case QVideoFrameFormat::Format_NV21:
+        return DRMFormat::NV21;
+    case QVideoFrameFormat::Format_P010:
+        return DRMFormat::P010;
+    case QVideoFrameFormat::Format_P016:
+        return DRMFormat::P016;
+    case QVideoFrameFormat::Format_YUV420P:
+        return DRMFormat::YUV420;
+    case QVideoFrameFormat::Format_YV12:
+        return DRMFormat::YVU420;
+    case QVideoFrameFormat::Format_YUV422P:
+        return DRMFormat::YUV422;
+    default:
+        return std::nullopt;
+    }
+}
+
 #undef constexpr_cxx23
 
 constexpr std::optional<QVideoFrameFormat::PixelFormat> pixelFormatFromDrmFourcc(DRMFormat format)
@@ -236,6 +259,11 @@ struct DmaBufPlane
     uint32_t pitch = 0;
     DRMFormat drmFormat = DRMFormat::RGBA8888;
     DRMModifier modifier = DmaBufFormatModifierInvalid;
+};
+
+enum class DmaBufImportMode : uint8_t {
+    PerPlane, // one EGL image per plane, using each plane's own DRM format
+    SingleImage, // all planes packed into a single EGL image described by planes[0].drmFormat
 };
 
 } // namespace QtMultimediaPrivate
