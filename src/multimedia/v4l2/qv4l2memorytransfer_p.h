@@ -15,12 +15,15 @@
 // We mean it.
 //
 
+#include <QtMultimedia/qabstractvideobuffer.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
-#include <QtCore/qbytearray.h>
+#include <QtCore/qtypes.h>
 
 #include <linux/videodev2.h>
+#include <sys/time.h>
 
 #include <memory>
+#include <optional>
 
 QT_BEGIN_NAMESPACE
 
@@ -32,23 +35,23 @@ using QV4L2FileDescriptorPtr = std::shared_ptr<QV4L2FileDescriptor>;
 class QV4L2MemoryTransfer
 {
 public:
-    struct Buffer
+    struct Frame
     {
-        v4l2_buffer v4l2Buffer = {};
-        QByteArray data;
+        timeval timestamp = {};
+        std::unique_ptr<QAbstractVideoBuffer> videoBuffer;
     };
 
     QV4L2MemoryTransfer(QV4L2FileDescriptorPtr fileDescriptor);
 
     virtual ~QV4L2MemoryTransfer();
 
-    virtual std::optional<Buffer> dequeueBuffer() = 0;
-
-    virtual bool enqueueBuffer(quint32 index) = 0;
+    virtual std::optional<Frame> dequeueFrame() = 0;
 
     virtual quint32 buffersCount() const = 0;
 
 protected:
+    virtual bool enqueueBuffer(quint32 index) = 0;
+
     bool enqueueBuffers();
 
     const QV4L2FileDescriptor &fileDescriptor() const { return *m_fileDescriptor; }
@@ -60,9 +63,10 @@ private:
 using QV4L2MemoryTransferUPtr = std::unique_ptr<QV4L2MemoryTransfer>;
 
 QV4L2MemoryTransferUPtr makeUserPtrMemoryTransfer(QV4L2FileDescriptorPtr fileDescriptor,
-                                                  quint32 imageSize);
+                                                  quint32 imageSize, int bytesPerLine);
 
-QV4L2MemoryTransferUPtr makeMMapMemoryTransfer(QV4L2FileDescriptorPtr fileDescriptor);
+QV4L2MemoryTransferUPtr makeMMapMemoryTransfer(QV4L2FileDescriptorPtr fileDescriptor,
+                                               int bytesPerLine);
 
 } // namespace QtV4L2
 
