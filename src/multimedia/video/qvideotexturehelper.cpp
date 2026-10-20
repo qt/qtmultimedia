@@ -1,18 +1,18 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qabstractvideobuffer.h"
-
 #include "qvideotexturehelper_p.h"
-#include "qvideoframeconverter_p.h"
-#include "qvideoframe_p.h"
-#include "qvideoframetexturefromsource_p.h"
-#include "private/qmultimediautils_p.h"
-#include "private/qtmm_alignment_support_p.h"
+
+#include <QtMultimedia/private/qvideoframetexturefromsource_p.h>
+#include <QtMultimedia/private/qvideoframe_p.h>
+#include <QtMultimedia/private/qvideoframeconverter_p.h>
+#include <QtMultimedia/private/qmultimediautils_p.h>
+#include <QtMultimedia/private/qtmm_alignment_support_p.h>
+
+#include <QtGui/qpainter.h>
 
 #include <QtCore/qfile.h>
-#include <qpainter.h>
-#include <qloggingcategory.h>
+#include <QtCore/qloggingcategory.h>
 
 #include <optional>
 
