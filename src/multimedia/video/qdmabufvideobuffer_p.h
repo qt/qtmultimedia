@@ -22,6 +22,7 @@
 #include <QtCore/qsize.h>
 #include <QtCore/qspan.h>
 #include <QtCore/qvarlengtharray.h>
+#include <QtCore/private/quniquehandle_types_p.h>
 
 #include <memory>
 
@@ -61,7 +62,14 @@ private:
     const DmaBufImportMode m_importMode;
 
     QVideoFrame::MapMode m_mapMode = QVideoFrame::NotMapped;
-    QVarLengthArray<std::pair<void *, size_t>, 4> m_mappedRegions;
+    struct MappedRegion
+    {
+        QUniqueFileDescriptorHandle fd;
+        QSpan<std::byte> data;
+    };
+    QVarLengthArray<MappedRegion, 4> m_mappedRegions;
+
+    static void unmapRegions(QSpan<const MappedRegion> regions);
 };
 
 } // namespace QtMultimediaPrivate

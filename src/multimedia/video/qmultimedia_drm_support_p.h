@@ -266,6 +266,15 @@ enum class DmaBufImportMode : uint8_t {
     SingleImage, // all planes packed into a single EGL image described by planes[0].drmFormat
 };
 
+#if QT_CONFIG(linux_dmabuf)
+enum class DmaBufCpuAccess : uint8_t {
+    Begin,
+    End,
+};
+
+Q_MULTIMEDIA_EXPORT void dmaBufSyncRead(int fd, DmaBufCpuAccess access);
+#endif
+
 } // namespace QtMultimediaPrivate
 
 QT_END_NAMESPACE

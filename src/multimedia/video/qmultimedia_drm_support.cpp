@@ -3,7 +3,16 @@
 
 #include "qmultimedia_drm_support_p.h"
 
+#include <QtMultimedia/private/qmultimediautils_p.h>
 #include <QtCore/qdebug.h>
+#include <QtCore/qloggingcategory.h>
+
+#if QT_CONFIG(linux_dmabuf)
+#  include <linux/dma-buf.h>
+#  include <sys/ioctl.h>
+#endif
+
+#include <cerrno>
 
 QT_BEGIN_NAMESPACE
 
@@ -352,6 +361,23 @@ QDebug operator<<(QDebug debug, DRMModifier modifier)
                               << ", " << toString(modifier) << ')';
     return debug;
 }
+
+#if QT_CONFIG(linux_dmabuf)
+
+Q_STATIC_LOGGING_CATEGORY(qLcDrmSupport, "qt.multimedia.drmsupport");
+
+void dmaBufSyncRead(int fd, DmaBufCpuAccess access)
+{
+    const uint64_t startOrEnd =
+            access == DmaBufCpuAccess::Begin ? DMA_BUF_SYNC_START : DMA_BUF_SYNC_END;
+
+    dma_buf_sync sync = {
+        .flags = startOrEnd | DMA_BUF_SYNC_READ,
+    };
+    if (qt_safe_ioctl(fd, DMA_BUF_IOCTL_SYNC, &sync) < 0)
+        qCDebug(qLcDrmSupport) << "DMA_BUF_IOCTL_SYNC failed" << qt_error_string(errno);
+}
+#endif
 
 } // namespace QtMultimediaPrivate
 
