@@ -332,7 +332,7 @@ void QWindowsCamera::setActive(bool active)
 
         m_active = ActiveCamera::create(*this, m_cameraDevice, m_cameraFormat);
         if (m_active)
-            activeChanged(true);
+            Q_EMIT activeChanged(true);
 
     } else {
         m_active.reset();
