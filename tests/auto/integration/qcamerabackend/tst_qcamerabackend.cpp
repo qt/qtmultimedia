@@ -79,6 +79,7 @@ private slots:
 
     void testCameraActive();
     void testCameraStartParallel();
+    void testMappedFrameSurvivesCameraStop();
     void testCameraFormat();
     void testCameraCapture();
     void testCaptureToBuffer();
@@ -526,6 +527,34 @@ void tst_QCameraBackend::testCameraStartParallel()
 
     QCOMPARE(errorSpy1.size(), 0);
     QCOMPARE(errorSpy2.size(), 0);
+}
+
+void tst_QCameraBackend::testMappedFrameSurvivesCameraStop()
+{
+    if (noCamera)
+        QSKIP("No camera available");
+
+    QMediaCaptureSession session;
+    QCamera camera;
+    QVideoSink sink;
+    session.setCamera(&camera);
+    session.setVideoOutput(&sink);
+
+    QSignalSpy frameSpy(&sink, &QVideoSink::videoFrameChanged);
+    QVERIFY(frameSpy.isValid());
+    camera.start();
+    QTRY_VERIFY_WITH_TIMEOUT(!frameSpy.isEmpty(), 10s);
+
+    QVideoFrame frame = frameSpy.first().first().value<QVideoFrame>();
+    QVERIFY(frame.map(QVideoFrame::ReadOnly));
+    const QByteArray before(reinterpret_cast<const char *>(frame.bits(0)), frame.mappedBytes(0));
+
+    camera.stop();
+
+    // The mapping was taken before the stop, so it must still read the same bytes afterwards.
+    const QByteArray after(reinterpret_cast<const char *>(frame.bits(0)), frame.mappedBytes(0));
+    frame.unmap();
+    QCOMPARE(after, before);
 }
 
 void tst_QCameraBackend::testCameraFormat()
