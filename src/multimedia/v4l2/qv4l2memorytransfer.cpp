@@ -19,7 +19,7 @@ Q_STATIC_LOGGING_CATEGORY(qLcV4L2MemoryTransfer, "qt.multimedia.v4l2.memorytrans
 
 namespace {
 
-v4l2_buffer makeV4l2Buffer(quint32 memoryType, quint32 index = 0)
+v4l2_buffer makeV4l2Buffer(v4l2_memory memoryType, quint32 index = 0)
 {
     v4l2_buffer buf = {};
     buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
