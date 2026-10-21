@@ -4223,7 +4223,6 @@ void tst_QMediaPlayerBackend::nonAsciiFileName()
 void tst_QMediaPlayerBackend::setMedia_setsVideoSinkSize_beforePlaying()
 {
     CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
-    QSKIP_DARWIN("videoSizeChanged count and sink propagation differ from expected");
     QSKIP_OHOS("Video sink size is published only after the surface attaches, not on setSource");
 
     QVideoSink sink1;
