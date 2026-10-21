@@ -4112,7 +4112,6 @@ void tst_QMediaPlayerBackend::lazyLoadVideo()
 
 void tst_QMediaPlayerBackend::videoSinkSignals()
 {
-    QSKIP_DARWIN("videoSizeChanged arrives from KVO before first video frame");
     std::atomic<int> videoFrameCounter = 0;
     std::atomic<int> videoSizeCounter = 0;
 

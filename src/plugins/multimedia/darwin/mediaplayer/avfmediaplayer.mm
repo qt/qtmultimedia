@@ -1303,7 +1303,7 @@ void AVFMediaPlayer::nativeSizeChanged(QSize size)
 {
     // AVPlayerItem reports a zero presentationSize until the size is known
     // (and for audio-only media); don't propagate it as a real size.
-    if (size.isEmpty())
+    if (size.isEmpty() || size == m_nativeSize)
         return;
 
     m_nativeSize = size;
