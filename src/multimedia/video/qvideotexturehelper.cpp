@@ -913,7 +913,7 @@ tryRecycleMemory(QVideoFrameTexturesUPtr oldTextures)
     auto *raw = dynamic_cast<QVideoFrameTexturesFromMemory *>(oldTextures.get());
     if (!raw)
         return nullptr;
-    oldTextures.release();
+    std::ignore = oldTextures.release();
     return std::unique_ptr<QVideoFrameTexturesFromMemory>(raw);
 }
 
