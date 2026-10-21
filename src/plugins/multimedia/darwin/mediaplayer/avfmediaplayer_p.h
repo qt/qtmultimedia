@@ -122,6 +122,7 @@ private:
 
     AVFVideoRendererControl *m_videoOutput = nullptr;
     AVFVideoSink *m_videoSink = nullptr;
+    QSize m_nativeSize;
 
     QIODevice *m_mediaStream;
     QUrl m_resources;

@@ -600,6 +600,8 @@ AVFMediaPlayer::~AVFMediaPlayer()
 void AVFMediaPlayer::setVideoSink(QVideoSink *sink)
 {
     m_videoSink = sink ? static_cast<AVFVideoSink *>(sink->platformVideoSink()): nullptr;
+    if (m_videoSink && m_nativeSize.isValid())
+        m_videoSink->setNativeSize(m_nativeSize);
     m_videoOutput->setVideoSink(m_videoSink);
 }
 
@@ -660,6 +662,7 @@ void AVFMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
 #endif
 
     [m_observer unloadMedia];
+    m_nativeSize = { };
 
     m_resources = content;
     resetStream(stream);
@@ -1298,6 +1301,12 @@ void AVFMediaPlayer::resetBufferProgress()
 
 void AVFMediaPlayer::nativeSizeChanged(QSize size)
 {
+    // AVPlayerItem reports a zero presentationSize until the size is known
+    // (and for audio-only media); don't propagate it as a real size.
+    if (size.isEmpty())
+        return;
+
+    m_nativeSize = size;
     if (!m_videoSink)
         return;
     m_videoSink->setNativeSize(size);
