@@ -22,10 +22,10 @@
 #include <QtCore/private/qexpected_p.h>
 #include <QtCore/private/qcomobject_p.h>
 #include <QtCore/private/qcomptr_p.h>
+#include <QtCore/private/qwin32ticks_p.h>
 
 #include <mfobjects.h>
 
-#include <chrono>
 #include <memory_resource>
 
 QT_BEGIN_NAMESPACE
@@ -152,8 +152,7 @@ public:
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 // REFERENCE_TIME helper
-using reference_time = std::chrono::duration<long long, std::ratio<1, 10000000>>;
-static_assert(reference_time(1) == std::chrono::nanoseconds(100));
+using reference_time = QtPrivate::win32_ticks;
 
 } // namespace QWMF
 
