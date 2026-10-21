@@ -9,6 +9,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmltype AudioListener
+    \nativetype QQuick3DAudioListener
     \inqmlmodule QtQuick3D.SpatialAudio
     \ingroup quick3d_spatialaudio
     \ingroup multimedia_audio_qml

@@ -38,7 +38,6 @@ inline bool qIsDefaultAspect(QtVideo::Rotation rotation)
 
 /*!
     \qmltype VideoOutput
-    //! \nativetype QQuickVideoOutput
     \inherits Item
     \brief Render video or camera viewfinder.
 

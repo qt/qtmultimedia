@@ -11,6 +11,7 @@ static std::unique_ptr<QAudioEngine> globalEngine;
 
 /*!
     \qmltype AudioEngine
+    \nativetype QQuick3DAudioEngine
     \inqmlmodule QtQuick3D.SpatialAudio
     \ingroup quick3d_spatialaudio
     \ingroup multimedia_audio_qml

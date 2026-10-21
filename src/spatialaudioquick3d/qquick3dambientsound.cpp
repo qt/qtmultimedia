@@ -12,6 +12,7 @@ QT_BEGIN_NAMESPACE
 
 /*!
     \qmltype AmbientSound
+    \nativetype QQuick3DAmbientSound
     \inqmlmodule QtQuick3D.SpatialAudio
     \ingroup quick3d_spatialaudio
     \ingroup multimedia_audio_qml
