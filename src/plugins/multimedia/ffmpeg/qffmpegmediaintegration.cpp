@@ -283,8 +283,6 @@ q23::expected<QPlatformCamera *, QString> QFFmpegMediaIntegration::createCamera(
     return QFFmpeg::makeQAvfCamera(*camera).release();
 #elif defined(Q_OS_ANDROID)
     return new QFFmpeg::QAndroidCamera(camera);
-#elif QT_CONFIG(linux_v4l)
-    return new QtV4L2::QV4L2Camera(camera);
 #elif defined(Q_OS_WINDOWS)
     return new QFFmpeg::QWindowsCamera(camera);
 #elif defined(Q_OS_LINUX)
@@ -418,8 +416,6 @@ QPlatformVideoDevices *QFFmpegMediaIntegration::createVideoDevices()
 {
 #if defined(Q_OS_ANDROID)
     return new QFFmpeg::QAndroidVideoDevices(this);
-#elif QT_CONFIG(linux_v4l)
-    return new QtV4L2::QV4L2CameraDevices(this);
 #elif defined Q_OS_DARWIN
     return makeQAvfVideoDevices(
         *this,
