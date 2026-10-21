@@ -838,8 +838,7 @@ void AVFMediaPlayer::setPosition(qint64 pos)
         pos = qMin(pos, duration());
     m_requestedPosition = pos;
 
-    CMTime newTime = [playerItem currentTime];
-    newTime.value = (pos / 1000.0f) * newTime.timescale;
+    const CMTime newTime = CMTimeMake(pos, 1000);
     AVFMediaPlayerObserver *observer = m_observer;
     [playerItem seekToTime:newTime toleranceBefore:kCMTimeZero toleranceAfter:kCMTimeZero
                            completionHandler:^(BOOL finished) {

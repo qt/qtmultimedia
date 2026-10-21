@@ -3898,7 +3898,6 @@ void tst_QMediaPlayerBackend::infiniteLoops()
 void tst_QMediaPlayerBackend::seekOnLoops()
 {
     CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
-    QSKIP_DARWIN("Async seek causes spurious position jumps during looped playback");
     QSKIP_OHOS("OH_AVPlayer_Seek interaction with setLoops is unreliable");
 
 #ifdef Q_OS_MACOS
@@ -3949,7 +3948,6 @@ void tst_QMediaPlayerBackend::seekOnLoops()
 void tst_QMediaPlayerBackend::changeLoopsOnTheFly()
 {
     CHECK_SELECTED_URL(m_localVideoFile3ColorsWithSound);
-    QSKIP_DARWIN("Async seek causes spurious position jumps during looped playback");
     QSKIP_OHOS("OH_AVPlayer setLoops behavior mid-playback is not aligned with the cross-platform contract");
 
 #ifdef Q_OS_MACOS
