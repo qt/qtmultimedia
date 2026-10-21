@@ -130,7 +130,7 @@ void QSGVideoMaterialRhiShader::setupExternalOESShader()
 #endif
 }
 
-class QSGVideoMaterial : public QSGMaterial
+class QSGVideoMaterial final : public QSGMaterial
 {
 public:
     QSGVideoMaterial(const QVideoFrameFormat &videoFormat, QRhi *rhi);
@@ -174,7 +174,7 @@ public:
 
     void updateTextures(QRhi *rhi, QRhiResourceUpdateBatch *resourceUpdates);
 
-    QVideoFrameFormat m_videoFormat;
+    const QVideoFrameFormat m_videoFormat;
     QRhiSwapChain::Format m_surfaceFormat = QRhiSwapChain::SDR;
     float m_opacity = 1.0f;
     QRhiSwapChainHdrInfo m_hdrInfo{};
@@ -182,7 +182,7 @@ public:
     QVideoFrameTexturePoolPtr m_texturePool = std::make_shared<QVideoFrameTexturePool>();
     std::array<QSGVideoTexture, 3> m_textures;
 
-    QRhi *m_rhi;
+    QRhi *const m_rhi;
 };
 
 void QSGVideoMaterial::updateTextures(QRhi *rhi, QRhiResourceUpdateBatch *resourceUpdates)
@@ -255,11 +255,14 @@ QSGVideoMaterial::QSGVideoMaterial(const QVideoFrameFormat &videoFormat, QRhi *r
 
 QSGVideoNode::QSGVideoNode(QQuickVideoOutput *parent, const QVideoFrameFormat &videoFormat,
                            QRhi *rhi)
-    : m_parent(parent), m_videoFormat(videoFormat)
+    : m_parent(parent),
+      m_videoFormat(videoFormat),
+      m_material{
+          new QSGVideoMaterial(videoFormat, rhi),
+      }
 {
     setFlag(QSGNode::OwnsMaterial);
     setFlag(QSGNode::OwnsGeometry);
-    m_material = new QSGVideoMaterial(videoFormat, rhi);
     setMaterial(m_material);
 }
 
