@@ -820,8 +820,9 @@ std::unique_ptr<QRhiTexture> ensurePlaneTexture(std::unique_ptr<QRhiTexture> tex
         subresDesc.setDataStride(frame.bytesPerLine(plane));
     }
 
-    QRhiTextureUploadEntry entry(0, 0, subresDesc);
-    QRhiTextureUploadDescription desc({ entry });
+    QRhiTextureUploadDescription desc({
+            QRhiTextureUploadEntry(0, 0, subresDesc),
+    });
     rub.uploadTexture(tex.get(), desc);
 
     return tex;
