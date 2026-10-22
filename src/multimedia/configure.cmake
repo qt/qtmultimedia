@@ -149,6 +149,19 @@ int main(int, char **)
 }
 ")
 
+qt_config_compile_test(linux_dmabuf
+    LABEL "Linux DMABUF support"
+    CODE
+"
+#include <linux/dma-buf.h>
+
+int main(int, char **)
+{
+    return 0;
+}
+")
+
+
 #### Features
 
 qt_feature("pipewire" PRIVATE
@@ -219,7 +232,7 @@ qt_feature("linux_v4l" PRIVATE
 )
 qt_feature("linux_dmabuf" PRIVATE
     LABEL "Linux DMA buffer support"
-    CONDITION UNIX AND TEST_egl_has_image AND QT_FEATURE_egl
+    CONDITION TEST_egl_has_image AND QT_FEATURE_egl AND TEST_linux_dmabuf
 )
 qt_feature("gpu_vivante" PRIVATE
     LABEL "Vivante GPU direct-texture zero-copy video import (glTexDirectVIV)"
