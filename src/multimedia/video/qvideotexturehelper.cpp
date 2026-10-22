@@ -778,8 +778,9 @@ static UpdateTextureWithMapResult updateTextureWithMap(const QVideoFrame &frame,
         result = UpdateTextureWithMapResult::UpdatedWithDataReference;
     }
 
-    QRhiTextureUploadEntry entry(0, 0, subresDesc);
-    QRhiTextureUploadDescription desc({ entry });
+    QRhiTextureUploadDescription desc({
+            QRhiTextureUploadEntry(0, 0, subresDesc),
+    });
     rub.uploadTexture(tex.get(), desc);
 
     return result;
