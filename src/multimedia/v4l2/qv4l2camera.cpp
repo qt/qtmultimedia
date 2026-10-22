@@ -520,9 +520,6 @@ void QV4L2Camera::closeV4L2Fd()
 
 int QV4L2Camera::setV4L2ColorTemperature(int temperature)
 {
-    struct v4l2_control control;
-    ::memset(&control, 0, sizeof(control));
-
     if (m_v4l2Info.autoWhiteBalanceSupported) {
         setV4L2Parameter(V4L2_CID_AUTO_WHITE_BALANCE, temperature == 0 ? true : false);
     } else if (temperature == 0) {
