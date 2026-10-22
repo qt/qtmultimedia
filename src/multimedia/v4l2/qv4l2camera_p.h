@@ -17,7 +17,8 @@
 
 #include <QtMultimedia/private/qplatformcamera_p.h>
 
-#include <sys/time.h>
+#include <chrono>
+#include <optional>
 
 QT_BEGIN_NAMESPACE
 
@@ -124,11 +125,11 @@ private:
 
     V4L2CameraInfo m_v4l2Info;
 
-    timeval m_firstFrameTime = { -1, -1 };
+    std::optional<std::chrono::microseconds> m_firstFrameTime;
     quint32 m_bytesPerLine = 0;
     quint32 m_imageSize = 0;
     QVideoFrameFormat::ColorSpace m_colorSpace = QVideoFrameFormat::ColorSpace_Undefined;
-    qint64 m_frameDuration = -1;
+    std::chrono::microseconds m_frameDuration{};
     bool m_cameraBusy = false;
 };
 

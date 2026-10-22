@@ -12,11 +12,20 @@
 #include <QtCore/qsocketnotifier.h>
 #include <QtCore/private/qcore_unix_p.h>
 
+#include <sys/time.h>
+
+#include <chrono>
+
 QT_BEGIN_NAMESPACE
 
 namespace QtV4L2 {
 
 Q_STATIC_LOGGING_CATEGORY(qLcV4L2Camera, "qt.multimedia.v4l2.camera");
+
+static std::chrono::microseconds toMicroseconds(const timeval &tv)
+{
+    return std::chrono::seconds{ tv.tv_sec } + std::chrono::microseconds{ tv.tv_usec };
+}
 
 static const struct
 {
@@ -380,12 +389,12 @@ void QV4L2Camera::readFrame()
     QVideoFrame frame =
             QVideoFramePrivate::createFrame(std::move(dequeued->videoBuffer), frameFormat());
 
-    if (m_firstFrameTime.tv_sec == -1)
-        m_firstFrameTime = dequeued->timestamp;
-    qint64 secs = dequeued->timestamp.tv_sec - m_firstFrameTime.tv_sec;
-    qint64 usecs = dequeued->timestamp.tv_usec - m_firstFrameTime.tv_usec;
-    frame.setStartTime(secs * 1000000 + usecs);
-    frame.setEndTime(frame.startTime() + m_frameDuration);
+    const auto timestamp = toMicroseconds(dequeued->timestamp);
+    if (!m_firstFrameTime)
+        m_firstFrameTime = timestamp;
+    const auto frameTime = timestamp - *m_firstFrameTime;
+    frame.setStartTime(frameTime.count());
+    frame.setEndTime((frameTime + m_frameDuration).count());
 
     Q_EMIT newVideoFrame(frame);
 }
@@ -618,12 +627,13 @@ void QV4L2Camera::setV4L2CameraFormat()
     streamParam.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
     streamParam.parm.capture.capability = V4L2_CAP_TIMEPERFRAME;
-    auto [num, den] = qRealToFraction(1. / m_cameraFormat.maxFrameRate());
+    qreal frameDuration = 1. / m_cameraFormat.maxFrameRate();
+    auto [num, den] = qRealToFraction(frameDuration);
     streamParam.parm.capture.timeperframe = { (uint)num, (uint)den };
     m_v4l2FileDescriptor->call(VIDIOC_S_PARM, &streamParam);
 
-    m_frameDuration = 1000000 * streamParam.parm.capture.timeperframe.numerator
-            / streamParam.parm.capture.timeperframe.denominator;
+    using namespace std::chrono;
+    m_frameDuration = duration_cast<microseconds>(duration<qreal>{ frameDuration });
 }
 
 void QV4L2Camera::initV4L2MemoryTransfer()
@@ -690,7 +700,7 @@ void QV4L2Camera::startCapturing()
             std::make_unique<QSocketNotifier>(m_v4l2FileDescriptor->get(), QSocketNotifier::Read);
     connect(m_notifier.get(), &QSocketNotifier::activated, this, &QV4L2Camera::readFrame);
 
-    m_firstFrameTime = { -1, -1 };
+    m_firstFrameTime.reset();
 }
 
 QVideoFrameFormat QV4L2Camera::frameFormat() const
