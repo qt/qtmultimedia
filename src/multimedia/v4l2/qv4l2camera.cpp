@@ -245,7 +245,7 @@ bool QV4L2Camera::isFlashReady() const
 
 void QV4L2Camera::setTorchMode(QCamera::TorchMode mode)
 {
-    if (!m_v4l2Info.torchSupported || mode == QCamera::TorchOn)
+    if (!m_v4l2Info.torchSupported || mode == QCamera::TorchAuto)
         return;
     setV4L2Parameter(V4L2_CID_FLASH_LED_MODE,
                      mode == QCamera::TorchOn ? V4L2_FLASH_LED_MODE_TORCH
