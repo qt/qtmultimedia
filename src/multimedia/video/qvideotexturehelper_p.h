@@ -36,12 +36,12 @@ struct Q_MULTIMEDIA_EXPORT TextureDescription
 {
     static constexpr int maxPlanes = 3;
     struct SizeScale {
-        int x;
-        int y;
+        uint8_t x;
+        uint8_t y;
     };
     using BytesRequired = int(*)(int stride, int height);
 
-    enum TextureFormat {
+    enum TextureFormat : uint8_t {
         UnknownFormat,
         Red_8,
         RG_8,
@@ -89,7 +89,7 @@ struct Q_MULTIMEDIA_EXPORT TextureDescription
         if ((textureFormat[plane] == TextureDescription::RG_8
              || textureFormat[plane] == TextureDescription::Red_16)
             && rhiTextureFormat(plane, rhi) == QRhiTexture::RGBA8)
-            return { sizeScale[plane].x * 2, sizeScale[plane].y };
+            return { uint8_t(sizeScale[plane].x * 2), sizeScale[plane].y };
 
         return sizeScale[plane];
     }
@@ -107,11 +107,11 @@ struct Q_MULTIMEDIA_EXPORT TextureDescription
         });
     }
 
-    int nplanes;
-    int strideFactor;
-    BytesRequired bytesRequired;
-    TextureFormat textureFormat[maxPlanes];
-    SizeScale sizeScale[maxPlanes];
+    const uint8_t nplanes;
+    const uint8_t strideFactor;
+    const BytesRequired bytesRequired;
+    const TextureFormat textureFormat[maxPlanes];
+    const SizeScale sizeScale[maxPlanes];
 };
 
 Q_MULTIMEDIA_EXPORT const TextureDescription *textureDescription(QVideoFrameFormat::PixelFormat format);
