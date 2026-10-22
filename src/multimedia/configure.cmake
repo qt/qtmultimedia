@@ -90,10 +90,17 @@ qt_find_package(VAAPI COMPONENTS VA DRM PROVIDED_TARGETS VAAPI::VAAPI MODULE_NAM
 
 #### Tests
 
-qt_config_compile_test("linux_v4l"
-                   LABEL "Video for Linux"
-                   PROJECT_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../config.tests/linux_v4l"
-)
+qt_config_compile_test(linux_v4l
+    LABEL "Video for Linux"
+    CODE
+"
+#include <linux/videodev2.h>
+
+int main(int, char **)
+{
+    return 0;
+}
+")
 
 qt_config_compile_test(egl_has_image
     LABEL "EGL 1.5 or EGL_KHR_image"
