@@ -292,6 +292,8 @@ q23::expected<QPlatformCamera *, QString> QFFmpegMediaIntegration::createCamera(
     case CameraBackend::PipeWire:
         return new QtPipeWire::QPipeWireCamera(camera);
 #  endif
+    case CameraBackend::V4L2:
+        return new QtV4L2::QV4L2Camera(camera);
     default:
         return q23::unexpected{ notAvailable };
     }
@@ -429,6 +431,8 @@ QPlatformVideoDevices *QFFmpegMediaIntegration::createVideoDevices()
     case CameraBackend::PipeWire:
         return new QtPipeWire::QCameraDevices(this);
 #  endif
+    case CameraBackend::V4L2:
+        return new QtV4L2::QV4L2CameraDevices(this);
     default:
         return nullptr;
     }
