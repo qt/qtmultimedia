@@ -13,8 +13,8 @@ QT_BEGIN_NAMESPACE
     \ingroup quick3d_spatialaudio
     \ingroup multimedia_audio_qml
 
-    \brief defines the position and orientation of the person listening to a sound field
-    defined by a AudioEngine.
+    \brief Defines the position and orientation of the person listening to a
+    sound field defined by a AudioEngine.
 
     A AudioEngine can have exactly one listener, that defines the position and orientation
     of the person listening to the sounds defined by the objects placed within the audio engine.
