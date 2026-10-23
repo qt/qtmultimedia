@@ -120,7 +120,7 @@ void QAudioRoomPrivate::update()
     \ingroup spatialaudio
     \ingroup multimedia_audio
 
-    Defines a room for the spatial audio engine.
+    \brief Defines a room for the spatial audio engine.
 
     If the listener is inside a room, first order sound reflections and reverb
     matching the rooms properties will get applied to the sound field.

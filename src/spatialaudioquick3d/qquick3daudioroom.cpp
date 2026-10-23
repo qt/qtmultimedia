@@ -13,7 +13,7 @@ QT_BEGIN_NAMESPACE
     \ingroup quick3d_spatialaudio
     \ingroup multimedia_audio_qml
 
-    Defines a room for the spatial audio engine.
+    \brief Defines a room for the spatial audio engine.
 
     If the listener is inside a room, first order sound reflections and reverb
     matching the rooms properties will get applied to the sound field.
