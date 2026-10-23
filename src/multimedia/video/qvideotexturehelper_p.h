@@ -183,7 +183,7 @@ struct Q_MULTIMEDIA_EXPORT SubtitleLayout
     QImage toImage() const;
 };
 
-}
+} // namespace QVideoTextureHelper
 
 QT_END_NAMESPACE
 
