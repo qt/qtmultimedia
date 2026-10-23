@@ -16,6 +16,7 @@
 
 #include <atomic>
 #include <optional>
+#include <thread>
 
 QT_BEGIN_NAMESPACE
 
