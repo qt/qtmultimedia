@@ -19,6 +19,7 @@
 #endif
 
 #include <array>
+#include <iterator>
 
 QT_BEGIN_NAMESPACE
 
@@ -88,6 +89,85 @@ const pw_stream_events &QPipeWireVideoStream::streamEvents()
     return events;
 }
 
+namespace {
+
+const spa_pod *buildFormatParam(spa_pod_builder &builder,
+                                QVideoFrameFormat::PixelFormat requestedPixelFormat,
+                                const QSize &requestedSize, qreal requestedFrameRate)
+{
+    spa_pod_frame frame{};
+    spa_pod_builder_push_object(&builder, &frame, SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat);
+
+    spa_pod_builder_add(&builder, SPA_FORMAT_mediaType, SPA_POD_Id(SPA_MEDIA_TYPE_video), 0);
+
+    switch (requestedPixelFormat) {
+    case QVideoFrameFormat::Format_Jpeg: {
+        spa_pod_builder_add(&builder, SPA_FORMAT_mediaSubtype, SPA_POD_Id(SPA_MEDIA_SUBTYPE_mjpg),
+                            0);
+        break;
+    }
+    default: {
+        spa_pod_builder_add(&builder, SPA_FORMAT_mediaSubtype, SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw),
+                            0);
+
+        const spa_video_format requestedPixelFormatSpa = toSpaVideoFormat(requestedPixelFormat);
+        switch (requestedPixelFormatSpa) {
+        case SPA_VIDEO_FORMAT_UNKNOWN: {
+            // advertise all alternatives, letting PipeWire pick one of the camera's supported formats
+            spa_pod_builder_prop(&builder, SPA_FORMAT_VIDEO_format, 0);
+            spa_pod_frame choice{};
+            spa_pod_builder_push_choice(&builder, &choice, SPA_CHOICE_Enum, 0);
+            // The first entry is both the default and one of the alternatives.
+            spa_pod_builder_id(&builder, cameraPixelFormats.front());
+            for (spa_video_format format : cameraPixelFormats)
+                spa_pod_builder_id(&builder, format);
+            spa_pod_builder_pop(&builder, &choice);
+            break;
+        }
+
+        default: {
+            spa_pod_builder_add(&builder, SPA_FORMAT_VIDEO_format,
+                                SPA_POD_Id(requestedPixelFormatSpa), 0);
+            break;
+        }
+        }
+        break;
+    }
+    }
+
+    if (!requestedSize.isEmpty()) {
+        const spa_rectangle exactSize = toSpaRectangle(requestedSize);
+        spa_pod_builder_add(&builder, SPA_FORMAT_VIDEO_size, SPA_POD_Rectangle(&exactSize), 0);
+    } else {
+        constexpr spa_rectangle minSize{ .width = 1, .height = 1 };
+        constexpr spa_rectangle maxSize{ .width = 8192, .height = 8192 };
+
+        spa_pod_builder_add(&builder, SPA_FORMAT_VIDEO_size,
+                            SPA_POD_CHOICE_RANGE_Rectangle(&maxSize, &minSize, &maxSize), 0);
+    }
+
+    // Cameras are treated as variable rate with the requested rate as the
+    // upper bound
+    constexpr spa_fraction minRate{ .num = 0, .denom = 1 };
+    const FrameRate rate = rateFromFps(requestedFrameRate > 0. ? requestedFrameRate : 30.);
+    spa_pod_builder_add(&builder, SPA_FORMAT_VIDEO_framerate,
+                        SPA_POD_CHOICE_RANGE_Fraction(&rate.frac, &minRate, &rate.frac), 0);
+
+    return static_cast<const spa_pod *>(spa_pod_builder_pop(&builder, &frame));
+}
+
+const spa_pod *buildBuffersParam(spa_pod_builder &builder, uint32_t dataTypeMask)
+{
+    return static_cast<const spa_pod *>(spa_pod_builder_add_object(
+            &builder,
+            // buffer:
+            SPA_TYPE_OBJECT_ParamBuffers, SPA_PARAM_Buffers,
+            // with
+            SPA_PARAM_BUFFERS_dataType, SPA_POD_CHOICE_FLAGS_Int(dataTypeMask)));
+}
+
+} // namespace
+
 bool QPipeWireVideoStream::start()
 {
     Q_ASSERT(!m_stream);
@@ -119,84 +199,18 @@ bool QPipeWireVideoStream::start()
         std::array<uint8_t, 1024> buffer{};
         spa_pod_builder builder = SPA_POD_BUILDER_INIT(buffer.data(), buffer.size());
 
-        spa_pod_frame frame{};
-        spa_pod_builder_push_object(&builder, &frame, SPA_TYPE_OBJECT_Format, SPA_PARAM_EnumFormat);
-        spa_pod_builder_add(&builder, SPA_FORMAT_mediaType, SPA_POD_Id(SPA_MEDIA_TYPE_video), 0);
-
-        switch (m_requestedPixelFormat) {
-        case QVideoFrameFormat::Format_Jpeg: {
-            spa_pod_builder_add(&builder, SPA_FORMAT_mediaSubtype,
-                                SPA_POD_Id(SPA_MEDIA_SUBTYPE_mjpg), 0);
-            break;
-        }
-        default: {
-            spa_pod_builder_add(&builder, SPA_FORMAT_mediaSubtype,
-                                SPA_POD_Id(SPA_MEDIA_SUBTYPE_raw), 0);
-
-            spa_video_format requestedPixelFormatSpa = toSpaVideoFormat(m_requestedPixelFormat);
-            switch (requestedPixelFormatSpa) {
-            case SPA_VIDEO_FORMAT_UNKNOWN: {
-                // advertise all alternatives, letting PipeWire pick one of the camera's supported formats
-                spa_pod_builder_prop(&builder, SPA_FORMAT_VIDEO_format, 0);
-                spa_pod_frame choice{};
-                spa_pod_builder_push_choice(&builder, &choice, SPA_CHOICE_Enum, 0);
-                // The first entry is both the default and one of the alternatives.
-                spa_pod_builder_id(&builder, cameraPixelFormats.front());
-                for (spa_video_format format : cameraPixelFormats)
-                    spa_pod_builder_id(&builder, format);
-                spa_pod_builder_pop(&builder, &choice);
-                break;
-            }
-
-            default: {
-                spa_pod_builder_add(&builder, SPA_FORMAT_VIDEO_format,
-                                    SPA_POD_Id(toSpaVideoFormat(m_requestedPixelFormat)), 0);
-                break;
-            }
-            }
-            break;
-        }
-        }
-
-        if (!m_requestedSize.isEmpty()) {
-            const spa_rectangle exactSize = toSpaRectangle(m_requestedSize);
-            spa_pod_builder_add(&builder, SPA_FORMAT_VIDEO_size, SPA_POD_Rectangle(&exactSize), 0);
-        } else {
-            constexpr spa_rectangle minSize{ .width = 1, .height = 1 };
-            constexpr spa_rectangle maxSize{ .width = 8192, .height = 8192 };
-
-            spa_pod_builder_add(&builder, SPA_FORMAT_VIDEO_size,
-                                SPA_POD_CHOICE_RANGE_Rectangle(&maxSize, &minSize, &maxSize), 0);
-        }
-
-        // Cameras are treated as variable rate with the requested rate as the
-        // upper bound
-        constexpr spa_fraction minRate{ .num = 0, .denom = 1 };
-        const FrameRate rate = rateFromFps(m_requestedFrameRate > 0. ? m_requestedFrameRate : 30.);
-        spa_pod_builder_add(&builder, SPA_FORMAT_VIDEO_framerate,
-                            SPA_POD_CHOICE_RANGE_Fraction(&rate.frac, &minRate, &rate.frac), 0);
-
-        // Advertise MemFd alongside the default MemPtr: a real V4L2 camera
-        // node hands out memfd-backed buffers, and without this the link
-        // fails with "error use input buffers: -22" while a synthetic
-        // source (e.g. a libcamera test node) that happens to use MemPtr
-        // still works, masking the problem.
-        spa_pod_frame buffersFrame{};
-        spa_pod_builder_push_object(&builder, &buffersFrame, SPA_TYPE_OBJECT_ParamBuffers,
-                                    SPA_PARAM_Buffers);
-        spa_pod_builder_add(
-                &builder, SPA_PARAM_BUFFERS_dataType,
-                SPA_POD_CHOICE_FLAGS_Int((1u << SPA_DATA_MemPtr) | (1u << SPA_DATA_MemFd)), 0);
+        constexpr uint32_t dataTypeMask = (1u << SPA_DATA_MemPtr) | (1u << SPA_DATA_MemFd);
 
         const spa_pod *params[] = {
-            static_cast<const spa_pod *>(spa_pod_builder_pop(&builder, &frame)),
-            static_cast<const spa_pod *>(spa_pod_builder_pop(&builder, &buffersFrame)),
+            buildFormatParam(builder, m_requestedPixelFormat, m_requestedSize,
+                             m_requestedFrameRate),
+            buildBuffersParam(builder, dataTypeMask),
         };
 
         const int status = pw_stream_connect(
                 m_stream.get(), PW_DIRECTION_INPUT, PW_ID_ANY,
                 pw_stream_flags(PW_STREAM_FLAG_AUTOCONNECT | PW_STREAM_FLAG_MAP_BUFFERS), params,
-                2);
+                std::size(params));
         if (status < 0) {
             qCWarning(lcPipewireCameraStream)
                     << "pw_stream_connect failed:" << make_error_code(-status).message();
