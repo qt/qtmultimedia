@@ -14,8 +14,11 @@
 // We mean it.
 //
 
-#include <QtMultimedia/private/qdmabuftextureimporter_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegtextureconverter_p.h>
+
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
+
+#include <memory>
 
 static_assert(QT_CONFIG(vaapi));
 
@@ -25,26 +28,12 @@ class QRhi;
 
 namespace QFFmpeg {
 
-using QtMultimediaPrivate::DmaBufEglContext;
-using QtMultimediaPrivate::DmaBufPlane;
-using QtMultimediaPrivate::FailureSeverity;
-using QtMultimediaPrivate::importDmaBufTextures;
-
-class VAAPITextureConverter final : public TextureConverterBackend
+struct VAAPITextureConverterFactory
 {
 public:
-    static std::shared_ptr<VAAPITextureConverter> create(QRhi *rhi);
-
-    ~VAAPITextureConverter() override;
-
-    using TextureConverterBackend::createTextureHandles;
-    QVideoFrameTexturesHandlesUPtr createTextureHandles(AVFrame *frame) override;
-
-    DmaBufEglContext eglContext;
-
-protected:
-    explicit VAAPITextureConverter(QRhi *rhi);
+    static std::shared_ptr<TextureConverterBackend> create(QRhi *rhi);
 };
+
 } // namespace QFFmpeg
 
 QT_END_NAMESPACE

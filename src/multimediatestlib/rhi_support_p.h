@@ -24,6 +24,9 @@
 #if defined(Q_OS_WIN)
 #  include <QtMultimediaTestLib/private/qwindowsd3d11testdevicecontext_p.h>
 #endif
+#if QT_CONFIG(vulkan)
+#  include <QtGui/qvulkaninstance.h>
+#endif
 
 QT_BEGIN_NAMESPACE
 

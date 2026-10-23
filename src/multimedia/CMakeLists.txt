@@ -193,6 +193,11 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_linux_dmabuf
         video/qdmabufsource.cpp video/qdmabufsource_p.h
 )
 
+qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_linux_dmabuf
+    SOURCES
+        video/qdmabufimportfailure_p.h
+)
+
 qt_internal_extend_target(Multimedia
     CONDITION
         QT_FEATURE_linux_dmabuf AND QT_FEATURE_opengl AND QT_FEATURE_egl
@@ -212,6 +217,13 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_vaapi
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_vulkan
     SOURCES
         video/qmultimedia_vulkan_support.cpp video/qmultimedia_vulkan_support_p.h
+)
+
+qt_internal_extend_target(Multimedia
+    CONDITION
+        QT_FEATURE_linux_dmabuf AND QT_FEATURE_vulkan
+    SOURCES
+        video/qdmabufvulkanimporter.cpp video/qdmabufvulkanimporter_p.h
 )
 
 qt_internal_extend_target(Multimedia

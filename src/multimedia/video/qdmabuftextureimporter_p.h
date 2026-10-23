@@ -17,6 +17,7 @@
 #include "qhwvideobuffer_p.h"
 
 #include <QtMultimedia/qvideoframeformat.h>
+#include <QtMultimedia/private/qdmabufimportfailure_p.h>
 #include <QtMultimedia/private/qmultimedia_drm_support_p.h>
 #include <QtMultimedia/private/qmultimedia_gl_support_p.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
@@ -77,12 +78,6 @@ private:
     QRhi &m_rhi;
     const std::vector<GlTextureHandle> m_textures;
     const QVideoFrameFormat::PixelFormat m_texturePixelFormat;
-};
-
-// Severity of a failure to import DMABUF planes as GL textures.
-enum class FailureSeverity {
-    recoverable, // the caller may retry, e.g. with a different frame
-    unrecoverable, // the caller should permanently disable DMABUF import
 };
 
 Q_MULTIMEDIA_EXPORT q23::expected<QVideoFrameTexturesHandlesUPtr, FailureSeverity>

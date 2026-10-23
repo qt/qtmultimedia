@@ -3,8 +3,12 @@
 
 #include "qffmpeghwaccel_vaapi_p.h"
 
-#include "qffmpegvideobuffer_p.h"
+#include <QtFFmpegMediaPluginImpl/private/qffmpegvideobuffer_p.h>
 
+#include <QtMultimedia/private/qdmabuftextureimporter_p.h>
+#if QT_CONFIG(vulkan)
+#  include <QtMultimedia/private/qdmabufvulkanimporter_p.h>
+#endif
 #include <QtMultimedia/private/qmultimedia_drm_support_p.h>
 #include <QtMultimedia/private/qmultimedia_va_support_p.h>
 #include <QtMultimedia/private/qvideotexturehelper_p.h>
@@ -28,41 +32,23 @@ Q_STATIC_LOGGING_CATEGORY(qLHWAccelVAAPI, "qt.multimedia.ffmpeg.hwaccelvaapi");
 
 namespace QFFmpeg {
 
-using QtMultimediaPrivate::DRMFormat;
+namespace {
 
 constexpr bool VAExportUseLayers = false;
 
-std::shared_ptr<VAAPITextureConverter> VAAPITextureConverter::create(QRhi *rhi)
+// Backend-agnostic export-and-import of an AV_PIX_FMT_VAAPI frame's VA surface, parameterized by
+// the dma-buf import context/function so the actual GL/Vulkan interop stays in the caller.
+template <typename Context, typename ImportFunc>
+QVideoFrameTexturesHandlesUPtr
+createVaapiTextureHandles(AVFrame *frame, TextureConverterBackend &converter,
+                          const Context &context, ImportFunc &&importPlanes)
 {
-    auto ret = std::shared_ptr<VAAPITextureConverter>(new VAAPITextureConverter(rhi));
-    return ret->rhi ? ret : nullptr;
-}
+    QRhi &rhi = *converter.rhi;
 
-VAAPITextureConverter::VAAPITextureConverter(QRhi *rhi)
-    : TextureConverterBackend(nullptr), eglContext(rhi)
-{
-    qCDebug(qLHWAccelVAAPI) << ">>>> Creating VAAPI HW accelerator";
+    using namespace QtMultimediaPrivate;
+    using VAStatus = QtMultimediaPrivate::VAStatus;
 
-    if (!eglContext.isValid()) {
-        this->rhi = nullptr;
-        return;
-    }
-
-    // everything ok, indicate that we can do zero copy
-    this->rhi = rhi;
-}
-
-VAAPITextureConverter::~VAAPITextureConverter() = default;
-
-QVideoFrameTexturesHandlesUPtr VAAPITextureConverter::createTextureHandles(AVFrame *frame)
-{
-    //        qCDebug(qLHWAccelVAAPI) << "VAAPIAccel::createTextureHandles";
-    if (frame->format != AV_PIX_FMT_VAAPI || !eglContext.eglDisplay()) {
-        qCDebug(qLHWAccelVAAPI) << "format/egl error" << frame->format << eglContext.eglDisplay();
-        return nullptr;
-    }
-
-    if (!frame->hw_frames_ctx)
+    if (frame->format != AV_PIX_FMT_VAAPI || !frame->hw_frames_ctx)
         return nullptr;
 
     auto *ctx = avFrameDeviceContext(frame);
@@ -86,27 +72,24 @@ QVideoFrameTexturesHandlesUPtr VAAPITextureConverter::createTextureHandles(AVFra
                                                                : VA_EXPORT_SURFACE_COMPOSED_LAYERS),
                                   &prime);
     if (exportStatus != VA_STATUS_SUCCESS) {
-        qWarning() << "vaExportSurfaceHandle failed:"
-                   << QtMultimediaPrivate::VAStatus(exportStatus);
+        qWarning() << "vaExportSurfaceHandle failed:" << VAStatus(exportStatus);
         return nullptr;
     }
 
-    // Make sure all fd's in 'prime' are closed when we return from this function
+    // Make sure all fd's in 'prime' are closed when we return from this function, i.e. after
+    // importPlanes() below has dup()'d the ones it needs.
     QScopeGuard closeObjectsGuard([&prime]() {
-        for (uint32_t i = 0;  i < prime.num_objects;  ++i)
+        for (uint32_t i = 0; i < prime.num_objects; ++i)
             close(prime.objects[i].fd);
     });
 
     // ### Check that prime.fourcc is what we expect
     vaSyncSurface(vaDisplay, vaSurface);
 
-//        qCDebug(qLHWAccelVAAPI) << "VAAPIAccel: vaSufraceDesc: width/height" << prime.width << prime.height << "num objects"
-//                 << prime.num_objects << "num layers" << prime.num_layers;
-
     AVPixelFormat fmt = HWAccel::format(frame);
     bool needsConversion;
     auto qtFormat = QFFmpegVideoBuffer::toQtPixelFormat(fmt, &needsConversion);
-    QSpan<const DRMFormat> drm_formats = QtMultimediaPrivate::dmaBufFourccFromPixelFormat(qtFormat);
+    QSpan<const DRMFormat> drm_formats = dmaBufFourccFromPixelFormat(qtFormat);
     if (drm_formats.empty() || needsConversion) {
         qWarning() << "can't use DMA transfer for pixel format" << fmt << qtFormat;
         return nullptr;
@@ -116,17 +99,16 @@ QVideoFrameTexturesHandlesUPtr VAAPITextureConverter::createTextureHandles(AVFra
     int nPlanes = int(drm_formats.size());
     Q_ASSERT(nPlanes == desc->nplanes);
     nPlanes = desc->nplanes;
-//        qCDebug(qLHWAccelVAAPI) << "VAAPIAccel: nPlanes" << nPlanes;
 
-    DmaBufPlane planes[4];
-    for (int i = 0;  i < nPlanes;  ++i) {
+    std::array<DmaBufPlane, 4> planes;
+    for (int i = 0; i < nPlanes; ++i) {
         const int layer = VAExportUseLayers ? i : 0;
         const int plane = VAExportUseLayers ? 0 : i;
 
         if constexpr (VAExportUseLayers) {
             if (prime.layers[i].drm_format != quint32(drm_formats[i])) {
                 qWarning() << "expected DRM format check failed expected" << Qt::hex
-                           << quint32(drm_formats[i]) << "got" << prime.layers[i].drm_format;
+                           << drm_formats[i] << "got" << prime.layers[i].drm_format;
             }
         }
 
@@ -134,21 +116,101 @@ QVideoFrameTexturesHandlesUPtr VAAPITextureConverter::createTextureHandles(AVFra
         planes[i].offset = prime.layers[layer].offset[plane];
         planes[i].pitch = prime.layers[layer].pitch[plane];
         planes[i].drmFormat = drm_formats[i];
-        planes[i].modifier = QtMultimediaPrivate::DRMModifier(
-                prime.objects[prime.layers[layer].object_index[plane]].drm_format_modifier);
+        planes[i].modifier = DRMModifier{
+            prime.objects[prime.layers[layer].object_index[plane]].drm_format_modifier
+        };
     }
 
-    auto textureHandles = importDmaBufTextures(*rhi, eglContext, QSpan(planes, nPlanes), qtFormat,
-                                               frameSize(frame), shared_from_this());
+    auto textureHandles = importPlanes(rhi, context, QSpan(planes.data(), nPlanes), qtFormat,
+                                       frameSize(*frame), converter.shared_from_this());
     if (!textureHandles) {
         if (textureHandles.error() == FailureSeverity::unrecoverable) {
             qWarning() << "VAAPI driver:" << vaQueryVendorString(vaDisplay);
-            this->rhi = nullptr; // Disabling texture conversion here to fix QTBUG-112312
+            converter.rhi = nullptr; // Disabling texture conversion here to fix QTBUG-112312
         }
         return nullptr;
     }
-
     return std::move(*textureHandles);
+}
+
+class VAAPIGLTextureConverter final : public TextureConverterBackend
+{
+public:
+    static std::shared_ptr<VAAPIGLTextureConverter> create(QRhi *rhi)
+    {
+        auto converter = std::shared_ptr<VAAPIGLTextureConverter>(new VAAPIGLTextureConverter(rhi));
+        if (!converter->m_context.isValid())
+            return nullptr;
+        return converter;
+    }
+
+    QVideoFrameTexturesHandlesUPtr
+    createTextureHandles(AVFrame *frame, QVideoFrameTexturesHandlesUPtr /*oldHandles*/) override
+    {
+        return createVaapiTextureHandles(frame, *this, m_context,
+                                         [](QRhi &rhi,
+                                            const QtMultimediaPrivate::DmaBufEglContext &eglContext,
+                                            QSpan<const QtMultimediaPrivate::DmaBufPlane> planes,
+                                            QVideoFrameFormat::PixelFormat qtFormat, QSize size,
+                                            std::shared_ptr<void> parentKeepAlive) {
+            return importDmaBufTextures(rhi, eglContext, planes, qtFormat, size,
+                                        std::move(parentKeepAlive));
+        });
+    }
+
+private:
+    explicit VAAPIGLTextureConverter(QRhi *rhi) : TextureConverterBackend(rhi), m_context(rhi) { }
+
+    QtMultimediaPrivate::DmaBufEglContext m_context;
+};
+
+#if QT_CONFIG(vulkan)
+class VAAPIVulkanTextureConverter final : public TextureConverterBackend
+{
+public:
+    static std::shared_ptr<VAAPIVulkanTextureConverter> create(QRhi *rhi)
+    {
+        auto converter =
+                std::shared_ptr<VAAPIVulkanTextureConverter>(new VAAPIVulkanTextureConverter(rhi));
+        if (!converter->m_context.isValid())
+            return nullptr;
+
+        return converter;
+    }
+
+    QVideoFrameTexturesHandlesUPtr
+    createTextureHandles(AVFrame *frame, QVideoFrameTexturesHandlesUPtr /*oldHandles*/) override
+    {
+        return createVaapiTextureHandles(frame, *this, m_context,
+                                         QtMultimediaPrivate::importDmaBufTexturesVulkan);
+    }
+
+private:
+    explicit VAAPIVulkanTextureConverter(QRhi *rhi) : TextureConverterBackend(rhi), m_context(rhi)
+    {
+    }
+
+    QtMultimediaPrivate::DmaBufVulkanContext m_context;
+};
+#endif // QT_CONFIG(vulkan)
+
+} // namespace
+
+std::shared_ptr<TextureConverterBackend> VAAPITextureConverterFactory::create(QRhi *rhi)
+{
+    if (rhi) {
+        switch (rhi->backend()) {
+        case QRhi::OpenGLES2:
+            return VAAPIGLTextureConverter::create(rhi);
+#if QT_CONFIG(vulkan)
+        case QRhi::Vulkan:
+            return VAAPIVulkanTextureConverter::create(rhi);
+#endif
+        default:
+            break;
+        }
+    }
+    return nullptr;
 }
 
 } // namespace QFFmpeg

@@ -16,6 +16,9 @@
 #include <QtGui/qopenglfunctions.h>
 #include <QtGui/qsurfaceformat.h>
 #include <QtGui/rhi/qrhi.h>
+#if QT_CONFIG(vulkan)
+#  include <QtGui/qvulkaninstance.h>
+#endif
 
 extern "C" {
 #include <libavutil/hwcontext.h>
@@ -68,8 +71,7 @@ createVaapiFrameContext(QSize size, quint8 lumaValue, quint8 chromaUValue, quint
 }
 
 // Same as above, but with a 10-bit P010 surface.
-q23::expected<VaapiFrameContext, QString> createVaapiP010FrameContext(QSize size,
-                                                                      quint16 lumaValue,
+q23::expected<VaapiFrameContext, QString> createVaapiP010FrameContext(QSize size, quint16 lumaValue,
                                                                       quint16 chromaUValue,
                                                                       quint16 chromaVValue)
 {
@@ -91,8 +93,7 @@ q23::expected<VaapiFrameContext, QString> createVaapiP010(QSize size)
 }
 
 // Same as above, but with a single-plane BGRA8888 surface.
-q23::expected<VaapiFrameContext, QString> createVaapiBgraFrameContext(QSize size,
-                                                                      QByteArray texel)
+q23::expected<VaapiFrameContext, QString> createVaapiBgraFrameContext(QSize size, QByteArray texel)
 {
     return createSinglePlaneHwFrameContext(AV_HWDEVICE_TYPE_VAAPI, AV_PIX_FMT_VAAPI, size,
                                            std::move(texel), configureExportableFramesContext);
@@ -139,6 +140,10 @@ private slots:
 
     void createTextureHandles_outlivesSourceFrame_afterFrameContextIsDestroyed();
     void createTextureHandles_acceptsOldHandles_onSecondCall();
+#if QT_CONFIG(vulkan)
+    void create_succeedsAndKeepsRhi_whenVaapiAndVulkanAreAvailable();
+    void createTextureHandles_returnsOnePlanePerNv12Component_forHwFrame_vulkan();
+#endif
 };
 
 void tst_QVaapiTextureConverter::create_succeedsAndKeepsRhi_whenVaapiAndEglAreAvailable()
@@ -149,7 +154,7 @@ void tst_QVaapiTextureConverter::create_succeedsAndKeepsRhi_whenVaapiAndEglAreAv
                          + offscreenRhi.error()));
     auto &[fallbackSurface, rhi] = *offscreenRhi;
 
-    std::shared_ptr<VAAPITextureConverter> converter = VAAPITextureConverter::create(rhi.get());
+    std::shared_ptr converter = VAAPITextureConverterFactory::create(rhi.get());
     QVERIFY(converter);
     if (!converter->rhi)
         QSKIP("VAAPI/EGL DMA-BUF import is not available on this system; try running with "
@@ -195,7 +200,7 @@ void tst_QVaapiTextureConverter::createTextureHandles_roundTripsPixelData_forHwF
                          + offscreenRhi.error()));
     auto &[fallbackSurface, rhi] = *offscreenRhi;
 
-    std::shared_ptr<VAAPITextureConverter> converter = VAAPITextureConverter::create(rhi.get());
+    std::shared_ptr converter = VAAPITextureConverterFactory::create(rhi.get());
     if (!converter->rhi)
         QSKIP("VAAPI/EGL DMA-BUF import is not available on this system");
 
@@ -272,7 +277,7 @@ void tst_QVaapiTextureConverter::
                          + offscreenRhi.error()));
     auto &[fallbackSurface, rhi] = *offscreenRhi;
 
-    std::shared_ptr<VAAPITextureConverter> converter = VAAPITextureConverter::create(rhi.get());
+    std::shared_ptr converter = VAAPITextureConverterFactory::create(rhi.get());
     if (!converter->rhi)
         QSKIP("VAAPI/EGL DMA-BUF import is not available on this system");
 
@@ -312,7 +317,7 @@ void tst_QVaapiTextureConverter::createTextureHandles_acceptsOldHandles_onSecond
                          + offscreenRhi.error()));
     auto &[fallbackSurface, rhi] = *offscreenRhi;
 
-    std::shared_ptr<VAAPITextureConverter> converter = VAAPITextureConverter::create(rhi.get());
+    std::shared_ptr converter = VAAPITextureConverterFactory::create(rhi.get());
     if (!converter->rhi)
         QSKIP("VAAPI/EGL DMA-BUF import is not available on this system");
 
@@ -337,6 +342,64 @@ void tst_QVaapiTextureConverter::createTextureHandles_acceptsOldHandles_onSecond
     QVERIFY(secondHandles);
     QVERIFY(GLuint(secondHandles->textureHandle(*rhi, 0)) != 0);
 }
+
+#if QT_CONFIG(vulkan)
+void tst_QVaapiTextureConverter::create_succeedsAndKeepsRhi_whenVaapiAndVulkanAreAvailable()
+{
+    auto offscreen = createOffscreenVulkanRhi(
+            { "VK_KHR_external_memory_fd", "VK_EXT_external_memory_dma_buf",
+              "VK_EXT_image_drm_format_modifier", "VK_KHR_image_format_list",
+              "VK_KHR_sampler_ycbcr_conversion" });
+    if (!offscreen)
+        QSKIP("Could not create a Vulkan QRhi backend on this system");
+    std::unique_ptr<QRhi> rhi = std::move(offscreen->rhi);
+
+    std::shared_ptr converter = VAAPITextureConverterFactory::create(rhi.get());
+    QVERIFY(converter);
+    if (!converter->rhi)
+        QSKIP("VAAPI/Vulkan DMA-BUF import is not available on this system (missing "
+              "VK_KHR_external_memory_fd / VK_EXT_image_drm_format_modifier device extensions?)");
+
+    QCOMPARE(converter->rhi, rhi.get());
+}
+
+void tst_QVaapiTextureConverter::
+        createTextureHandles_returnsOnePlanePerNv12Component_forHwFrame_vulkan()
+{
+    auto offscreen = createOffscreenVulkanRhi(
+            { "VK_KHR_external_memory_fd", "VK_EXT_external_memory_dma_buf",
+              "VK_EXT_image_drm_format_modifier", "VK_KHR_image_format_list",
+              "VK_KHR_sampler_ycbcr_conversion" });
+    if (!offscreen)
+        QSKIP("Could not create a Vulkan QRhi backend on this system");
+    std::unique_ptr<QRhi> rhi = std::move(offscreen->rhi);
+
+    std::shared_ptr converter = VAAPITextureConverterFactory::create(rhi.get());
+    if (!converter->rhi)
+        QSKIP("VAAPI/Vulkan DMA-BUF import is not available on this system");
+
+    const QSize frameSize(64, 64);
+    q23::expected<VaapiFrameContext, QString> frameContextResult =
+            createVaapiFrameContext(frameSize, 0x40, 0x60, 0x80);
+    if (!frameContextResult)
+        QSKIP(qPrintable(u"Could not create a VAAPI hw frame on this system: "_s
+                         + frameContextResult.error()));
+    std::optional<VaapiFrameContext> frameContext = std::move(*frameContextResult);
+
+    QVideoFrameTexturesHandlesUPtr handles =
+            converter->createTextureHandles(frameContext->hwFrame.get(), nullptr);
+    if (!handles)
+        QSKIP("VAAPI/Vulkan texture import failed on this system; see qWarning above for "
+              "details");
+
+    // NV12 has two planes: luma (R8) and interleaved chroma (RG8), each backed by a VkImage.
+    const quint64 lumaHandle = handles->textureHandle(*rhi, 0);
+    const quint64 chromaHandle = handles->textureHandle(*rhi, 1);
+    QVERIFY(lumaHandle != 0);
+    QVERIFY(chromaHandle != 0);
+    QVERIFY(lumaHandle != chromaHandle);
+}
+#endif // QT_CONFIG(vulkan)
 
 int main(int argc, char *argv[])
 {

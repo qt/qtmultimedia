@@ -47,7 +47,7 @@ void applyConverterTypeByPixelFormat(AVFrame &hwFrame, QRhi &rhi, ConverterTypeH
     switch (AVPixelFormat(hwFrame.format)) {
 #if QT_CONFIG(vaapi)
     case AV_PIX_FMT_VAAPI:
-        handler(ConverterTypeIdentity<VAAPITextureConverter>{});
+        handler(ConverterTypeIdentity<VAAPITextureConverterFactory>{});
         break;
 #endif
 #ifdef Q_OS_DARWIN

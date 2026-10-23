@@ -29,7 +29,7 @@ namespace QtMultimediaPrivate {
 DmaBufEglContext::DmaBufEglContext(QRhi *rhi)
 {
     if (!rhi || rhi->backend() != QRhi::OpenGLES2) {
-        qWarning() << "DmaBufEglContext: No rhi or non openGL based RHI";
+        qCDebug(qLDmaBuf) << "DmaBufEglContext: no rhi or non openGL based RHI";
         return;
     }
 
