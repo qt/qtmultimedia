@@ -81,15 +81,6 @@ void QFFmpegVideoBuffer::convertSWFrame()
     }
 }
 
-void QFFmpegVideoBuffer::initTextureConverter(QRhi &rhi)
-{
-    if (!m_hwFrame)
-        return;
-
-    // don't use the result reference here
-    ensureTextureConverter(rhi);
-}
-
 QFFmpeg::TextureConverter &QFFmpegVideoBuffer::ensureTextureConverter(QRhi &rhi)
 {
     Q_ASSERT(m_hwFrame);
@@ -205,25 +196,13 @@ QVideoFrameTexturesUPtr QFFmpegVideoBuffer::createTexturesFromHwFrame(QRhi &rhi,
     if (!m_hwFrame)
         return {};
 
-    // QTBUG-132200:
-    // We aim to set initTextureConverterForAnyRhi=true for as much platforms as we can,
-    // and remove the check after all platforms work fine on CI. If the flag is enabled,
-    // QVideoFrame::toImage can work faster, and we can test hw texture conversion on CI.
-    // Currently, enabling the flag fails some CI platforms.
-    constexpr bool initTextureConverterForAnyRhi = false;
+    TextureConverter &converter = ensureTextureConverter(rhi);
 
-    TextureConverter *converter = initTextureConverterForAnyRhi
-            ? &ensureTextureConverter(rhi)
-            : HwFrameContextData::ensure(*m_hwFrame).textureConverterMapper.get(&rhi);
-
-    if (!converter)
-        return {};
-
-    if (!converter->init(*m_hwFrame))
+    if (!converter.init(*m_hwFrame))
         return {};
 
     const QVideoFrameTextures *oldTexturesRaw = oldTextures.get();
-    if (QVideoFrameTexturesUPtr newTextures = converter->createTextures(*m_hwFrame, oldTextures))
+    if (QVideoFrameTexturesUPtr newTextures = converter.createTextures(*m_hwFrame, oldTextures))
         return newTextures;
 
     Q_ASSERT(oldTextures.get() == oldTexturesRaw);
@@ -231,7 +210,7 @@ QVideoFrameTexturesUPtr QFFmpegVideoBuffer::createTexturesFromHwFrame(QRhi &rhi,
     QVideoFrameTexturesHandlesUPtr oldTextureHandles =
             oldTextures ? oldTextures->takeHandles() : nullptr;
     QVideoFrameTexturesHandlesUPtr newTextureHandles =
-            converter->createTextureHandles(*m_hwFrame, std::move(oldTextureHandles));
+            converter.createTextureHandles(*m_hwFrame, std::move(oldTextureHandles));
 
     if (newTextureHandles) {
         QVideoFrameTexturesUPtr newTextures = QVideoTextureHelper::createTexturesFromHandles(

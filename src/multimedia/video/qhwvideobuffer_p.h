@@ -105,8 +105,6 @@ public:
     }
     virtual QVideoFrameTexturesUPtr mapTextures(QRhi &) { return nullptr; }
 
-    virtual void initTextureConverter(QRhi &) { }
-
     virtual bool isDmaBuf() const { return false; }
 };
 

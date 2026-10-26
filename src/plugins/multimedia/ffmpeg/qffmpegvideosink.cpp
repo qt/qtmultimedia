@@ -9,14 +9,6 @@ QT_BEGIN_NAMESPACE
 
 void QFFmpegVideoSink::onVideoFrameChanged(const QVideoFrame &frame)
 {
-    auto *buffer = QVideoFramePrivate::hwBuffer(frame);
-    if (!buffer)
-        return;
-
-    withRhi([&](QRhi *rhi) {
-        if (rhi)
-            buffer->initTextureConverter(*rhi);
-    });
 }
 
 QT_END_NAMESPACE

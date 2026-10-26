@@ -583,7 +583,6 @@ void tst_QFFmpegD3D11TextureConverter::map_returnsRealPixelData_afterMapTextures
 
     QFFmpegVideoBuffer buffer(std::move(frame));
 
-    buffer.initTextureConverter(*rhi);
     QVideoFrameTexturesUPtr oldTextures;
     QVideoFrameTexturesUPtr textures = buffer.mapTextures(*rhi, oldTextures);
     QVERIFY(textures);

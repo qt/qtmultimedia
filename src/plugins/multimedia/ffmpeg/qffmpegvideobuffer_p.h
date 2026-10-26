@@ -46,8 +46,6 @@ public:
 
     AVFrame *getHWFrame() const { return m_hwFrame.get(); }
 
-    void initTextureConverter(QRhi &rhi) override;
-
     QRhi *associatedCurrentThreadRhi() const override;
 
     QVideoFrameFormat::ColorSpace colorSpace() const;
