@@ -186,9 +186,9 @@ void QWasmVideoOutput::doElementCallbacks()
     auto emptiedCallback = [=](emscripten::val event) {
         Q_UNUSED(event)
         qCDebug(qWasmMediaVideoOutput) << "emptied";
+        // emptied means load() reset the element, not that playback finished.
+        // loadstart follows and reports LoadingMedia.
         Q_EMIT readyChanged(false);
-        m_currentMediaStatus = MediaStatus::EndOfMedia;
-        Q_EMIT statusChanged(m_currentMediaStatus);
     };
     m_emptiedChangeEvent.reset(new QWasmEventHandler(m_video, "emptied", emptiedCallback));
 
