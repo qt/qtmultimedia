@@ -185,6 +185,10 @@ void tst_QMediaRecorderBackend::record_createsFileWithExpectedExtension_whenReco
     for (const QMediaFormat::FileFormat &fileFormat :
          format.supportedFileFormats(QMediaFormat::Encode)) {
 
+        // Skip formats reporting no supported audio encoders
+        if (QMediaFormat(fileFormat).supportedAudioCodecs(QMediaFormat::Encode).isEmpty())
+            continue;
+
         const QByteArray formatName = QMediaFormat::fileFormatName(fileFormat).toLatin1();
 
         {
@@ -716,7 +720,8 @@ void tst_QMediaRecorderBackend::record_writesAudio_withAllSupportedAudioFormats_
         for (const QMediaFormat::AudioCodec &c : allAudioCodecs(/*with unspecified*/ true)) {
             f.setAudioCodec(c);
 
-            if (!f.isSupported(QMediaFormat::Encode))
+            if (!f.isSupported(QMediaFormat::Encode)
+                || f.supportedAudioCodecs(QMediaFormat::Encode).isEmpty())
                 continue;
 
 #ifdef Q_OS_WIN
