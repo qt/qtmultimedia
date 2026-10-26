@@ -7,7 +7,6 @@ qt_internal_add_plugin(QWasmMediaPlugin
     SOURCES
         qwasmmediaintegration.cpp qwasmmediaintegration_p.h
         mediaplayer/qwasmmediaplayer.cpp mediaplayer/qwasmmediaplayer_p.h
-        mediaplayer/qwasmvideosink.cpp mediaplayer/qwasmvideosink_p.h
         common/qwasmgltexturevideobuffer.cpp common/qwasmgltexturevideobuffer_p.h
         common/qwasmvideoframegrabber.cpp common/qwasmvideoframegrabber_p.h
         common/qwasmvideooutput.cpp common/qwasmvideooutput_p.h

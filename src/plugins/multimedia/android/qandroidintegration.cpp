@@ -17,14 +17,14 @@
 #include "qandroidmediaplayer_p.h"
 #include "qandroidaudiooutput_p.h"
 #include "qandroidaudioinput_p.h"
-#include "qandroidvideosink_p.h"
 #include "qandroidaudiodecoder_p.h"
-#include <private/qplatformvideodevices_p.h>
 
-#include <QCoreApplication>
+#include <QtCore/qcoreapplication.h>
 #include <QtCore/qjnitypes.h>
 
 #include <QtMultimedia/private/qplatformmediaplugin_p.h>
+#include <QtMultimedia/private/qplatformvideodevices_p.h>
+#include <QtMultimedia/private/qplatformvideosink_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -111,7 +111,7 @@ q23::expected<QPlatformAudioInput *, QString> QAndroidIntegration::createAudioIn
 
 q23::expected<QPlatformVideoSink *, QString> QAndroidIntegration::createVideoSink(QVideoSink *sink)
 {
-    return new QAndroidVideoSink(sink);
+    return new QOpenGLRhiVideoSink(sink);
 }
 
 Q_DECLARE_JNI_CLASS(QtMultimediaUtils, "org/qtproject/qt/android/multimedia/QtMultimediaUtils")

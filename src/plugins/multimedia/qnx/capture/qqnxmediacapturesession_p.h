@@ -24,7 +24,7 @@ class QQnxAudioInput;
 class QQnxPlatformCamera;
 class QQnxImageCapture;
 class QQnxMediaRecorder;
-class QQnxVideoSink;
+class QPlatformVideoSink;
 
 class QQnxMediaCaptureSession : public QPlatformMediaCaptureSession
 {
@@ -51,7 +51,7 @@ public:
 
     QQnxAudioInput *audioInput() const;
 
-    QQnxVideoSink *videoSink() const;
+    QPlatformVideoSink *videoSink() const;
 
 private:
     QQnxPlatformCamera *m_camera = nullptr;
@@ -59,7 +59,7 @@ private:
     QQnxMediaRecorder *m_mediaRecorder = nullptr;
     QQnxAudioInput *m_audioInput = nullptr;
     QPlatformAudioOutput *m_audioOutput = nullptr;
-    QQnxVideoSink *m_videoSink = nullptr;
+    QPlatformVideoSink *m_videoSink = nullptr;
 };
 
 QT_END_NAMESPACE

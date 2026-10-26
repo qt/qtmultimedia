@@ -41,25 +41,6 @@ QT_BEGIN_NAMESPACE
 
 Q_STATIC_LOGGING_CATEGORY(qLcGstVideoSink, "qt.multimedia.gstvideosink");
 
-QGstreamerPluggableVideoSink::QGstreamerPluggableVideoSink(QVideoSink *parent)
-    : QPlatformVideoSink{ parent }
-{
-}
-
-void QGstreamerPluggableVideoSink::setRhi(QRhi *rhi)
-{
-    if (m_rhi == rhi)
-        return;
-
-    m_rhi = rhi;
-    Q_EMIT rhiChanged();
-}
-
-QRhi* QGstreamerPluggableVideoSink::rhi() const
-{
-    return m_rhi;
-}
-
 QGstreamerRelayVideoSink::QGstreamerRelayVideoSink(QObject *parent)
     : QObject{
           parent,
@@ -197,9 +178,14 @@ void QGstreamerRelayVideoSink::connectPluggableVideoSink(QGstreamerPluggableVide
             m_pluggableVideoSink, &QPlatformVideoSink::setNativeSize);
 
     // Update pipeline contexts using the rendering rhi
-    renderingRhiChanged(m_pluggableVideoSink->rhi());
-    m_rhiConnection = connect(m_pluggableVideoSink, &QPlatformVideoSink::rhiChanged, this, [this](){
-        renderingRhiChanged(m_pluggableVideoSink->rhi());
+
+    m_pluggableVideoSink->withRhi([&](QRhi *rhi) {
+        renderingRhiChanged(rhi);
+    });
+
+    m_rhiConnection =
+            connect(m_pluggableVideoSink, &QRhiVideoSink::rhiChanged, this, [this](QRhi *rhi) {
+        renderingRhiChanged(rhi);
     });
 }
 

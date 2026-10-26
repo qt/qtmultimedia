@@ -29,7 +29,7 @@
 
 QT_BEGIN_NAMESPACE
 
-class QQnxVideoSink;
+class QRhiVideoSink;
 class QQnxMediaEventThread;
 class QQnxWindowGrabber;
 
@@ -135,7 +135,7 @@ private:
 
     QUrl m_media;
     QPointer<QAudioOutput> m_audioOutput;
-    QPointer<QQnxVideoSink> m_platformVideoSink;
+    QPointer<QRhiVideoSink> m_platformVideoSink;
 
     QQnxMediaMetaData m_metaData;
 

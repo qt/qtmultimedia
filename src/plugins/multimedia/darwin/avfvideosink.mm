@@ -21,21 +21,15 @@
 
 QT_USE_NAMESPACE
 
-AVFVideoSink::AVFVideoSink(QVideoSink *parent)
-    : QPlatformVideoSink(parent)
+AVFVideoSink::AVFVideoSink(QVideoSink *parent) : QRhiVideoSink(parent)
 {
+    connect(this, &QRhiVideoSink::rhiChanged, this, [this](QRhi *rhi) {
+        if (m_interface)
+            m_interface->setRhi(rhi);
+    });
 }
 
 AVFVideoSink::~AVFVideoSink() = default;
-
-void AVFVideoSink::setRhi(QRhi *rhi)
-{
-    if (m_rhi == rhi)
-        return;
-    m_rhi = rhi;
-    if (m_interface)
-        m_interface->setRhi(rhi);
-}
 
 void AVFVideoSink::setNativeSize(QSize size)
 {
@@ -49,8 +43,11 @@ void AVFVideoSink::setNativeSize(QSize size)
 void AVFVideoSink::setVideoSinkInterface(AVFVideoSinkInterface *interface)
 {
     m_interface = interface;
-    if (m_interface)
-        m_interface->setRhi(m_rhi);
+    if (m_interface) {
+        withRhi([&](QRhi *rhi) {
+            m_interface->setRhi(rhi);
+        });
+    }
 }
 
 AVFVideoSinkInterface::~AVFVideoSinkInterface()

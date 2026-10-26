@@ -4,13 +4,12 @@
 #include "qqnxplatformcamera_p.h"
 #include "qqnxcameraframebuffer_p.h"
 #include "qqnxmediacapturesession_p.h"
-#include "qqnxvideosink_p.h"
 
-#include <qcameradevice.h>
-#include <qmediadevices.h>
-
-#include <private/qmediastoragelocation_p.h>
-#include <private/qvideoframe_p.h>
+#include <QtMultimedia/qcameradevice.h>
+#include <QtMultimedia/qmediadevices.h>
+#include <QtMultimedia/private/qplatformvideosink_p.h>
+#include <QtMultimedia/private/qmediastoragelocation_p.h>
+#include <QtMultimedia/private/qvideoframe_p.h>
 
 #include <camera/camera_api.h>
 #include <camera/camera_3a.h>

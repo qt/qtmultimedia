@@ -13,14 +13,14 @@ QPlatformVideoSink::~QPlatformVideoSink() = default;
 
 QSize QPlatformVideoSink::nativeSize() const
 {
-    QMutexLocker locker(&m_mutex);
+    std::lock_guard locker(m_mutex);
     return m_nativeSize;
 }
 
 void QPlatformVideoSink::setNativeSize(QSize s)
 {
     {
-        QMutexLocker locker(&m_mutex);
+        std::lock_guard locker(m_mutex);
         if (m_nativeSize == s)
             return;
         m_nativeSize = s;
@@ -33,7 +33,7 @@ void QPlatformVideoSink::setVideoFrame(const QVideoFrame &frame)
     bool sizeChanged = false;
     QVideoFrame currentFrame;
     {
-        QMutexLocker locker(&m_mutex);
+        std::lock_guard locker(m_mutex);
         if (frame == m_currentVideoFrame)
             return;
         m_currentVideoFrame = frame;
@@ -56,14 +56,14 @@ void QPlatformVideoSink::setVideoFrame(const QVideoFrame &frame)
 
 QVideoFrame QPlatformVideoSink::currentVideoFrame() const
 {
-    QMutexLocker locker(&m_mutex);
+    std::lock_guard locker(m_mutex);
     return m_currentVideoFrame;
 }
 
 void QPlatformVideoSink::setSubtitleText(const QString &subtitleText)
 {
     {
-        QMutexLocker locker(&m_mutex);
+        std::lock_guard locker(m_mutex);
         if (m_subtitleText == subtitleText)
             return;
         m_subtitleText = subtitleText;
@@ -73,8 +73,29 @@ void QPlatformVideoSink::setSubtitleText(const QString &subtitleText)
 
 QString QPlatformVideoSink::subtitleText() const
 {
-    QMutexLocker locker(&m_mutex);
+    std::lock_guard locker(m_mutex);
     return m_subtitleText;
+}
+
+QRhiVideoSink::QRhiVideoSink(QVideoSink *sink) : QPlatformVideoSink(sink) {}
+
+void QRhiVideoSink::setRhi(QRhi *rhi)
+{
+    if (rhi && !isBackendSupported(rhi->backend()))
+        rhi = nullptr;
+    {
+        QMutexLocker guard{ &mutex() };
+        if (m_rhi == rhi)
+            return;
+        m_rhi = rhi;
+    }
+
+    Q_EMIT rhiChanged(rhi);
+}
+
+bool QOpenGLRhiVideoSink::isBackendSupported(QRhi::Implementation backend) const
+{
+    return backend == QRhi::OpenGLES2;
 }
 
 QT_END_NAMESPACE

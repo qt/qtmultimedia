@@ -19,7 +19,6 @@ qt_internal_add_plugin(QQnxMediaPlugin
         capture/qqnxmediarecorder.cpp capture/qqnxmediarecorder_p.h
         mediaplayer/qqnxmediaplayer.cpp mediaplayer/qqnxmediaplayer_p.h
         mediaplayer/qqnxmediametadata.cpp mediaplayer/qqnxmediametadata_p.h
-        mediaplayer/qqnxvideosink.cpp mediaplayer/qqnxvideosink_p.h
         mediaplayer/qqnxmediautil.cpp mediaplayer/qqnxmediautil_p.h
         qqnxformatinfo.cpp qqnxformatinfo_p.h
         qqnxmediaintegration.cpp qqnxmediaintegration_p.h

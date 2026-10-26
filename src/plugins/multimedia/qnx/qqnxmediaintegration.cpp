@@ -6,7 +6,7 @@
 #include "qqnxmediarecorder_p.h"
 #include "qqnxformatinfo_p.h"
 #include "qqnxvideodevices_p.h"
-#include "qqnxvideosink_p.h"
+#include <QtMultimedia/private/qplatformvideosink_p.h>
 #include "qqnxmediaplayer_p.h"
 #include "qqnximagecapture_p.h"
 #include "qqnxplatformcamera_p.h"
@@ -42,11 +42,6 @@ QPlatformMediaFormatInfo *QQnxMediaIntegration::createFormatInfo()
 QPlatformVideoDevices *QQnxMediaIntegration::createVideoDevices()
 {
     return new QQnxVideoDevices(this);
-}
-
-q23::expected<QPlatformVideoSink *, QString> QQnxMediaIntegration::createVideoSink(QVideoSink *sink)
-{
-    return new QQnxVideoSink(sink);
 }
 
 q23::expected<QPlatformMediaPlayer *, QString> QQnxMediaIntegration::createPlayer(QMediaPlayer *parent)

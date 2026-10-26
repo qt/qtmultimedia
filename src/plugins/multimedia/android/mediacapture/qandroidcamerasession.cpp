@@ -17,7 +17,7 @@
 #include <qdebug.h>
 #include <qvideoframe.h>
 #include <private/qplatformimagecapture_p.h>
-#include <private/qplatformvideosink_p.h>
+#include <QtMultimedia/private/qplatformvideosink_p.h>
 #include <private/qmemoryvideobuffer_p.h>
 #include <private/qcameradevice_p.h>
 #include <private/qmediastoragelocation_p.h>
@@ -784,9 +784,9 @@ void QAndroidCameraSession::setVideoSink(QVideoSink *sink)
 
     m_sink = sink;
 
-    if (m_sink)
+    if (auto *rhiSink = m_sink ? qobject_cast<QRhiVideoSink *>(m_sink->platformVideoSink()) : nullptr)
         m_retryPreviewConnection =
-                connect(m_sink->platformVideoSink(), &QPlatformVideoSink::rhiChanged, this, [&]()
+                connect(rhiSink, &QRhiVideoSink::rhiChanged, this, [&]
                         {
                             if (m_active) {
                                 setActive(false);

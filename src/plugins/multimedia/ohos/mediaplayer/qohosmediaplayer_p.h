@@ -34,7 +34,6 @@ class QAudioOutput;
 class QVideoSink;
 class QPlatformAudioOutput;
 class QOhosVideoOutput;
-class QOhosVideoSink;
 
 class QOhosMediaPlayer : public QObject, public QPlatformMediaPlayer
 {

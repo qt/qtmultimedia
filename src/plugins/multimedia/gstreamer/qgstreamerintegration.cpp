@@ -301,11 +301,6 @@ q23::expected<QPlatformImageCapture *, QString> QGstreamerIntegration::createIma
     return QGstreamerImageCapture::create(imageCapture);
 }
 
-q23::expected<QPlatformVideoSink *, QString> QGstreamerIntegration::createVideoSink(QVideoSink *sink)
-{
-    return new QGstreamerPluggableVideoSink(sink);
-}
-
 q23::expected<QPlatformAudioInput *, QString> QGstreamerIntegration::createAudioInput(QAudioInput *q)
 {
     return QGstreamerAudioInput::create(q);

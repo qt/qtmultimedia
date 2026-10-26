@@ -27,8 +27,6 @@ class QQnxMediaIntegration : public QPlatformMediaIntegration
 public:
     QQnxMediaIntegration();
 
-    q23::expected<QPlatformVideoSink *, QString> createVideoSink(QVideoSink *sink) override;
-
     q23::expected<QPlatformMediaPlayer *, QString> createPlayer(QMediaPlayer *parent) override;
 
     q23::expected<QPlatformMediaCaptureSession *, QString> createCaptureSession() override;

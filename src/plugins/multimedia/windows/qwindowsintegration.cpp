@@ -9,10 +9,10 @@
 #include <mediacapture/qwindowsmediacapture_p.h>
 #include <mediacapture/qwindowsmediaencoder_p.h>
 #include <player/qmediaengineplayer_p.h>
-#include <qmediaenginevideosink_p.h>
 #include <qwindowsformatinfo_p.h>
 
 #include <QtMultimedia/private/qplatformmediaplugin_p.h>
+#include <QtMultimedia/private/qplatformvideosink_p.h>
 #include <QtMultimedia/private/qwindowsaudiodevices_p.h>
 #include <QtCore/private/qfunctions_win_p.h>
 #include <QtCore/private/qsystemerror_p.h>
@@ -98,7 +98,7 @@ q23::expected<QPlatformImageCapture *, QString> QWindowsMediaIntegration::create
 
 q23::expected<QPlatformVideoSink *, QString> QWindowsMediaIntegration::createVideoSink(QVideoSink *sink)
 {
-    return new QMediaEngineVideoSink(sink);
+    return new QPlatformVideoSink(sink);
 }
 
 QT_END_NAMESPACE

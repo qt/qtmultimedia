@@ -24,24 +24,12 @@
 
 QT_BEGIN_NAMESPACE
 
-class QGstreamerPluggableVideoSink : public QPlatformVideoSink
-{
-    Q_OBJECT
-
-public:
-    explicit QGstreamerPluggableVideoSink(QVideoSink *parent = nullptr);
-
-    void setRhi(QRhi *rhi) override;
-    QRhi *rhi() const;
-
-private:
-    QRhi *m_rhi = nullptr;
-};
+using QGstreamerPluggableVideoSink = QRhiVideoSink;
 
 class QGstreamerRelayVideoSink : public QObject
 {
     Q_OBJECT
-    friend class QGstreamerPluggableVideoSink;
+    friend class QRhiVideoSink;
 
 public:
     explicit QGstreamerRelayVideoSink(QObject *parent = nullptr);

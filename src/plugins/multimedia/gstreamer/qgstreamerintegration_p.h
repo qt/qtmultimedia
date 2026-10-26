@@ -72,8 +72,6 @@ public:
     q23::expected<QPlatformMediaRecorder *, QString> createRecorder(QMediaRecorder *) override;
     q23::expected<QPlatformImageCapture *, QString> createImageCapture(QImageCapture *) override;
 
-    q23::expected<QPlatformVideoSink *, QString> createVideoSink(QVideoSink *sink) override;
-
     q23::expected<QPlatformAudioInput *, QString> createAudioInput(QAudioInput *) override;
     q23::expected<QPlatformAudioOutput *, QString> createAudioOutput(QAudioOutput *) override;
 

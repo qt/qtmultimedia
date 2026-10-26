@@ -16,35 +16,18 @@
 //
 
 #include <QtMultimedia/private/qplatformvideosink_p.h>
-#include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
-#include <QtCore/qmutex.h>
 
 QT_BEGIN_NAMESPACE
 
-// Required for QDoc workaround
-class QString;
-
-class QFFmpegVideoSink : public QPlatformVideoSink
+class QFFmpegVideoSink : public QRhiVideoSink
 {
     Q_OBJECT
 
 public:
-    QFFmpegVideoSink(QVideoSink *sink);
-    void setRhi(QRhi *rhi) override;
-
-    template <typename Functor>
-    auto withRhi(Functor &&functor) const
-    {
-        QMutexLocker guard{ &m_rhiMutex };
-        return functor(m_rhi);
-    }
+    using QRhiVideoSink::QRhiVideoSink;
 
 protected:
     void onVideoFrameChanged(const QVideoFrame &frame) override;
-
-private:
-    mutable QMutex m_rhiMutex;
-    QRhi *m_rhi = nullptr;
 };
 
 QT_END_NAMESPACE

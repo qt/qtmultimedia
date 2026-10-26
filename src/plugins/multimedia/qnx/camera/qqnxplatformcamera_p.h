@@ -31,7 +31,7 @@ QT_BEGIN_NAMESPACE
 
 class QQnxPlatformCameraFrameBuffer;
 class QQnxMediaCaptureSession;
-class QQnxVideoSink;
+class QPlatformVideoSink;
 class QQnxCameraFrameBuffer;
 
 class QQnxPlatformCamera : public QPlatformCamera
@@ -89,7 +89,7 @@ private:
     void onFrameAvailable();
 
     QQnxMediaCaptureSession *m_session = nullptr;
-    QQnxVideoSink *m_videoSink = nullptr;
+    QPlatformVideoSink *m_videoSink = nullptr;
 
     QCameraDevice m_cameraDevice;
 

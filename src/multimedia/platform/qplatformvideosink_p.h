@@ -25,6 +25,7 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qrect.h>
 #include <QtCore/qsize.h>
+#include <QtGui/rhi/qrhi.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -37,6 +38,8 @@ class Q_MULTIMEDIA_EXPORT QPlatformVideoSink : public QObject
 
 public:
     ~QPlatformVideoSink() override;
+
+    explicit QPlatformVideoSink(QVideoSink *parent);
 
     virtual void setRhi(QRhi * /*rhi*/) {}
 
@@ -55,12 +58,9 @@ public:
     QString subtitleText() const;
 
 protected:
-    explicit QPlatformVideoSink(QVideoSink *parent);
-
     virtual void onVideoFrameChanged(const QVideoFrame &) { }
 
-Q_SIGNALS:
-    void rhiChanged();
+    QMutex &mutex() const { return m_mutex; }
 
 private:
     QVideoSink *const m_sink = nullptr;
@@ -70,7 +70,40 @@ private:
     QVideoFrame m_currentVideoFrame;
 };
 
-QT_END_NAMESPACE
+class Q_MULTIMEDIA_EXPORT QRhiVideoSink : public QPlatformVideoSink
+{
+    Q_OBJECT
 
+public:
+    explicit QRhiVideoSink(QVideoSink *sink);
+    void setRhi(QRhi *rhi) override final;
+
+    template <typename Functor>
+    auto withRhi(Functor &&functor) const
+    {
+        std::lock_guard guard{ mutex() };
+        return functor(m_rhi);
+    }
+
+Q_SIGNALS:
+    void rhiChanged(QRhi *rhi);
+
+protected:
+    virtual bool isBackendSupported(QRhi::Implementation) const { return true; }
+
+private:
+    QRhi *m_rhi = nullptr;
+};
+
+class Q_MULTIMEDIA_EXPORT QOpenGLRhiVideoSink final : public QRhiVideoSink
+{
+public:
+    using QRhiVideoSink::QRhiVideoSink;
+
+protected:
+    bool isBackendSupported(QRhi::Implementation backend) const override;
+};
+
+QT_END_NAMESPACE
 
 #endif

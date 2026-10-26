@@ -2,12 +2,12 @@
 // Copyright (C) 2021 The Qt Company
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 #include "qqnxmediaplayer_p.h"
-#include "qqnxvideosink_p.h"
 #include "qqnxmediautil_p.h"
 #include "qqnxmediaeventthread_p.h"
 #include "qqnxwindowgrabber_p.h"
 
 #include <private/qhwvideobuffer_p.h>
+#include <QtMultimedia/private/qplatformvideosink_p.h>
 #include <private/qvideoframe_p.h>
 
 #include <QtCore/qabstracteventdispatcher.h>
@@ -381,7 +381,9 @@ bool QQnxMediaPlayer::attachVideoOutput()
     m_windowGrabber->setWindowId(windowName.toLatin1());
 
     if (m_platformVideoSink)
-        m_windowGrabber->setRhi(m_platformVideoSink->rhi());
+        m_platformVideoSink->withRhi([&](QRhi *rhi) {
+            m_windowGrabber->setRhi(rhi);
+        });
 
     // Start with an invisible window, because we just want to grab the frames from it.
     const QString videoDeviceUrl = QStringLiteral("screen:?winid=%1&wingrp=%2&initflags=invisible&nodstviewport=1")
@@ -779,9 +781,8 @@ void QQnxMediaPlayer::stop()
 
 void QQnxMediaPlayer::setVideoSink(QVideoSink *videoSink)
 {
-    m_platformVideoSink = videoSink
-        ? static_cast<QQnxVideoSink *>(videoSink->platformVideoSink())
-        : nullptr;
+    m_platformVideoSink =
+            videoSink ? static_cast<QRhiVideoSink *>(videoSink->platformVideoSink()) : nullptr;
 }
 
 void QQnxMediaPlayer::startMonitoring()

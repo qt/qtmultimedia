@@ -32,7 +32,7 @@ QT_BEGIN_NAMESPACE
 
 class QQnxCameraFrameBuffer;
 class QQnxMediaCaptureSession;
-class QQnxVideoSink;
+class QRhiVideoSink;
 
 class QQnxCamera : public QObject
 {

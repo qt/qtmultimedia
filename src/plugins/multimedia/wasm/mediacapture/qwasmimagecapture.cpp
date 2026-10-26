@@ -5,7 +5,6 @@
 
 #include "qwasmmediacapturesession_p.h"
 #include "qwasmcamera_p.h"
-#include "qwasmvideosink_p.h"
 
 #include <QtGui/qimagewriter.h>
 #include <QtCore/qdir.h>

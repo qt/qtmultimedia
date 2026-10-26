@@ -4,7 +4,7 @@
 #include "qwasmmediaintegration_p.h"
 
 #include "mediaplayer/qwasmmediaplayer_p.h"
-#include "mediaplayer/qwasmvideosink_p.h"
+#include <QtMultimedia/private/qplatformvideosink_p.h>
 #include "qwasmaudioinput_p.h"
 #include "common/qwasmaudiooutput_p.h"
 #include "mediacapture/qwasmmediacapturesession_p.h"
@@ -54,7 +54,7 @@ q23::expected<QPlatformMediaPlayer *, QString> QWasmMediaIntegration::createPlay
 
 q23::expected<QPlatformVideoSink *, QString> QWasmMediaIntegration::createVideoSink(QVideoSink *sink)
 {
-    return new QWasmVideoSink(sink);
+    return new QOpenGLRhiVideoSink(sink);
 }
 
 q23::expected<QPlatformAudioInput *, QString> QWasmMediaIntegration::createAudioInput(QAudioInput *audioInput)

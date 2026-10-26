@@ -7,7 +7,7 @@
 #include "qohossurfaceimage_p.h"
 
 #include <private/qhwvideobuffer_p.h>
-#include <private/qplatformvideosink_p.h>
+#include <QtMultimedia/private/qplatformvideosink_p.h>
 #include <private/qvideoframe_p.h>
 #include <private/qvideoframeconverter_p.h>
 
@@ -466,6 +466,27 @@ private:
     bool m_isHeadless{ false };
 };
 
+namespace {
+
+bool hasRhi(QVideoSink *videoSink)
+{
+    auto *sink = videoSink ? qobject_cast<QRhiVideoSink *>(videoSink->platformVideoSink()) : nullptr;
+    return sink && sink->withRhi([](QRhi *rhi) {
+        return rhi != nullptr;
+    });
+}
+
+template <typename Functor>
+auto withSinkRhi(QVideoSink *videoSink, Functor &&functor)
+{
+    auto *sink = videoSink ? qobject_cast<QRhiVideoSink *>(videoSink->platformVideoSink()) : nullptr;
+    if (!sink)
+        return functor(static_cast<QRhi *>(nullptr));
+    return sink->withRhi(std::forward<Functor>(functor));
+}
+
+}
+
 QOhosVideoOutput::QOhosVideoOutput(QVideoSink *sink, ContentSource contentSource,
                                    QObject *parent)
     : QObject(parent), m_sink(sink), m_contentSource(contentSource)
@@ -475,9 +496,8 @@ QOhosVideoOutput::QOhosVideoOutput(QVideoSink *sink, ContentSource contentSource
             &QOhosVideoOutput::onNewFrame, Qt::QueuedConnection);
     m_textureThread->launch();
 
-    if (auto *p = sink ? sink->platformVideoSink() : nullptr) {
-        connect(p, &QPlatformVideoSink::rhiChanged, this, &QOhosVideoOutput::onRhiChanged);
-    }
+    if (auto *rhiSink = sink ? qobject_cast<QRhiVideoSink *>(sink->platformVideoSink()) : nullptr)
+        connect(rhiSink, &QRhiVideoSink::rhiChanged, this, &QOhosVideoOutput::onRhiChanged);
 
     if (m_contentSource == ContentSource::Camera) {
         if (QScreen *screen = QGuiApplication::primaryScreen()) {
@@ -511,7 +531,7 @@ void QOhosVideoOutput::updateDisplayRotation()
 
 void QOhosVideoOutput::onRhiChanged()
 {
-    if (!m_sink || !m_sink->rhi())
+    if (!hasRhi(m_sink))
         return;
     if (m_surfaceCreatedWithoutRhi) {
         tearDownTextureThread();
@@ -536,14 +556,15 @@ void QOhosVideoOutput::tearDownTextureThread()
 
 OHNativeWindow *QOhosVideoOutput::nativeWindow()
 {
-    auto *rhi = m_sink ? m_sink->rhi() : nullptr;
-    if (!rhi) {
+    if (!hasRhi(m_sink)) {
         m_surfaceCreatedWithoutRhi = true;
     } else if (m_surfaceCreatedWithoutRhi) {
         tearDownTextureThread();
         m_surfaceCreatedWithoutRhi = false;
     }
-    return m_textureThread->nativeWindowBlocking(rhi);
+    return withSinkRhi(m_sink, [&](QRhi *rhi) {
+        return m_textureThread->nativeWindowBlocking(rhi);
+    });
 }
 
 QByteArray QOhosVideoOutput::surfaceId()
@@ -552,14 +573,15 @@ QByteArray QOhosVideoOutput::surfaceId()
     // sink isn't bound to a window yet. Spin up an offscreen RHI internally so
     // capture can proceed headless; surfaceReady will reattach once the sink
     // gets a real RHI.
-    auto *rhi = m_sink ? m_sink->rhi() : nullptr;
-    if (!rhi)
+    if (!hasRhi(m_sink))
         m_surfaceCreatedWithoutRhi = true;
     else if (m_surfaceCreatedWithoutRhi) {
         tearDownTextureThread();
         m_surfaceCreatedWithoutRhi = false;
     }
-    return m_textureThread->surfaceIdBlocking(rhi);
+    return withSinkRhi(m_sink, [&](QRhi *rhi) {
+        return m_textureThread->surfaceIdBlocking(rhi);
+    });
 }
 
 void QOhosVideoOutput::setVideoSize(const QSize &size)

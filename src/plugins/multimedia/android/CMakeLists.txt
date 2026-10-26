@@ -10,7 +10,6 @@ qt_internal_add_plugin(QAndroidMediaPlugin
         audio/qandroidaudiodecoder.cpp audio/qandroidaudiodecoder_p.h
         common/qandroidglobal_p.h
         common/qandroidmultimediautils.cpp common/qandroidmultimediautils_p.h
-        common/qandroidvideosink.cpp common/qandroidvideosink_p.h
         common/qandroidvideooutput.cpp common/qandroidvideooutput_p.h
         mediacapture/qandroidcamera.cpp mediacapture/qandroidcamera_p.h
         mediacapture/qandroidimagecapture.cpp mediacapture/qandroidimagecapture_p.h

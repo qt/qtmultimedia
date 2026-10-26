@@ -6,7 +6,7 @@
 #include "qqnxplatformcamera_p.h"
 #include "qqnximagecapture_p.h"
 #include "qqnxmediarecorder_p.h"
-#include "qqnxvideosink_p.h"
+#include <QtMultimedia/private/qplatformvideosink_p.h>
 #include "qvideosink.h"
 
 QT_BEGIN_NAMESPACE
@@ -93,10 +93,7 @@ void QQnxMediaCaptureSession::setAudioInput(QPlatformAudioInput *input)
 
 void QQnxMediaCaptureSession::setVideoPreview(QVideoSink *sink)
 {
-    auto qnxSink = sink ? static_cast<QQnxVideoSink *>(sink->platformVideoSink()) : nullptr;
-    if (m_videoSink == qnxSink)
-        return;
-    m_videoSink = qnxSink;
+    m_videoSink = sink->platformVideoSink();
 }
 
 void QQnxMediaCaptureSession::setAudioOutput(QPlatformAudioOutput *output)
@@ -111,7 +108,7 @@ QQnxAudioInput * QQnxMediaCaptureSession::audioInput() const
     return m_audioInput;
 }
 
-QQnxVideoSink * QQnxMediaCaptureSession::videoSink() const
+QPlatformVideoSink *QQnxMediaCaptureSession::videoSink() const
 {
     return m_videoSink;
 }

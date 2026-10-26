@@ -8,7 +8,6 @@ qt_internal_add_plugin(QOhosMediaPlugin
         qohosintegration.cpp qohosintegration_p.h
         qohosformatsinfo.cpp qohosformatsinfo_p.h
         qohosglobal_p.h
-        common/qohosvideosink.cpp common/qohosvideosink_p.h
         common/qohossurfaceimage.cpp common/qohossurfaceimage_p.h
         common/qohosvideooutput.cpp common/qohosvideooutput_p.h
         mediaplayer/qohosmediaplayer.cpp mediaplayer/qohosmediaplayer_p.h

@@ -18,6 +18,7 @@
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtMultimedia/qcapturablewindow.h>
 #include <QtMultimedia/qmediarecorder.h>
+#include <QtMultimedia/private/qplatformvideosink_p.h>
 #include <QtCore/private/qexpected_p.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qstring.h>
@@ -58,7 +59,6 @@ class QPlatformMediaPlayer;
 class QPlatformMediaRecorder;
 class QPlatformSurfaceCapture;
 class QPlatformVideoDevices;
-class QPlatformVideoSink;
 class QScreenCapture;
 class QVideoFrame;
 class QVideoSink;
@@ -117,9 +117,9 @@ public:
     virtual q23::expected<QPlatformAudioInput *, QString> createAudioInput(QAudioInput *);
     virtual q23::expected<QPlatformAudioOutput *, QString> createAudioOutput(QAudioOutput *);
 
-    virtual q23::expected<QPlatformVideoSink *, QString> createVideoSink(QVideoSink *)
+    virtual q23::expected<QPlatformVideoSink *, QString> createVideoSink(QVideoSink *sink)
     {
-        return q23::unexpected{ notAvailable };
+        return new QRhiVideoSink(sink);
     }
 
     QList<QCapturableWindow> capturableWindowsList();

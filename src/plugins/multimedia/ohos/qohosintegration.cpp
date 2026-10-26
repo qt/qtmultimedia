@@ -4,7 +4,7 @@
 #include "qohosintegration_p.h"
 
 #include "qohosglobal_p.h"
-#include "common/qohosvideosink_p.h"
+#include <QtMultimedia/private/qplatformvideosink_p.h>
 #include "qohosformatsinfo_p.h"
 #include "mediacapture/qohoscamera_p.h"
 #include "mediacapture/qohosimagecapture_p.h"
@@ -53,12 +53,6 @@ q23::expected<QPlatformMediaPlayer *, QString>
 QOhosIntegration::createPlayer(QMediaPlayer *player)
 {
     return new QOhosMediaPlayer(player);
-}
-
-q23::expected<QPlatformVideoSink *, QString>
-QOhosIntegration::createVideoSink(QVideoSink *sink)
-{
-    return new QOhosVideoSink(sink);
 }
 
 q23::expected<QPlatformCamera *, QString> QOhosIntegration::createCamera(QCamera *camera)

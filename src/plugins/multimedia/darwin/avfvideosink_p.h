@@ -30,7 +30,7 @@ QT_BEGIN_NAMESPACE
 
 class AVFVideoSinkInterface;
 
-class AVFVideoSink : public QPlatformVideoSink
+class AVFVideoSink : public QRhiVideoSink
 {
     Q_OBJECT
 
@@ -40,15 +40,12 @@ public:
 
     // QPlatformVideoSink interface
 public:
-    void setRhi(QRhi *rhi) override;
-
     void setNativeSize(QSize size);
 
     void setVideoSinkInterface(AVFVideoSinkInterface *interface);
 
 private:
     AVFVideoSinkInterface *m_interface = nullptr;
-    QRhi *m_rhi = nullptr;
 };
 
 class AVFVideoSinkInterface

@@ -15,7 +15,6 @@ qt_internal_add_plugin(QWindowsMediaPlugin
         player/qmediaenginenotify.cpp player/qmediaenginenotify_p.h
         player/qmediaenginetimedtextnotify.cpp player/qmediaenginetimedtextnotify_p.h
         player/qmediaenginevideobuffer.cpp player/qmediaenginevideobuffer_p.h
-        qmediaenginevideosink.cpp qmediaenginevideosink_p.h
         qwindowsmfdefs_p.h
         mediacapture/qwindowscamera.cpp
         mediacapture/qwindowscamera_p.h

@@ -26,7 +26,6 @@ public:
     ~QOhosIntegration() override;
 
     q23::expected<QPlatformMediaPlayer *, QString> createPlayer(QMediaPlayer *player) override;
-    q23::expected<QPlatformVideoSink *, QString> createVideoSink(QVideoSink *sink) override;
     q23::expected<QPlatformCamera *, QString> createCamera(QCamera *camera) override;
     q23::expected<QPlatformImageCapture *, QString>
     createImageCapture(QImageCapture *imageCapture) override;

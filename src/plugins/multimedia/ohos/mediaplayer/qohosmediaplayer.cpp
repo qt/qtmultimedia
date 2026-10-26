@@ -5,7 +5,7 @@
 
 #include "qohosglobal_p.h"
 #include "common/qohosvideooutput_p.h"
-#include "common/qohosvideosink_p.h"
+#include <QtMultimedia/private/qplatformvideosink_p.h>
 
 #include <private/qplatformaudiooutput_p.h>
 
@@ -228,7 +228,12 @@ void QOhosMediaPlayer::tryApplyPendingSource()
     // The surface can only be attached between SetSource and Prepare, so wait
     // for it. A sink with no renderer never gets an RHI: give up and prepare
     // without video rather than stall.
-    if (m_videoOutput && m_videoSink && !m_videoSink->rhi()) {
+    auto *rhiSink = m_videoSink ? qobject_cast<QRhiVideoSink *>(m_videoSink->platformVideoSink())
+                                : nullptr;
+    const bool hasRhi = rhiSink && rhiSink->withRhi([](QRhi *rhi) {
+        return rhi != nullptr;
+    });
+    if (m_videoOutput && m_videoSink && !hasRhi) {
         if (!m_surfaceWaitStarted) {
             m_surfaceWaitStarted = true;
             QTimer::singleShot(surfaceWaitTimeoutMs, this, [this] {

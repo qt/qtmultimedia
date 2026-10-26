@@ -6,6 +6,7 @@
 #include <QtFFmpegMediaPluginImpl/private/qffmpegaudiodecoder_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegaudioinput_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegconverter_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegimagecapture_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegmediacapturesession_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegmediaformatinfo_p.h>

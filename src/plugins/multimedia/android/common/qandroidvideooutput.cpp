@@ -12,7 +12,7 @@
 #endif
 #include <private/qhwvideobuffer_p.h>
 #include <private/qvideoframeconverter_p.h>
-#include <private/qplatformvideosink_p.h>
+#include <QtMultimedia/private/qplatformvideosink_p.h>
 #include <private/qvideoframe_p.h>
 #include <qvideosink.h>
 #include <qvideoframeformat.h>
@@ -363,6 +363,27 @@ private:
     QSize m_size;
 };
 
+namespace {
+
+bool hasRhi(QVideoSink *videoSink)
+{
+    auto *sink = videoSink ? qobject_cast<QRhiVideoSink *>(videoSink->platformVideoSink()) : nullptr;
+    return sink && sink->withRhi([](QRhi *rhi) {
+        return rhi != nullptr;
+    });
+}
+
+template <typename Functor>
+auto withSinkRhi(QVideoSink *videoSink, Functor &&functor)
+{
+    auto *sink = videoSink ? qobject_cast<QRhiVideoSink *>(videoSink->platformVideoSink()) : nullptr;
+    if (!sink)
+        return functor(static_cast<QRhi *>(nullptr));
+    return sink->withRhi(std::forward<Functor>(functor));
+}
+
+}
+
 QAndroidTextureVideoOutput::QAndroidTextureVideoOutput(QVideoSink *sink, QObject *parent)
     : QAndroidVideoOutput(parent)
     , m_sink(sink)
@@ -402,7 +423,7 @@ void QAndroidTextureVideoOutput::setSubtitle(const QString &subtitle)
 
 bool QAndroidTextureVideoOutput::shouldTextureBeUpdated() const
 {
-    return m_sink->rhi() && m_surfaceCreatedWithoutRhi;
+    return hasRhi(m_sink) && m_surfaceCreatedWithoutRhi;
 }
 
 AndroidSurfaceTexture *QAndroidTextureVideoOutput::surfaceTexture()
@@ -411,18 +432,19 @@ AndroidSurfaceTexture *QAndroidTextureVideoOutput::surfaceTexture()
         return nullptr;
 
     AndroidSurfaceTexture *surface = nullptr;
-    QMetaObject::invokeMethod(m_surfaceThread.get(), [&]() {
-                auto rhi = m_sink->rhi();
-                if (!rhi) {
-                    m_surfaceCreatedWithoutRhi = true;
-                }
-                else if (m_surfaceCreatedWithoutRhi) {
-                    m_surfaceThread->clearSurfaceTexture();
-                    m_surfaceCreatedWithoutRhi = false;
-                }
-                surface = m_surfaceThread->createSurfaceTexture(rhi);
-            },
-            Qt::BlockingQueuedConnection);
+    QMetaObject::invokeMethod(m_surfaceThread.get(), [&] {
+        withSinkRhi(m_sink, [&](QRhi *rhi) {
+            if (!rhi) {
+                m_surfaceCreatedWithoutRhi = true;
+            }
+            else if (m_surfaceCreatedWithoutRhi) {
+                m_surfaceThread->clearSurfaceTexture();
+                m_surfaceCreatedWithoutRhi = false;
+            }
+            surface = m_surfaceThread->createSurfaceTexture(rhi);
+        });
+    },
+        Qt::BlockingQueuedConnection);
     return surface;
 }
 
