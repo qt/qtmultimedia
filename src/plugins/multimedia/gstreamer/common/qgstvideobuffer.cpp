@@ -2,17 +2,20 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qgstvideobuffer_p.h"
-#include <private/qvideotexturehelper_p.h>
+
+#include <QtMultimedia/private/qvideotexturehelper_p.h>
 #include <QtCore/qloggingcategory.h>
+
+#include <common/qgstutils_p.h>
 
 #include <gst/video/video.h>
 #include <gst/video/video-frame.h>
 #include <gst/pbutils/gstpluginsbaseversion.h>
 
-#include <common/qgstutils_p.h>
-
 
 #if QT_CONFIG(gstreamer_gl)
+#  include <QtCore/qscopeguard.h>
+
 #  include <QtGui/rhi/qrhi.h>
 #  include <QtGui/qopenglcontext.h>
 #  include <QtGui/qopenglfunctions.h>
@@ -90,19 +93,13 @@ void QGstVideoBuffer::unmap()
 }
 
 #if QT_CONFIG(gstreamer_gl)
-struct GlTextures
-{
-    uint count = 0;
-    bool owned = false;
-    std::array<guint32, QVideoTextureHelper::TextureDescription::maxPlanes> names{};
-};
 
 class QGstQVideoFrameTextures : public QVideoFrameTextures
 {
 public:
     QGstQVideoFrameTextures(QRhi *rhi, QSize size, QVideoFrameFormat::PixelFormat format,
-                            GlTextures &textures)
-        : m_rhi(rhi), m_glTextures(textures)
+                            std::vector<guint32> textures)
+        : m_rhi(rhi), m_glTextures(std::move(textures))
     {
         QRhiTexture::Flags textureFlags = {};
         if (QVideoTextureHelper::forceGlTextureExternalOesIsSet() && m_rhi
@@ -110,35 +107,27 @@ public:
             textureFlags = {QRhiTexture::ExternalOES};
 
         auto desc = QVideoTextureHelper::textureDescription(format);
-        for (uint i = 0; i < textures.count; ++i) {
+        for (uint i = 0; i < textures.size(); ++i) {
             QSize planeSize = desc->rhiPlaneSize(size, i, m_rhi);
             QRhiTexture::Format format = desc->rhiTextureFormat(i, m_rhi);
             m_textures[i].reset(rhi->newTexture(format, planeSize, 1, textureFlags));
-            m_textures[i]->createFrom({textures.names[i], 0});
+            m_textures[i]->createFrom({ textures[i], 0 });
         }
-    }
-
-    ~QGstQVideoFrameTextures() override
-    {
-        m_rhi->makeThreadLocalNativeContextCurrent();
-        auto ctx = QOpenGLContext::currentContext();
-        if (m_glTextures.owned && ctx)
-            ctx->functions()->glDeleteTextures(int(m_glTextures.count), m_glTextures.names.data());
     }
 
     QRhiTexture *texture(uint plane) const override
     {
-        return plane < m_glTextures.count ? m_textures[plane].get() : nullptr;
+        return plane < m_glTextures.size() ? m_textures[plane].get() : nullptr;
     }
 
 private:
     QRhi *m_rhi = nullptr;
-    GlTextures m_glTextures;
+    std::vector<guint32> m_glTextures;
     std::unique_ptr<QRhiTexture> m_textures[QVideoTextureHelper::TextureDescription::maxPlanes];
 };
 
-static GlTextures mapFromGlTexture(const QGstBufferHandle &bufferHandle, GstVideoFrame &frame,
-                                   GstVideoInfo &videoInfo)
+static std::vector<guint32> mapFromGlTexture(const QGstBufferHandle &bufferHandle,
+                                             GstVideoFrame &frame, GstVideoInfo &videoInfo)
 {
     qCDebug(qLcGstVideoBuffer) << "Mapping textures from GL memory";
 
@@ -152,6 +141,10 @@ static GlTextures mapFromGlTexture(const QGstBufferHandle &bufferHandle, GstVide
         return {};
     }
 
+    const auto unmapGuard = qScopeGuard([&] {
+        gst_video_frame_unmap(&frame);
+    });
+
     auto *sync_meta = gst_buffer_get_gl_sync_meta(buffer);
     GstBuffer *sync_buffer = nullptr;
     if (!sync_meta) {
@@ -163,13 +156,10 @@ static GlTextures mapFromGlTexture(const QGstBufferHandle &bufferHandle, GstVide
     if (sync_buffer)
         gst_buffer_unref(sync_buffer);
 
-    GlTextures textures;
-    textures.count = frame.info.finfo->n_planes;
+    std::vector<guint32> textures;
 
-    for (uint i = 0; i < textures.count; ++i)
-        textures.names[i] = *(guint32 *)frame.data[i];
-
-    gst_video_frame_unmap(&frame);
+    for (uint i = 0; i < GST_VIDEO_FRAME_N_PLANES(&frame); ++i)
+        textures.push_back(*(guint32 *)frame.data[i]);
 
     return textures;
 }
@@ -182,11 +172,11 @@ QVideoFrameTexturesUPtr QGstVideoBuffer::mapTextures([[maybe_unused]] QRhi &rhi)
     case QGstCaps::GLTexture:
 #if QT_CONFIG(gstreamer_gl)
     {
-        GlTextures textures = mapFromGlTexture(m_buffer, m_frame, m_videoInfo.gstVideoInfo);
-        if (textures.count > 0)
+        auto textures = mapFromGlTexture(m_buffer, m_frame, m_videoInfo.gstVideoInfo);
+        if (textures.size())
             return std::make_unique<QGstQVideoFrameTextures>(
                     &rhi, QSize{ m_videoInfo.gstVideoInfo.width, m_videoInfo.gstVideoInfo.height },
-                    m_frameFormat.pixelFormat(), textures);
+                    m_frameFormat.pixelFormat(), std::move(textures));
         [[fallthrough]];
     }
 #endif
