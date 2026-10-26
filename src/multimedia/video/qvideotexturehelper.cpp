@@ -868,12 +868,11 @@ QVideoFrameTexturesUPtr makeBorrowedTextures(QRhi &rhi, QVideoFrameTexturesHandl
                                                                     std::move(sourceFrame));
 }
 
-QVideoFrameTexturesUPtr makeOwnedTextures(QRhi &rhi, QVideoFrameTexturesHandles &texturesSet,
-                                          QVideoFrameTexturesHandlesUPtr handles,
+QVideoFrameTexturesUPtr makeOwnedTextures(QRhi &rhi, QVideoFrameTexturesHandlesUPtr handles,
                                           QVideoFrameFormat::PixelFormat pixelFormat, QSize size,
                                           QVideoFrame sourceFrame)
 {
-    auto wrappers = createTextureWrappers(texturesSet, rhi, pixelFormat, size);
+    auto wrappers = createTextureWrappers(*handles, rhi, pixelFormat, size);
     if (!wrappers)
         return {};
     return std::make_unique<QVideoFrameTexturesFromHandlesSet>(
@@ -896,8 +895,7 @@ QVideoFrameTexturesUPtr createTexturesFromHandles(QVideoFrameTexturesHandlesUPtr
     if (size.isEmpty())
         return nullptr;
 
-    auto &texturesSetRef = *texturesSet;
-    return makeOwnedTextures(rhi, texturesSetRef, std::move(texturesSet), pixelFormat, size,
+    return makeOwnedTextures(rhi, std::move(texturesSet), pixelFormat, size,
                              std::move(sourceFrame));
 }
 
