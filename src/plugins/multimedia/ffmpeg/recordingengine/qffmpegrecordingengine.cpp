@@ -184,7 +184,6 @@ bool RecordingEngine::startEncoders()
 {
     Q_ASSERT(m_state == State::FormatsInitializing);
     Q_ASSERT(m_formatsInitializer);
-    m_formatsInitializer.reset();
 
     if (m_audioEncoders.empty() && m_videoEncoders.empty()) {
         Q_EMIT sessionError(QMediaRecorder::ResourceError,
@@ -192,6 +191,7 @@ bool RecordingEngine::startEncoders()
         return false;
     }
 
+    m_formatsInitializer.reset();
     m_state = State::EncodersInitializing;
 
     std::vector<QFuture<bool>> resolutions;
