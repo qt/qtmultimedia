@@ -40,17 +40,7 @@ public:
 
     virtual void setRhi(QRhi * /*rhi*/) {}
 
-    virtual void setWinId(WId) {}
-    virtual void setDisplayRect(const QRect &) {};
-    virtual void setFullScreen(bool) {}
-    virtual void setAspectRatioMode(Qt::AspectRatioMode) {}
-
     QSize nativeSize() const;
-
-    virtual void setBrightness(float /*brightness*/) {}
-    virtual void setContrast(float /*contrast*/) {}
-    virtual void setHue(float /*hue*/) {}
-    virtual void setSaturation(float /*saturation*/) {}
 
     QVideoSink *videoSink() { return m_sink; }
 
