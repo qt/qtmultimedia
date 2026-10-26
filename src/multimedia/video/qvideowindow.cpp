@@ -2,65 +2,101 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qvideowindow_p.h"
-#include <QPlatformSurfaceEvent>
-#include <qfile.h>
-#include <qpainter.h>
-#include <private/qguiapplication_p.h>
-#include <private/qmemoryvideobuffer_p.h>
-#include <private/qhwvideobuffer_p.h>
-#include <private/qmultimediautils_p.h>
-#include <private/qvideoframe_p.h>
-#include <qpa/qplatformintegration.h>
+
+#include <QtMultimedia/private/qmemoryvideobuffer_p.h>
+#include <QtMultimedia/private/qhwvideobuffer_p.h>
+#include <QtMultimedia/private/qmultimediautils_p.h>
+#include <QtMultimedia/private/qvideoframe_p.h>
+
+#include <QtGui/qevent.h>
+#include <QtGui/qpainter.h>
+#include <QtGui/private/qguiapplication_p.h>
+#include <QtGui/qpa/qplatformintegration.h>
+
+#include <QtCore/qfile.h>
+#include <QtCore/private/qoperatingsystemversion_p.h>
 
 QT_BEGIN_NAMESPACE
 
-static QSurface::SurfaceType platformSurfaceType()
+namespace {
+
+std::optional<QRhi::Implementation> g_graphicsApiOverride;
+
+QSurface::SurfaceType surfaceTypeFor(QRhi::Implementation graphicsApi)
 {
-#if defined(Q_OS_DARWIN)
-    return QSurface::MetalSurface;
-#elif defined (Q_OS_WIN)
-    return QSurface::Direct3DSurface;
-#endif
-
-    auto *integration = QGuiApplicationPrivate::platformIntegration();
-
-    if (!integration->hasCapability(QPlatformIntegration::OpenGL))
+    switch (graphicsApi) {
+    case QRhi::OpenGLES2:
+        return QSurface::OpenGLSurface;
+    case QRhi::Vulkan:
+        return QSurface::VulkanSurface;
+    case QRhi::Metal:
+        return QSurface::MetalSurface;
+    case QRhi::D3D11:
+    case QRhi::D3D12:
+        return QSurface::Direct3DSurface;
+    default:
         return QSurface::RasterSurface;
-
-    if (QCoreApplication::testAttribute(Qt::AA_ForceRasterWidgets))
-        return QSurface::RasterSurface;
-
-    return QSurface::OpenGLSurface;
+    }
 }
 
-QVideoWindowPrivate::QVideoWindowPrivate(QVideoWindow *q)
-    : q(q),
-    m_sink(new QVideoSink)
+QSurface::SurfaceType platformSurfaceType()
+{
+    switch (QOperatingSystemVersion::currentType()) {
+    case QOperatingSystemVersion::Windows:
+        return QSurface::Direct3DSurface;
+    case QOperatingSystemVersion::MacOS:
+        return QSurface::MetalSurface;
+    default:
+        auto *integration = QGuiApplicationPrivate::platformIntegration();
+
+        if (!integration->hasCapability(QPlatformIntegration::OpenGL))
+            return QSurface::RasterSurface;
+
+        if (QCoreApplication::testAttribute(Qt::AA_ForceRasterWidgets))
+            return QSurface::RasterSurface;
+
+        return QSurface::OpenGLSurface;
+    }
+}
+
+} // namespace
+
+void QVideoWindowPrivate::setGraphicsApiOverride(std::optional<QRhi::Implementation> api)
+{
+    g_graphicsApiOverride = api;
+}
+
+QVideoWindowPrivate::QVideoWindowPrivate(QVideoWindow *q) : q(q), m_sink(new QVideoSink)
 {
     Q_ASSERT(q);
 
     if (QGuiApplicationPrivate::platformIntegration()->hasCapability(QPlatformIntegration::RhiBasedRendering)) {
-        auto surfaceType = ::platformSurfaceType();
-        q->setSurfaceType(surfaceType);
-        switch (surfaceType) {
-        case QSurface::RasterSurface:
-        case QSurface::OpenVGSurface:
-        default:
-            // can't use those surfaces, need to render in SW
-            m_graphicsApi = QRhi::Null;
-            break;
-        case QSurface::OpenGLSurface:
-            m_graphicsApi = QRhi::OpenGLES2;
-            break;
-        case QSurface::VulkanSurface:
-            m_graphicsApi = QRhi::Vulkan;
-            break;
-        case QSurface::MetalSurface:
-            m_graphicsApi = QRhi::Metal;
-            break;
-        case QSurface::Direct3DSurface:
-            m_graphicsApi = QRhi::D3D11;
-            break;
+        if (g_graphicsApiOverride) {
+            m_graphicsApi = *g_graphicsApiOverride;
+            q->setSurfaceType(surfaceTypeFor(m_graphicsApi));
+        } else {
+            auto surfaceType = ::platformSurfaceType();
+            q->setSurfaceType(surfaceType);
+            switch (surfaceType) {
+            case QSurface::RasterSurface:
+            case QSurface::OpenVGSurface:
+            default:
+                // can't use those surfaces, need to render in SW
+                m_graphicsApi = QRhi::Null;
+                break;
+            case QSurface::OpenGLSurface:
+                m_graphicsApi = QRhi::OpenGLES2;
+                break;
+            case QSurface::VulkanSurface:
+                m_graphicsApi = QRhi::Vulkan;
+                break;
+            case QSurface::MetalSurface:
+                m_graphicsApi = QRhi::Metal;
+                break;
+            case QSurface::Direct3DSurface:
+                m_graphicsApi = QRhi::D3D11;
+                break;
+            }
         }
     }
 
@@ -139,6 +175,10 @@ void QVideoWindowPrivate::initRhi()
         QRhiD3D11InitParams params;
         params.enableDebugLayer = true;
         m_rhi.reset(QRhi::create(QRhi::D3D11, &params, rhiFlags));
+    }
+    if (m_graphicsApi == QRhi::D3D12) {
+        QRhiD3D12InitParams params;
+        m_rhi.reset(QRhi::create(QRhi::D3D12, &params, rhiFlags));
     }
 #endif
 
@@ -438,9 +478,18 @@ void QVideoWindowPrivate::render()
 
     cb->endPass();
 
+    if (m_postRenderHookForTests)
+        m_postRenderHookForTests(*m_rhi, *cb);
+
     m_rhi->endFrame(m_swapChain.get());
 
     m_texturePool.onFrameEndInvoked();
+}
+
+void QVideoWindowPrivate::setPostRenderHookForTests(
+        std::function<void(QRhi &, QRhiCommandBuffer &)> hook)
+{
+    m_postRenderHookForTests = std::move(hook);
 }
 
 /*!

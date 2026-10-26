@@ -25,15 +25,23 @@
 #include <private/qvideoframetexturepool_p.h>
 #include <qbackingstore.h>
 
+#include <functional>
+#include <optional>
+
 QT_BEGIN_NAMESPACE
 
 class QVideoWindow;
 
-class QVideoWindowPrivate {
+class Q_MULTIMEDIA_EXPORT QVideoWindowPrivate
+{
 public:
+    static void setGraphicsApiOverride(std::optional<QRhi::Implementation> api);
+
     QVideoWindowPrivate(QVideoWindow *q);
     ~QVideoWindowPrivate();
     bool canRender() const { return m_useRhi; }
+
+    static QVideoWindowPrivate *get(QVideoWindow *q);
 
     QRhi *rhi() const { return m_rhi.get(); }
 
@@ -49,6 +57,8 @@ public:
     void updateSubtitle(QRhiResourceUpdateBatch *rub, const QSize &frameSize);
 
     void setupGraphicsPipeline(QRhiGraphicsPipeline *pipeline, QRhiShaderResourceBindings *bindings, const QVideoFrameFormat &fmt);
+
+    void setPostRenderHookForTests(std::function<void(QRhi &, QRhiCommandBuffer &)> hook);
 
     QVideoWindow *q = nullptr;
     Qt::AspectRatioMode aspectRatioMode = Qt::KeepAspectRatio;
@@ -75,6 +85,7 @@ public:
     std::unique_ptr<QRhiBuffer> m_subtitleUniformBuf;
 
     std::unique_ptr<QVideoSink> m_sink;
+    std::function<void(QRhi &, QRhiCommandBuffer &)> m_postRenderHookForTests;
     QRhi::Implementation m_graphicsApi = QRhi::Null;
     QVideoTextureHelper::SubtitleLayout m_subtitleLayout;
     QVideoFrameTexturePool m_texturePool;
@@ -117,6 +128,11 @@ private:
     friend class QVideoWindowPrivate;
     std::unique_ptr<QVideoWindowPrivate> d;
 };
+
+inline QVideoWindowPrivate *QVideoWindowPrivate::get(QVideoWindow *q)
+{
+    return q->d.get();
+}
 
 QT_END_NAMESPACE
 
