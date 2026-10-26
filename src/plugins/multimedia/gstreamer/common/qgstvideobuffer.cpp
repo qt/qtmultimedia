@@ -145,16 +145,17 @@ static std::vector<guint32> mapFromGlTexture(const QGstBufferHandle &bufferHandl
         gst_video_frame_unmap(&frame);
     });
 
-    auto *sync_meta = gst_buffer_get_gl_sync_meta(buffer);
-    GstBuffer *sync_buffer = nullptr;
-    if (!sync_meta) {
-        sync_buffer = gst_buffer_new();
-        sync_meta = gst_buffer_add_gl_sync_meta(mem->context, sync_buffer);
+    // Set and wait on a GPU fence before accessing the texture.
+    {
+        auto *sync_meta = gst_buffer_get_gl_sync_meta(buffer);
+        QGstBufferHandle sync_buffer;
+        if (!sync_meta) {
+            sync_buffer.reset(gst_buffer_new(), QGstBufferHandle::HasRef);
+            sync_meta = gst_buffer_add_gl_sync_meta(mem->context, sync_buffer.get());
+        }
+        gst_gl_sync_meta_set_sync_point(sync_meta, mem->context);
+        gst_gl_sync_meta_wait(sync_meta, mem->context);
     }
-    gst_gl_sync_meta_set_sync_point (sync_meta, mem->context);
-    gst_gl_sync_meta_wait (sync_meta, mem->context);
-    if (sync_buffer)
-        gst_buffer_unref(sync_buffer);
 
     std::vector<guint32> textures;
 
