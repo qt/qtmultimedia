@@ -1,9 +1,11 @@
 // Copyright (C) 2021 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 #include "qffmpegrecordingengine_p.h"
-#include "qffmpegencodinginitializer_p.h"
+
 #include "qffmpegaudioencoder_p.h"
 #include "qffmpegaudioinput_p.h"
+#include "qffmpegencodinginitializer_p.h"
+#include "qffmpegmediaformatinfo_p.h"
 #include "qffmpegrecordingengineutils_p.h"
 
 #include "private/qmultimediautils_p.h"
@@ -60,6 +62,8 @@ AVDictionaryHolder muxerOptions(const AVFormatContext *formatContext)
 
 } // namespace
 
+using namespace Qt::StringLiterals;
+
 RecordingEngine::RecordingEngine(const QMediaEncoderSettings &settings,
                  std::unique_ptr<EncodingFormatContext> context)
     : m_settings(settings), m_formatContext(std::move(context)), m_muxer(new Muxer(this))
@@ -95,6 +99,9 @@ void RecordingEngine::addAudioInput(QFFmpegAudioInput *input)
     }
 
     AudioEncoder *audioEncoder = createAudioEncoder(format);
+    if (!audioEncoder)
+        return;
+
     connectEncoderToSource(audioEncoder, input);
 }
 
@@ -107,6 +114,8 @@ void RecordingEngine::addAudioBufferInput(QPlatformAudioBufferInput *input,
     const QAudioFormat format = firstBuffer.isValid() ? firstBuffer.format() : input->audioFormat();
 
     AudioEncoder *audioEncoder = createAudioEncoder(format);
+    if (!audioEncoder)
+        return;
 
     // set the buffer before connecting to avoid potential races
     if (firstBuffer.isValid())
@@ -118,6 +127,13 @@ void RecordingEngine::addAudioBufferInput(QPlatformAudioBufferInput *input,
 AudioEncoder *RecordingEngine::createAudioEncoder(const QAudioFormat &format)
 {
     Q_ASSERT(format.isValid());
+
+    const AVCodecID codecID = QFFmpegMediaFormatInfo::codecIdForAudioCodec(m_settings.audioCodec());
+    if (codecID == AV_CODEC_ID_NONE) {
+        Q_EMIT streamInitializationError(QMediaRecorder::FormatError,
+                                         u"No audio encoder available for the selected format"_s);
+        return nullptr;
+    }
 
     auto audioEncoder = new AudioEncoder(*this, format, m_settings);
 
