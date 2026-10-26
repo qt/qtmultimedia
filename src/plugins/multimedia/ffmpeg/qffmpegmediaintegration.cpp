@@ -13,7 +13,6 @@
 #include <QtFFmpegMediaPluginImpl/private/qffmpegmediaplayer_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegmediarecorder_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegresampler_p.h>
-#include <QtFFmpegMediaPluginImpl/private/qffmpegvideosink_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qgrabwindowsurfacecapture_p.h>
 
 #include <QtMultimedia/private/qplatformmediaplugin_p.h>
@@ -410,7 +409,7 @@ QFFmpegMediaIntegration::createImageCapture(QImageCapture *imageCapture)
 q23::expected<QPlatformVideoSink *, QString>
 QFFmpegMediaIntegration::createVideoSink(QVideoSink *sink)
 {
-    return new QFFmpegVideoSink(sink);
+    return new QPlatformVideoSink(sink);
 }
 
 q23::expected<QPlatformAudioInput *, QString>

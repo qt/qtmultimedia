@@ -25,7 +25,6 @@ qt_internal_add_module(FFmpegMediaPluginImplPrivate
         qffmpegtextureconverter.cpp qffmpegtextureconverter_p.h
         qffmpegmediametadata.cpp qffmpegmediametadata_p.h
         qffmpegmediaplayer.cpp qffmpegmediaplayer_p.h
-        qffmpegvideosink.cpp qffmpegvideosink_p.h
         qffmpegmediaformatinfo.cpp qffmpegmediaformatinfo_p.h
         qffmpegmediaintegration.cpp qffmpegmediaintegration_p.h
         qffmpegvideobuffer.cpp qffmpegvideobuffer_p.h
