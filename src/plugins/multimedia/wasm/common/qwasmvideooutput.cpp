@@ -598,10 +598,6 @@ void QWasmVideoOutput::createVideoElement(const std::string &id)
     m_video.call<void>("setAttribute", std::string("crossorigin"), originString);
     body.call<void>("appendChild", m_video);
 
-    // Create/add video source
-    document.call<emscripten::val>("createElement",
-                                   std::string("source")).set("src", m_source.toStdString());
-
     // Set position:absolute, which makes it possible to position the video
     // element using x,y. coordinates, relative to its parent (the page's <body>
     // element)
