@@ -20,8 +20,6 @@ Q_ENABLE_MOCK_MULTIMEDIA_PLUGIN
 class tst_QVideoWidget : public QObject
 {
     Q_OBJECT
-public slots:
-    void initTestCase();
 
 private slots:
     void nullObject();
@@ -57,15 +55,6 @@ public:
         resize(320, 240);
     }
 };
-
-void tst_QVideoWidget::initTestCase()
-{
-#ifdef Q_OS_MACOS
-    if (isCI())
-        QSKIP("SKIP on macOS CI since metal is not supported, otherwise it often crashes. To be "
-              "fixed.");
-#endif
-}
 
 void tst_QVideoWidget::nullObject()
 {
@@ -128,10 +117,6 @@ void tst_QVideoWidget::aspectRatio()
 
 void tst_QVideoWidget::sizeHint_data()
 {
-#ifdef Q_OS_MACOS
-    QSKIP("QTBUG-26481 - Crashes on Mac");
-#endif
-
     QTest::addColumn<QSize>("frameSize");
     QTest::addColumn<QRect>("viewport");
     QTest::addColumn<QSize>("expectedSize");
@@ -149,10 +134,6 @@ void tst_QVideoWidget::sizeHint_data()
 
 void tst_QVideoWidget::sizeHint()
 {
-#ifdef Q_OS_MACOS
-    QSKIP("QTBUG-26481 - Crashes on Mac");
-#endif
-
     QFETCH(QSize, frameSize);
 //    QFETCH(QRect, viewport);
     QFETCH(QSize, expectedSize);

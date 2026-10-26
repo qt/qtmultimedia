@@ -310,10 +310,7 @@ void tst_QVideoFrameBackend::toImage_returnsImage_whenCalledFromSeparateThreadAn
 #endif
 
     if (isCI()) {
-#ifdef Q_OS_MACOS
-        if (backend == QRhi::Metal)
-            QSKIP("SKIP on macOS because of crash and error \"Failed to create QWindow::MetalSurface. Metal is not supported by any of the GPUs in this system.\"");
-#elif defined(Q_OS_ANDROID)
+#if defined(Q_OS_ANDROID)
         QSKIP("SKIP initTestCase on CI, because of QTBUG-118571");
 #endif
     }
