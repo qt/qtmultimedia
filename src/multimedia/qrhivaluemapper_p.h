@@ -105,14 +105,14 @@ public:
         if (rhiAdded)
             m_data->registerCallback(rhi);
 
-        return { &rhiIt->second, rhiAdded };
+        return { std::addressof(rhiIt->second), rhiAdded };
     }
 
     Value *get(QRhi *rhi) const
     {
         QReadLocker locker(&m_data->lock);
         auto rhiIt = m_data->storage.find(rhi);
-        return rhiIt == m_data->storage.end() ? nullptr : &rhiIt->second;
+        return rhiIt == m_data->storage.end() ? nullptr : std::addressof(rhiIt->second);
     }
 
     template <typename Functor>
