@@ -70,6 +70,11 @@ QV4L2MemoryTransferUPtr makeUserPtrMemoryTransfer(QV4L2FileDescriptorPtr fileDes
 QV4L2MemoryTransferUPtr makeMMapMemoryTransfer(QV4L2FileDescriptorPtr fileDescriptor,
                                                const v4l2_pix_format &format);
 
+#if QT_CONFIG(linux_dmabuf)
+QV4L2MemoryTransferUPtr makeDmaBufMemoryTransfer(const QV4L2FileDescriptorPtr &fileDescriptor,
+                                                 const v4l2_pix_format &format);
+#endif
+
 } // namespace QtV4L2
 
 QT_END_NAMESPACE

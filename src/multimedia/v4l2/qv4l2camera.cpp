@@ -596,19 +596,38 @@ void QV4L2Camera::initV4L2MemoryTransfer()
 
     Q_ASSERT(!m_memoryTransfer);
 
-    m_memoryTransfer = makeUserPtrMemoryTransfer(m_v4l2FileDescriptor, m_pixFormat);
+    // QT_V4L2_CAMERA_MEMORY=dmabuf|userptr|mmap selects one strategy, with no fallback.
+    const QByteArray forcedStrategy = qgetenv("QT_V4L2_CAMERA_MEMORY");
+    const auto isAllowed = [&](QByteArrayView strategy) {
+        return forcedStrategy.isEmpty() || forcedStrategy == strategy;
+    };
 
-    if (m_memoryTransfer)
-        return;
+#if QT_CONFIG(linux_dmabuf)
+    if (isAllowed("dmabuf")) {
+        m_memoryTransfer = makeDmaBufMemoryTransfer(m_v4l2FileDescriptor, m_pixFormat);
 
-    if (errno == EBUSY) {
-        setCameraBusy();
-        return;
+        if (m_memoryTransfer)
+            return;
+    }
+#endif
+
+    if (isAllowed("userptr")) {
+        m_memoryTransfer = makeUserPtrMemoryTransfer(m_v4l2FileDescriptor, m_pixFormat);
+
+        if (m_memoryTransfer)
+            return;
+
+        if (errno == EBUSY) {
+            setCameraBusy();
+            return;
+        }
     }
 
-    qCDebug(qLcV4L2Camera) << "Cannot init V4L2_MEMORY_USERPTR; trying V4L2_MEMORY_MMAP";
+    if (isAllowed("mmap")) {
+        qCDebug(qLcV4L2Camera) << "Trying V4L2_MEMORY_MMAP";
 
-    m_memoryTransfer = makeMMapMemoryTransfer(m_v4l2FileDescriptor, m_pixFormat);
+        m_memoryTransfer = makeMMapMemoryTransfer(m_v4l2FileDescriptor, m_pixFormat);
+    }
 
     if (!m_memoryTransfer) {
         qCWarning(qLcV4L2Camera) << "Cannot init v4l2 memory transfer," << qt_error_string(errno);
