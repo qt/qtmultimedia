@@ -3,6 +3,7 @@
 
 #include "qdmabufvideobuffer_p.h"
 
+#include <QtMultimedia/private/qmultimedia_dmabuf_support_p.h>
 #include <QtMultimedia/private/qvideotexturehelper_p.h>
 #include <QtMultimedia/private/qrhivaluemapper_p.h>
 #include <QtGui/rhi/qrhi.h>

@@ -185,6 +185,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_egl
 
 qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_linux_dmabuf
     SOURCES
+        video/qmultimedia_dmabuf_support.cpp video/qmultimedia_dmabuf_support_p.h
         video/qdmabufvideobuffer.cpp video/qdmabufvideobuffer_p.h
         video/qdmabufallocator.cpp video/qdmabufallocator_p.h
 )
