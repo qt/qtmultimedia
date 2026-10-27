@@ -94,9 +94,7 @@ QT_USE_NAMESPACE
     }
     pixelBuffer = std::move(*copyResult);
 
-    QSize incomingFrameSize {
-        static_cast<int>(CVPixelBufferGetWidth(pixelBuffer.get())),
-        static_cast<int>(CVPixelBufferGetHeight(pixelBuffer.get())) };
+    QSize incomingFrameSize = QAVFHelpers::CVPixelBufferSize(pixelBuffer.get());
     Q_ASSERT(!incomingFrameSize.isEmpty());
     CvPixelFormat incomingCvPixelFormat = CVPixelBufferGetPixelFormatType(pixelBuffer.get());
 
@@ -115,8 +113,7 @@ QT_USE_NAMESPACE
     QVideoFrameFormat format = QAVFHelpers::videoFormatForImageBuffer(pixelBuffer.get());
     if (!format.isValid()) {
         qWarning() << "Cannot get get video format for image buffer"
-                   << CVPixelBufferGetWidth(pixelBuffer.get()) << 'x'
-                   << CVPixelBufferGetHeight(pixelBuffer.get());
+                   << QAVFHelpers::CVPixelBufferSize(pixelBuffer.get());
         return;
     }
 

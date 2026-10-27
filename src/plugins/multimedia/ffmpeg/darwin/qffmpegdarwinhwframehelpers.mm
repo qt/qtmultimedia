@@ -34,8 +34,7 @@ namespace {
 
     AVHWFramesContext *ctx = (AVHWFramesContext *)hwContext->data;
 
-    if (ctx->width != (int)CVPixelBufferGetWidth(sharedPixBuf.get())
-        || ctx->height != (int)CVPixelBufferGetHeight(sharedPixBuf.get()))
+    if (QAVFHelpers::CVPixelBufferSize(sharedPixBuf.get()) != QSize(ctx->width, ctx->height))
         return q23::unexpected{
             u"Size of given CVPixelBufferRef does not match the FFmpeg hw frame context"_s };
 
@@ -66,8 +65,8 @@ q23::expected<QAVFHelpers::QSharedCVPixelBuffer, QString> deepCopyCvPixelBuffer(
     CVPixelBufferRef source)
 {
     Q_ASSERT(source);
-    Q_ASSERT(CVPixelBufferGetWidth(source) != 0);
-    Q_ASSERT(CVPixelBufferGetHeight(source) != 0);
+    const QSize sourceSize = QAVFHelpers::CVPixelBufferSize(source);
+    Q_ASSERT(!sourceSize.isEmpty());
     Q_ASSERT(CVPixelBufferGetPixelFormatType(source) != CvPixelFormatInvalid);
 
     // We request an IOSurface backing (and Metal compatibility) so the
@@ -81,8 +80,8 @@ q23::expected<QAVFHelpers::QSharedCVPixelBuffer, QString> deepCopyCvPixelBuffer(
     CVPixelBufferRef destination = nullptr;
     const CVReturn createResult = CVPixelBufferCreate(
         kCFAllocatorDefault,
-        CVPixelBufferGetWidth(source),
-        CVPixelBufferGetHeight(source),
+        sourceSize.width(),
+        sourceSize.height(),
         CVPixelBufferGetPixelFormatType(source),
         (__bridge CFDictionaryRef)attributes,
         &destination);

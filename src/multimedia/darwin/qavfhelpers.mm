@@ -78,10 +78,7 @@ QVideoFrameFormat QAVFHelpers::videoFormatForImageBuffer(CVImageBufferRef buffer
                        << cvPixelFormat;
     }
 
-    size_t width = CVPixelBufferGetWidth(buffer);
-    size_t height = CVPixelBufferGetHeight(buffer);
-
-    QVideoFrameFormat format(QSize(width, height), pixelFormat);
+    QVideoFrameFormat format(QAVFHelpers::CVPixelBufferSize(buffer), pixelFormat);
 
     auto colorSpace = QVideoFrameFormat::ColorSpace_Undefined;
     auto colorTransfer = QVideoFrameFormat::ColorTransfer_Unknown;

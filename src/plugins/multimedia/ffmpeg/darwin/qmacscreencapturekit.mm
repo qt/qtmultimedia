@@ -186,9 +186,7 @@ struct FrameInfo
     pixelBuffer = std::move(*copyResult);
 
     // If the new incoming frames have a different size, update the FFmpeg frames context.
-    QSize incomingFrameSize {
-        static_cast<int>(CVPixelBufferGetWidth(pixelBuffer.get())),
-        static_cast<int>(CVPixelBufferGetHeight(pixelBuffer.get())) };
+    QSize incomingFrameSize = QAVFHelpers::CVPixelBufferSize(pixelBuffer.get());
     Q_ASSERT(!incomingFrameSize.isEmpty());
     CvPixelFormat incomingCvPixelFormat = CVPixelBufferGetPixelFormatType(pixelBuffer.get());
     Q_ASSERT(scStreamOutput.m_hwAccel);

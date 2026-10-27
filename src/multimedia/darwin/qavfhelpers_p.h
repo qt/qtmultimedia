@@ -55,6 +55,14 @@ Q_MULTIMEDIA_EXPORT QVideoFrameFormat::PixelFormat fromCVPixelFormat(CvPixelForm
 Q_MULTIMEDIA_EXPORT CvPixelFormat toCVPixelFormat(QVideoFrameFormat::PixelFormat pixFmt,
                               QVideoFrameFormat::ColorRange colorRange);
 
+inline QSize CVPixelBufferSize(CVPixelBufferRef buffer)
+{
+    return QSize{
+        int(CVPixelBufferGetWidth(buffer)),
+        int(CVPixelBufferGetHeight(buffer)),
+    };
+}
+
 Q_MULTIMEDIA_EXPORT QVideoFrameFormat videoFormatForImageBuffer(CVImageBufferRef buffer, bool openGL = false);
 
 [[nodiscard]] Q_MULTIMEDIA_EXPORT std::chrono::microseconds CMTimeToMicroseconds(const CMTime &);
