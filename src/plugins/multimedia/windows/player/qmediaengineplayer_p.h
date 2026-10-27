@@ -89,6 +89,8 @@ private:
 
     // Audio
     void applyAudioOutput();
+    void applyVolume();
+    void applyAudioDevice();
 
     // Metadata and tracks
     void updateMetaData();

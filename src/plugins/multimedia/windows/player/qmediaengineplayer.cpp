@@ -960,13 +960,13 @@ void QMediaEnginePlayer::setAudioOutput(QPlatformAudioOutput *output)
 
     if (output && output->q) {
         QObject::connect(output->q, &QAudioOutput::volumeChanged, context(), [this] {
-            applyAudioOutput();
+            applyVolume();
         });
         QObject::connect(output->q, &QAudioOutput::mutedChanged, context(), [this] {
-            applyAudioOutput();
+            applyVolume();
         });
         QObject::connect(output->q, &QAudioOutput::deviceChanged, context(), [this] {
-            applyAudioOutput();
+            applyAudioDevice();
         });
     }
 
@@ -974,6 +974,12 @@ void QMediaEnginePlayer::setAudioOutput(QPlatformAudioOutput *output)
 }
 
 void QMediaEnginePlayer::applyAudioOutput()
+{
+    applyVolume();
+    applyAudioDevice();
+}
+
+void QMediaEnginePlayer::applyVolume()
 {
     if (!m_mediaEngine)
         return;
@@ -985,15 +991,27 @@ void QMediaEnginePlayer::applyAudioOutput()
 
     m_mediaEngine->SetVolume(static_cast<double>(m_audioOutput->volume));
     m_mediaEngine->SetMuted(m_audioOutput->muted ? TRUE : FALSE);
+}
+
+// SetAudioEndpointId() reconfigures the audio renderer even if the endpoint does not change, so
+// it must only be called when the device or the engine changes, not e.g. on volume changes.
+void QMediaEnginePlayer::applyAudioDevice()
+{
+    if (!m_mediaEngine || !m_audioOutput)
+        return;
 
     const QByteArray id = m_audioOutput->device.id();
-    if (!id.isEmpty()) {
-        ComPtr<IMFMediaEngineAudioEndpointId> endpointId;
-        if (SUCCEEDED(m_mediaEngine.As(&endpointId))) {
-            const QString deviceId = QString::fromUtf8(id);
-            endpointId->SetAudioEndpointId(reinterpret_cast<LPCWSTR>(deviceId.utf16()));
-        }
-    }
+    if (id.isEmpty())
+        return;
+
+    ComPtr<IMFMediaEngineAudioEndpointId> endpointId;
+    if (FAILED(m_mediaEngine.As(&endpointId)))
+        return;
+
+    const QString deviceId = QString::fromUtf8(id);
+    const HRESULT hr = endpointId->SetAudioEndpointId(reinterpret_cast<LPCWSTR>(deviceId.utf16()));
+    if (FAILED(hr))
+        qCWarning(lcMediaEngine) << "SetAudioEndpointId:" << QSystemError::windowsComString(hr);
 }
 
 void QMediaEnginePlayer::updateMetaData()
