@@ -182,6 +182,7 @@ QDebug operator<<(QDebug dbg, const spa_dict &dict);
 QDebug operator<<(QDebug dbg, const spa_pod &pod);
 QDebug operator<<(QDebug dbg, enum pw_stream_state);
 QDebug operator<<(QDebug dbg, const pw_time &state);
+QDebug operator<<(QDebug dbg, spa_data_type);
 
 // Address sanitizer helper
 // for now these annotations only function as documentation

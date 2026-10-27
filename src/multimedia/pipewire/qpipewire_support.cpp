@@ -164,4 +164,28 @@ QDebug operator<<(QDebug dbg, const pw_time &state)
     return dbg;
 }
 
+QDebug operator<<(QDebug dbg, spa_data_type type)
+{
+#if !PW_CHECK_VERSION(1, 2, 0)
+    constexpr auto SPA_DATA_SyncObj = spa_data_type(5);
+#endif
+
+    switch (type) {
+    case SPA_DATA_Invalid:
+        return dbg << "SPA_DATA_Invalid";
+    case SPA_DATA_MemPtr:
+        return dbg << "SPA_DATA_MemPtr";
+    case SPA_DATA_MemFd:
+        return dbg << "SPA_DATA_MemFd";
+    case SPA_DATA_DmaBuf:
+        return dbg << "SPA_DATA_DmaBuf";
+    case SPA_DATA_MemId:
+        return dbg << "SPA_DATA_MemId";
+    case SPA_DATA_SyncObj:
+        return dbg << "SPA_DATA_SyncObj";
+    default:
+        return dbg << "spa_data_type(" << int(type) << ")";
+    }
+}
+
 QT_END_NAMESPACE

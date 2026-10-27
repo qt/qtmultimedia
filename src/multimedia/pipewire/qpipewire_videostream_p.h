@@ -24,11 +24,27 @@
 #include <QtCore/qobject.h>
 #include <QtCore/qsize.h>
 
+#include <bitset>
+#include <optional>
+
+#include <spa/buffer/buffer.h>
 #include <spa/param/video/format.h>
+
+#include <pipewire/version.h>
+
+// DMABUF negotiation needs SPA_FORMAT_VIDEO_modifier/SPA_VIDEO_FLAG_MODIFIER(_FIXATION_REQUIRED)
+// and SPA_PARAM_BUFFERS_dataType, none of which older libspa headers declare.
+#if QT_CONFIG(linux_dmabuf) && PW_CHECK_VERSION(0, 3, 76)
+#  define QT_PIPEWIRE_HAS_DMABUF_CAMERA 1
+#else
+#  define QT_PIPEWIRE_HAS_DMABUF_CAMERA 0
+#endif
 
 QT_BEGIN_NAMESPACE
 
 namespace QtPipeWire {
+
+using BufferDataTypes = std::bitset<SPA_DATA_DmaBuf + 1>;
 
 class Q_MULTIMEDIA_EXPORT QPipeWireVideoStream : public QObject
 {
@@ -55,6 +71,12 @@ private:
     void onParamChanged(uint32_t id, const spa_pod *param);
     void onProcess();
 
+#if QT_PIPEWIRE_HAS_DMABUF_CAMERA
+    // Answers a SPA_VIDEO_FLAG_MODIFIER_FIXATION_REQUIRED request with the one
+    // modifier we can read, which makes the server send a fixated format.
+    void confirmDmaBufModifier(spa_video_format, spa_rectangle);
+#endif
+
     static const pw_stream_events &streamEvents();
 
     QCameraContextManager &m_context;
@@ -68,6 +90,11 @@ private:
 
     mutable QMutex m_formatMutex;
     QVideoFrameFormat m_frameFormat;
+
+    // Only meaningful on the event loop thread. A DMABUF buffer is only read when
+    // its layout is known: a compressed byte stream, or raw with a linear modifier.
+    bool m_dmaBufReadable = false;
+    BufferDataTypes m_bufferDataTypes;
 };
 
 } // namespace QtPipeWire
