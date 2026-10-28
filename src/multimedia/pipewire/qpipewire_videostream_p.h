@@ -15,6 +15,7 @@
 // We mean it.
 //
 
+#include <QtMultimedia/private/qdmabufallocator_p.h>
 #include <QtMultimedia/private/qpipewire_cameracontextmanager_p.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtMultimedia/qvideoframe.h>
@@ -47,6 +48,10 @@ namespace QtPipeWire {
 
 using BufferDataTypes = std::bitset<SPA_DATA_DmaBuf + 1>;
 
+#if QT_PIPEWIRE_HAS_DMABUF_CAMERA
+class DmaBufBufferRegistry;
+#endif
+
 class Q_MULTIMEDIA_EXPORT QPipeWireVideoStream : public QObject
 {
     Q_OBJECT
@@ -54,7 +59,7 @@ class Q_MULTIMEDIA_EXPORT QPipeWireVideoStream : public QObject
 public:
     QPipeWireVideoStream(QCameraContextManager &context, QByteArray targetObject,
                          QVideoFrameFormat::PixelFormat requestedPixelFormat, QSize requestedSize,
-                         qreal requestedFrameRate);
+                         qreal requestedFrameRate, bool allowStreamDmaBufs);
     ~QPipeWireVideoStream() override;
 
     Q_DISABLE_COPY_MOVE(QPipeWireVideoStream)
@@ -76,6 +81,10 @@ private:
     // Answers a SPA_VIDEO_FLAG_MODIFIER_FIXATION_REQUIRED request with the one
     // modifier we can read, which makes the server send a fixated format.
     void confirmDmaBufModifier(spa_video_format, spa_rectangle);
+
+    void onAddBuffer(pw_buffer *buffer);
+    void allocateDmaBufBuffers(QSize size, QVideoFrameFormat::PixelFormat pixelFormat);
+    bool emitDmaBufFrame(pw_buffer *buffer, const QVideoFrameFormat &frameFormat);
 #endif
 
     static const pw_stream_events &streamEvents();
@@ -85,6 +94,7 @@ private:
     const QVideoFrameFormat::PixelFormat m_requestedPixelFormat;
     const QSize m_requestedSize;
     const qreal m_requestedFrameRate;
+    const bool m_allowStreamDmaBufs;
 
     PwStreamHandle m_stream;
     spa_hook m_streamListener{};
@@ -99,6 +109,12 @@ private:
 
     // The first frame's timestamp in microseconds; frame start times are relative to it.
     std::optional<std::chrono::microseconds> m_firstFrameTime;
+
+#if QT_PIPEWIRE_HAS_DMABUF_CAMERA
+    // Set when the stream allocates its DMA-BUF buffers itself, so they outlive the stream.
+    std::optional<QtMultimediaPrivate::QDmaBufAllocator> m_dmaBufAllocator;
+    std::shared_ptr<DmaBufBufferRegistry> m_bufferRegistry;
+#endif
 };
 
 } // namespace QtPipeWire

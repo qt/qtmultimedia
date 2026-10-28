@@ -31,6 +31,10 @@ Q_MULTIMEDIA_EXPORT QByteArray cameraDeviceId(const PwPropertyDict &nodeProperti
 Q_MULTIMEDIA_EXPORT QString cameraDescription(const PwPropertyDict &nodeProperties,
                                               const PwPropertyDict &deviceProperties);
 
+// Whether the node imports DMA-BUFs allocated by the client. Only the v4l2 node does; the libcamera
+// nodes accept them but never fill them.
+Q_MULTIMEDIA_EXPORT bool importsStreamDmaBufs(const PwPropertyDict &deviceProperties);
+
 // Where the camera faces, for the device.api values that report it.
 Q_MULTIMEDIA_EXPORT QCameraDevice::Position cameraPosition(const PwPropertyDict &nodeProperties);
 

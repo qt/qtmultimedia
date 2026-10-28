@@ -19,10 +19,19 @@
 #endif
 
 #if QT_PIPEWIRE_HAS_DMABUF_CAMERA
+#  include <QtMultimedia/private/qcaptureslotregistry_p.h>
+#  include <QtMultimedia/private/qdmabufallocator_p.h>
+#  include <QtMultimedia/private/qdmabufsource_p.h>
+#  include <QtMultimedia/private/qdmabufvideobuffer_p.h>
+#  include <QtMultimedia/private/qmaterializingvideobuffer_p.h>
 #  include <QtMultimedia/private/qmultimedia_dmabuf_support_p.h>
+#  include <QtMultimedia/private/qvideotexturehelper_p.h>
 #endif
 
 #include <array>
+#ifndef QT_NO_DEBUG
+#  include <atomic>
+#endif
 #include <iterator>
 #include <optional>
 
@@ -86,6 +95,28 @@ CameraMemory cameraMemoryFromEnvironment()
     Q_UNREACHABLE_RETURN(std::nullopt);
 }
 
+// pts is in nanoseconds since an arbitrary epoch.
+void setStartTime(QVideoFrame &frame, const spa_buffer &buffer,
+                  std::optional<std::chrono::microseconds> &firstFrameTime)
+{
+    using namespace std::chrono;
+
+    const auto *header = static_cast<const spa_meta_header *>(
+            spa_buffer_find_meta_data(&buffer, SPA_META_Header, sizeof(spa_meta_header)));
+    const microseconds pts = [&] {
+        if (header && header->pts > 0) {
+            // pts is in nanoseconds since an arbitrary epoch.
+            return round<microseconds>(nanoseconds{ header->pts });
+        } else {
+            return round<microseconds>(steady_clock::now().time_since_epoch());
+        }
+    }();
+
+    if (!firstFrameTime)
+        firstFrameTime = pts;
+    frame.setStartTime(qint64((pts - *firstFrameTime).count()));
+}
+
 // Copies the frame out of the buffer. Each frame is copied eagerly, so the
 // buffer can be requeued as soon as this returns.
 std::optional<QByteArray> copyFrameData(const spa_buffer &buffer,
@@ -111,7 +142,7 @@ std::optional<QByteArray> copyFrameData(const spa_buffer &buffer,
             return std::nullopt;
         }
         return QtMultimediaPrivate::copyDmaBufData(
-                data.fd, off_t(data.mapoffset) + off_t(chunkOffset), data.chunk->size,
+                data.fd, off_t(data.mapoffset) + off_t(chunkOffset), int(data.chunk->size),
                 size_t(data.mapoffset) + data.maxsize);
     }
 #endif
@@ -124,19 +155,121 @@ std::optional<QByteArray> copyFrameData(const spa_buffer &buffer,
 
 } // namespace
 
+#if QT_PIPEWIRE_HAS_DMABUF_CAMERA
+namespace {
+
+// PipeWire links at most link.max-buffers, typically 16 (libcamera nodes are limited to 4).
+constexpr std::size_t kDmaBufBufferCount = 8;
+constexpr std::size_t kDmaBufMinFreeBuffers = 2;
+
+} // namespace
+
+// Owns the DMA-BUFs the camera node fills. A frame holding a pw_buffer keeps it out of the
+// stream's queue; releasing the slot queues it back to the node.
+class DmaBufBufferRegistry final
+    : public QtMultimediaPrivate::CaptureSlotRegistry<DmaBufBufferRegistry, pw_buffer *,
+                                                      kDmaBufBufferCount>
+{
+public:
+    using QDmaBuf = QtMultimediaPrivate::QDmaBuf;
+
+    DmaBufBufferRegistry(std::vector<std::shared_ptr<QDmaBuf>> buffers, int stride,
+                         QPipeWireInstance &instance, pw_stream *stream)
+        : CaptureSlotRegistry(buffers.size(), kDmaBufMinFreeBuffers),
+          m_buffers(std::move(buffers)),
+          m_stride(stride),
+          m_instance(instance),
+          m_stream(stream)
+    {
+        Q_ASSERT(m_buffers.size() == kDmaBufBufferCount);
+    }
+
+    void recycleSlot(pw_buffer *buffer) const
+    {
+#  ifndef QT_NO_DEBUG
+        m_leased[bufferIndex(buffer)].store(false);
+#  endif
+        m_instance.runWithEventLoopLock([&] {
+            pw_stream_queue_buffer(m_stream, buffer);
+        });
+    }
+
+    void markLeased([[maybe_unused]] std::size_t index)
+    {
+#  ifndef QT_NO_DEBUG
+        m_leased[index].store(true);
+#  endif
+    }
+
+    // Points the buffer at its DMA-BUF. PipeWire re-adds a buffer it already knows when it
+    // renegotiates, so a buffer keeps the DMA-BUF it was first given.
+    void bindBuffer(pw_buffer *pwBuffer)
+    {
+#  ifndef QT_NO_DEBUG
+        if (pwBuffer->user_data) {
+            Q_ASSERT(!m_leased[bufferIndex(pwBuffer)].load()
+                     && "PipeWire re-added a buffer that a frame still holds");
+        }
+#  endif
+        if (!pwBuffer->user_data) {
+            Q_ASSERT(m_bound < m_buffers.size());
+            // One past the index, so that a null user_data means the buffer is unbound.
+            pwBuffer->user_data = reinterpret_cast<void *>(++m_bound);
+        }
+
+        const QDmaBuf &buf = *m_buffers[bufferIndex(pwBuffer)];
+
+        spa_data &data = pwBuffer->buffer->datas[0];
+        data.type = SPA_DATA_DmaBuf;
+        data.flags = SPA_DATA_FLAG_READWRITE;
+        data.fd = buf.fd();
+        data.mapoffset = 0;
+        data.maxsize = uint32_t(buf.size());
+        data.data = nullptr;
+    }
+
+    static std::size_t bufferIndex(const pw_buffer *pwBuffer)
+    {
+        return reinterpret_cast<std::size_t>(pwBuffer->user_data) - 1;
+    }
+
+    std::shared_ptr<QDmaBuf> buffer(std::size_t index) const { return m_buffers[index]; }
+    int stride() const { return m_stride; }
+
+private:
+    const std::vector<std::shared_ptr<QDmaBuf>> m_buffers;
+#  ifndef QT_NO_DEBUG
+    mutable std::array<std::atomic<bool>, kDmaBufBufferCount> m_leased{};
+#  endif
+    const int m_stride;
+    QPipeWireInstance &m_instance;
+    pw_stream *const m_stream;
+    std::size_t m_bound = 0;
+};
+#endif
+
 QPipeWireVideoStream::QPipeWireVideoStream(QCameraContextManager &context, QByteArray targetObject,
+
                                            QVideoFrameFormat::PixelFormat requestedPixelFormat,
-                                           QSize requestedSize, qreal requestedFrameRate)
+                                           QSize requestedSize, qreal requestedFrameRate,
+                                           bool allowStreamDmaBufs)
     : m_context(context),
       m_targetObject(std::move(targetObject)),
       m_requestedPixelFormat(requestedPixelFormat),
       m_requestedSize(requestedSize),
-      m_requestedFrameRate(requestedFrameRate)
+      m_requestedFrameRate(requestedFrameRate),
+      m_allowStreamDmaBufs(allowStreamDmaBufs)
 {
 }
 
 QPipeWireVideoStream::~QPipeWireVideoStream()
 {
+#if QT_PIPEWIRE_HAS_DMABUF_CAMERA
+    // Outside the loop lock: waits for releases that take it to requeue buffers.
+    if (m_bufferRegistry)
+        m_bufferRegistry->stop();
+#endif
+
     if (!m_stream)
         return;
 
@@ -162,6 +295,11 @@ const pw_stream_events &QPipeWireVideoStream::streamEvents()
         .param_changed = [](void *data, uint32_t id, const spa_pod *param) {
             reinterpret_cast<QPipeWireVideoStream *>(data)->onParamChanged(id, param);
         },
+#if QT_PIPEWIRE_HAS_DMABUF_CAMERA
+        .add_buffer = [](void *data, pw_buffer *buffer) {
+            reinterpret_cast<QPipeWireVideoStream *>(data)->onAddBuffer(buffer);
+        },
+#endif
         .process = [](void *data) {
             reinterpret_cast<QPipeWireVideoStream *>(data)->onProcess();
         },
@@ -174,13 +312,15 @@ const pw_stream_events &QPipeWireVideoStream::streamEvents()
 
 namespace {
 
-// The EnumFormat param for the requested pixel format and size. With
-// linearModifier, the modifier is restricted to the linear layout, the only one
-// a DMABUF buffer can be read through.
+// How the EnumFormat param restricts the DRM modifier to the linear layout, the only one a
+// DMABUF buffer can be read through. Optional lets a node omit the modifier altogether.
+enum class LinearModifier : uint8_t { Off, Optional, Mandatory };
+
+// The EnumFormat param for the requested pixel format and size.
 const spa_pod *buildFormatParam(std::array<uint8_t, 1024> &storage,
                                 QVideoFrameFormat::PixelFormat requestedPixelFormat,
                                 QSize requestedSize, qreal requestedFrameRate,
-                                [[maybe_unused]] bool linearModifier)
+                                [[maybe_unused]] LinearModifier linearModifier)
 {
     spa_pod_builder builder = SPA_POD_BUILDER_INIT(storage.data(), uint32_t(storage.size()));
 
@@ -242,9 +382,11 @@ const spa_pod *buildFormatParam(std::array<uint8_t, 1024> &storage,
                         SPA_POD_CHOICE_RANGE_Fraction(&rate.frac, &minRate, &rate.frac), 0);
 
 #if QT_PIPEWIRE_HAS_DMABUF_CAMERA
-    if (linearModifier) {
+    if (linearModifier != LinearModifier::Off) {
         spa_pod_frame modifierChoice{};
-        spa_pod_builder_prop(&builder, SPA_FORMAT_VIDEO_modifier, SPA_POD_PROP_FLAG_MANDATORY);
+        spa_pod_builder_prop(
+                &builder, SPA_FORMAT_VIDEO_modifier,
+                linearModifier == LinearModifier::Mandatory ? SPA_POD_PROP_FLAG_MANDATORY : 0);
         spa_pod_builder_push_choice(&builder, &modifierChoice, SPA_CHOICE_Enum, 0);
         spa_pod_builder_long(&builder, int64_t(QtMultimediaPrivate::DrmFormatModifierLinear));
         spa_pod_builder_pop(&builder, &modifierChoice);
@@ -269,6 +411,23 @@ bool offersDmaBuf(CameraMemory memory)
             && (memory == CameraMemory::Auto || memory == CameraMemory::DmaBuf);
 }
 
+#if QT_PIPEWIRE_HAS_DMABUF_CAMERA
+// The Buffers param for stream-allocated DMA-BUFs. The stride is the one the camera node must
+// write frames with, so it is fixed here rather than read back from each frame.
+const spa_pod *buildDmaBufBuffersParam(std::array<uint8_t, 1024> &storage, int32_t size,
+                                       int32_t stride)
+{
+    spa_pod_builder builder = SPA_POD_BUILDER_INIT(storage.data(), uint32_t(storage.size()));
+    return static_cast<const spa_pod *>(spa_pod_builder_add_object(
+            &builder, SPA_TYPE_OBJECT_ParamBuffers, SPA_PARAM_Buffers, SPA_PARAM_BUFFERS_buffers,
+            SPA_POD_Int(int32_t(kDmaBufBufferCount)), SPA_PARAM_BUFFERS_blocks, SPA_POD_Int(1),
+            SPA_PARAM_BUFFERS_size, SPA_POD_Int(size), SPA_PARAM_BUFFERS_stride,
+            SPA_POD_Int(stride), SPA_PARAM_BUFFERS_align, SPA_POD_Int(16),
+            SPA_PARAM_BUFFERS_dataType, SPA_POD_CHOICE_FLAGS_Int(1u << SPA_DATA_DmaBuf)));
+}
+
+#endif
+
 BufferDataTypes bufferDataTypes(CameraMemory memory)
 {
     BufferDataTypes dataTypes;
@@ -291,6 +450,11 @@ BufferDataTypes bufferDataTypes(CameraMemory memory)
 //     decides whether it can read DMABUF frames in that format. If it cannot, it
 //     withdraws DMABUF from its offer, and the server falls back to mapped memory.
 //  3. process(): frames are now delivered by the server.
+//
+// With stream-allocated DMA-BUFs, step 1 offers only linear DMABUF and sets
+// PW_STREAM_FLAG_ALLOC_BUFFERS. Step 2 allocates the buffers for the negotiated
+// size and sends them back as the Buffers param. The node then adds them, and
+// onAddBuffer() binds each one to its DMA-BUF.
 //
 bool QPipeWireVideoStream::start()
 {
@@ -331,23 +495,50 @@ bool QPipeWireVideoStream::start()
         std::array<uint8_t, 1024> buffersStorage{};
         std::array<const spa_pod *, 3> params{};
         uint32_t paramCount = 0;
+        pw_stream_flags flags =
+                pw_stream_flags(PW_STREAM_FLAG_AUTOCONNECT | PW_STREAM_FLAG_MAP_BUFFERS);
+        bool zeroCopy = false;
 
-        if (offersDmaBuf(memory)) {
-            params[paramCount++] = buildFormatParam(dmaBufFormatStorage, m_requestedPixelFormat,
-                                                    m_requestedSize, m_requestedFrameRate,
-                                                    /* linearModifier */ true);
+#if QT_PIPEWIRE_HAS_DMABUF_CAMERA
+        // PipeWire refuses to allocate the stream's DMA-BUFs for MJPEG, so compressed streams
+        // keep the server's buffers.
+        if (m_allowStreamDmaBufs && offersDmaBuf(memory)
+            && m_requestedPixelFormat != QVideoFrameFormat::Format_Jpeg) {
+            if (auto allocator = QtMultimediaPrivate::QDmaBufAllocator::create()) {
+                m_dmaBufAllocator.emplace(std::move(*allocator));
+                zeroCopy = true;
+            } else {
+                qCWarning(lcPipewireCameraStream)
+                        << "no DMA-BUF allocator, using server buffers:" << allocator.error();
+            }
         }
-        if (memory != CameraMemory::DmaBuf) {
-            params[paramCount++] = buildFormatParam(formatStorage, m_requestedPixelFormat,
-                                                    m_requestedSize, m_requestedFrameRate,
-                                                    /* linearModifier */ false);
-        }
-        params[paramCount++] = buildBuffersParam(buffersStorage, m_bufferDataTypes);
+        if (zeroCopy) {
+            m_bufferDataTypes = BufferDataTypes{};
+            m_bufferDataTypes.set(SPA_DATA_DmaBuf);
+            flags = pw_stream_flags(flags | PW_STREAM_FLAG_ALLOC_BUFFERS);
 
-        const int status = pw_stream_connect(
-                m_stream.get(), PW_DIRECTION_INPUT, PW_ID_ANY,
-                pw_stream_flags(PW_STREAM_FLAG_AUTOCONNECT | PW_STREAM_FLAG_MAP_BUFFERS),
-                params.data(), paramCount);
+            params[paramCount++] =
+                    buildFormatParam(dmaBufFormatStorage, m_requestedPixelFormat, m_requestedSize,
+                                     m_requestedFrameRate, LinearModifier::Optional);
+        }
+#endif
+
+        if (!zeroCopy) {
+            if (offersDmaBuf(memory)) {
+                params[paramCount++] = buildFormatParam(dmaBufFormatStorage, m_requestedPixelFormat,
+                                                        m_requestedSize, m_requestedFrameRate,
+                                                        LinearModifier::Mandatory);
+            }
+            if (memory != CameraMemory::DmaBuf) {
+                params[paramCount++] =
+                        buildFormatParam(formatStorage, m_requestedPixelFormat, m_requestedSize,
+                                         m_requestedFrameRate, LinearModifier::Off);
+            }
+            params[paramCount++] = buildBuffersParam(buffersStorage, m_bufferDataTypes);
+        }
+
+        const int status = pw_stream_connect(m_stream.get(), PW_DIRECTION_INPUT, PW_ID_ANY, flags,
+                                             params.data(), paramCount);
         if (status < 0) {
             qCWarning(lcPipewireCameraStream)
                     << "pw_stream_connect failed:" << make_error_code(-status).message();
@@ -407,9 +598,12 @@ void QPipeWireVideoStream::onParamChanged(uint32_t id, const spa_pod *param)
         framerate = info.info.raw.framerate;
 
 #if QT_PIPEWIRE_HAS_DMABUF_CAMERA
+        // Without a modifier, the layout is implicit. Stream-allocated buffers are linear in
+        // practice, so they are readable.
         m_dmaBufReadable = (info.info.raw.flags & SPA_VIDEO_FLAG_MODIFIER)
-                && QtMultimediaPrivate::DRMModifier(info.info.raw.modifier)
-                        == QtMultimediaPrivate::DrmFormatModifierLinear;
+                ? QtMultimediaPrivate::DRMModifier(info.info.raw.modifier)
+                        == QtMultimediaPrivate::DrmFormatModifierLinear
+                : m_dmaBufAllocator.has_value();
 
         fixationRequired = info.info.raw.flags & SPA_VIDEO_FLAG_MODIFIER_FIXATION_REQUIRED;
         if (fixationRequired) {
@@ -451,6 +645,13 @@ void QPipeWireVideoStream::onParamChanged(uint32_t id, const spa_pod *param)
             };
             pw_stream_update_params(m_stream.get(), params, std::size(params));
         }
+    }
+#endif
+
+#if QT_PIPEWIRE_HAS_DMABUF_CAMERA
+    if (m_dmaBufAllocator && !m_bufferRegistry && !fixationRequired
+        && pixelFormat != QVideoFrameFormat::Format_Invalid) {
+        allocateDmaBufBuffers(size, pixelFormat);
     }
 #endif
 
@@ -506,6 +707,116 @@ void QPipeWireVideoStream::confirmDmaBufModifier(spa_video_format format, spa_re
 }
 #endif
 
+#if QT_PIPEWIRE_HAS_DMABUF_CAMERA
+void QPipeWireVideoStream::allocateDmaBufBuffers(QSize size,
+                                                 QVideoFrameFormat::PixelFormat pixelFormat)
+{
+    const auto *desc = QVideoTextureHelper::textureDescription(pixelFormat);
+    if (!desc) {
+        qCWarning(lcPipewireCameraStream) << "no layout for" << pixelFormat;
+        Q_EMIT errorOccurred(u"The PipeWire camera stream picked an unsupported pixel format"_s);
+        return;
+    }
+
+    const int stride = desc->strideForWidth(size.width());
+    const qsizetype bufferSize = desc->bytesForSize(size);
+
+    std::vector<std::shared_ptr<QtMultimediaPrivate::QDmaBuf>> buffers;
+    for (std::size_t index = 0; index < kDmaBufBufferCount; ++index) {
+        auto buf = m_dmaBufAllocator->allocate(bufferSize);
+        if (!buf) {
+            qCWarning(lcPipewireCameraStream) << "cannot allocate DMA-BUF:" << buf.error();
+            break;
+        }
+        buffers.push_back(std::move(*buf));
+    }
+    if (buffers.size() != kDmaBufBufferCount) {
+        Q_EMIT errorOccurred(u"The PipeWire camera stream could not allocate DMA-BUF buffers"_s);
+        return;
+    }
+
+    m_bufferRegistry = std::make_shared<DmaBufBufferRegistry>(
+            std::move(buffers), stride, m_context.pwInstance(), m_stream.get());
+
+    std::array<uint8_t, 1024> storage{};
+    const spa_pod *params[] = {
+        buildDmaBufBuffersParam(storage, int32_t(bufferSize), int32_t(stride)),
+    };
+    pw_stream_update_params(m_stream.get(), params, std::size(params));
+}
+
+void QPipeWireVideoStream::onAddBuffer(pw_buffer *buffer)
+{
+    if (!m_bufferRegistry) {
+        qCWarning(lcPipewireCameraStream) << "buffer added before its DMA-BUF was allocated";
+        return;
+    }
+
+    m_bufferRegistry->bindBuffer(buffer);
+    pw_stream_queue_buffer(m_stream.get(), buffer);
+}
+
+bool QPipeWireVideoStream::emitDmaBufFrame(pw_buffer *pwBuffer,
+                                           const QVideoFrameFormat &frameFormat)
+{
+    using namespace QtMultimediaPrivate;
+
+    const std::size_t index = DmaBufBufferRegistry::bufferIndex(pwBuffer);
+    const std::shared_ptr<QDmaBuf> buf = m_bufferRegistry->buffer(index);
+    m_bufferRegistry->markLeased(index);
+
+    const spa_chunk &chunk = *pwBuffer->buffer->datas[0].chunk;
+    const uint32_t chunkSize = std::min(chunk.size, uint32_t(buf->size()));
+
+    const std::optional<DmaBufLayout> layout =
+            dmaBufLayoutForFormat(frameFormat.pixelFormat(), frameFormat.frameSize(),
+                                  m_bufferRegistry->stride(), uint32_t(buf->size()));
+
+    std::unique_ptr<QAbstractVideoBuffer> videoBuffer;
+    if (layout) {
+        // Zero-copy: one DmaBufPlane per layout plane, all within the same DMA-BUF fd.
+        const auto drmFormats = dmaBufFourccFromPixelFormat(frameFormat.pixelFormat());
+        QVarLengthArray<DmaBufPlane, 4> planes;
+        for (qsizetype plane = 0; plane < layout->size(); ++plane) {
+            const DmaBufPlaneLayout &planeLayout = (*layout)[plane];
+            planes.push_back({
+                    buf->fd(),
+                    planeLayout.offset,
+                    planeLayout.pitch,
+                    drmFormats[plane],
+            });
+        }
+        const QSpan<const DmaBufPlane> planeSpan(planes.data(), planes.size());
+
+        using Buffer =
+                MaterializingVideoBuffer<DmaBufSource, DmaBufBufferRegistry, QDmaBufVideoBuffer>;
+
+        videoBuffer = Buffer::wrapOrMaterialize(*m_bufferRegistry, pwBuffer,
+                                                DmaBufSource(buf, *layout), frameFormat,
+                                                // QDmaBufVideoBuffer args:
+                                                frameFormat, planeSpan, buf);
+    } else {
+        // No zero-copy format (e.g. a compressed one): wrap the DMA-BUF into a plain
+        // MaterializingVideoBuffer without zero-copy machinery.
+        const int stride = chunk.stride != 0 ? chunk.stride : m_bufferRegistry->stride();
+        const DmaBufLayout plainLayout{
+            DmaBufPlaneLayout{ 0, uint32_t(stride), qsizetype(chunkSize) },
+        };
+
+        using Buffer = MaterializingVideoBuffer<DmaBufSource, DmaBufBufferRegistry>;
+
+        videoBuffer = Buffer::wrapOrMaterialize(*m_bufferRegistry, pwBuffer,
+                                                DmaBufSource(buf, plainLayout), frameFormat);
+    }
+
+    QVideoFrame frame = QVideoFramePrivate::createFrame(std::move(videoBuffer), frameFormat);
+    setStartTime(frame, *pwBuffer->buffer, m_firstFrameTime);
+
+    Q_EMIT newVideoFrame(frame);
+    return true;
+}
+#endif
+
 void QPipeWireVideoStream::onProcess()
 {
     pw_buffer *pwBuffer = pw_stream_dequeue_buffer(m_stream.get());
@@ -520,8 +831,16 @@ void QPipeWireVideoStream::onProcess()
 
     spa_buffer *buffer = pwBuffer->buffer;
 
+#if QT_PIPEWIRE_HAS_DMABUF_CAMERA
+    // A frame that wraps the buffer takes over its requeue, through its capture slot.
+    if (m_bufferRegistry && frameFormat.isValid() && buffer->n_datas == 1
+        && buffer->datas[0].type == SPA_DATA_DmaBuf && emitDmaBufFrame(pwBuffer, frameFormat)) {
+        return;
+    }
+#endif
+
     if (frameFormat.isValid() && buffer->n_datas > 0) {
-        // LATER: zero-copy dmaBuf import path
+        // Stream-owned buffers that cannot be wrapped are copied, as server buffers are.
         if (std::optional<QByteArray> data = copyFrameData(*buffer, m_dmaBufReadable)) {
             qCDebug(lcPipewireCameraStream)
                     << "frame data type" << spa_data_type(buffer->datas[0].type)
@@ -540,23 +859,7 @@ void QPipeWireVideoStream::onProcess()
 
             QVideoFrame frame = QVideoFramePrivate::createFrame(
                     std::make_unique<QMemoryVideoBuffer>(std::move(*data), stride), frameFormat);
-
-            using namespace std::chrono;
-
-            const microseconds pts = [&] {
-                const auto *header = static_cast<const spa_meta_header *>(spa_buffer_find_meta_data(
-                        buffer, SPA_META_Header, sizeof(spa_meta_header)));
-                if (header && header->pts > 0) {
-                    // pts is in nanoseconds since an arbitrary epoch.
-                    return round<microseconds>(nanoseconds{ header->pts });
-                } else {
-                    return round<microseconds>(steady_clock::now().time_since_epoch());
-                }
-            }();
-
-            if (!m_firstFrameTime)
-                m_firstFrameTime = pts;
-            frame.setStartTime(qint64((pts - *m_firstFrameTime).count()));
+            setStartTime(frame, *buffer, m_firstFrameTime);
 
             emit newVideoFrame(frame);
         }

@@ -55,6 +55,18 @@ std::optional<ObjectId> QCameraDeviceMonitor::findCameraNode(QByteArrayView devi
     return std::nullopt;
 }
 
+bool QCameraDeviceMonitor::importsStreamDmaBufs(QByteArrayView deviceId) const
+{
+    std::lock_guard guard{ m_mutex };
+
+    for (const auto &[id, node] : m_nodes) {
+        if (cameraDeviceId(node.properties) == deviceId)
+            return QtPipeWire::importsStreamDmaBufs(node.deviceProperties);
+    }
+
+    return false;
+}
+
 std::optional<QByteArray> QCameraDeviceMonitor::findTargetObject(QByteArrayView deviceId) const
 {
     std::lock_guard guard{ m_mutex };

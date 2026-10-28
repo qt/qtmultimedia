@@ -49,6 +49,11 @@ bool isCameraNode(const PwPropertyDict &nodeProperties)
     return deviceApi == "v4l2"sv || deviceApi == "libcamera"sv;
 }
 
+bool importsStreamDmaBufs(const PwPropertyDict &deviceProperties)
+{
+    return getDeviceApi(deviceProperties) == "v4l2"sv;
+}
+
 QByteArray cameraDeviceId(const PwPropertyDict &nodeProperties)
 {
     // node.name is derived from the device's sysfs path: stable and unique

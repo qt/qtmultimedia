@@ -50,6 +50,8 @@ public:
     QList<QCameraDevice> cameraDevices();
     std::optional<ObjectId> findCameraNode(QByteArrayView deviceId) const;
 
+    bool importsStreamDmaBufs(QByteArrayView deviceId) const;
+
     // FIXME: improve type safety!
     std::optional<QByteArray> findTargetObject(QByteArrayView deviceId) const;
 
