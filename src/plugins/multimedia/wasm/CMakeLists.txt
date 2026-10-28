@@ -20,10 +20,6 @@ qt_internal_add_plugin(QWasmMediaPlugin
         mediacapture/qwasmwindowcapture.cpp  mediacapture/qwasmwindowcapture_p.h
         mediacapture/qwasmscreencapture.cpp  mediacapture/qwasmscreencapture_p.h
         mediacapture/qwasmcapturablewindows.cpp  mediacapture/qwasmcapturablewindows_p.h
-    INCLUDE_DIRECTORIES
-        common
-        mediaplayer
-        mediacapture
     DEFINES
         QT_NO_CAST_FROM_ASCII
         QT_NO_CAST_TO_ASCII

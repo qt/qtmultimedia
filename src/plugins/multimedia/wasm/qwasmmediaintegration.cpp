@@ -5,7 +5,7 @@
 
 #include "mediaplayer/qwasmmediaplayer_p.h"
 #include <QtMultimedia/private/qplatformvideosink_p.h>
-#include "qwasmaudioinput_p.h"
+#include "common/qwasmaudioinput_p.h"
 #include "common/qwasmaudiooutput_p.h"
 #include "mediacapture/qwasmmediacapturesession_p.h"
 #include "mediacapture/qwasmmediarecorder_p.h"

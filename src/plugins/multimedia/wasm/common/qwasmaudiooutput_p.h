@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include "qwasmmediaplayer_p.h"
+#include "mediaplayer/qwasmmediaplayer_p.h"
 
 #include <QtMultimedia/private/qplatformaudiooutput_p.h>
 #include <QtMultimedia/private/qwasmwebaudiosink_p.h>

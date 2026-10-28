@@ -17,8 +17,7 @@
 
 #include "qwasmimagecapture_p.h"
 #include "qwasmmediarecorder_p.h"
-#include "qwasmvideooutput_p.h"
-#include <common/qwasmvideooutput_p.h>
+#include "common/qwasmvideooutput_p.h"
 
 #include <QtMultimedia/private/qcapturablewindow_p.h>
 #include <QtMultimedia/private/qplatformmediacapture_p.h>

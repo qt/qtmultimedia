@@ -15,7 +15,7 @@
 #ifndef QWASMVIDEOOUTPUT_H
 #define QWASMVIDEOOUTPUT_H
 
-#include "qwasmmediaplayer_p.h"
+#include "mediaplayer/qwasmmediaplayer_p.h"
 #include "qwasmvideoframegrabber_p.h"
 
 #include <QtMultimedia/qmediaplayer.h>

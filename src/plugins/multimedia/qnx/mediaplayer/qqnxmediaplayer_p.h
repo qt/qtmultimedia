@@ -15,7 +15,7 @@
 //
 
 #include "qqnxmediametadata_p.h"
-#include "mmrenderertypes.h"
+#include "common/mmrenderertypes.h"
 
 #include <private/qplatformmediaplayer_p.h>
 #include <QtCore/qabstractnativeeventfilter.h>

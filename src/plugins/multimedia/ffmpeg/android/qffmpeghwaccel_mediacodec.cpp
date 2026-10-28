@@ -6,7 +6,7 @@
 #include <QtGui/rhi/qrhi.h>
 
 // TODO: This class is reused from the native Android media backend and breaks ODR.
-#include "androidsurfacetexture_p.h"
+#include "../android/wrappers/jni/androidsurfacetexture_p.h"
 
 extern "C" {
 #include <libavcodec/mediacodec.h>

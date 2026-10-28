@@ -20,7 +20,7 @@
 #include <qurl.h>
 #include <qelapsedtimer.h>
 #include <qtimer.h>
-#include "androidmediarecorder_p.h"
+#include "wrappers/jni/androidmediarecorder_p.h"
 #include "qandroidmediaencoder_p.h"
 
 QT_BEGIN_NAMESPACE

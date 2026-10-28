@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 #include "qqnxcamera_p.h"
 #include "qqnxcameraframebuffer_p.h"
-#include "qqnxmediacapturesession_p.h"
+#include "capture/qqnxmediacapturesession_p.h"
 
 #include <qcameradevice.h>
 #include <qmediadevices.h>

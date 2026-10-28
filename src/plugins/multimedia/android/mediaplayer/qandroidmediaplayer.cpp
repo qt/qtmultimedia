@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qandroidmediaplayer_p.h"
-#include "androidmediaplayer_p.h"
-#include "qandroidvideooutput_p.h"
+#include "wrappers/jni/androidmediaplayer_p.h"
+#include "common/qandroidvideooutput_p.h"
 #include "qandroidmetadata_p.h"
-#include "qandroidaudiooutput_p.h"
+#include "common/qandroidaudiooutput_p.h"
 #include "qaudiooutput.h"
 
 #include <QtMultimedia/private/qplatformvideosink_p.h>

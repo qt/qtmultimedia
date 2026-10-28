@@ -14,7 +14,7 @@
 // We mean it.
 //
 
-#include "mmrenderertypes.h"
+#include "common/mmrenderertypes.h"
 
 #include <QByteArray>
 #include <QUrl>

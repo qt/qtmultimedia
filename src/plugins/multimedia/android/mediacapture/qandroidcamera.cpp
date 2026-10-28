@@ -8,7 +8,7 @@
 #include <qmediadevices.h>
 #include <qcameradevice.h>
 #include <qtimer.h>
-#include "qandroidmultimediautils_p.h"
+#include "common/qandroidmultimediautils_p.h"
 
 QT_BEGIN_NAMESPACE
 

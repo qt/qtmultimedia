@@ -257,9 +257,6 @@ if (ANDROID)
             android/qandroidcamera.cpp
             android/qandroidvideodevices.cpp
             android/qandroidvideoframebuffer.cpp
-        INCLUDE_DIRECTORIES
-            ${FFMPEG_DIR}/include
-            ../android/wrappers/jni/
         LIBRARIES
             mediandk
             android

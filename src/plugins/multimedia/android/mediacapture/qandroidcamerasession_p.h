@@ -21,7 +21,7 @@
 #include <QSet>
 #include <QMutex>
 #include <private/qplatformimagecapture_p.h>
-#include "androidcamera_p.h"
+#include "wrappers/jni/androidcamera_p.h"
 
 QT_BEGIN_NAMESPACE
 

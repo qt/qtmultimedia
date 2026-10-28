@@ -7,7 +7,7 @@
 #include "qwasmcamera_p.h"
 #include "qwasmscreencapture_p.h"
 #include "qwasmwindowcapture_p.h"
-#include "qwasmaudioinput_p.h"
+#include "common/qwasmaudioinput_p.h"
 
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/private/qcapturablewindow_p.h>

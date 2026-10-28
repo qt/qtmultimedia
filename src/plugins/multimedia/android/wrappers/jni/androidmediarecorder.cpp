@@ -5,8 +5,8 @@
 #include "androidcamera_p.h"
 #include "androidsurfacetexture_p.h"
 #include "androidsurfaceview_p.h"
-#include "qandroidglobal_p.h"
-#include "qandroidmultimediautils_p.h"
+#include "common/qandroidglobal_p.h"
+#include "common/qandroidmultimediautils_p.h"
 
 #include <qmap.h>
 #include <QtCore/qcoreapplication.h>

@@ -15,7 +15,7 @@
 // We mean it.
 //
 
-#include "qwasmvideooutput_p.h"
+#include "common/qwasmvideooutput_p.h"
 #include "mediacapture/qwasmwindowcapture_p.h"
 
 #include <QtMultimedia/qscreencapture.h>

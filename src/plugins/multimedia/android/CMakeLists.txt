@@ -34,13 +34,6 @@ qt_internal_add_plugin(QAndroidMediaPlugin
         #   - and redefinition of `notifyFrameAvailable` with different signature
         #     with wrappers/jni/androidsurfacetexture.cpp
         wrappers/jni/androidcamera.cpp
-    INCLUDE_DIRECTORIES
-        audio
-        common
-        mediacapture
-        mediaplayer
-        wrappers/jni
-        ../android
     DEFINES
         QT_NO_CAST_FROM_ASCII
         QT_NO_CAST_TO_ASCII

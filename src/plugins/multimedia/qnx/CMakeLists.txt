@@ -23,12 +23,6 @@ qt_internal_add_plugin(QQnxMediaPlugin
         qqnxformatinfo.cpp qqnxformatinfo_p.h
         qqnxmediaintegration.cpp qqnxmediaintegration_p.h
         qqnxvideodevices.cpp qqnxvideodevices_p.h
-    INCLUDE_DIRECTORIES
-        audio
-        camera
-        capture
-        common
-        mediaplayer
     DEFINES
         QT_NO_CAST_FROM_ASCII
         QT_NO_CAST_TO_ASCII

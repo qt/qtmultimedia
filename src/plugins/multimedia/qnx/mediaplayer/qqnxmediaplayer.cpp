@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 #include "qqnxmediaplayer_p.h"
 #include "qqnxmediautil_p.h"
-#include "qqnxmediaeventthread_p.h"
-#include "qqnxwindowgrabber_p.h"
+#include "common/qqnxmediaeventthread_p.h"
+#include "common/qqnxwindowgrabber_p.h"
 
 #include <private/qhwvideobuffer_p.h>
 #include <QtMultimedia/private/qplatformvideosink_p.h>
@@ -17,7 +17,7 @@
 #include <QtCore/quuid.h>
 #include <mm/renderer.h>
 #include <qmediaplayer.h>
-#include <qqnxaudiooutput_p.h>
+#include <common/qqnxaudiooutput_p.h>
 #include <qaudiooutput.h>
 
 #include <errno.h>

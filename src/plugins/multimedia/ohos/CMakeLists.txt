@@ -17,11 +17,6 @@ qt_internal_add_plugin(QOhosMediaPlugin
         mediacapture/qohosmediacapturesession.cpp mediacapture/qohosmediacapturesession_p.h
         mediacapture/qohosmediarecorder.cpp mediacapture/qohosmediarecorder_p.h
         mediacapture/qohosvideodevices.cpp mediacapture/qohosvideodevices_p.h
-    INCLUDE_DIRECTORIES
-        .
-        common
-        mediaplayer
-        mediacapture
     DEFINES
         QT_NO_CAST_FROM_ASCII
         QT_NO_CAST_TO_ASCII

@@ -3,7 +3,7 @@
 
 #include "qqnxplatformcamera_p.h"
 #include "qqnxcameraframebuffer_p.h"
-#include "qqnxmediacapturesession_p.h"
+#include "capture/qqnxmediacapturesession_p.h"
 
 #include <QtMultimedia/qcameradevice.h>
 #include <QtMultimedia/qmediadevices.h>

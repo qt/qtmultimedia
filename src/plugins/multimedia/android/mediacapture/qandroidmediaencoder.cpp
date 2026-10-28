@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
 #include "qandroidmediaencoder_p.h"
-#include "qandroidmultimediautils_p.h"
+#include "common/qandroidmultimediautils_p.h"
 #include "qandroidcapturesession_p.h"
 #include "qandroidmediacapturesession_p.h"
 

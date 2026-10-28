@@ -3,7 +3,7 @@
 
 #include "qandroidmetadata_p.h"
 
-#include "androidmediametadataretriever_p.h"
+#include "wrappers/jni/androidmediametadataretriever_p.h"
 #include <QtMultimedia/qmediametadata.h>
 #include <qsize.h>
 #include <QDate>

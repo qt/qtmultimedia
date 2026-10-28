@@ -4,11 +4,11 @@
 
 #include "qandroidcamerasession_p.h"
 
-#include "androidcamera_p.h"
-#include "androidmultimediautils_p.h"
-#include "qandroidvideooutput_p.h"
-#include "qandroidmultimediautils_p.h"
-#include "androidmediarecorder_p.h"
+#include "wrappers/jni/androidcamera_p.h"
+#include "wrappers/jni/androidmultimediautils_p.h"
+#include "common/qandroidvideooutput_p.h"
+#include "common/qandroidmultimediautils_p.h"
+#include "wrappers/jni/androidmediarecorder_p.h"
 #include <qvideosink.h>
 #include <QtConcurrent/qtconcurrentrun.h>
 #include <qfile.h>

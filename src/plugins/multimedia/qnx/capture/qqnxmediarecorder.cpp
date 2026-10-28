@@ -4,9 +4,9 @@
 
 #include "qqnxmediarecorder_p.h"
 
-#include "qqnxplatformcamera_p.h"
-#include "qqnxaudioinput_p.h"
-#include "qqnxcamera_p.h"
+#include "camera/qqnxplatformcamera_p.h"
+#include "common/qqnxaudioinput_p.h"
+#include "camera/qqnxcamera_p.h"
 #include "qqnxmediacapturesession_p.h"
 
 #include <private/qplatformcamera_p.h>

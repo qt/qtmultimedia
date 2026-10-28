@@ -17,7 +17,7 @@
 
 #include <qglobal.h>
 #include <qsize.h>
-#include "androidcamera_p.h"
+#include "wrappers/jni/androidcamera_p.h"
 
 QT_BEGIN_NAMESPACE
 

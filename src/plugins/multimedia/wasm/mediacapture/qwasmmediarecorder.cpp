@@ -5,7 +5,7 @@
 
 #include "qwasmmediacapturesession_p.h"
 #include "qwasmcamera_p.h"
-#include "qwasmaudioinput_p.h"
+#include "common/qwasmaudioinput_p.h"
 
 #include <QtMultimedia/private/qplatformaudiodevices_p.h>
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>

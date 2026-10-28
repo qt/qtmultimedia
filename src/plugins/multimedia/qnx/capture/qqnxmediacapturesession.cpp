@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 #include "qqnxmediacapturesession_p.h"
 
-#include "qqnxaudioinput_p.h"
-#include "qqnxplatformcamera_p.h"
-#include "qqnximagecapture_p.h"
+#include "common/qqnxaudioinput_p.h"
+#include "camera/qqnxplatformcamera_p.h"
+#include "camera/qqnximagecapture_p.h"
 #include "qqnxmediarecorder_p.h"
 #include <QtMultimedia/private/qplatformvideosink_p.h>
 #include "qvideosink.h"

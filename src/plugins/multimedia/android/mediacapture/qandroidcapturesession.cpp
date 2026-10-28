@@ -3,15 +3,15 @@
 
 #include "qandroidcapturesession_p.h"
 
-#include "androidcamera_p.h"
+#include "wrappers/jni/androidcamera_p.h"
 #include "qandroidcamerasession_p.h"
 #include "qaudioinput.h"
 #include "qaudiooutput.h"
-#include "androidmediaplayer_p.h"
-#include "androidmultimediautils_p.h"
-#include "qandroidmultimediautils_p.h"
-#include "qandroidvideooutput_p.h"
-#include "qandroidglobal_p.h"
+#include "wrappers/jni/androidmediaplayer_p.h"
+#include "wrappers/jni/androidmultimediautils_p.h"
+#include "common/qandroidmultimediautils_p.h"
+#include "common/qandroidvideooutput_p.h"
+#include "common/qandroidglobal_p.h"
 #include <private/qplatformaudioinput_p.h>
 #include <private/qplatformaudiooutput_p.h>
 #include <private/qmediarecorder_p.h>
