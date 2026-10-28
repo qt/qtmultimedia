@@ -55,6 +55,15 @@ q23::expected<DmaBufPlane, std::error_code> planeWithDupedFd(DmaBufPlane plane)
 
 } // namespace
 
+QDmaBufVideoBuffer::QDmaBufVideoBuffer(const QVideoFrameFormat &format,
+                                       QSpan<const DmaBufPlane> planes,
+                                       std::shared_ptr<void> keepAlive, DmaBufImportMode importMode)
+    : QDmaBufVideoBuffer{
+          format.pixelFormat(), format.frameSize(), planes, std::move(keepAlive), importMode,
+      }
+{
+}
+
 QDmaBufVideoBuffer::QDmaBufVideoBuffer(QVideoFrameFormat::PixelFormat format, QSize size,
                                        QSpan<const DmaBufPlane> planes,
                                        std::shared_ptr<void> keepAlive, DmaBufImportMode importMode)

@@ -3,6 +3,7 @@
 
 #include "qv4l2memorytransfer_p.h"
 
+#include <QtMultimedia/private/qv4l2camera_p.h>
 #include <QtMultimedia/private/qmemoryvideobuffer_p.h>
 #include <QtMultimedia/private/qv4l2camera_p.h>
 #include <QtMultimedia/private/qv4l2filedescriptor_p.h>
@@ -13,12 +14,19 @@
 
 #include <sys/mman.h>
 
+#include <cstddef>
+#include <memory>
 #include <optional>
+#include <utility>
 #include <vector>
 
 #if QT_CONFIG(linux_dmabuf)
+#  include <QtMultimedia/private/qcaptureslotregistry_p.h>
 #  include <QtMultimedia/private/qdmabufallocator_p.h>
-#  include <QtMultimedia/private/qmultimedia_dmabuf_support_p.h>
+#  include <QtMultimedia/private/qdmabufsource_p.h>
+#  include <QtMultimedia/private/qdmabufvideobuffer_p.h>
+#  include <QtMultimedia/private/qmaterializingvideobuffer_p.h>
+#  include <QtMultimedia/private/qmultimedia_drm_support_p.h>
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -240,18 +248,69 @@ private:
 
 #if QT_CONFIG(linux_dmabuf)
 
-constexpr quint32 kDmaBufBuffersCount = 4;
+constexpr std::size_t kDmaBufBuffersCount = 8;
+constexpr std::size_t kDmaBufMinFreeBuffers = 2;
 
-class DmaBufMemoryTransfer : public QV4L2MemoryTransfer
+// Owns the DMA-BUFs and hands out their indices as capture slots. A frame holding a slot keeps
+// its buffer queued-out of the driver; releasing the slot re-queues it.
+class DmaBufRegistry final
+    : public QtMultimediaPrivate::CaptureSlotRegistry<DmaBufRegistry, uint8_t, kDmaBufBuffersCount>
+{
+public:
+    using QDmaBuf = QtMultimediaPrivate::QDmaBuf;
+
+    DmaBufRegistry(QV4L2FileDescriptorPtr fileDescriptor,
+                   std::vector<std::shared_ptr<QDmaBuf>> buffers)
+        : CaptureSlotRegistry(buffers.size(), kDmaBufMinFreeBuffers),
+          m_fileDescriptor(std::move(fileDescriptor)),
+          m_buffers(std::move(buffers))
+    {
+        Q_ASSERT(m_buffers.size() == kDmaBufBuffersCount);
+    }
+
+    bool queueBuffer(quint32 index) const
+    {
+        const QDmaBuf &buf = *m_buffers[index];
+
+        auto v4l2Buffer = makeV4l2Buffer(V4L2_MEMORY_DMABUF, index);
+        v4l2Buffer.m.fd = buf.fd();
+        v4l2Buffer.length = uint32_t(buf.size());
+
+        if (!m_fileDescriptor->call(VIDIOC_QBUF, &v4l2Buffer)) {
+            qCWarning(qLcV4L2MemoryTransfer)
+                    << "Couldn't add V4L2 buffer" << errno << qt_error_string(errno) << index;
+            return false;
+        }
+
+        return true;
+    }
+
+    void recycleSlot(uint8_t index) const
+    {
+        if (!queueBuffer(index))
+            qCWarning(qLcV4L2MemoryTransfer) << "Cannot add buffer";
+    }
+
+    std::shared_ptr<QDmaBuf> buffer(quint32 index) const { return m_buffers[index]; }
+    quint32 buffersCount() const { return quint32(m_buffers.size()); }
+
+private:
+    const QV4L2FileDescriptorPtr m_fileDescriptor;
+    const std::vector<std::shared_ptr<QDmaBuf>> m_buffers;
+};
+
+class DmaBufMemoryTransfer final : public QV4L2MemoryTransfer
 {
 public:
     using QDmaBuf = QtMultimediaPrivate::QDmaBuf;
     using QDmaBufAllocator = QtMultimediaPrivate::QDmaBufAllocator;
-    using QDmaBufVector = QVarLengthArray<std::shared_ptr<QDmaBuf>, kDmaBufBuffersCount>;
 
     static QV4L2MemoryTransferUPtr create(const QV4L2FileDescriptorPtr &fileDescriptor,
-                                          quint32 imageSize, int bytesPerLine)
+                                          quint32 imageSize, int bytesPerLine,
+                                          const QVideoFrameFormat &format)
     {
+        using namespace QtMultimediaPrivate;
+
         auto allocator = QDmaBufAllocator::create();
         if (!allocator) {
             qCDebug(qLcV4L2MemoryTransfer)
@@ -266,7 +325,7 @@ public:
             return {};
         }
 
-        QDmaBufVector buffers;
+        std::vector<std::shared_ptr<QDmaBuf>> buffers;
 
         for (quint32 index = 0; index < quint32(*requestResult); ++index) {
             auto buf = allocator->allocate(imageSize);
@@ -278,8 +337,13 @@ public:
             buffers.push_back(std::move(*buf));
         }
 
-        std::unique_ptr<DmaBufMemoryTransfer> result(
-                new DmaBufMemoryTransfer(fileDescriptor, std::move(buffers), bytesPerLine));
+        std::optional<DmaBufLayout> layout = dmaBufLayoutForFormat(
+                format.pixelFormat(), format.frameSize(), bytesPerLine, imageSize);
+
+        std::unique_ptr<DmaBufMemoryTransfer> result(new DmaBufMemoryTransfer(
+                fileDescriptor,
+                std::make_shared<DmaBufRegistry>(fileDescriptor, std::move(buffers)), format,
+                bytesPerLine, std::move(layout)));
 
         if (result->enqueueBuffers())
             return result;
@@ -289,64 +353,92 @@ public:
         return {};
     }
 
-    ~DmaBufMemoryTransfer() override { fileDescriptor().releaseAllBuffers(V4L2_MEMORY_DMABUF); }
+    ~DmaBufMemoryTransfer() override
+    {
+        // Frames still holding a slot must not re-queue buffers once the stream is stopped.
+        m_registry->stop();
+        fileDescriptor().requestBuffers(V4L2_MEMORY_DMABUF, 0);
+    }
 
     std::optional<Frame> dequeueFrame() override
     {
+        using namespace QtMultimediaPrivate;
         auto v4l2Buffer = makeV4l2Buffer(V4L2_MEMORY_DMABUF);
         if (!ioctl(VIDIOC_DQBUF, &v4l2Buffer))
             return {};
 
         const quint32 index = v4l2Buffer.index;
-        Q_ASSERT(index < m_buffers.size());
-        const QDmaBuf &buf = *m_buffers[index];
+        std::shared_ptr<QDmaBuf> buf = m_registry->buffer(index);
 
-        // Copy out before re-queueing, so the driver cannot overwrite the frame while it is read.
-        auto data = QtMultimediaPrivate::copyDmaBufData(buf, 0, v4l2Buffer.bytesused);
+        std::unique_ptr<QAbstractVideoBuffer> videoBuffer;
+        if (m_layout) {
+            // Zero-copy: one DmaBufPlane per layout plane, all within the same DMA-BUF fd.
+            const auto drmFormats = dmaBufFourccFromPixelFormat(m_format.pixelFormat());
+            QVarLengthArray<DmaBufPlane, 4> planes;
+            for (qsizetype plane = 0; plane < m_layout->size(); ++plane) {
+                const DmaBufPlaneLayout &layout = (*m_layout)[plane];
+                planes.push_back({
+                        buf->fd(),
+                        layout.offset,
+                        layout.pitch,
+                        drmFormats[plane],
+                });
+            }
+            const QSpan<const DmaBufPlane> planeSpan(planes.data(), planes.size());
 
-        if (!enqueueBuffer(index))
-            qCWarning(qLcV4L2MemoryTransfer) << "Cannot add buffer";
+            using Buffer = QtMultimediaPrivate::MaterializingVideoBuffer<
+                    DmaBufSource, DmaBufRegistry, QtMultimediaPrivate::QDmaBufVideoBuffer>;
 
-        if (!data)
-            return {};
+            videoBuffer = Buffer::wrapOrMaterialize(*m_registry, index,
+                                                    DmaBufSource(buf, *m_layout), m_format,
+                                                    // QDmaBufVideoBuffer args:
+                                                    m_format, planeSpan, buf);
+        } else {
+            // no zero-copy format: wrap the DMA-BUF into a plain MaterializingVideoBuffer without
+            // zero-copy machinery
+            const DmaBufLayout layout{
+                DmaBufPlaneLayout{
+                        0,
+                        uint32_t(m_bytesPerLine),
+                        qsizetype(v4l2Buffer.bytesused),
+                },
+            };
+
+            using Buffer =
+                    QtMultimediaPrivate::MaterializingVideoBuffer<DmaBufSource, DmaBufRegistry>;
+
+            videoBuffer = Buffer::wrapOrMaterialize(*m_registry, index, DmaBufSource(buf, layout),
+                                                    m_format);
+        }
 
         return Frame{
             v4l2Buffer.timestamp,
-            std::make_unique<QMemoryVideoBuffer>(std::move(*data), m_bytesPerLine),
+            std::move(videoBuffer),
         };
     }
 
-    quint32 buffersCount() const override { return quint32(m_buffers.size()); }
+    quint32 buffersCount() const override { return m_registry->buffersCount(); }
 
 private:
-    DmaBufMemoryTransfer(QV4L2FileDescriptorPtr fileDescriptor, QDmaBufVector buffers,
-                         int bytesPerLine)
+    using DmaBufLayout = QtMultimediaPrivate::DmaBufLayout;
+
+    DmaBufMemoryTransfer(QV4L2FileDescriptorPtr fileDescriptor,
+                         std::shared_ptr<DmaBufRegistry> registry, QVideoFrameFormat format,
+                         int bytesPerLine, std::optional<DmaBufLayout> layout)
         : QV4L2MemoryTransfer(std::move(fileDescriptor)),
+          m_registry(std::move(registry)),
+          m_format(std::move(format)),
           m_bytesPerLine(bytesPerLine),
-          m_buffers(std::move(buffers))
+          m_layout(std::move(layout))
     {
     }
 
-    bool enqueueBuffer(quint32 index) override
-    {
-        Q_ASSERT(index < m_buffers.size());
+    bool enqueueBuffer(quint32 index) override { return m_registry->queueBuffer(index); }
 
-        const auto &buf = *m_buffers[index];
-
-        auto v4l2Buffer = makeV4l2Buffer(V4L2_MEMORY_DMABUF, index);
-        v4l2Buffer.m.fd = buf.fd();
-        v4l2Buffer.length = quint32(buf.size());
-
-        if (!ioctl(VIDIOC_QBUF, &v4l2Buffer)) {
-            qWarning() << "Couldn't add V4L2 buffer" << errno << qt_error_string(errno) << index;
-            return false;
-        }
-
-        return true;
-    }
-
+    const std::shared_ptr<DmaBufRegistry> m_registry;
+    const QVideoFrameFormat m_format;
     const int m_bytesPerLine;
-    QDmaBufVector m_buffers;
+    const std::optional<DmaBufLayout> m_layout;
 };
 
 #endif
@@ -396,7 +488,10 @@ QV4L2MemoryTransferUPtr makeMMapMemoryTransfer(QV4L2FileDescriptorPtr fileDescri
 QV4L2MemoryTransferUPtr makeDmaBufMemoryTransfer(const QV4L2FileDescriptorPtr &fileDescriptor,
                                                  const v4l2_pix_format &format)
 {
-    return DmaBufMemoryTransfer::create(fileDescriptor, format.sizeimage, int(format.bytesperline));
+    const QVideoFrameFormat frameFormat(QSize(format.width, format.height),
+                                        formatForV4L2Format(format.pixelformat));
+    return DmaBufMemoryTransfer::create(fileDescriptor, format.sizeimage, int(format.bytesperline),
+                                        frameFormat);
 }
 #endif
 

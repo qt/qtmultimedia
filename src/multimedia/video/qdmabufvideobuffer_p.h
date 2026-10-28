@@ -37,6 +37,9 @@ namespace QtMultimediaPrivate {
 class Q_MULTIMEDIA_EXPORT QDmaBufVideoBuffer : public QHwVideoBuffer
 {
 public:
+    QDmaBufVideoBuffer(const QVideoFrameFormat &format, QSpan<const DmaBufPlane> planes,
+                       std::shared_ptr<void> keepAlive = {},
+                       DmaBufImportMode importMode = DmaBufImportMode::PerPlane);
     QDmaBufVideoBuffer(QVideoFrameFormat::PixelFormat format, QSize size,
                        QSpan<const DmaBufPlane> planes, std::shared_ptr<void> keepAlive = {},
                        DmaBufImportMode importMode = DmaBufImportMode::PerPlane);
