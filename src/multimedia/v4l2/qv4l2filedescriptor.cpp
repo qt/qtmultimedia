@@ -39,6 +39,15 @@ q23::expected<int, std::error_code> QV4L2FileDescriptor::requestBuffers(v4l2_mem
 
     return int(req.count);
 }
+
+q23::expected<void, std::error_code> QV4L2FileDescriptor::releaseAllBuffers(v4l2_memory type) const
+{
+    auto status = requestBuffers(type, 0);
+    if (!status)
+        return q23::unexpected(status.error());
+    return {};
+}
+
 bool QV4L2FileDescriptor::startStream()
 {
     int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;

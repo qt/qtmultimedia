@@ -21,6 +21,8 @@ QT_BEGIN_NAMESPACE
 
 namespace QtV4L2 {
 
+using namespace Qt::Literals;
+
 Q_STATIC_LOGGING_CATEGORY(qLcV4L2Camera, "qt.multimedia.v4l2.camera");
 
 static std::chrono::microseconds toMicroseconds(const timeval &tv)
@@ -108,6 +110,8 @@ bool QV4L2Camera::resolveCameraFormat(const QCameraFormat &format)
         return false;
 
     m_cameraFormat = fmt;
+    // The device must be reconfigured with the new format before the next stream start.
+    m_v4l2Info.formatInitialized = false;
     return true;
 }
 
@@ -471,6 +475,7 @@ void QV4L2Camera::closeV4L2Fd()
     Q_ASSERT(!m_memoryTransfer);
 
     m_v4l2Info = {};
+    m_pixFormat = {};
     m_cameraBusy = false;
     m_v4l2FileDescriptor = nullptr;
 }
@@ -517,10 +522,12 @@ int QV4L2Camera::getV4L2Parameter(quint32 id) const
     return control.value;
 }
 
-void QV4L2Camera::setV4L2CameraFormat()
+q23::expected<void, QString> QV4L2Camera::setV4L2CameraFormat()
 {
-    if (m_v4l2Info.formatInitialized || !m_v4l2FileDescriptor)
-        return;
+    if (m_v4l2Info.formatInitialized)
+        return {};
+
+    Q_ASSERT(m_v4l2FileDescriptor);
 
     Q_ASSERT(!m_cameraFormat.isNull());
     qCDebug(qLcV4L2Camera) << "XXXXX" << this << m_cameraDevice.id() << m_cameraFormat.pixelFormat()
@@ -532,7 +539,7 @@ void QV4L2Camera::setV4L2CameraFormat()
     const auto v4l2PixelFormat = v4l2FormatForPixelFormat(m_cameraFormat.pixelFormat());
     if (!v4l2PixelFormat) {
         qWarning() << "Unsupported pixel format" << m_cameraFormat.pixelFormat();
-        return;
+        return q23::unexpected{ u"Unsupported V4L2 pixel format"_s };
     }
 
     auto size = m_cameraFormat.resolution();
@@ -543,21 +550,30 @@ void QV4L2Camera::setV4L2CameraFormat()
 
     qCDebug(qLcV4L2Camera) << "setting camera format to" << size << fmt.fmt.pix.pixelformat;
 
-    if (!m_v4l2FileDescriptor->call(VIDIOC_S_FMT, &fmt)) {
-        if (errno == EBUSY) {
-            setCameraBusy();
-            return;
+    auto setFormatResult = m_v4l2FileDescriptor->call(VIDIOC_S_FMT, &fmt);
+    if (!setFormatResult) {
+        if (setFormatResult.error() == std::errc::device_or_resource_busy) {
+            m_cameraBusy = true;
+            return q23::unexpected{ u"Camera is in use"_s };
         }
         qWarning() << "Couldn't set video format on v4l2 camera" << qt_error_string(errno);
+        return q23::unexpected{ u"Cannot set V4L2 camera format"_s };
+    }
+
+    // The driver may have adjusted the requested format, so keep what it negotiated.
+    m_pixFormat = fmt.fmt.pix;
+
+    const auto negotiatedPixelFormat = formatForV4L2Format(m_pixFormat.pixelformat);
+    const bool isCompressed = negotiatedPixelFormat == QVideoFrameFormat::Format_Jpeg;
+
+    if (negotiatedPixelFormat == QVideoFrameFormat::Format_Invalid || m_pixFormat.sizeimage == 0
+        || (m_pixFormat.bytesperline == 0 && !isCompressed)) {
+        qWarning() << "Driver negotiated an unusable camera format" << m_pixFormat.pixelformat;
+        return q23::unexpected{ u"Unsupported V4L2 camera format"_s };
     }
 
     m_v4l2Info.formatInitialized = true;
     m_cameraBusy = false;
-
-    m_bytesPerLine = fmt.fmt.pix.bytesperline;
-    m_imageSize = std::max(fmt.fmt.pix.sizeimage, m_bytesPerLine * fmt.fmt.pix.height);
-
-    m_colorSpace = colorSpaceForV4L2Colorspace(v4l2_colorspace(fmt.fmt.pix.colorspace));
 
     v4l2_streamparm streamParam = {};
     streamParam.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
@@ -570,6 +586,7 @@ void QV4L2Camera::setV4L2CameraFormat()
 
     using namespace std::chrono;
     m_frameDuration = duration_cast<microseconds>(duration<qreal>{ frameDuration });
+    return {};
 }
 
 void QV4L2Camera::initV4L2MemoryTransfer()
@@ -579,7 +596,7 @@ void QV4L2Camera::initV4L2MemoryTransfer()
 
     Q_ASSERT(!m_memoryTransfer);
 
-    m_memoryTransfer = makeUserPtrMemoryTransfer(m_v4l2FileDescriptor, m_imageSize, m_bytesPerLine);
+    m_memoryTransfer = makeUserPtrMemoryTransfer(m_v4l2FileDescriptor, m_pixFormat);
 
     if (m_memoryTransfer)
         return;
@@ -591,7 +608,7 @@ void QV4L2Camera::initV4L2MemoryTransfer()
 
     qCDebug(qLcV4L2Camera) << "Cannot init V4L2_MEMORY_USERPTR; trying V4L2_MEMORY_MMAP";
 
-    m_memoryTransfer = makeMMapMemoryTransfer(m_v4l2FileDescriptor, m_bytesPerLine);
+    m_memoryTransfer = makeMMapMemoryTransfer(m_v4l2FileDescriptor, m_pixFormat);
 
     if (!m_memoryTransfer) {
         qCWarning(qLcV4L2Camera) << "Cannot init v4l2 memory transfer," << qt_error_string(errno);
@@ -621,7 +638,11 @@ void QV4L2Camera::startCapturing()
     if (!m_v4l2FileDescriptor)
         return;
 
-    setV4L2CameraFormat();
+    auto setFormatResult = setV4L2CameraFormat();
+    if (!setFormatResult) {
+        updateError(QCamera::CameraError, setFormatResult.error());
+        return;
+    }
     initV4L2MemoryTransfer();
 
     if (m_cameraBusy || !m_memoryTransfer)
@@ -644,7 +665,13 @@ void QV4L2Camera::startCapturing()
 QVideoFrameFormat QV4L2Camera::frameFormat() const
 {
     auto result = QPlatformCamera::frameFormat();
-    result.setColorSpace(m_colorSpace);
+    if (m_v4l2Info.formatInitialized) {
+        result = QVideoFrameFormat(sizeForV4L2Format(m_pixFormat),
+                                   formatForV4L2Format(m_pixFormat.pixelformat));
+        result.setStreamFrameRate(m_cameraFormat.maxFrameRate());
+    }
+
+    result.setColorSpace(colorSpaceForV4L2Colorspace(v4l2_colorspace(m_pixFormat.colorspace)));
     return result;
 }
 

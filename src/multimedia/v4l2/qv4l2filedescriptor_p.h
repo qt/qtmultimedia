@@ -40,6 +40,7 @@ public:
 
     q23::expected<int, std::error_code> requestBuffers(v4l2_memory memoryType,
                                                        uint32_t bufferCount) const;
+    q23::expected<void, std::error_code> releaseAllBuffers(v4l2_memory) const;
 
     bool startStream();
 

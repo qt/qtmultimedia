@@ -65,10 +65,10 @@ private:
 using QV4L2MemoryTransferUPtr = std::unique_ptr<QV4L2MemoryTransfer>;
 
 QV4L2MemoryTransferUPtr makeUserPtrMemoryTransfer(QV4L2FileDescriptorPtr fileDescriptor,
-                                                  quint32 imageSize, int bytesPerLine);
+                                                  const v4l2_pix_format &format);
 
 QV4L2MemoryTransferUPtr makeMMapMemoryTransfer(QV4L2FileDescriptorPtr fileDescriptor,
-                                               int bytesPerLine);
+                                               const v4l2_pix_format &format);
 
 } // namespace QtV4L2
 

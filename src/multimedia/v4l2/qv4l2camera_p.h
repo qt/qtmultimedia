@@ -17,6 +17,10 @@
 
 #include <QtMultimedia/private/qplatformcamera_p.h>
 
+#include <QtCore/private/qexpected_p.h>
+
+#include <linux/videodev2.h>
+
 #include <chrono>
 #include <optional>
 
@@ -107,7 +111,7 @@ private:
     bool setV4L2Parameter(quint32 id, qint32 value);
     int getV4L2Parameter(quint32 id) const;
 
-    void setV4L2CameraFormat();
+    q23::expected<void, QString> setV4L2CameraFormat();
     void initV4L2MemoryTransfer();
     void startCapturing();
     void stopCapturing();
@@ -123,9 +127,7 @@ private:
     V4L2CameraInfo m_v4l2Info;
 
     std::optional<std::chrono::microseconds> m_firstFrameTime;
-    quint32 m_bytesPerLine = 0;
-    quint32 m_imageSize = 0;
-    QVideoFrameFormat::ColorSpace m_colorSpace = QVideoFrameFormat::ColorSpace_Undefined;
+    v4l2_pix_format m_pixFormat{};
     std::chrono::microseconds m_frameDuration{};
     bool m_cameraBusy = false;
 };

@@ -54,6 +54,8 @@ public:
         }
     }
 
+    ~UserPtrMemoryTransfer() override { fileDescriptor().releaseAllBuffers(V4L2_MEMORY_USERPTR); }
+
     std::optional<Frame> dequeueFrame() override
     {
         auto v4l2Buffer = makeV4l2Buffer(V4L2_MEMORY_USERPTR);
@@ -172,6 +174,7 @@ public:
     {
         for (const auto &span : m_spans)
             munmap(span.data, span.size);
+        fileDescriptor().releaseAllBuffers(V4L2_MEMORY_MMAP);
     }
 
     std::optional<Frame> dequeueFrame() override
@@ -258,15 +261,16 @@ q23::expected<int, std::error_code> QV4L2MemoryTransfer::ioctl(int request, void
 }
 
 QV4L2MemoryTransferUPtr makeUserPtrMemoryTransfer(QV4L2FileDescriptorPtr fileDescriptor,
-                                                  quint32 imageSize, int bytesPerLine)
+                                                  const v4l2_pix_format &format)
 {
-    return UserPtrMemoryTransfer::create(std::move(fileDescriptor), imageSize, bytesPerLine);
+    return UserPtrMemoryTransfer::create(std::move(fileDescriptor), format.sizeimage,
+                                         int(format.bytesperline));
 }
 
 QV4L2MemoryTransferUPtr makeMMapMemoryTransfer(QV4L2FileDescriptorPtr fileDescriptor,
-                                               int bytesPerLine)
+                                               const v4l2_pix_format &format)
 {
-    return MMapMemoryTransfer::create(std::move(fileDescriptor), bytesPerLine);
+    return MMapMemoryTransfer::create(std::move(fileDescriptor), int(format.bytesperline));
 }
 
 } // namespace QtV4L2
