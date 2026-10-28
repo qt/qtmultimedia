@@ -255,6 +255,7 @@ qt_internal_extend_target(Multimedia CONDITION QT_FEATURE_linux_v4l
     SOURCES
         v4l2/qv4l2camera.cpp v4l2/qv4l2camera_p.h
         v4l2/qv4l2filedescriptor.cpp v4l2/qv4l2filedescriptor_p.h
+        v4l2/qv4l2formats_p.h
         v4l2/qv4l2memorytransfer.cpp v4l2/qv4l2memorytransfer_p.h
         v4l2/qv4l2cameradevices.cpp v4l2/qv4l2cameradevices_p.h
 )

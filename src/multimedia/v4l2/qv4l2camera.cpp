@@ -7,6 +7,7 @@
 #include <QtMultimedia/private/qmultimediautils_p.h>
 #include <QtMultimedia/private/qv4l2filedescriptor_p.h>
 #include <QtMultimedia/private/qv4l2memorytransfer_p.h>
+#include <QtMultimedia/private/qv4l2formats_p.h>
 #include <QtMultimedia/private/qvideoframe_p.h>
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qsocketnotifier.h>
@@ -25,55 +26,6 @@ Q_STATIC_LOGGING_CATEGORY(qLcV4L2Camera, "qt.multimedia.v4l2.camera");
 static std::chrono::microseconds toMicroseconds(const timeval &tv)
 {
     return std::chrono::seconds{ tv.tv_sec } + std::chrono::microseconds{ tv.tv_usec };
-}
-
-static const struct
-{
-    QVideoFrameFormat::PixelFormat fmt;
-    uint32_t v4l2Format;
-} formatMap[] = {
-    // ### How do we handle V4L2_PIX_FMT_H264 and V4L2_PIX_FMT_MPEG4?
-    { QVideoFrameFormat::Format_YUV420P, V4L2_PIX_FMT_YUV420 },
-    { QVideoFrameFormat::Format_YUV422P, V4L2_PIX_FMT_YUV422P },
-    { QVideoFrameFormat::Format_YUYV, V4L2_PIX_FMT_YUYV },
-    { QVideoFrameFormat::Format_UYVY, V4L2_PIX_FMT_UYVY },
-    { QVideoFrameFormat::Format_XBGR8888, V4L2_PIX_FMT_XBGR32 },
-    { QVideoFrameFormat::Format_XRGB8888, V4L2_PIX_FMT_XRGB32 },
-    { QVideoFrameFormat::Format_ABGR8888, V4L2_PIX_FMT_ABGR32 },
-    { QVideoFrameFormat::Format_ARGB8888, V4L2_PIX_FMT_ARGB32 },
-    { QVideoFrameFormat::Format_BGRX8888, V4L2_PIX_FMT_BGR32 },
-    { QVideoFrameFormat::Format_RGBX8888, V4L2_PIX_FMT_RGB32 },
-    { QVideoFrameFormat::Format_BGRA8888, V4L2_PIX_FMT_BGRA32 },
-    { QVideoFrameFormat::Format_RGBA8888, V4L2_PIX_FMT_RGBA32 },
-    { QVideoFrameFormat::Format_Y8, V4L2_PIX_FMT_GREY },
-    { QVideoFrameFormat::Format_Y16, V4L2_PIX_FMT_Y16 },
-    { QVideoFrameFormat::Format_NV12, V4L2_PIX_FMT_NV12 },
-    { QVideoFrameFormat::Format_NV21, V4L2_PIX_FMT_NV21 },
-    { QVideoFrameFormat::Format_Jpeg, V4L2_PIX_FMT_MJPEG },
-    { QVideoFrameFormat::Format_Jpeg, V4L2_PIX_FMT_JPEG },
-    { QVideoFrameFormat::Format_Invalid, 0 },
-};
-
-QVideoFrameFormat::PixelFormat formatForV4L2Format(uint32_t v4l2Format)
-{
-    auto *f = formatMap;
-    while (f->v4l2Format) {
-        if (f->v4l2Format == v4l2Format)
-            return f->fmt;
-        ++f;
-    }
-    return QVideoFrameFormat::Format_Invalid;
-}
-
-uint32_t v4l2FormatForPixelFormat(QVideoFrameFormat::PixelFormat format)
-{
-    auto *f = formatMap;
-    while (f->v4l2Format) {
-        if (f->fmt == format)
-            return f->v4l2Format;
-        ++f;
-    }
-    return 0;
 }
 
 QV4L2Camera::QV4L2Camera(QCamera *camera) : QPlatformCamera(camera) { }
@@ -577,10 +529,16 @@ void QV4L2Camera::setV4L2CameraFormat()
     v4l2_format fmt = {};
     fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
 
+    const auto v4l2PixelFormat = v4l2FormatForPixelFormat(m_cameraFormat.pixelFormat());
+    if (!v4l2PixelFormat) {
+        qWarning() << "Unsupported pixel format" << m_cameraFormat.pixelFormat();
+        return;
+    }
+
     auto size = m_cameraFormat.resolution();
     fmt.fmt.pix.width = size.width();
     fmt.fmt.pix.height = size.height();
-    fmt.fmt.pix.pixelformat = v4l2FormatForPixelFormat(m_cameraFormat.pixelFormat());
+    fmt.fmt.pix.pixelformat = *v4l2PixelFormat;
     fmt.fmt.pix.field = V4L2_FIELD_ANY;
 
     qCDebug(qLcV4L2Camera) << "setting camera format to" << size << fmt.fmt.pix.pixelformat;
@@ -599,25 +557,7 @@ void QV4L2Camera::setV4L2CameraFormat()
     m_bytesPerLine = fmt.fmt.pix.bytesperline;
     m_imageSize = std::max(fmt.fmt.pix.sizeimage, m_bytesPerLine * fmt.fmt.pix.height);
 
-    switch (v4l2_colorspace(fmt.fmt.pix.colorspace)) {
-    default:
-    case V4L2_COLORSPACE_DCI_P3:
-        m_colorSpace = QVideoFrameFormat::ColorSpace_Undefined;
-        break;
-    case V4L2_COLORSPACE_REC709:
-        m_colorSpace = QVideoFrameFormat::ColorSpace_BT709;
-        break;
-    case V4L2_COLORSPACE_JPEG:
-        m_colorSpace = QVideoFrameFormat::ColorSpace_AdobeRgb;
-        break;
-    case V4L2_COLORSPACE_SRGB:
-        // ##### is this correct???
-        m_colorSpace = QVideoFrameFormat::ColorSpace_BT601;
-        break;
-    case V4L2_COLORSPACE_BT2020:
-        m_colorSpace = QVideoFrameFormat::ColorSpace_BT2020;
-        break;
-    }
+    m_colorSpace = colorSpaceForV4L2Colorspace(v4l2_colorspace(fmt.fmt.pix.colorspace));
 
     v4l2_streamparm streamParam = {};
     streamParam.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;

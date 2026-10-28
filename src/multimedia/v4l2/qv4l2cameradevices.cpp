@@ -7,6 +7,7 @@
 #include <QtMultimedia/private/qmultimediautils_p.h>
 #include <QtMultimedia/private/qv4l2camera_p.h>
 #include <QtMultimedia/private/qv4l2filedescriptor_p.h>
+#include <QtMultimedia/private/qv4l2formats_p.h>
 #include <QtCore/qdebug.h>
 #include <QtCore/qdir.h>
 #include <QtCore/qfile.h>
