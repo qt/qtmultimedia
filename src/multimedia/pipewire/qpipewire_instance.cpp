@@ -3,10 +3,12 @@
 
 #include "qpipewire_instance_p.h"
 
-#include <QtMultimedia/private/qpipewire_portal_p.h>
 #include <QtMultimedia/private/qpipewire_propertydict_p.h>
 #include <QtMultimedia/private/qpipewire_support_p.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
+#if QT_CONFIG(pipewire_screencapture)
+#  include <QtMultimedia/private/qpipewire_portal_p.h>
+#endif
 #if QT_CONFIG(pipewire_symbolloader)
 #  include <QtMultimedia/private/qpipewire_symbolloader_p.h>
 #endif
