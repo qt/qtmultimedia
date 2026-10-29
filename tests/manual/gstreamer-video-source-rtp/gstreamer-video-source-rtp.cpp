@@ -3,9 +3,10 @@
 
 #include <QtGstreamerMediaPluginImpl/private/qgst_p.h>
 #include <QtGstreamerMediaPluginImpl/private/qgstpipeline_p.h>
-#include <QtMultimediaWidgets/qtmultimediawidgetsglobal.h>
+#include <QtMultimediaWidgets/qvideowidget.h>
 #include <QtMultimedia/qaudiooutput.h>
-#include <QtMultimedia/qgstreamervideosource.h>
+#include <QtMultimedia/qmediacapturesession.h>
+#include <QtMultimedia/spi/qgstreamervideosource.h>
 #include <QtWidgets/qapplication.h>
 #include <QtCore/qcommandlineparser.h>
 

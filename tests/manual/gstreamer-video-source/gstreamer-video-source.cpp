@@ -1,9 +1,10 @@
 // Copyright (C) 2024 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtMultimediaWidgets/qtmultimediawidgetsglobal.h>
+#include <QtMultimediaWidgets/qvideowidget.h>
 #include <QtMultimedia/qaudiooutput.h>
-#include <QtMultimedia/qgstreamervideosource.h>
+#include <QtMultimedia/qmediacapturesession.h>
+#include <QtMultimedia/spi/qgstreamervideosource.h>
 #include <QtWidgets/qapplication.h>
 #include <QtCore/qcommandlineparser.h>
 
