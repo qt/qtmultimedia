@@ -115,6 +115,8 @@ void QFFmpegMediaRecorder::record(QMediaEncoderSettings &settings)
     } else {
         // else an error has been already emitted
         qCWarning(qLcMediaEncoder) << "Failed to start recording engine";
+        m_recordingEngine->disconnect(this);
+        m_recordingEngine.reset();
     }
 }
 
