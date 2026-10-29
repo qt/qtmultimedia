@@ -188,6 +188,7 @@ qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION WIN32
         mfplat
         mfreadwrite
         mfuuid
+        mincore # QueryUnbiasedInterruptTimePrecise
 )
 
 qt_internal_extend_target(FFmpegMediaPluginImplPrivate CONDITION QT_FEATURE_cpp_winrt

@@ -55,7 +55,7 @@ class PlaybackEngineObject : public QObject
     };
 
 public:
-    using TimePoint = std::chrono::steady_clock::time_point;
+    using TimePoint = SteadyClock::time_point;
     using TimePointOpt = std::optional<TimePoint>;
 
     explicit PlaybackEngineObject(const PlaybackEngineObjectID &id);
