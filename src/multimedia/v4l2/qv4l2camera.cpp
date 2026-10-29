@@ -245,11 +245,7 @@ bool QV4L2Camera::isFlashModeSupported(QCamera::FlashMode mode) const
 
 bool QV4L2Camera::isFlashReady() const
 {
-    struct v4l2_queryctrl queryControl;
-    ::memset(&queryControl, 0, sizeof(queryControl));
-    queryControl.id = V4L2_CID_AUTO_WHITE_BALANCE;
-
-    return m_v4l2FileDescriptor && m_v4l2FileDescriptor->call(VIDIOC_QUERYCTRL, &queryControl);
+    return getV4L2Parameter(V4L2_CID_FLASH_READY) != 0;
 }
 
 void QV4L2Camera::setTorchMode(QCamera::TorchMode mode)
