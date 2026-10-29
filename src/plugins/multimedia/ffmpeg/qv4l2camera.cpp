@@ -262,7 +262,7 @@ void QV4L2Camera::setExposureMode(QCamera::ExposureMode mode)
     if (m_v4l2Info.autoExposureSupported && m_v4l2Info.manualExposureSupported) {
         if (mode != QCamera::ExposureAuto && mode != QCamera::ExposureManual)
             return;
-        int value = QCamera::ExposureAuto ? V4L2_EXPOSURE_AUTO : V4L2_EXPOSURE_MANUAL;
+        int value = mode == QCamera::ExposureAuto ? V4L2_EXPOSURE_AUTO : V4L2_EXPOSURE_MANUAL;
         setV4L2Parameter(V4L2_CID_EXPOSURE_AUTO, value);
         exposureModeChanged(mode);
         return;
@@ -468,15 +468,15 @@ void QV4L2Camera::initV4L2Controls()
         if (m_v4l2FileDescriptor->call(VIDIOC_QUERYCTRL, &queryControl)) {
             features |= QCamera::Feature::IsoSensitivity;
             minIsoChanged(queryControl.minimum);
-            maxIsoChanged(queryControl.minimum);
+            maxIsoChanged(queryControl.maximum);
         }
     }
 
     ::memset(&queryControl, 0, sizeof(queryControl));
     queryControl.id = V4L2_CID_FOCUS_ABSOLUTE;
     if (m_v4l2FileDescriptor->call(VIDIOC_QUERYCTRL, &queryControl)) {
-        m_v4l2Info.minExposureAdjustment = queryControl.minimum;
-        m_v4l2Info.maxExposureAdjustment = queryControl.maximum;
+        m_v4l2Info.minFocus = queryControl.minimum;
+        m_v4l2Info.maxFocus = queryControl.maximum;
         features |= QCamera::Feature::FocusDistance;
     }
 
