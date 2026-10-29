@@ -634,7 +634,9 @@ void QV4L2Camera::startCapturing()
 
     m_notifier =
             std::make_unique<QSocketNotifier>(m_v4l2FileDescriptor->get(), QSocketNotifier::Read);
-    connect(m_notifier.get(), &QSocketNotifier::activated, this, &QV4L2Camera::readFrame);
+    connect(m_notifier.get(), &QSocketNotifier::activated, m_notifier.get(), [this] {
+        this->readFrame();
+    });
 
     m_firstFrameTime.reset();
 }
