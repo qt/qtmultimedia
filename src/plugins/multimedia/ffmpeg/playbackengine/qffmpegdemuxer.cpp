@@ -144,7 +144,7 @@ void Demuxer::doNextStep()
             // tool does this, see input_thread() function in ffmpeg_demux.c. There, the response
             // is to sleep for 10 ms before trying again. NOTE: We do not have any known way of
             // reproducing this in our tests.
-            m_sessionCtx.failTimePoint = std::chrono::steady_clock::now();
+            m_sessionCtx.failTimePoint = SteadyClock::now();
             ++m_sessionCtx.demuxerRetryCount;
 
             qCDebug(qLcDemuxer) << "Retrying";

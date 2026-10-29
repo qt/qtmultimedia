@@ -23,6 +23,12 @@
 
 #include <chrono>
 
+#ifdef Q_OS_WIN
+#  include <QtCore/qt_windows.h>
+#  include <QtCore/private/qwin32ticks_p.h>
+#  include <realtimeapiset.h>
+#endif
+
 QT_BEGIN_NAMESPACE
 
 namespace QFFmpeg {
@@ -51,7 +57,28 @@ struct AVContextTimeTag;
 using AVContextPosition = QTaggedTimePoint<qint64, AVContextTimeTag>;
 using AVContextDuration = QTaggedDuration<qint64, AVContextTimeTag>;
 
+#ifdef Q_OS_WIN
+// std::chrono::steady_clock is based on QueryPerformanceCounter on Windows, which keeps counting
+// while the system is suspended. After wake-up the playback timeline would be ahead of the media
+// by the whole sleeping time, and video-only media would play extremely fast. The interrupt time
+// doesn't include the sleeping time, like CLOCK_MONOTONIC on Linux and CLOCK_UPTIME_RAW on macOS.
+struct UnbiasedInterruptClock
+{
+    using duration = QtPrivate::win32_ticks;
+    using time_point = std::chrono::time_point<UnbiasedInterruptClock, duration>;
+
+    static time_point now() noexcept
+    {
+        ULONGLONG interruptTime = 0; // 100 ns units, excludes the time in sleep/hibernation
+        QueryUnbiasedInterruptTimePrecise(&interruptTime);
+        return time_point(duration(static_cast<duration::rep>(interruptTime)));
+    }
+};
+
+using SteadyClock = UnbiasedInterruptClock;
+#else
 using SteadyClock = std::chrono::steady_clock;
+#endif
 
 inline std::optional<AVContextDuration> contextStartOffset(const AVFormatContext *formatContext)
 {

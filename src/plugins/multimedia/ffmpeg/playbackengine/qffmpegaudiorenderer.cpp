@@ -230,8 +230,7 @@ AudioRenderer::TimePoint AudioRenderer::nextTimePoint() const
     // if the waiting interval is out of a heuristic fixable range,
     // don't force the immediate job.
     constexpr auto MaxFixableInterval = 50ms;
-    if (timePoint == TimePoint::min() ||
-        timePoint - std::chrono::steady_clock::now() > MaxFixableInterval)
+    if (timePoint == TimePoint::min() || timePoint - SteadyClock::now() > MaxFixableInterval)
         return timePoint;
 
     return TimePoint::min(); // do the job now
