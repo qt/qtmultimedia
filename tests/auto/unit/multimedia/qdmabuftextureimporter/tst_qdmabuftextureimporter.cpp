@@ -5,6 +5,7 @@
 #include <QtMultimediaTestLib/private/udmabuftestutils_p.h>
 #include <QtTest/qtest.h>
 #include <QtMultimedia/private/qdmabuftextureimporter_p.h>
+#include <QtMultimedia/private/qeglimagefunctions_p.h>
 #include <QtMultimedia/private/qmultimedia_drm_support_p.h>
 #include <QtMultimedia/private/qmultimedia_gl_support_p.h>
 #include <QtMultimedia/private/qvideotexturehelper_p.h>
@@ -13,6 +14,7 @@
 #include <QtGui/qopenglfunctions.h>
 #include <QtGui/qsurfaceformat.h>
 #include <QtGui/rhi/qrhi.h>
+#include <QtCore/qregularexpression.h>
 #include <QtCore/qscopeguard.h>
 #include <QtCore/qspan.h>
 #include <QtCore/private/quniquehandle_types_p.h>
@@ -83,6 +85,8 @@ class tst_QDmaBufTextureImporter : public QObject
 private slots:
     void importDmaBufTextures_roundTripsPixelData_whenGivenUdmabufBackedPlane();
     void importDmaBufTextures_exposesBothHandles_whenGivenUdmabufBackedNV12Planes();
+    void importDmaBufTextures_failsRecoverablyWithoutWarning_whenPlanesAreExternalOnly();
+    void isDmaBufModifierExternalOnly_returnsNullopt_whenModifierIsNotAdvertised();
     void importDmaBufTextures_exposesSingleHandle_whenGivenUdmabufBackedNV12PlanesSingleImage();
     void importDmaBufTextures_failsRecoverably_whenFormatHasNoSingleImageFourcc();
     void createTexturesFromHandles_exposesSingleTexture_whenGivenSingleImageHandles();
@@ -198,6 +202,72 @@ void tst_QDmaBufTextureImporter::
     rhi->makeThreadLocalNativeContextCurrent();
     QVERIFY((*handles)->textureHandle(*rhi, 0) != 0);
     QVERIFY((*handles)->textureHandle(*rhi, 1) != 0);
+}
+
+void tst_QDmaBufTextureImporter::
+        importDmaBufTextures_failsRecoverablyWithoutWarning_whenPlanesAreExternalOnly()
+{
+    if (!canUseUdmabuf())
+        QSKIP("/dev/udmabuf is not accessible on this system");
+
+    QSpan<const DRMFormat> drmFormats = dmaBufFourccFromPixelFormat(QVideoFrameFormat::Format_NV12);
+    QVERIFY(drmFormats.size() == 2);
+
+    std::optional<Nv12UdmabufPlanes> nv12 = createNv12UdmabufPlanes(drmFormats);
+    if (!nv12)
+        QSKIP("Could not create udmabuf-backed NV12 test planes");
+
+    q23::expected<OffscreenGlRhi, QString> offscreenRhi = createOffscreenGlRhi();
+    if (!offscreenRhi)
+        QSKIP(qPrintable(u"Could not create an OpenGL ES2 QRhi backend on this system: "_s
+                         + offscreenRhi.error()));
+    auto &[fallbackSurface, rhi] = *offscreenRhi;
+
+    DmaBufEglContext eglContext(rhi.get());
+    if (!eglContext.isValid())
+        QSKIP("EGL DMABUF import is not available (no EGL display or missing GL extensions); "
+              "try running with QT_XCB_GL_INTEGRATION=xcb_egl");
+
+    const bool linearIsExternalOnly =
+            QEglImageFunctions::instance()
+                    .isDmaBufModifierExternalOesOnly(eglContext.eglDisplay(), drmFormats[0],
+                                                     DrmFormatModifierLinear)
+                    .value_or(false);
+    if (!linearIsExternalOnly)
+        QSKIP("The driver can sample linear dma-bufs as GL_TEXTURE_2D");
+
+    // Binding an external-only image to GL_TEXTURE_2D fails in the driver; the importer
+    // must not attempt it.
+    QTest::failOnWarning(QRegularExpression(u"eglCreateImage|eglImageTargetTexture2D"_s));
+
+    q23::expected<QVideoFrameTexturesHandlesUPtr, FailureSeverity> handles = importDmaBufTextures(
+            *rhi, eglContext, QSpan<const DmaBufPlane>(nv12->planes.data(), nv12->planes.size()),
+            QVideoFrameFormat::Format_NV12, QSize(nv12Width, nv12Height));
+
+    QVERIFY(!handles);
+    QCOMPARE_EQ(handles.error(), FailureSeverity::recoverable);
+}
+
+void tst_QDmaBufTextureImporter::
+        isDmaBufModifierExternalOnly_returnsNullopt_whenModifierIsNotAdvertised()
+{
+    q23::expected<OffscreenGlRhi, QString> offscreenRhi = createOffscreenGlRhi();
+    if (!offscreenRhi)
+        QSKIP(qPrintable(u"Could not create an OpenGL ES2 QRhi backend on this system: "_s
+                         + offscreenRhi.error()));
+    auto &[fallbackSurface, rhi] = *offscreenRhi;
+
+    DmaBufEglContext eglContext(rhi.get());
+    if (!eglContext.isValid())
+        QSKIP("EGL DMABUF import is not available (no EGL display or missing GL extensions); "
+              "try running with QT_XCB_GL_INTEGRATION=xcb_egl");
+
+    constexpr DRMModifier unadvertisedModifier{ 0x00ffeeddccbbaa99 };
+    const std::optional<bool> externalOnly =
+            QEglImageFunctions::instance().isDmaBufModifierExternalOesOnly(
+                    eglContext.eglDisplay(), DRMFormat::R8, unadvertisedModifier);
+
+    QCOMPARE_EQ(externalOnly.has_value(), false);
 }
 
 void tst_QDmaBufTextureImporter::

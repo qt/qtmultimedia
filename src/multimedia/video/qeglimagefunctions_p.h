@@ -50,6 +50,11 @@ public:
     std::optional<bool> isDmaBufModifierSupported(EGLDisplay display, DRMFormat drmFormat,
                                                   DRMModifier modifier) const;
 
+    // Returns whether images of `drmFormat` with `modifier` can only be sampled through
+    // GL_TEXTURE_EXTERNAL_OES, or nullopt if that can't be determined.
+    std::optional<bool> isDmaBufModifierExternalOesOnly(EGLDisplay display, DRMFormat drmFormat,
+                                                        DRMModifier modifier) const;
+
 private:
 #ifdef GL_OES_EGL_image
     const PFNGLEGLIMAGETARGETTEXTURE2DOESPROC m_glEGLImageTargetTexture2DOES = nullptr;

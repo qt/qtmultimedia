@@ -208,6 +208,36 @@ std::optional<bool> QEglImageFunctions::isDmaBufModifierSupported(EGLDisplay dis
 #endif
 }
 
+std::optional<bool>
+QEglImageFunctions::isDmaBufModifierExternalOesOnly([[maybe_unused]] EGLDisplay display,
+                                                    [[maybe_unused]] DRMFormat drmFormat,
+                                                    [[maybe_unused]] DRMModifier modifier) const
+{
+#if defined(EGL_EXT_image_dma_buf_import_modifiers)
+    if (!m_eglQueryDmaBufModifiersEXT)
+        return std::nullopt;
+
+    const EGLint format = EGLint(qToUnderlying(drmFormat));
+    EGLint numModifiers = 0;
+    if (!m_eglQueryDmaBufModifiersEXT(display, format, 0, nullptr, nullptr, &numModifiers)
+        || numModifiers <= 0)
+        return std::nullopt;
+
+    std::vector<EGLuint64KHR> modifiers(numModifiers);
+    std::vector<EGLBoolean> externalOnly(numModifiers);
+    if (!m_eglQueryDmaBufModifiersEXT(display, format, numModifiers, modifiers.data(),
+                                      externalOnly.data(), &numModifiers))
+        return std::nullopt;
+
+    const auto it = ranges::find(modifiers, qToUnderlying(modifier));
+    if (it == modifiers.end())
+        return std::nullopt;
+    return externalOnly[it - modifiers.begin()] == EGL_TRUE;
+#else
+    return std::nullopt;
+#endif
+}
+
 } // namespace QtMultimediaPrivate
 
 QT_END_NAMESPACE

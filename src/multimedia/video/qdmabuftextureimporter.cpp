@@ -88,6 +88,17 @@ static bool dmaModifierIsNotSupportedByDisplay(const DmaBufPlane &plane, EGLDisp
     return formatIsSupported;
 }
 
+static bool isExternalOesOnly(const QEglImageFunctions &eglFunctions, EGLDisplay eglDisplay,
+                              const DmaBufPlane &plane)
+{
+    // an implicit modifier is assumed to be linear
+    const DRMModifier modifier = plane.modifier == DmaBufFormatModifierInvalid
+            ? DrmFormatModifierLinear
+            : plane.modifier;
+    return eglFunctions.isDmaBufModifierExternalOesOnly(eglDisplay, plane.drmFormat, modifier)
+            .value_or(false);
+}
+
 q23::expected<QVideoFrameTexturesHandlesUPtr, FailureSeverity>
 importDmaBufTextures(QRhi &rhi, const DmaBufEglContext &eglContext, QSpan<const DmaBufPlane> planes,
                      QVideoFrameFormat::PixelFormat qtFormat, QSize frameSize,
@@ -105,6 +116,16 @@ importDmaBufTextures(QRhi &rhi, const DmaBufEglContext &eglContext, QSpan<const 
     Q_ASSERT(planes.size() == nPlanes);
 
     rhi.makeThreadLocalNativeContextCurrent();
+
+    // Binding an external-only image to GL_TEXTURE_2D fails (e.g. NVIDIA, for dma-bufs it did not
+    // allocate itself), so skip the import and let the caller use the CPU path.
+    if (importMode == DmaBufImportMode::PerPlane
+        && ranges::any_of(planes.first(nPlanes), [&](const DmaBufPlane &plane) {
+        return isExternalOesOnly(elgImageFunctions, eglDisplay, plane);
+    })) {
+        qCDebug(qLDmaBuf) << "Planes can only be sampled as external textures, not importing";
+        return q23::unexpected{ FailureSeverity::recoverable };
+    }
 
     QVideoFrameFormat::PixelFormat texturePixelFormat = qtFormat;
     GLenum glTarget = GL_TEXTURE_2D;
