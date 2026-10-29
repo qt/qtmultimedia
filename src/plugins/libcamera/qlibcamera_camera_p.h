@@ -80,8 +80,8 @@ private:
     template <typename Fn>
     void withPendingControls(Fn &&fn)
     {
-        if (m_stream)
-            m_stream->withPendingControls(std::forward<Fn>(fn));
+        if (m_pendingControls)
+            m_pendingControls->with(std::forward<Fn>(fn));
     }
 
     // Lifecycle of the libcamera stream
@@ -94,6 +94,10 @@ private:
     std::shared_ptr<QLibCameraInstance> m_instance;
     std::shared_ptr<libcamera::Camera> m_camera;
     std::unique_ptr<QLibCameraCameraStream> m_stream;
+    std::shared_ptr<QLibCameraPendingControls> m_pendingControls;
+#if QT_CONFIG(linux_dmabuf)
+    std::shared_ptr<QLibCameraDmaBufRegistry> m_dmaBufRegistry;
+#endif
 
     QCameraDevice m_cameraDevice;
     QCameraFormat m_resolvedFormat;

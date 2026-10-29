@@ -16,6 +16,7 @@
 
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qvideoframeformat.h>
+#include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtCore/private/qexpected_p.h>
 #include <QtCore/qmutex.h>
 #include <QtCore/qobject.h>
@@ -23,6 +24,7 @@
 #include <libcamera/controls.h>
 
 #include <chrono>
+#include <memory>
 #include <mutex>
 #include <optional>
 
@@ -37,22 +39,54 @@ QT_BEGIN_NAMESPACE
 
 namespace QLibCamera {
 
+#if QT_CONFIG(linux_dmabuf)
+class QLibCameraDmaBufRegistry;
+#endif
+
+// Number of buffers requested from libcamera for a stream.
+inline constexpr unsigned kCaptureBufferCount = 8;
+
+// Controls set by the application. They are merged into the next request queued on the camera.
+class QLibCameraPendingControls
+{
+public:
+    template <typename Fn>
+    void with(Fn &&fn)
+    {
+        std::lock_guard lock(m_mutex);
+        fn(m_controls);
+    }
+
+    void mergeInto(libcamera::ControlList &controls)
+    {
+        std::lock_guard lock(m_mutex);
+        controls.merge(m_controls, libcamera::ControlList::MergePolicy::OverwriteExisting);
+    }
+
+private:
+    QMutex m_mutex;
+    libcamera::ControlList m_controls;
+};
+
+// Re-arms a completed request, applies the pending controls and queues it on the camera again.
+void requeueRequest(libcamera::Camera &camera, libcamera::Request *request,
+                    QLibCameraPendingControls &pendingControls);
+
 class QLibCameraCameraStream final : public QObject
 {
     Q_OBJECT
 public:
     QLibCameraCameraStream(std::shared_ptr<libcamera::Camera>, libcamera::Stream *,
-                           int bytesPerLine, QVideoFrameFormat, double maxFrameRate);
+                           int bytesPerLine, QVideoFrameFormat, double maxFrameRate,
+                           std::shared_ptr<QLibCameraPendingControls>
+#if QT_CONFIG(linux_dmabuf)
+                           ,
+                           std::shared_ptr<QLibCameraDmaBufRegistry>
+#endif
+    );
 
     // Runs on libcamera's CameraManager thread -- see the class comment above.
     void handleRequestCompleted(libcamera::Request *);
-
-    template <typename Fn>
-    void withPendingControls(Fn &&fn)
-    {
-        std::lock_guard lock(m_controlsMutex);
-        fn(m_pendingControls);
-    }
 
     libcamera::Stream *stream() const { return m_stream; }
 
@@ -60,16 +94,20 @@ Q_SIGNALS:
     void newVideoFrame(const QVideoFrame &);
 
 private:
+    q23::expected<QVideoFrame, QString> createFrame(libcamera::Request *,
+                                                    const libcamera::FrameBuffer &);
+
     const std::shared_ptr<libcamera::Camera> m_libcameraCamera;
     libcamera::Stream *const m_stream;
     const int m_bytesPerLine;
     const QVideoFrameFormat m_frameFormat;
     const double m_maxFrameRate;
+    const std::shared_ptr<QLibCameraPendingControls> m_pendingControls;
+#if QT_CONFIG(linux_dmabuf)
+    const std::shared_ptr<QLibCameraDmaBufRegistry> m_dmaBufRegistry;
+#endif
 
     std::optional<std::chrono::nanoseconds> m_firstFrameTimestamp;
-
-    QMutex m_controlsMutex;
-    libcamera::ControlList m_pendingControls;
 };
 
 } // namespace QLibCamera

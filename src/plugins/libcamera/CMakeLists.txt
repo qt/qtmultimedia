@@ -7,6 +7,7 @@ qt_internal_add_plugin(QLibCameraPlugin
     SOURCES
         qlibcamera_camera.cpp qlibcamera_camera_p.h
         qlibcamera_controls.cpp qlibcamera_controls_p.h
+        qlibcamera_dmabufregistry.cpp qlibcamera_dmabufregistry_p.h
         qlibcamera_format_support.cpp qlibcamera_format_support_p.h
         qlibcamera_instance.cpp qlibcamera_instance_p.h
         qlibcamera_plugin.cpp

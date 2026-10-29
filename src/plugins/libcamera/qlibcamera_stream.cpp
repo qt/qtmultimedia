@@ -4,11 +4,22 @@
 #include "qlibcamera_stream_p.h"
 #include "qlibcamera_camera_p.h"
 #include "qlibcameralogging_p.h"
+#if QT_CONFIG(linux_dmabuf)
+#  include "qlibcamera_dmabufregistry_p.h"
+#endif
 
 #include <QtMultimedia/private/qmemoryvideobuffer_p.h>
 #include <QtMultimedia/private/qvideoframe_p.h>
+#if QT_CONFIG(linux_dmabuf)
+#  include <QtMultimedia/private/qdmabufsource_p.h>
+#  include <QtMultimedia/private/qdmabufvideobuffer_p.h>
+#  include <QtMultimedia/private/qmaterializingvideobuffer_p.h>
+#  include <QtMultimedia/private/qmultimedia_drm_support_p.h>
+#endif
 
 #include <QtCore/qmetaobject.h>
+#include <QtCore/qspan.h>
+#include <QtCore/qvarlengtharray.h>
 #include <QtCore/private/qsystemerror_p.h>
 
 #include <libcamera/base/span.h>
@@ -61,17 +72,132 @@ q23::expected<QVideoFrame, QString> createVideoFrameFromLibcameraBuffer(const Fr
     return QVideoFramePrivate::createFrame(std::move(videoBuffer), std::move(format));
 }
 
+#if QT_CONFIG(linux_dmabuf)
+
+// The frame wraps the request's DMA-BUF and holds the request as a capture slot.
+q23::expected<QVideoFrame, QString> createZeroCopyFrame(QLibCameraDmaBufRegistry &registry,
+                                                        Request *request, const FrameBuffer &buffer,
+                                                        const QVideoFrameFormat &format,
+                                                        int bytesPerLine)
+{
+    using namespace QtMultimediaPrivate;
+
+    std::shared_ptr<QDmaBuf> dmaBuf = registry.dmaBufFor(request);
+    if (!dmaBuf) {
+        registry.recycleSlot(request);
+        return q23::unexpected(u"Completed request does not belong to the capture registry"_s);
+    }
+
+    std::unique_ptr<QAbstractVideoBuffer> videoBuffer;
+    const std::optional<DmaBufLayout> &layout = registry.layout();
+    if (layout) {
+        // One DmaBufPlane per layout plane, all within the same DMA-BUF.
+        const auto drmFormats = dmaBufFourccFromPixelFormat(format.pixelFormat());
+        QVarLengthArray<DmaBufPlane, 4> planes;
+        for (qsizetype plane = 0; plane < layout->size(); ++plane) {
+            const DmaBufPlaneLayout &planeLayout = (*layout)[plane];
+            planes.push_back({
+                    dmaBuf->fd(),
+                    planeLayout.offset,
+                    planeLayout.pitch,
+                    drmFormats[plane],
+            });
+        }
+        const QSpan<const DmaBufPlane> planeSpan(planes.data(), planes.size());
+
+        using Buffer = MaterializingVideoBuffer<DmaBufSource, QLibCameraDmaBufRegistry,
+                                                QDmaBufVideoBuffer>;
+        videoBuffer =
+                Buffer::wrapOrMaterialize(registry, request, DmaBufSource(dmaBuf, *layout), format,
+                                          // QDmaBufVideoBuffer args:
+                                          format, planeSpan, dmaBuf);
+    } else {
+        // Formats without a zero-copy layout (e.g. JPEG) hold only the bytes the driver used.
+        const auto metadataPlanes = buffer.metadata().planes();
+        if (metadataPlanes.empty()) {
+            registry.recycleSlot(request);
+            return q23::unexpected(u"Completed capture buffer has no plane metadata"_s);
+        }
+
+        const DmaBufLayout plainLayout{
+            DmaBufPlaneLayout{
+                    0,
+                    uint32_t(bytesPerLine),
+                    qsizetype(metadataPlanes[0].bytesused),
+            },
+        };
+
+        using Buffer = MaterializingVideoBuffer<DmaBufSource, QLibCameraDmaBufRegistry>;
+        videoBuffer = Buffer::wrapOrMaterialize(registry, request,
+                                                DmaBufSource(dmaBuf, plainLayout), format);
+    }
+
+    return QVideoFramePrivate::createFrame(std::move(videoBuffer), format);
+}
+
+#endif // QT_CONFIG(linux_dmabuf)
+
 } // namespace
 
-QLibCameraCameraStream::QLibCameraCameraStream(std::shared_ptr<Camera> libcameraCamera,
-                                               Stream *stream, int bytesPerLine,
-                                               QVideoFrameFormat frameFormat, double maxFrameRate)
+void requeueRequest(Camera &camera, Request *request, QLibCameraPendingControls &pendingControls)
+{
+    request->reuse(Request::ReuseFlag::ReuseBuffers);
+    pendingControls.mergeInto(request->controls());
+
+    const int queueResult = camera.queueRequest(request);
+    switch (queueResult) {
+    case 0:
+    case -EACCES: // the camera is stopping
+        break;
+    case -ENODEV: // the camera has been disconnected
+        qCDebug(lcLibCamera) << "Camera disconnected, not requeueing request";
+        break;
+    default:
+        qCWarning(lcLibCamera) << "Failed to requeue request:"
+                               << QSystemError::stdString(-queueResult);
+        break;
+    }
+}
+
+QLibCameraCameraStream::QLibCameraCameraStream(
+        std::shared_ptr<Camera> libcameraCamera, Stream *stream, int bytesPerLine,
+        QVideoFrameFormat frameFormat, double maxFrameRate,
+        std::shared_ptr<QLibCameraPendingControls> pendingControls
+#if QT_CONFIG(linux_dmabuf)
+        ,
+        std::shared_ptr<QLibCameraDmaBufRegistry> dmaBufRegistry
+#endif
+        )
     : m_libcameraCamera(std::move(libcameraCamera)),
       m_stream(stream),
       m_bytesPerLine(bytesPerLine),
       m_frameFormat(std::move(frameFormat)),
-      m_maxFrameRate(maxFrameRate)
+      m_maxFrameRate(maxFrameRate),
+      m_pendingControls(std::move(pendingControls))
+#if QT_CONFIG(linux_dmabuf)
+      ,
+      m_dmaBufRegistry(std::move(dmaBufRegistry))
+#endif
 {
+}
+
+q23::expected<QVideoFrame, QString> QLibCameraCameraStream::createFrame(Request *request,
+                                                                        const FrameBuffer &buffer)
+{
+#if QT_CONFIG(linux_dmabuf)
+    if (m_dmaBufRegistry) {
+        // The frame holds the request as a slot; the request is queued again once it lets go.
+        return createZeroCopyFrame(*m_dmaBufRegistry, request, buffer, m_frameFormat,
+                                   m_bytesPerLine);
+    }
+#endif
+
+    q23::expected<QVideoFrame, QString> frame =
+            createVideoFrameFromLibcameraBuffer(buffer, m_frameFormat, m_bytesPerLine);
+
+    // we have created a deep copy, so recycle the buffer now
+    requeueRequest(*m_libcameraCamera, request, *m_pendingControls);
+    return frame;
 }
 
 void QLibCameraCameraStream::handleRequestCompleted(Request *request)
@@ -99,28 +225,7 @@ void QLibCameraCameraStream::handleRequestCompleted(Request *request)
     if (!m_firstFrameTimestamp)
         m_firstFrameTimestamp = timestamp;
 
-    q23::expected<QVideoFrame, QString> frame =
-            createVideoFrameFromLibcameraBuffer(*buffer, m_frameFormat, m_bytesPerLine);
-
-    // we have created a deep copy, so recycle the buffer now
-    request->reuse(Request::ReuseFlag::ReuseBuffers);
-    withPendingControls([&](ControlList &pendingControls) {
-        request->controls().merge(pendingControls, ControlList::MergePolicy::OverwriteExisting);
-    });
-    const int queueResult = m_libcameraCamera->queueRequest(request);
-    switch (queueResult) {
-    case 0:
-    case -EACCES: // the camera is stopping
-        break;
-    case -ENODEV: // the camera has been disconnected
-        qCDebug(lcLibCamera) << "Camera disconnected, not requeueing request";
-        break;
-    default:
-        qCWarning(lcLibCamera) << "Failed to requeue request:"
-                               << QSystemError::stdString(-queueResult);
-        break;
-    }
-
+    q23::expected<QVideoFrame, QString> frame = createFrame(request, *buffer);
     if (!frame) {
         qCWarning(lcLibCamera) << "Failed to build video frame:" << frame.error();
         return;

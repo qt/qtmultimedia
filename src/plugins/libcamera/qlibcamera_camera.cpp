@@ -7,6 +7,9 @@
 #include "qlibcamera_format_support_p.h"
 #include "qlibcamera_instance_p.h"
 #include "qlibcameralogging_p.h"
+#if QT_CONFIG(linux_dmabuf)
+#  include "qlibcamera_dmabufregistry_p.h"
+#endif
 
 #include <QtMultimedia/private/qcameradevice_p.h>
 #include <QtMultimedia/private/qmultimedia_ranges_p.h>
@@ -220,7 +223,7 @@ QLibCameraCamera::StartCapturingResult QLibCameraCamera::startCapturing()
         streamConfig.pixelFormat = *pixelFormatIt;
 
     streamConfig.size = toSize(m_resolvedFormat.resolution());
-    streamConfig.bufferCount = 4;
+    streamConfig.bufferCount = kCaptureBufferCount;
 
     switch (m_config->validate()) {
     case CameraConfiguration::Valid:
@@ -270,21 +273,6 @@ QLibCameraCamera::StartCapturingResult QLibCameraCamera::startCapturing()
         }
     }
 
-    m_stream = std::make_unique<QLibCameraCameraStream>(m_camera, stream, m_stride, frameFormat(),
-                                                        m_resolvedFormat.maxFrameRate());
-
-    connect(m_stream.get(), &QLibCameraCameraStream::newVideoFrame, this,
-            [this](const QVideoFrame &frame) {
-        m_lastFrameStart = std::chrono::microseconds{ frame.startTime() };
-        m_lastFrameEnd = std::chrono::microseconds{ frame.endTime() };
-        Q_EMIT newVideoFrame(frame);
-    });
-
-    m_camera->requestCompleted.connect(this, [stream = m_stream.get()](Request *request) {
-        // libcamera thread
-        stream->handleRequestCompleted(request);
-    });
-
     m_requests.clear();
     for (const std::unique_ptr<FrameBuffer> &buffer : m_allocator->buffers(stream)) {
         std::unique_ptr<Request> request = m_camera->createRequest();
@@ -305,6 +293,33 @@ QLibCameraCamera::StartCapturingResult QLibCameraCamera::startCapturing()
         }
         m_requests.push_back(std::move(request));
     }
+
+    m_pendingControls = std::make_shared<QLibCameraPendingControls>();
+#if QT_CONFIG(linux_dmabuf)
+    m_dmaBufRegistry = QLibCameraDmaBufRegistry::create(m_camera, m_pendingControls, m_requests,
+                                                        stream, frameFormat(), m_stride);
+#endif
+
+    m_stream = std::make_unique<QLibCameraCameraStream>(m_camera, stream, m_stride, frameFormat(),
+                                                        m_resolvedFormat.maxFrameRate(),
+                                                        m_pendingControls
+#if QT_CONFIG(linux_dmabuf)
+                                                        ,
+                                                        m_dmaBufRegistry
+#endif
+    );
+
+    connect(m_stream.get(), &QLibCameraCameraStream::newVideoFrame, this,
+            [this](const QVideoFrame &frame) {
+        m_lastFrameStart = std::chrono::microseconds{ frame.startTime() };
+        m_lastFrameEnd = std::chrono::microseconds{ frame.endTime() };
+        Q_EMIT newVideoFrame(frame);
+    });
+
+    m_camera->requestCompleted.connect(this, [stream = m_stream.get()](Request *request) {
+        // libcamera thread
+        stream->handleRequestCompleted(request);
+    });
 
     using namespace std::chrono;
     ControlList startControls(m_camera->controls());
@@ -364,6 +379,11 @@ void QLibCameraCamera::stopCapturing()
 {
     if (m_camera) {
         m_camera->requestCompleted.disconnect(this);
+#if QT_CONFIG(linux_dmabuf)
+        // Frames that outlive this keep their own DMA-BUF fd.
+        if (m_dmaBufRegistry)
+            m_dmaBufRegistry->stop();
+#endif
         if (m_streamState == StreamState::Running) {
             const int stopResult = m_camera->stop();
             switch (stopResult) {
@@ -385,6 +405,10 @@ void QLibCameraCamera::stopCapturing()
     m_stream.reset();
 
     m_requests.clear();
+#if QT_CONFIG(linux_dmabuf)
+    m_dmaBufRegistry.reset();
+#endif
+    m_pendingControls.reset();
     if (m_allocator && stream) {
         const int freeResult = m_allocator->free(stream);
         switch (freeResult) {
