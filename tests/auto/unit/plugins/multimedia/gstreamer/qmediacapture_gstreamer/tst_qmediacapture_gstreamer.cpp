@@ -8,10 +8,10 @@
 #include <QtMultimedia/qaudioinput.h>
 #include <QtMultimedia/qaudiooutput.h>
 #include <QtMultimedia/qcamera.h>
-#include <QtMultimedia/qgstreamerinterface.h>
-#include <QtMultimedia/qgstreamervideosource.h>
 #include <QtMultimedia/qmediacapturesession.h>
 #include <QtMultimedia/private/qplatformmediacapture_p.h>
+#include <QtMultimedia/spi/qgstreamerinterface.h>
+#include <QtMultimedia/spi/qgstreamervideosource.h>
 
 #include <memory>
 
