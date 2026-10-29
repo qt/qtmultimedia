@@ -48,22 +48,35 @@ q23::expected<void, std::error_code> QV4L2FileDescriptor::releaseAllBuffers(v4l2
     return {};
 }
 
-bool QV4L2FileDescriptor::startStream()
+q23::expected<void, std::error_code> QV4L2FileDescriptor::startStream()
 {
     int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    if (!call(VIDIOC_STREAMON, &type))
-        return false;
+    auto result = call(VIDIOC_STREAMON, &type);
+    if (!result)
+        return q23::unexpected(result.error());
 
     m_streamStarted = true;
-    return true;
+    return {};
 }
 
-bool QV4L2FileDescriptor::stopStream()
+q23::expected<void, std::error_code> QV4L2FileDescriptor::stopStream()
 {
     int type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    const auto result = call(VIDIOC_STREAMOFF, &type);
+    auto result = call(VIDIOC_STREAMOFF, &type);
     m_streamStarted = false;
-    return bool(result);
+    if (!result)
+        return q23::unexpected(result.error());
+    return {};
+}
+
+q23::expected<v4l2_queryctrl, std::error_code> QV4L2FileDescriptor::queryControl(uint32_t id) const
+{
+    v4l2_queryctrl queryControl{};
+    queryControl.id = id;
+    auto result = call(VIDIOC_QUERYCTRL, &queryControl);
+    if (!result)
+        return q23::unexpected(result.error());
+    return queryControl;
 }
 
 } // namespace QtV4L2

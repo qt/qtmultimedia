@@ -25,6 +25,7 @@
 
 #include <memory>
 #include <optional>
+#include <system_error>
 
 QT_BEGIN_NAMESPACE
 
@@ -46,14 +47,14 @@ public:
 
     virtual ~QV4L2MemoryTransfer();
 
-    virtual std::optional<Frame> dequeueFrame() = 0;
+    virtual q23::expected<Frame, std::error_code> dequeueFrame() = 0;
 
     virtual quint32 buffersCount() const = 0;
 
 protected:
-    virtual bool enqueueBuffer(quint32 index) = 0;
+    virtual q23::expected<void, std::error_code> enqueueBuffer(quint32 index) = 0;
 
-    bool enqueueBuffers();
+    q23::expected<void, std::error_code> enqueueBuffers();
 
     q23::expected<int, std::error_code> ioctl(int request, void *arg);
     const QV4L2FileDescriptor &fileDescriptor() const { return *m_fileDescriptor; }
@@ -64,15 +65,16 @@ private:
 
 using QV4L2MemoryTransferUPtr = std::unique_ptr<QV4L2MemoryTransfer>;
 
-QV4L2MemoryTransferUPtr makeUserPtrMemoryTransfer(QV4L2FileDescriptorPtr fileDescriptor,
-                                                  const v4l2_pix_format &format);
+q23::expected<QV4L2MemoryTransferUPtr, std::error_code>
+makeUserPtrMemoryTransfer(QV4L2FileDescriptorPtr fileDescriptor, const v4l2_pix_format &format);
 
-QV4L2MemoryTransferUPtr makeMMapMemoryTransfer(QV4L2FileDescriptorPtr fileDescriptor,
-                                               const v4l2_pix_format &format);
+q23::expected<QV4L2MemoryTransferUPtr, std::error_code>
+makeMMapMemoryTransfer(QV4L2FileDescriptorPtr fileDescriptor, const v4l2_pix_format &format);
 
 #if QT_CONFIG(linux_dmabuf)
-QV4L2MemoryTransferUPtr makeDmaBufMemoryTransfer(const QV4L2FileDescriptorPtr &fileDescriptor,
-                                                 const v4l2_pix_format &format);
+q23::expected<QV4L2MemoryTransferUPtr, std::error_code>
+makeDmaBufMemoryTransfer(const QV4L2FileDescriptorPtr &fileDescriptor,
+                         const v4l2_pix_format &format);
 #endif
 
 } // namespace QtV4L2

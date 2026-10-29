@@ -23,6 +23,7 @@
 
 #include <chrono>
 #include <optional>
+#include <system_error>
 
 QT_BEGIN_NAMESPACE
 
@@ -35,8 +36,6 @@ class QV4L2MemoryTransfer;
 
 struct V4L2CameraInfo
 {
-    bool formatInitialized = false;
-
     bool autoWhiteBalanceSupported = false;
     bool colorTemperatureSupported = false;
     bool autoExposureSupported = false;
@@ -104,20 +103,28 @@ private Q_SLOTS:
     void readFrame();
 
 private:
-    void setCameraBusy();
-    void initV4L2Controls();
+    q23::expected<void, std::error_code> initV4L2Controls();
     void closeV4L2Fd();
     int setV4L2ColorTemperature(int temperature);
-    bool setV4L2Parameter(quint32 id, qint32 value);
-    int getV4L2Parameter(quint32 id) const;
+    q23::expected<void, std::error_code> setV4L2Parameter(quint32 id, qint32 value);
+    std::optional<qint32> getV4L2Parameter(quint32 id) const;
 
-    q23::expected<void, QString> setV4L2CameraFormat();
-    void initV4L2MemoryTransfer();
-    bool startCapturing();
+    q23::expected<void, std::error_code> setV4L2CameraFormat();
+    q23::expected<void, std::error_code> initV4L2MemoryTransfer(const v4l2_pix_format &format);
+    q23::expected<void, std::error_code> startCapturing();
     void resetCaptureState();
     void stopCapturing();
+    void reportError(std::error_code error);
+
+    std::optional<v4l2_queryctrl> query(uint32_t id) const;
 
 private:
+    struct NegotiatedFormat
+    {
+        v4l2_pix_format pixFormat{};
+        std::chrono::microseconds frameDuration{};
+    };
+
     bool m_active = false;
     QCameraDevice m_cameraDevice;
 
@@ -126,13 +133,11 @@ private:
     std::shared_ptr<QV4L2FileDescriptor> m_v4l2FileDescriptor;
 
     V4L2CameraInfo m_v4l2Info;
+    std::optional<NegotiatedFormat> m_negotiatedFormat;
 
     std::optional<std::chrono::microseconds> m_firstFrameTime;
     std::optional<std::chrono::microseconds> m_lastFrameStart;
     std::optional<std::chrono::microseconds> m_lastFrameEnd;
-    v4l2_pix_format m_pixFormat{};
-    std::chrono::microseconds m_frameDuration{};
-    bool m_cameraBusy = false;
 };
 
 } // namespace QtV4L2

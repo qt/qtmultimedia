@@ -42,9 +42,11 @@ public:
                                                        uint32_t bufferCount) const;
     q23::expected<void, std::error_code> releaseAllBuffers(v4l2_memory) const;
 
-    bool startStream();
+    q23::expected<void, std::error_code> startStream();
 
-    bool stopStream();
+    q23::expected<void, std::error_code> stopStream();
+
+    q23::expected<v4l2_queryctrl, std::error_code> queryControl(uint32_t id) const;
 
     bool streamStarted() const { return m_streamStarted; }
 
