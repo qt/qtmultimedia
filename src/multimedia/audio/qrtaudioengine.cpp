@@ -140,6 +140,16 @@ void QRtAudioEngine::stop(const SharedVoice &voice)
     stop(voice->voiceId());
 }
 
+void QRtAudioEngine::release(SharedVoice voice)
+{
+    if (thread()->isCurrentThread())
+        return;
+
+    QMetaObject::invokeMethod(this, [voice = std::move(voice)] {
+        // release the voice on the owning thread
+    });
+}
+
 void QRtAudioEngine::stop(VoiceId voiceId)
 {
     auto lock = std::lock_guard{ m_mutex };

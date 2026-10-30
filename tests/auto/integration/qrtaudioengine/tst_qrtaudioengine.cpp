@@ -8,7 +8,9 @@
 #include <QtMultimedia/private/qmultimedia_ranges_p.h>
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
 #include <QtMultimedia/private/qrtaudioengine_p.h>
+#include <QtCore/qcoreapplication.h>
 #include <QtCore/qsemaphore.h>
+#include <QtCore/qthread.h>
 
 #if __cplusplus > 201703L
 #  define QT_SET_HAS_CONTAINS
@@ -53,6 +55,17 @@ struct NullMockVoice : public QRtAudioEngineVoice
     VoicePlayResult m_result = VoicePlayResult::Playing;
 };
 
+struct ThreadRecordingMockVoice : NullMockVoice
+{
+    ThreadRecordingMockVoice(QAudioFormat fmt, VoiceId id, QThread *&destroyedOn)
+        : NullMockVoice(fmt, id), m_destroyedOn(destroyedOn)
+    {
+    }
+    ~ThreadRecordingMockVoice() override { m_destroyedOn = QThread::currentThread(); }
+
+    QThread *&m_destroyedOn;
+};
+
 } // namespace
 
 static bool isPipewireBackend()
@@ -89,6 +102,7 @@ private slots:
 
     void play_validateDuration();
     void visit_overloadCommandBuffers();
+    void release_dropsLastReferenceOnEngineThread();
 
 private:
     // helpers
@@ -228,6 +242,39 @@ void tst_QRtAudioEngine::visit_overloadCommandBuffers()
     QTRY_COMPARE_EQ(iteration, commandCount); // all commands should have been executed
     QTRY_COMPARE_EQ(refcountedDummyObject.use_count(),
                     1); // all commands should have been destroyed on the app thread
+}
+
+void tst_QRtAudioEngine::release_dropsLastReferenceOnEngineThread()
+{
+    std::shared_ptr<QRtAudioEngine> engine = makeEngine();
+
+    QThread *destroyedOn = nullptr;
+    auto voice = std::make_shared<ThreadRecordingMockVoice>(getFormat(),
+                                                            QRtAudioEngine::allocateVoiceId(),
+                                                            destroyedOn);
+
+    QThread worker;
+    worker.start();
+
+    QObject context;
+    context.moveToThread(&worker);
+
+    // the worker holds the only reference, so it would destroy the voice without release()
+    QMetaObject::invokeMethod(&context, [&, voice = std::move(voice)]() mutable {
+        engine->release(std::move(voice));
+    }, Qt::BlockingQueuedConnection);
+
+    const bool destroyed = QTest::qWaitFor([&] {
+        return destroyedOn != nullptr;
+    }, 5s);
+
+    QMetaObject::invokeMethod(&context, [&] {
+        worker.quit();
+    }, Qt::BlockingQueuedConnection);
+    QVERIFY(worker.wait(5000));
+
+    QVERIFY(destroyed);
+    QCOMPARE(destroyedOn, QCoreApplication::instance()->thread());
 }
 
 QTEST_MAIN(tst_QRtAudioEngine)

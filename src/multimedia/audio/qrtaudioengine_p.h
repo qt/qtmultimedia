@@ -205,6 +205,8 @@ public:
     void stop(const SharedVoice &);
     void stop(VoiceId);
 
+    void release(SharedVoice);
+
     template <typename Visitor>
     void visitVoiceRt(VoiceId id, Visitor visitor)
     {
