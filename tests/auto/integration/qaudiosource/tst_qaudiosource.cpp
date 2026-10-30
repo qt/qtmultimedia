@@ -17,6 +17,7 @@
 #include <QtMultimedia/qwavedecoder.h>
 #include <QtMultimedia/private/qaudiosystem_p.h>
 #include <QtCore/qbuffer.h>
+#include <QtCore/qelapsedtimer.h>
 #include <QtCore/qsemaphore.h>
 #include <QtCore/qtemporarydir.h>
 
@@ -108,6 +109,7 @@ private slots:
 
 #ifdef Q_OS_MACOS
     void coreaudio_resetAfterDeviceDisconnect_doesNotUseAfterFree(); // QTBUG-151333
+    void coreaudio_convertedSampleRate_doesNotDuplicateAudio();
 #endif
 
 private:
@@ -1253,6 +1255,40 @@ void tst_QAudioSource::coreaudio_resetAfterDeviceDisconnect_doesNotUseAfterFree(
         // Drain the queued handler while the source is still alive
         QTest::qWait(100ms);
     }
+}
+
+void tst_QAudioSource::coreaudio_convertedSampleRate_doesNotDuplicateAudio()
+{
+    using namespace std::chrono_literals;
+
+    QAudioFormat format = audioDevice.preferredFormat();
+    format.setSampleRate(format.sampleRate() == 16000 ? 44100 : 16000);
+    if (!audioDevice.isFormatSupported(format))
+        QSKIP("The default input device does not support the converted sample rate");
+
+    QAudioSource audioSource(audioDevice, format);
+
+    QElapsedTimer timer;
+    timer.start();
+    QIODevice *io = audioSource.start();
+    if (!io || audioSource.error() != QAudio::NoError)
+        QSKIP("Could not start recording at the converted sample rate");
+
+    qint64 bytes = 0;
+    connect(io, &QIODevice::readyRead, this, [&] {
+        bytes += io->readAll().size();
+    });
+
+    QTest::qWait(2000ms);
+    const qint64 elapsedUs = timer.nsecsElapsed() / 1000;
+    audioSource.stop();
+
+    QCOMPARE_GT(bytes, 0);
+
+    // Recording cannot yield more audio than the wall clock covers. The converter bug
+    // duplicated about 18%, well above the 5% plus 100 ms allowance for startup jitter.
+    const qint64 durationUs = audioSource.format().durationForBytes(bytes);
+    QCOMPARE_LE(durationUs, elapsedUs + elapsedUs / 20 + 100000);
 }
 #endif
 
