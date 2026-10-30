@@ -19,6 +19,7 @@ QAutoResetEventKQueue::QAutoResetEventKQueue(QObject *parent)
       },
       m_notifier{
           QSocketNotifier::Type::Read,
+          this,
       }
 {
     if (!isValid()) {

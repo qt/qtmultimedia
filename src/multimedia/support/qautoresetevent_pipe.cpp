@@ -19,6 +19,7 @@ QAutoResetEventPipe::QAutoResetEventPipe(QObject *parent)
       },
       m_notifier{
           QSocketNotifier::Type::Read,
+          this,
       }
 {
     int pipedes[2];
