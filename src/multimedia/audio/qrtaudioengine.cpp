@@ -83,22 +83,24 @@ QRtAudioEngine::QRtAudioEngine(MoveToApplicationThread moveToApplicationThread,
             m_pendingCommandsTimer.stop();
     });
 
-    QPlatformAudioSink *platformSink = QPlatformAudioSink::get(m_sink);
+    QMetaObject::invokeMethod(this, [this, role, nativePeriodFrames] {
+        QPlatformAudioSink *platformSink = QPlatformAudioSink::get(m_sink);
 
-    if (role)
-        platformSink->setRole(*role);
-    if (nativePeriodFrames)
-        platformSink->setNativePeriodFrames(*nativePeriodFrames);
+        if (role)
+            platformSink->setRole(*role);
+        if (nativePeriodFrames)
+            platformSink->setNativePeriodFrames(*nativePeriodFrames);
 
-    m_sink.start([this](QSpan<float> outputBuffer) {
-        audioCallback(outputBuffer);
-    });
+        m_sink.start([this](QSpan<float> outputBuffer) {
+            audioCallback(outputBuffer);
+        });
 
-    // we start suspended
-    m_sink.suspend();
+        // we start suspended
+        m_sink.suspend();
 
-    QObject::connect(&m_sink, &QAudioSink::stateChanged, this, [&](QtAudio::State state) {
-        Q_EMIT stateChanged(sinkStateToEngineState(state));
+        QObject::connect(&m_sink, &QAudioSink::stateChanged, this, [&](QtAudio::State state) {
+            Q_EMIT stateChanged(sinkStateToEngineState(state));
+        });
     });
 }
 
@@ -120,8 +122,11 @@ void QRtAudioEngine::play(SharedVoice voice)
     // TODO: where do we expect reampling to happen?
     Q_ASSERT(voice->format() == m_sink.format());
 
-    if (m_voices.empty())
-        m_sink.resume();
+    if (m_voices.empty()) {
+        QMetaObject::invokeMethod(this, [this] {
+            m_sink.resume();
+        });
+    }
 
     m_voices.insert(voice);
 
