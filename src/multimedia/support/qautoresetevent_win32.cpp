@@ -21,6 +21,7 @@ QAutoResetEventWin32::QAutoResetEventWin32(QObject *parent)
                          /*lpName=*/nullptr),
       },
       m_notifier{
+          this,
       }
 {
     if (!isValid()) {

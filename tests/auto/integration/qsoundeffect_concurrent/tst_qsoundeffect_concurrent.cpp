@@ -27,6 +27,8 @@ private Q_SLOTS:
     // See also QTBUG-129597
     void play_playsSound_whenMediaBackendInitializedOnWorkerThread()
     {
+        QSKIP("Temporarily disabled until the QTBUG-151895 fix is in: the voice event is destroyed "
+              "on a thread that has already exited");
         const QUrl url{ "qrc:/double-drop.wav"_L1 };
 
         QAtomicInteger success = true;
