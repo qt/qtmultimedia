@@ -61,6 +61,7 @@ qt_internal_multimedia_add_test(tst_qmediaplayerbackend
         testdata/recursive.m3u
         testdata/recursive_master.m3u
         testdata/sample.m3u
+        testdata/speech_no_subtitles.mp4
         testdata/subtitletest.mkv
         testdata/test.wav
         testdata/with_creation_time.mp4
