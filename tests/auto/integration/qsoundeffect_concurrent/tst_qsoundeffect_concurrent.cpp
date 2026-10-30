@@ -27,8 +27,6 @@ private Q_SLOTS:
     // See also QTBUG-129597
     void play_playsSound_whenMediaBackendInitializedOnWorkerThread()
     {
-        QSKIP_OHOS("QRtAudioEngine::play() calls QOhosAudioSinkStream::resume() from worker thread, "
-                   "violating the OH_AudioRenderer thread-affinity assertion (cross-platform issue)");
         const QUrl url{ "qrc:/double-drop.wav"_L1 };
 
         QAtomicInteger success = true;
