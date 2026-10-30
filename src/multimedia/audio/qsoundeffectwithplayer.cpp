@@ -5,6 +5,7 @@
 
 #include <QtCore/q20map.h>
 #include <QtCore/qmutex.h>
+#include <QtCore/qscopeguard.h>
 #include <QtCore/private/qobject_p.h>
 
 #include <utility>
@@ -272,10 +273,20 @@ void QSoundEffectPrivateWithPlayer::setResolvedAudioDevice(QAudioDevice device)
         for (const auto &voice : m_voices)
             m_player->stop(voice);
 
-    std::vector<std::shared_ptr<QSoundEffectVoice>> voices{
-        std::make_move_iterator(m_voices.begin()), std::make_move_iterator(m_voices.end())
-    };
-    m_voices.clear();
+    std::vector<std::shared_ptr<QSoundEffectVoice>> voices;
+    while (!m_voices.empty()) {
+        auto node = m_voices.extract(m_voices.begin());
+        voices.push_back(std::move(node.value()));
+    }
+
+    // the voices are replaced by clones on the new player, the originals are released through the
+    // old player, so that their last reference is dropped on its thread
+    auto oldPlayer = m_player;
+    auto releaseVoices = qScopeGuard([&] {
+        if (oldPlayer)
+            for (auto &voice : voices)
+                oldPlayer->release(std::move(voice));
+    });
 
     if (m_sample) {
         bool hasPlayer = updatePlayer(m_sample);
@@ -477,7 +488,10 @@ void QSoundEffectPrivateWithPlayer::stop()
         m_player->stop(voice->voiceId());
     setLoopsRemaining(0);
 
-    m_voices.clear();
+    while (!m_voices.empty()) {
+        auto node = m_voices.extract(m_voices.begin());
+        m_player->release(std::move(node.value()));
+    }
     m_playPending = false;
     if (activeVoices)
         Q_EMIT q_ptr->playingChanged();
@@ -501,6 +515,9 @@ void QSoundEffectPrivateWithPlayer::play(std::shared_ptr<QSoundEffectVoice> voic
 
         setLoopsRemaining((*foundVoice)->loopsRemaining());
     });
+
+    // voice lives on the engline thread. they are not QObject, but may contain QObjects.
+    voice->m_currentLoopChanged.moveToThread(m_player->thread());
 
     m_player->play(voice);
     m_voices.insert(std::move(voice));
@@ -549,7 +566,8 @@ bool QSoundEffectPrivateWithPlayer::updatePlayer(const SharedSamplePtr &sample)
 
         auto found = m_voices.find(voiceId);
         if (found != m_voices.end()) {
-            m_voices.erase(found);
+            auto node = m_voices.extract(found);
+            m_player->release(std::move(node.value()));
             if (m_voices.empty())
                 Q_EMIT q_ptr->playingChanged();
         }
