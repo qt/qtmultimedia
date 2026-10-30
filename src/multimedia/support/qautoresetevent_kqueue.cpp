@@ -10,16 +10,18 @@ QT_BEGIN_NAMESPACE
 
 namespace QtPrivate {
 
-QAutoResetEventKQueue::QAutoResetEventKQueue(QObject *parent):
-    QObject{
-        parent,
-    },
-    m_notifier{
-        QSocketNotifier::Type::Read,
-    }
+QAutoResetEventKQueue::QAutoResetEventKQueue(QObject *parent)
+    : QObject{
+          parent,
+      },
+      m_kqueue{
+          kqueue(),
+      },
+      m_notifier{
+          QSocketNotifier::Type::Read,
+      }
 {
-    m_kqueue = kqueue();
-    if (m_kqueue == -1) {
+    if (!isValid()) {
         qCritical() << "kqueue failed:" << qt_error_string(errno);
         return;
     }
@@ -27,26 +29,20 @@ QAutoResetEventKQueue::QAutoResetEventKQueue(QObject *parent):
     // Register a custom EVFILT_USER event with the EV_CLEAR flag.
     // The EV_CLEAR flag causes the event to auto-reset once it is delivered.
     EV_SET(&m_event, 1, EVFILT_USER, EV_ADD | EV_CLEAR, 0, 0, nullptr);
-    if (kevent(m_kqueue, &m_event, 1, nullptr, 0, nullptr) == -1) {
-        close(m_kqueue);
+    if (kevent(m_kqueue.get(), &m_event, 1, nullptr, 0, nullptr) == -1) {
         qCritical() << "Failed to register EVFILT_USER event:" << qt_error_string(errno);
+        m_kqueue.reset();
         return;
     }
 
     connect(&m_notifier, &QSocketNotifier::activated, this, [this] {
         struct kevent ev;
-        int nev = kevent(m_kqueue, nullptr, 0, &ev, 1, nullptr);
+        int nev = kevent(m_kqueue.get(), nullptr, 0, &ev, 1, nullptr);
         if (nev > 0)
             Q_EMIT activated();
     });
-    m_notifier.setSocket(m_kqueue);
+    m_notifier.setSocket(m_kqueue.get());
     m_notifier.setEnabled(true);
-}
-
-QAutoResetEventKQueue::~QAutoResetEventKQueue()
-{
-    if (m_kqueue != -1)
-        qt_safe_close(m_kqueue);
 }
 
 void QAutoResetEventKQueue::set()
@@ -55,13 +51,8 @@ void QAutoResetEventKQueue::set()
 
     EV_SET(&m_event, 1, EVFILT_USER, 0, NOTE_TRIGGER, 0, nullptr);
 
-    if (kevent(m_kqueue, &m_event, 1, nullptr, 0, nullptr) == -1)
+    if (kevent(m_kqueue.get(), &m_event, 1, nullptr, 0, nullptr) == -1)
         qWarning() << "Failed to signal event";
-}
-
-bool QAutoResetEventKQueue::isValid() const
-{
-    return m_kqueue != -1;
 }
 
 } // namespace QtPrivate

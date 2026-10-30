@@ -17,6 +17,7 @@
 
 #include <QtMultimedia/qtmultimediaexports.h>
 #include <QtCore/qsocketnotifier.h>
+#include <QtCore/private/quniquehandle_types_p.h>
 
 #include <atomic>
 
@@ -30,10 +31,9 @@ class Q_MULTIMEDIA_EXPORT QAutoResetEventPipe final : public QObject
 
 public:
     explicit QAutoResetEventPipe(QObject *parent = nullptr);
-    ~QAutoResetEventPipe();
     Q_DISABLE_COPY_MOVE(QAutoResetEventPipe)
 
-    bool isValid() const { return m_fdProducer != -1; }
+    bool isValid() const { return m_fdProducer.isValid(); }
 
     void set();
 
@@ -53,9 +53,9 @@ Q_SIGNALS:
     void activated();
 
 private:
+    QUniqueFileDescriptorHandle m_fdConsumer;
+    QUniqueFileDescriptorHandle m_fdProducer;
     QSocketNotifier m_notifier;
-    int m_fdProducer = -1;
-    int m_fdConsumer = -1;
     std::atomic_flag m_consumePending{};
 };
 
