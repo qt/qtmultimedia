@@ -247,6 +247,8 @@ private slots:
     void multiTrack_validateMetadata();
     void play_readsSubtitle_fromMultiTrack();
     void play_readsSubtitle_fromMultiTrack_data();
+    void play_noSubtitlesWithoutActiveSubtitleTrack_data();
+    void play_noSubtitlesWithoutActiveSubtitleTrack();
 
     void setActiveSubtitleTrack_switchesSubtitles();
     void setActiveSubtitleTrack_switchesSubtitles_data();
@@ -309,6 +311,7 @@ private:
     MaybeUrl m_subtitleVideo{ q23::unexpect };
     MaybeUrl m_multitrackVideo{ q23::unexpect };
     MaybeUrl m_multitrackSubtitleStartsAtZeroVideo{ q23::unexpect };
+    MaybeUrl m_speechNoSubtitlesVideo{ q23::unexpect };
     MaybeUrl m_oggEndingWithInvalidTiming{ q23::unexpect };
     MaybeUrl m_withDate{ q23::unexpect };
     MaybeUrl m_withCreationTime{ q23::unexpect };
@@ -446,6 +449,7 @@ void tst_QMediaPlayerBackend::initTestCase()
     m_multitrackVideo = m_mediaSelector.select("qrc:/testdata/multitrack.mkv");
     m_multitrackSubtitleStartsAtZeroVideo =
             m_mediaSelector.select("qrc:/testdata/multitrack-subtitle-start-at-zero.mkv");
+    m_speechNoSubtitlesVideo = m_mediaSelector.select("qrc:/testdata/speech_no_subtitles.mp4");
     m_oggEndingWithInvalidTiming = m_mediaSelector.select("qrc:/testdata/corrupt_end.ogg");
     m_withDate = m_mediaSelector.select("qrc:/testdata/with_date.mp4");
     m_withCreationTime = m_mediaSelector.select("qrc:/testdata/with_creation_time.mp4");
@@ -4748,6 +4752,40 @@ void tst_QMediaPlayerBackend::play_readsSubtitle_fromMultiTrack()
         QTRY_COMPARE_GT(player.position(), 2000);
 
     QTRY_COMPARE(subtitleSink.subtitles, expectedSubtitles);
+}
+
+void tst_QMediaPlayerBackend::play_noSubtitlesWithoutActiveSubtitleTrack_data()
+{
+    QTest::addColumn<bool>("muted");
+
+    QTest::addRow("unmuted") << false;
+    QTest::addRow("muted") << true;
+}
+
+void tst_QMediaPlayerBackend::play_noSubtitlesWithoutActiveSubtitleTrack()
+{
+    // Some backends can generate subtitles on their own (avfoundation / macOS 27).
+    // They must not reach the video sink while no subtitle track is active.
+    using namespace std::chrono_literals;
+    QFETCH(bool, muted);
+    CHECK_SELECTED_URL(m_speechNoSubtitlesVideo);
+
+    QVideoSink &sink = m_fixture->surface;
+    QMediaPlayer &player = m_fixture->player;
+    m_fixture->output.setMuted(muted);
+
+    TestSubtitleSink subtitleSink;
+    QObject::connect(&sink, &QVideoSink::subtitleTextChanged, &subtitleSink,
+                     &TestSubtitleSink::addSubtitle);
+
+    player.setSource(*m_speechNoSubtitlesVideo);
+    QCOMPARE_EQ(player.activeSubtitleTrack(), -1);
+
+    player.play();
+    QTRY_COMPARE_WITH_TIMEOUT(player.mediaStatus(), QMediaPlayer::EndOfMedia, 10s);
+    QTest::qWait(500); // deliver pending subtitle callbacks
+
+    QCOMPARE(subtitleSink.subtitles, QStringList{});
 }
 
 void tst_QMediaPlayerBackend::play_readsSubtitle_fromMultiTrack_data()

@@ -1232,8 +1232,13 @@ void AVFMediaPlayer::setActiveTrack(TrackType type, int index)
                 if (error)
                     return; // FIXME: handle error
                 auto *options = group.options;
-                if (options.count)
-                    [playerItem selectMediaOption:options.firstObject inMediaSelectionGroup:group];
+                // An explicit selection overrides the OS automatic selection, which can
+                // enable OS-generated subtitles. Deselect for index -1.
+                AVMediaSelectionOption *option =
+                        index >= 0 && options.count ? options.firstObject : nil;
+                if (!option && !group.allowsEmptySelection)
+                    return;
+                [playerItem selectMediaOption:option inMediaSelectionGroup:group];
             }];
         }
     }
