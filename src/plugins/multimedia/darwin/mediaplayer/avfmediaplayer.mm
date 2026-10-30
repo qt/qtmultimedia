@@ -15,6 +15,7 @@
 
 #include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
+#include <QtCore/qlocale.h>
 #include <QtCore/qmath.h>
 #include <QtCore/qmimedatabase.h>
 #include <QtCore/qmutex.h>
@@ -22,6 +23,7 @@
 #include <QtCore/qthread.h>
 #include <QtCore/private/qexpected_p.h>
 
+#include <memory>
 #include <optional>
 
 #import <AVFoundation/AVFoundation.h>
@@ -62,6 +64,7 @@ static void *AVFMediaPlayerObserverCurrentItemDurationObservationContext = &AVFM
 - (void) unloadMedia;
 - (void) prepareToPlayAsset:(AVURLAsset *)asset withKeys:(NSArray *)requestedKeys;
 - (void) assetFailedToPrepareForPlayback:(NSError *)error;
+- (void)loadSubtitleOptionsForAsset:(AVAsset *)asset generation:(int)generation;
 - (void) playerItemDidReachEnd:(NSNotification *)notification;
 - (void) observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object
                          change:(NSDictionary *)change context:(void *)context;
@@ -132,6 +135,40 @@ struct GuardedPlatformPlayer
 #if defined(Q_OS_IOS) || defined(Q_OS_VISIONOS) || defined(Q_OS_TVOS)
 using ActivationToken = QtMultimediaPrivate::QAVAudioSessionManager::ActivationToken;
 #endif
+
+namespace {
+
+// OS-generated subtitles are legible options with this characteristic
+bool isMachineGenerated([[maybe_unused]] AVMediaSelectionOption *option)
+{
+#if QT_APPLE_SDK_EQUAL_OR_ABOVE(MACOS(26), IOS(26))
+    if (@available(macOS 26.0, iOS 26.0, *))
+        return [option hasMediaCharacteristic:AVMediaCharacteristicMachineGenerated];
+#endif
+    return false;
+}
+
+template <typename T>
+std::shared_ptr<T> retainObject(T *object)
+{
+    return std::shared_ptr<T>((T *)[object retain], [](T *p) {
+        [p release];
+    });
+}
+
+QMediaMetaData subtitleMetaData(AVMediaSelectionOption *option)
+{
+    QMediaMetaData metaData;
+    metaData.insert(QMediaMetaData::Title, QString::fromNSString(option.displayName));
+    if (option.extendedLanguageTag) {
+        const QLocale::Language language =
+                QLocale::codeToLanguage(QString::fromNSString(option.extendedLanguageTag));
+        if (language != QLocale::AnyLanguage)
+            metaData.insert(QMediaMetaData::Language, language);
+    }
+    return metaData;
+}
+} // namespace
 
 @implementation AVFMediaPlayerObserver {
 @private
@@ -388,6 +425,21 @@ using ActivationToken = QtMultimediaPrivate::QAVAudioSessionManager::ActivationT
 #endif
 }
 
+- (void)loadSubtitleOptionsForAsset:(AVAsset *)asset generation:(int)generation
+{
+    auto observer = retainObject(self);
+    [asset loadMediaSelectionGroupForMediaCharacteristic:AVMediaCharacteristicLegible
+                                       completionHandler:[observer,
+                                                          generation](AVMediaSelectionGroup *group,
+                                                                      NSError *) {
+        std::shared_ptr<AVMediaSelectionGroup> retained = retainObject(group);
+        observer->m_platformPlayer.invokeWithPlatformPlayer(
+                [generation, retained](AVFMediaPlayer *platformPlayer) {
+            platformPlayer->subtitleOptionsLoaded(generation, retained.get());
+        });
+    }];
+}
+
 - (void) playerItemDidReachEnd:(NSNotification *)notification
 {
     Q_UNUSED(notification);
@@ -595,6 +647,7 @@ AVFMediaPlayer::~AVFMediaPlayer()
     //Detatch the session from the sessionObserver (which could still be alive trying to communicate with this session).
     [m_observer clearSession];
     [m_observer release];
+    [m_subtitleGroup release];
 }
 
 void AVFMediaPlayer::setVideoSink(QVideoSink *sink)
@@ -679,6 +732,7 @@ void AVFMediaPlayer::setMedia(const QUrl &content, QIODevice *stream)
         metaDataChanged();
     }
     resetBufferProgress();
+    resetSubtitleGroup();
     for (size_t i = 0; i < QPlatformMediaPlayer::NTrackTypes; ++i) {
         tracks[i].clear();
         nativeTracks[i].clear();
@@ -1165,6 +1219,7 @@ void AVFMediaPlayer::streamDestroyed()
 
 void AVFMediaPlayer::updateTracks()
 {
+    resetSubtitleGroup();
     bool firstLoad = true;
     for (size_t i = 0; i < QPlatformMediaPlayer::NTrackTypes; ++i) {
         if (tracks[i].count())
@@ -1206,6 +1261,9 @@ void AVFMediaPlayer::updateTracks()
                 }
             }
         }
+        if (@available(macOS 26.0, iOS 26.0, *))
+            [m_observer loadSubtitleOptionsForAsset:playerItem.asset
+                                         generation:m_subtitleGroupGeneration];
         // subtitles are disabled by default
         if (firstLoad)
             setActiveTrack(TrackType::SubtitleStream, -1);
@@ -1217,6 +1275,13 @@ void AVFMediaPlayer::updateTracks()
 
 void AVFMediaPlayer::setActiveTrack(TrackType type, int index)
 {
+    if (type == TrackType::SubtitleStream && m_subtitleGroup) {
+        m_requestedSubtitleTrack = index;
+        applySubtitleSelection();
+        activeTracksChanged();
+        return;
+    }
+
     const auto &t = nativeTracks[type];
     if (type == TrackType::SubtitleStream) {
         // subtitle streams are not always automatically enabled on macOS/iOS.
@@ -1247,8 +1312,65 @@ void AVFMediaPlayer::setActiveTrack(TrackType type, int index)
     activeTracksChanged();
 }
 
+void AVFMediaPlayer::subtitleOptionsLoaded(int generation, AVMediaSelectionGroup *group)
+{
+    if (generation != m_subtitleGroupGeneration || !group)
+        return;
+
+    bool hasGeneratedSubtitles = false;
+    for (AVMediaSelectionOption *option in group.options)
+        hasGeneratedSubtitles |= isMachineGenerated(option);
+    if (!hasGeneratedSubtitles)
+        return;
+
+    m_subtitleGroup = [group retain];
+
+    QList<QMediaMetaData> subtitles;
+    for (AVMediaSelectionOption *option in group.options)
+        subtitles.append(subtitleMetaData(option));
+    tracks[TrackType::SubtitleStream] = std::move(subtitles);
+
+    applySubtitleSelection();
+    tracksChanged();
+    activeTracksChanged();
+}
+
+void AVFMediaPlayer::resetSubtitleGroup()
+{
+    ++m_subtitleGroupGeneration;
+    [m_subtitleGroup release];
+    m_subtitleGroup = nil;
+}
+
+void AVFMediaPlayer::applySubtitleSelection()
+{
+    AVPlayerItem *playerItem = [m_observer playerItem];
+    if (!playerItem || !m_subtitleGroup)
+        return;
+
+    // An explicit selection overrides the automatic selection of AVFoundation, which
+    // would otherwise enable the OS-generated subtitles. Index -1 deselects.
+    NSArray<AVMediaSelectionOption *> *options = m_subtitleGroup.options;
+    const int index = m_requestedSubtitleTrack;
+    AVMediaSelectionOption *option =
+            index >= 0 && index < int(options.count) ? options[index] : nil;
+    if (!option && !m_subtitleGroup.allowsEmptySelection)
+        return;
+    [playerItem selectMediaOption:option inMediaSelectionGroup:m_subtitleGroup];
+}
+
 int AVFMediaPlayer::activeTrack(TrackType type)
 {
+    if (type == TrackType::SubtitleStream && m_subtitleGroup) {
+        AVPlayerItem *playerItem = [m_observer playerItem];
+        if (!playerItem)
+            return -1;
+        AVMediaSelectionOption *selected = [playerItem.currentMediaSelection
+                selectedMediaOptionInMediaSelectionGroup:m_subtitleGroup];
+        const NSUInteger index = [m_subtitleGroup.options indexOfObject:selected];
+        return index == NSNotFound ? -1 : int(index);
+    }
+
     const auto &t = nativeTracks[type];
     for (int i = 0; i < t.count(); ++i)
         if (t.at(i).enabled)
@@ -1258,6 +1380,8 @@ int AVFMediaPlayer::activeTrack(TrackType type)
 
 int AVFMediaPlayer::trackCount(TrackType type)
 {
+    if (type == TrackType::SubtitleStream && m_subtitleGroup)
+        return tracks[type].count();
     return nativeTracks[type].count();
 }
 

@@ -28,6 +28,7 @@
 #import <AVFoundation/AVFoundation.h>
 
 @class AVFMediaPlayerObserver;
+Q_FORWARD_DECLARE_OBJC_CLASS(AVMediaSelectionGroup);
 
 QT_BEGIN_NAMESPACE
 
@@ -113,7 +114,13 @@ public:
     TrackTypeMap<QList<QMediaMetaData>> tracks;
     TrackTypeMap<QList<AVPlayerItemTrack *>> nativeTracks;
 
+    // Called on the player thread once the legible options of the current item have loaded
+    void subtitleOptionsLoaded(int generation, AVMediaSelectionGroup *group);
+
 private:
+    void applySubtitleSelection();
+    void resetSubtitleGroup();
+
     void resetStream(QIODevice *stream = nullptr);
     void applyPitchCompensation(bool enabled);
     void resetBufferProgress();
@@ -123,6 +130,11 @@ private:
     AVFVideoRendererControl *m_videoOutput = nullptr;
     AVFVideoSink *m_videoSink = nullptr;
     QSize m_nativeSize;
+
+    // Set while the legible options of the current item contain OS-generated subtitles
+    AVMediaSelectionGroup *m_subtitleGroup = nullptr;
+    int m_subtitleGroupGeneration = 0;
+    int m_requestedSubtitleTrack = -1;
 
     QIODevice *m_mediaStream;
     QUrl m_resources;
