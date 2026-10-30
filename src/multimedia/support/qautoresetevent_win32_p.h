@@ -17,6 +17,7 @@
 
 #include <QtMultimedia/qtmultimediaexports.h>
 #include <QtCore/qwineventnotifier.h>
+#include <QtCore/private/quniquehandle_types_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -28,10 +29,9 @@ class Q_MULTIMEDIA_EXPORT QAutoResetEventWin32 final : public QObject
 
 public:
     explicit QAutoResetEventWin32(QObject *parent = nullptr);
-    ~QAutoResetEventWin32();
     Q_DISABLE_COPY_MOVE(QAutoResetEventWin32)
 
-    bool isValid() const;
+    bool isValid() const { return m_handle.isValid(); }
     void set();
 
     template <typename... Args>
@@ -51,8 +51,8 @@ Q_SIGNALS:
     void activated();
 
 private:
+    QUniqueWin32NullHandle m_handle;
     QWinEventNotifier m_notifier;
-    Qt::HANDLE m_handle;
 };
 
 } // namespace QtPrivate

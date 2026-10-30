@@ -17,6 +17,7 @@
 
 #include <QtMultimedia/qtmultimediaexports.h>
 #include <QtCore/qsocketnotifier.h>
+#include <QtCore/private/quniquehandle_types_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -28,10 +29,9 @@ class Q_MULTIMEDIA_EXPORT QAutoResetEventEventFD final : public QObject
 
 public:
     explicit QAutoResetEventEventFD(QObject *parent = nullptr);
-    ~QAutoResetEventEventFD();
     Q_DISABLE_COPY_MOVE(QAutoResetEventEventFD)
 
-    bool isValid() const { return m_fd != -1; }
+    bool isValid() const { return m_fd.isValid(); }
     void set();
 
     template <typename... Args>
@@ -51,8 +51,8 @@ Q_SIGNALS:
     void activated();
 
 private:
+    QUniqueFileDescriptorHandle m_fd;
     QSocketNotifier m_notifier;
-    int m_fd = -1;
 };
 
 } // namespace QtPrivate

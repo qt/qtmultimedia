@@ -15,15 +15,17 @@ QT_BEGIN_NAMESPACE
 namespace QtPrivate {
 
 QAutoResetEventEventFD::QAutoResetEventEventFD(QObject *parent)
-        : QObject{
-              parent,
-          },
-          m_notifier{
-              QSocketNotifier::Type::Read,
-          }
+    : QObject{
+          parent,
+      },
+      m_fd{
+          eventfd(/*initval=*/0, EFD_NONBLOCK),
+      },
+      m_notifier{
+          QSocketNotifier::Type::Read,
+      }
 {
-    m_fd = eventfd(/*initval=*/0, EFD_NONBLOCK);
-    if (m_fd == -1) {
+    if (!isValid()) {
         qCritical() << "eventfd failed:" << qt_error_string(errno);
         return;
     }
@@ -31,18 +33,12 @@ QAutoResetEventEventFD::QAutoResetEventEventFD(QObject *parent)
     connect(&m_notifier, &QSocketNotifier::activated, this, [this] {
         uint64_t payload;
 
-        std::ignore = qt_safe_read(m_fd, &payload, sizeof(payload));
+        std::ignore = qt_safe_read(m_fd.get(), &payload, sizeof(payload));
 
         Q_EMIT activated();
     });
-    m_notifier.setSocket(m_fd);
+    m_notifier.setSocket(m_fd.get());
     m_notifier.setEnabled(true);
-}
-
-QAutoResetEventEventFD::~QAutoResetEventEventFD()
-{
-    if (m_fd != -1)
-        qt_safe_close(m_fd);
 }
 
 void QAutoResetEventEventFD::set()
@@ -52,7 +48,7 @@ void QAutoResetEventEventFD::set()
     constexpr uint64_t increment{ 1 };
 
     ScopedRTSanDisabler disabler; // opened via EFD_NONBLOCK
-    qint64 bytesWritten = qt_safe_write(m_fd, &increment, sizeof(increment));
+    qint64 bytesWritten = qt_safe_write(m_fd.get(), &increment, sizeof(increment));
     if (bytesWritten == -1)
         qCritical("QAutoResetEvent::set failed");
 }

@@ -15,41 +15,30 @@ QAutoResetEventWin32::QAutoResetEventWin32(QObject *parent)
           parent,
       },
       m_handle{
-          nullptr,
+          ::CreateEventW(/*lpEventAttributes=*/0,
+                         /*bManualReset=*/false,
+                         /*bInitialState=*/false,
+                         /*lpName=*/nullptr),
+      },
+      m_notifier{
       }
 {
-    m_handle = ::CreateEventW(/*lpEventAttributes=*/0,
-                              /*bManualReset=*/false,
-                              /*bInitialState=*/false,
-                              /*lpName=*/nullptr);
-
-    if (!m_handle) {
+    if (!isValid()) {
         qCritical() << "CreateEventW failed:" << qt_error_string(GetLastError());
         return;
     }
 
     connect(&m_notifier, &QWinEventNotifier::activated, this, &QAutoResetEventWin32::activated);
 
-    m_notifier.setHandle(m_handle);
+    m_notifier.setHandle(m_handle.get());
     m_notifier.setEnabled(true);
-}
-
-QAutoResetEventWin32::~QAutoResetEventWin32()
-{
-    if (m_handle)
-        ::CloseHandle(m_handle);
-}
-
-bool QAutoResetEventWin32::isValid() const
-{
-    return m_handle;
 }
 
 void QAutoResetEventWin32::set()
 {
     Q_ASSERT(isValid());
 
-    bool status = ::SetEvent(m_handle);
+    bool status = ::SetEvent(m_handle.get());
     if (!status)
         qCritical("QAutoResetEvent::set failed");
 }

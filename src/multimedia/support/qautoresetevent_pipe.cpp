@@ -14,12 +14,12 @@ QT_BEGIN_NAMESPACE
 namespace QtPrivate {
 
 QAutoResetEventPipe::QAutoResetEventPipe(QObject *parent)
-        : QObject{
-              parent,
-          },
-          m_notifier{
-              QSocketNotifier::Type::Read,
-          }
+    : QObject{
+          parent,
+      },
+      m_notifier{
+          QSocketNotifier::Type::Read,
+      }
 {
     int pipedes[2];
     int status = pipe(pipedes);
@@ -28,31 +28,23 @@ QAutoResetEventPipe::QAutoResetEventPipe(QObject *parent)
         return;
     }
 
-    m_fdConsumer = pipedes[0];
-    m_fdProducer = pipedes[1];
+    m_fdConsumer.reset(pipedes[0]);
+    m_fdProducer.reset(pipedes[1]);
 
     connect(&m_notifier, &QSocketNotifier::activated, this, [this] {
         QT_WARNING_PUSH
         QT_WARNING_DISABLE_GCC("-Wmaybe-uninitialized")
         std::array<char, 1024> buffer;
 
-        qint64 bytesRead = qt_safe_read(m_fdConsumer, buffer.data(), buffer.size());
+        qint64 bytesRead = qt_safe_read(m_fdConsumer.get(), buffer.data(), buffer.size());
         Q_ASSERT(bytesRead > 0);
 
         m_consumePending.clear();
         Q_EMIT activated();
         QT_WARNING_POP
     });
-    m_notifier.setSocket(m_fdConsumer);
+    m_notifier.setSocket(m_fdConsumer.get());
     m_notifier.setEnabled(true);
-}
-
-QAutoResetEventPipe::~QAutoResetEventPipe()
-{
-    if (m_fdConsumer != -1) {
-        qt_safe_close(m_fdConsumer);
-        qt_safe_close(m_fdProducer);
-    }
 }
 
 void QAutoResetEventPipe::set()
@@ -65,7 +57,7 @@ void QAutoResetEventPipe::set()
 
     constexpr uint8_t dummy{ 1 };
 
-    qint64 bytesWritten = qt_safe_write(m_fdProducer, &dummy, sizeof(dummy));
+    qint64 bytesWritten = qt_safe_write(m_fdProducer.get(), &dummy, sizeof(dummy));
     if (bytesWritten == -1)
         qCritical("QAutoResetEvent::set failed");
 }
