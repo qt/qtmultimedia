@@ -504,8 +504,7 @@ bool QSoundEffectPrivateWithPlayer::playing() const
 
 void QSoundEffectPrivateWithPlayer::play(std::shared_ptr<QSoundEffectVoice> voice)
 {
-    QObject::connect(&voice->m_currentLoopChanged, &QAutoResetEvent::activated, this,
-                     [this, voiceId = voice->voiceId()] {
+    voice->m_currentLoopChanged.callOnActivated(this, [this, voiceId = voice->voiceId()] {
         auto foundVoice = m_voices.find(voiceId);
         if (foundVoice == m_voices.end())
             return;
