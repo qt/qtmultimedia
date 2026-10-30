@@ -324,22 +324,33 @@ QCoreAudioSourceStream::processInput(AudioUnitRenderActionFlags *ioActionFlags,
         {
             QCoreAudioSourceStream *self;
             UInt32 inNumberFrames;
+            bool consumed;
         };
 
         InputProcState state{
             /*self:*/ this,
             /*inNumberFrames:*/ inNumberFrames,
+            /*consumed:*/ false,
         };
+
+        // Ends the conversion once the rendered buffer has been handed out. The converter keeps
+        // what it has not converted yet for the next call.
+        static constexpr OSStatus noMoreInputStatus = 1;
 
         auto inputProc = [](AudioConverterRef, UInt32 *ioNumberDataPackets, AudioBufferList *ioData,
                             AudioStreamPacketDescription **outDataPacketDescription,
                             void *inUserData) -> OSStatus {
             auto *state = static_cast<InputProcState *>(inUserData);
+            if (outDataPacketDescription)
+                *outDataPacketDescription = nullptr;
+            if (state->consumed) {
+                *ioNumberDataPackets = 0;
+                return noMoreInputStatus;
+            }
+            state->consumed = true;
             *ioNumberDataPackets = state->inNumberFrames;
             ioData->mNumberBuffers = 1;
             ioData->mBuffers[0] = state->self->m_bufferList.mBuffers[0];
-            if (outDataPacketDescription)
-                *outDataPacketDescription = nullptr;
             return noErr;
         };
 
@@ -348,10 +359,12 @@ QCoreAudioSourceStream::processInput(AudioUnitRenderActionFlags *ioActionFlags,
         UInt32 outputFrames = m_format.framesForBytes(m_outputBuffer.size());
         OSStatus convStatus = AudioConverterFillComplexBuffer(
                 m_audioConverter, inputProc, &state, &outputFrames, &m_outputBufferList, nullptr);
-        if (convStatus != noErr) {
+        if (convStatus != noErr && convStatus != noMoreInputStatus) {
             qDebug() << "AudioConverterFillComplexBuffer failed:" << convStatus;
             return convStatus;
         }
+        if (outputFrames == 0)
+            return noErr;
 
         inputSpan = QSpan<const std::byte>{
             reinterpret_cast<const std::byte *>(m_outputBuffer.data()),
