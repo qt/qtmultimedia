@@ -149,9 +149,6 @@ QString tst_QAudioSource::formatToFileName(const QAudioFormat &format)
 
 void tst_QAudioSource::initTestCase()
 {
-    if (isMacOS && isCI())
-        QSKIP("QAudioSource requires microphone permissions");
-
     // Only perform tests if audio input device exists
     const QList<QAudioDevice> devices = QMediaDevices::audioInputs();
 
