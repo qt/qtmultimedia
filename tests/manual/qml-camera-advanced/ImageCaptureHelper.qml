@@ -6,6 +6,15 @@ import QtMultimedia
 
 // Includes helper for turning file format into string.
 ImageCapture {
+    property string lastSavedFile: ""
+
+    onImageSaved: (id, fileName) => {
+        lastSavedFile = fileName
+    }
+
+    onErrorOccurred: (id, error, message) => {
+        console.log("ImageCapture: error " + error + ": " + message)
+    }
 
     onFileFormatChanged: {
         console.log("ImageCapture: New format is " + fileFormatToString(fileFormat))

@@ -18,8 +18,8 @@ ApplicationWindow {
     property int imageCaptureTracker: 0
     property int videoCaptureTracker: 0
     property bool showingSmallPanel: true
-    property bool showingAdvancedPanel: false
     property var lastRecordedVideoPath: null
+    property var lastFrameInfo: undefined
 
     readonly property real backgroundOpacity: 0.7
 
@@ -46,20 +46,20 @@ ApplicationWindow {
         id: myCamera
         active: true
 
-        clearPropertiesUponDeviceChange: advancedPanel.clearCameraPropertiesOnDeviceChange
+        clearPropertiesUponDeviceChange: settingsPanelState.clearPropertiesOnDeviceChange
     }
 
     MediaDevicesHelper {
-        id: mediaDevices
+        id: mediaDevicesHelper
     }
 
     CaptureSession {
-        id: captureSession
+        id: mainCaptureSession
 
         camera: myCamera
 
         imageCapture: ImageCaptureHelper {
-            id: imageCapture
+            id: mainImageCapture
             onImageSaved: (id, fileName) => {
                 console.log("Image file saved to " + fileName)
                 window.imageCaptureTracker++
@@ -67,7 +67,7 @@ ApplicationWindow {
         }
 
         recorder: MediaRecorder {
-            id: recorder
+            id: mainRecorder
             outputLocation:
                 StandardPaths.writableLocation(StandardPaths.MoviesLocation)
                 + "/qml-camera-playground_"
@@ -87,7 +87,7 @@ ApplicationWindow {
                 console.log("Media recorder error: " + msg)
             }
         }
-        videoOutput: cameraOutput
+        videoOutput: settingsButton.previewActive ? settingsButton.previewOutput : cameraOutput
     }
 
     MediaPlayer {
@@ -130,6 +130,15 @@ ApplicationWindow {
         camera: myCamera
     }
 
+    // Lives here since the settings are only created while visible.
+    Connections {
+        target: mainCaptureSession.videoOutput ? mainCaptureSession.videoOutput.videoSink : null
+        function onVideoFrameChanged() {
+            window.lastFrameInfo = VideoFrameInspector.inspectLatest(
+                mainCaptureSession.videoOutput.videoSink)
+        }
+    }
+
     // If permission not granted, display text
     RowLayout {
         anchors.centerIn: parent
@@ -149,7 +158,7 @@ ApplicationWindow {
         opacity: window.backgroundOpacity
 
         // Position and size
-        visible: window.showingSmallPanel && !window.showingAdvancedPanel
+        visible: window.showingSmallPanel
         anchors.bottom: parent.bottom
         width: Math.min(implicitWidth, parent.width)
         height: window.isLandscape
@@ -157,27 +166,20 @@ ApplicationWindow {
             : Math.min(implicitHeight, parent.height, 400)
 
         camera: myCamera
-        captureSession: captureSession
-        recorder: recorder
+        captureSession: mainCaptureSession
+        recorder: mainRecorder
         imagesTakenCount: window.imageCaptureTracker
         backgroundOpacity: window.backgroundOpacity
     }
 
-    AdvancedPanel {
-        id: advancedPanel
-        width: Math.min(window.width, implicitWidth)
-        height: Math.min(window.height, implicitHeight)
-        visible: window.showingAdvancedPanel
-        opacity: window.backgroundOpacity
-
-        camera: myCamera
-        mediaDevices: mediaDevices
-        captureSession: captureSession
-        backgroundOpacity: window.backgroundOpacity
+    QtObject {
+        id: settingsPanelState
+        property bool clearPropertiesOnDeviceChange: false
     }
 
     Pane {
-        visible: !window.showingAdvancedPanel
+        background: null
+
         ColumnLayout {
             Button {
                 Layout.fillWidth: true
@@ -187,11 +189,28 @@ ApplicationWindow {
                 }
             }
 
-            Button {
+            SettingsPanelButton {
+                id: settingsButton
                 Layout.fillWidth: true
-                text: "Advanced"
-                onClicked: () => {
-                    window.showingAdvancedPanel = !window.showingAdvancedPanel
+                title: "Settings"
+                windowWidth: 480
+                windowHeight: 640
+                settings: Component {
+                    SettingsPanel {
+                        camera: myCamera
+                        mediaDevices: mediaDevicesHelper
+                        captureSession: mainCaptureSession
+                        imageCapture: mainImageCapture
+                        recorder: mainRecorder
+                        videoOutput: cameraOutput
+                        lastFrameInfo: window.lastFrameInfo
+                        clearPropertiesOnDeviceChange:
+                            settingsPanelState.clearPropertiesOnDeviceChange
+                        onClearPropertiesOnDeviceChangeChanged: () => {
+                            settingsPanelState.clearPropertiesOnDeviceChange =
+                                clearPropertiesOnDeviceChange
+                        }
+                    }
                 }
             }
         }
@@ -206,7 +225,7 @@ ApplicationWindow {
             anchors.fill: parent
             fillMode: Image.PreserveAspectCrop
             smooth: true
-            source: imageCapture.preview
+            source: mainImageCapture.preview
         }
 
         MouseArea {

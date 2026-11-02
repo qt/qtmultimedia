@@ -11,6 +11,8 @@ RowLayout {
 
     Label { text: "Device" }
     ComboBox {
+        Layout.fillWidth: true
+        Layout.minimumWidth: 0
         implicitContentWidthPolicy: ComboBox.WidestText
         model: Object.values(mediaDevices.allCameraDevicesSoFarDict)
             .map((item) => { return {
