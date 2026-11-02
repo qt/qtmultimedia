@@ -14,9 +14,8 @@ int main(int argc, char *argv[])
     QCoreApplication::setOrganizationName("QtProject");
     QCoreApplication::setApplicationName("qml-camera-advanced");
 
-    // Apply any backend the user picked in a previous session before the media integration is
-    // initialized. Must happen before any QtMultimedia usage.
-    QtMultimediaPrivateQmlHelper::applyPreferredBackendToEnvironment();
+    // Must happen before any QtMultimedia usage and before the first window is created.
+    QtMultimediaPrivateQmlHelper::applyPreferredBackends();
 
     QQmlApplicationEngine engine;
     QObject::connect(

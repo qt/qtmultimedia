@@ -21,6 +21,10 @@ qt_add_executable(qml-camera-advanced WIN32 MACOSX_BUNDLE
     main.cpp
     qtmultimediaprivateqmlhelper.h
     qtmultimediaprivateqmlhelper.cpp
+    videoframeinfo.h
+    videoframeinfo.cpp
+    imagefileinspector.h
+    imagefileinspector.cpp
 )
 
 set_target_properties(qml-camera-advanced PROPERTIES
@@ -36,7 +40,11 @@ qt_add_qml_module(qml-camera-advanced
         QuickControls.qml
         AllCameraControls.qml
         InfoPage.qml
-        AdvancedPanel.qml
+        SettingsPanel.qml
+        SettingsPanelButton.qml
+        ImageCaptureSettings.qml
+        RecorderSettings.qml
+        VideoOutputSettings.qml
         CameraDeviceSelector.qml
         CameraHelper.qml
         ImageCaptureHelper.qml
