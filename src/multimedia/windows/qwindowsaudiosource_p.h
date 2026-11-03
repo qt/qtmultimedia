@@ -90,7 +90,7 @@ private:
     std::atomic<ShutdownPolicy> m_shutdownPolicy{ ShutdownPolicy::DiscardRingbuffer };
     QAutoResetEvent m_ringbufferDrained;
 
-    const QUniqueWin32NullHandle m_wasapiHandle;
+    const QUniqueWin32NullHandle m_audioClientEventHandle;
     std::unique_ptr<QThread> m_workerThread;
 
     std::optional<AudioCallback> m_audioCallback;
