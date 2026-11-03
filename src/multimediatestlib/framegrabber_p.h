@@ -39,6 +39,7 @@ struct VideoFrameInfo
     QVideoFrameFormat::PixelFormat pixelFormat = QVideoFrameFormat::Format_Invalid;
     std::optional<std::chrono::microseconds> startTime;
     std::optional<std::chrono::microseconds> endTime;
+    qreal streamFrameRate = 0;
 };
 
 [[nodiscard]] QString frameTimeToString(std::optional<std::chrono::microseconds> time);

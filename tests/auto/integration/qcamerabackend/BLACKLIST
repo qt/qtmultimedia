@@ -34,6 +34,21 @@ android android-mediabackend
 [videoFormats_containsNoDuplicates_withEachCameraDevice]
 ios ffmpeg-mediabackend
 
+# FFmpeg: Frames are stamped with the previous frame's timestamp, so the first two
+# frames share a start time
+# Darwin backend: Frames have no presentation time
+[capturedFrames_havePresentationTimesInIncreasingOrder]
+macos ffmpeg-mediabackend
+ios ffmpeg-mediabackend
+android ffmpeg-mediabackend
+macos darwin-mediabackend
+
+# Darwin backend: Frames have no presentation time
+# Android: Frame times are not relative to the first frame
+[firstFrame_hasZeroStartTime_whenCameraIsStartedOrRestarted_withEachCameraDevice]
+macos darwin-mediabackend
+android ffmpeg-mediabackend
+
 # Stopping the camera does not end the stream with a null-frame
 # Android: QCamera::setActive(true) does not activate synchronously
 [stream_endsWithNullFrame_whenStopped_withEachCameraDevice]
@@ -69,6 +84,10 @@ macos ffmpeg-mediabackend
 ios ffmpeg-mediabackend
 android ffmpeg-mediabackend
 macos darwin-mediabackend
+
+# Android: Holding on to frames stalls the stream
+[storingFrames_doesNotStallStream]
+android ffmpeg-mediabackend
 
 # Darwin reports the camera as active for a camera device that does not exist
 [setActive_fails_whenCameraDeviceDoesNotExist]
