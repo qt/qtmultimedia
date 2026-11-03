@@ -103,7 +103,13 @@ private slots:
 
     void multipleCameraSet();
 
+    void videoFormats_isNotEmpty_withEachCameraDevice_data();
+    void videoFormats_isNotEmpty_withEachCameraDevice();
+    void videoFormats_containsNoDuplicates_withEachCameraDevice_data();
+    void videoFormats_containsNoDuplicates_withEachCameraDevice();
+
 private:
+    static void addRowPerCameraDevice();
     // Returns up to \a count distinct photo resolutions supported by the default camera
     static QList<QSize> photoResolutionsToTest(int count);
     // Saved images can be rotated according to device orientation
@@ -1335,6 +1341,65 @@ void tst_QCameraBackend::multipleCameraSet()
 
         QTest::qWait(100);
     }
+}
+
+void tst_QCameraBackend::addRowPerCameraDevice()
+{
+    QTest::addColumn<QCameraDevice>("device");
+
+    const QList<QCameraDevice> devices = QMediaDevices::videoInputs();
+    for (qsizetype i = 0; i < devices.size(); ++i)
+        QTest::addRow("%lld: %s", qlonglong(i), qPrintable(devices[i].description())) << devices[i];
+}
+
+void tst_QCameraBackend::videoFormats_isNotEmpty_withEachCameraDevice_data()
+{
+    if (noCamera)
+        QSKIP("No camera available");
+
+    addRowPerCameraDevice();
+}
+
+// Every camera must offer at least one video format. Other tests rely on this.
+void tst_QCameraBackend::videoFormats_isNotEmpty_withEachCameraDevice()
+{
+    QFETCH(const QCameraDevice, device);
+
+    QVERIFY(!device.videoFormats().isEmpty());
+}
+
+void tst_QCameraBackend::videoFormats_containsNoDuplicates_withEachCameraDevice_data()
+{
+    if (noCamera)
+        QSKIP("No camera available");
+
+    addRowPerCameraDevice();
+}
+
+void tst_QCameraBackend::videoFormats_containsNoDuplicates_withEachCameraDevice()
+{
+    QFETCH(const QCameraDevice, device);
+
+    const QList<QCameraFormat> formats = device.videoFormats();
+    QStringList duplicates;
+    for (qsizetype i = 0; i < formats.size(); ++i) {
+        for (qsizetype j = i + 1; j < formats.size(); ++j) {
+            if (formats[i] != formats[j])
+                continue;
+            const QCameraFormat &format = formats[i];
+            duplicates.append(u"#%1 and #%2: %3x%4, %5, %6-%7 fps"_s
+                .arg(i)
+                .arg(j)
+                .arg(format.resolution().width())
+                .arg(format.resolution().height())
+                .arg(QVideoFrameFormat::pixelFormatToString(format.pixelFormat()))
+                .arg(format.minFrameRate())
+                .arg(format.maxFrameRate()));
+        }
+    }
+
+    QVERIFY2(duplicates.isEmpty(),
+        qPrintable(u"Duplicate video formats:\n"_s + duplicates.join(u'\n')));
 }
 
 #ifdef QT_MM_HAVE_FAKE_XDG_PORTAL
