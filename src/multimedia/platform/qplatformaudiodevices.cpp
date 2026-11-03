@@ -10,6 +10,8 @@
 #include <QtCore/qdebug.h>
 #include <QtCore/qvarlengtharray.h>
 
+#include <optional>
+
 #if defined(Q_OS_ANDROID)
 #  include <QtMultimedia/private/qandroidaudiodevices_p.h>
 #endif
@@ -46,6 +48,78 @@ QT_BEGIN_NAMESPACE
 
 using namespace Qt::Literals;
 
+#if (defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID) && !defined(Q_OS_HARMONY))
+
+namespace {
+
+enum class AudioBackend : uint8_t {
+    PipeWire,
+    PulseAudio,
+    ALSA,
+    Unavailable,
+};
+
+std::optional<AudioBackend> requestedAudioBackend()
+{
+    const QByteArray requested = qgetenv("QT_AUDIO_BACKEND").toLower();
+    if (requested.isEmpty())
+        return std::nullopt;
+#  if QT_CONFIG(pipewire)
+    if (requested == "pipewire"_ba) {
+        if (QtPipeWire::QAudioDevices::isSupported())
+            return AudioBackend::PipeWire;
+        qWarning() << "Audio backend pipewire requested, but not supported on this system."
+                   << "Using default backend";
+        return std::nullopt;
+    }
+#  endif
+#  if QT_CONFIG(pulseaudio)
+    if (requested == "pulseaudio"_ba)
+        return AudioBackend::PulseAudio;
+#  endif
+#  if QT_CONFIG(alsa)
+    if (requested == "alsa"_ba)
+        return AudioBackend::ALSA;
+#  endif
+    qWarning() << "Audio backend" << requested << "requested, but not available."
+               << "Using default backend";
+    return std::nullopt;
+}
+
+// Some distros still ship PipeWire and the vanilla PulseAudio server (not PipeWire's PulseAudio
+// server) side by side. In that case, PipeWire might not report any audio devices.
+[[maybe_unused]] bool isVanillaPulseAudioServerRunning()
+{
+#  if QT_CONFIG(pulseaudio)
+    using namespace QPulseAudioInternal;
+    return pulseaudioDetectServerType() == PulseaudioServerType::Pulseaudio;
+#  else
+    return false;
+#  endif
+}
+
+AudioBackend selectedAudioBackend()
+{
+    if (const std::optional<AudioBackend> requested = requestedAudioBackend())
+        return *requested;
+
+#  if QT_CONFIG(pipewire)
+    if (QtPipeWire::QAudioDevices::isSupported() && !isVanillaPulseAudioServerRunning())
+        return AudioBackend::PipeWire;
+#  endif
+#  if QT_CONFIG(pulseaudio)
+    return AudioBackend::PulseAudio;
+#  endif
+#  if QT_CONFIG(alsa)
+    return AudioBackend::ALSA;
+#  endif
+    return AudioBackend::Unavailable;
+}
+
+} // namespace
+
+#endif
+
 std::unique_ptr<QPlatformAudioDevices> QPlatformAudioDevices::create()
 {
 #ifdef Q_OS_DARWIN
@@ -60,43 +134,23 @@ std::unique_ptr<QPlatformAudioDevices> QPlatformAudioDevices::create()
 #if QT_CONFIG(ohaudio)
     return std::make_unique<QOhosAudioDevices>();
 #endif
-#if QT_CONFIG(pipewire)
-    QByteArray requestedBackend = qgetenv("QT_AUDIO_BACKEND");
-    const bool pipewireRequested = requestedBackend == "pipewire"_ba;
-
-#  if QT_CONFIG(pulseaudio)
-    using namespace QPulseAudioInternal;
-    // Check if PulseAudio is actually the vanilla PulseAudio server, not PipeWire's PulseAudio server.
-    // Some funny still distros ship PipeWire and PulseAudio side by side. In that case, we should not
-    // use the PipeWire backend, as it might not report any audio devices.
-    auto skipPipewire = [&] {
-        if (pipewireRequested)
-            return false;
-        return requestedBackend.isNull()
-                && pulseaudioDetectServerType() == PulseaudioServerType::Pulseaudio;
-    };
-#  else
-    auto skipPipewire = [] {
-        return false;
-    };
+#if (defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID) && !defined(Q_OS_HARMONY))
+    switch (selectedAudioBackend()) {
+#  if QT_CONFIG(pipewire)
+    case AudioBackend::PipeWire:
+        return std::make_unique<QtPipeWire::QAudioDevices>();
 #  endif
-
-    const bool considerPipewire = requestedBackend.isNull() || pipewireRequested;
-
-    if (considerPipewire && QtPipeWire::QAudioDevices::isSupported()) {
-        if (!skipPipewire())
-            return std::make_unique<QtPipeWire::QAudioDevices>();
+#  if QT_CONFIG(pulseaudio)
+    case AudioBackend::PulseAudio:
+        return std::make_unique<QPulseAudioDevices>();
+#  endif
+#  if QT_CONFIG(alsa)
+    case AudioBackend::ALSA:
+        return std::make_unique<QAlsaAudioDevices>();
+#  endif
+    default:
+        break;
     }
-
-    if (pipewireRequested)
-        qDebug() << "PipeWire audio backend requested. not available. Using default backend";
-
-#endif
-#if QT_CONFIG(pulseaudio)
-    return std::make_unique<QPulseAudioDevices>();
-#endif
-#if QT_CONFIG(alsa)
-    return std::make_unique<QAlsaAudioDevices>();
 #endif
 #if defined(Q_OS_QNX) && defined(QT_MM_QNX_IO_SND)
     return std::make_unique<QQnxSndAudioDevices>();
@@ -107,6 +161,7 @@ std::unique_ptr<QPlatformAudioDevices> QPlatformAudioDevices::create()
 #if defined(Q_OS_WASM)
     return std::make_unique<QWasmAudioDevices>();
 #endif
+    qWarning() << "No audio backend available";
     return std::make_unique<QPlatformAudioDevices>();
 }
 
