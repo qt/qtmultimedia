@@ -39,3 +39,37 @@ android android-mediabackend
 # Formats differing only in color range compare equal, so they are listed twice
 [videoFormats_containsNoDuplicates_withEachCameraDevice]
 ios ffmpeg-mediabackend
+
+# Stopping the camera does not end the stream with a null-frame
+# Android: QCamera::setActive(true) does not activate synchronously
+[stream_endsWithNullFrame_whenStopped_withEachCameraDevice]
+macos ffmpeg-mediabackend
+ios ffmpeg-mediabackend
+android ffmpeg-mediabackend
+macos darwin-mediabackend
+ios darwin-mediabackend
+
+# Destroying the camera does not end the stream with a null-frame
+[stream_endsWithNullFrame_whenCameraIsDestroyed_withEachCameraDevice]
+macos ffmpeg-mediabackend
+ios ffmpeg-mediabackend
+android ffmpeg-mediabackend
+macos darwin-mediabackend
+ios darwin-mediabackend
+
+# QCamera::setActive(true) does not activate synchronously
+[setActive_startsCameraAndDeliversFrames_withEachCameraDevice]
+android ffmpeg-mediabackend
+[setActive_restartsStream_whenStartedAgainAfterStop_withEachCameraDevice]
+android ffmpeg-mediabackend
+
+# Darwin reports the camera as active for a camera device that does not exist
+[setActive_fails_whenCameraDeviceDoesNotExist]
+macos ffmpeg-mediabackend
+ios ffmpeg-mediabackend
+macos darwin-mediabackend
+ios darwin-mediabackend
+
+# QCamera::setActive(true) does not activate synchronously
+[setCameraDevice_switchesStream_withoutDeactivatingOrErrors]
+android ffmpeg-mediabackend
