@@ -29,6 +29,7 @@ private slots:
     void initTestCase();
     void checkAvailableDefaultInput();
     void checkAvailableDefaultOutput();
+    void checkDeviceModes();
     void channels();
     void sampleFormat();
     void sampleRates();
@@ -77,6 +78,14 @@ void tst_QAudioDeviceBackend::checkAvailableDefaultOutput()
         QVERIFY(!defaultOutput.isNull());
         QCOMPARE(std::count(devices.begin(), devices.end(), defaultOutput), 1);
     }
+}
+
+void tst_QAudioDeviceBackend::checkDeviceModes()
+{
+    for (const QAudioDevice &input : QMediaDevices::audioInputs())
+        QCOMPARE(input.mode(), QAudioDevice::Input);
+    for (const QAudioDevice &output : QMediaDevices::audioOutputs())
+        QCOMPARE(output.mode(), QAudioDevice::Output);
 }
 
 void tst_QAudioDeviceBackend::channels()

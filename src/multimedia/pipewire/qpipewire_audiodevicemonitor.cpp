@@ -408,9 +408,11 @@ void QAudioDeviceMonitor::updateSourcesOrSinks(std::list<PendingNodeRecord> adde
         std::optional<std::string_view> nodeName = getNodeName(sinkOrSource.properties);
         bool isDefault = (defaultSinkOrSourceNodeName == nodeName);
 
+        constexpr QAudioDevice::Mode deviceMode =
+                Mode == Direction::sink ? QAudioDevice::Mode::Output : QAudioDevice::Mode::Input;
+
         auto devicePrivate = std::make_unique<QPipewireAudioDevicePrivate>(
-                sinkOrSource.properties, sinkOrSource.format, QAudioDevice::Mode::Output,
-                isDefault);
+                sinkOrSource.properties, sinkOrSource.format, deviceMode, isDefault);
 
         QAudioDevice device = QAudioDevicePrivate::createQAudioDevice(std::move(devicePrivate));
 
