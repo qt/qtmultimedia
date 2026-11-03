@@ -88,7 +88,7 @@ enum class PulseaudioServerType {
     Pipewire,
 };
 
-PulseaudioServerType pulseaudioDetectServerType();
+Q_MULTIMEDIA_EXPORT PulseaudioServerType pulseaudioDetectServerType();
 
 } // namespace QPulseAudioInternal
 
