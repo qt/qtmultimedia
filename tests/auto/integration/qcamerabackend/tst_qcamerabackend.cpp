@@ -179,6 +179,12 @@ private slots:
 
     void capturedFrames_matchCameraFormat_withEachCameraFormat_data();
     void capturedFrames_matchCameraFormat_withEachCameraFormat();
+    void capturedFrames_havePresentationTimesInIncreasingOrder_data();
+    void capturedFrames_havePresentationTimesInIncreasingOrder();
+    void firstFrame_hasZeroStartTime_whenCameraIsStartedOrRestarted_withEachCameraDevice_data();
+    void firstFrame_hasZeroStartTime_whenCameraIsStartedOrRestarted_withEachCameraDevice();
+    void storingFrames_doesNotStallStream_data();
+    void storingFrames_doesNotStallStream();
     void stream_endsWithNullFrame_whenStopped_withEachCameraDevice_data();
     void stream_endsWithNullFrame_whenStopped_withEachCameraDevice();
     void stream_endsWithNullFrame_whenCameraIsDestroyed_withEachCameraDevice_data();
@@ -1580,6 +1586,125 @@ void tst_QCameraBackend::capturedFrames_matchCameraFormat_withEachCameraFormat()
         QCOMPARE(frame.pixelFormat, format.pixelFormat());
     }
     QVERIFY2(setup.errors.isEmpty(), qPrintable(setup.errors.join(u'\n')));
+}
+
+void tst_QCameraBackend::capturedFrames_havePresentationTimesInIncreasingOrder_data()
+{
+    if (noCamera)
+        QSKIP("No camera available");
+
+    addRowPerCameraDevice();
+}
+
+void tst_QCameraBackend::capturedFrames_havePresentationTimesInIncreasingOrder()
+{
+    QFETCH(const QCameraDevice, device);
+
+    CameraStreamSetup setup(device);
+    setup.camera.setActive(true);
+    QVERIFY(setup.camera.isActive());
+
+    std::vector<VideoFrameInfo> frames = setup.grabber.waitAndTakeFrameInfos(10);
+    QVERIFY2(frames.size() >= 2,
+        "Did not receive enough QVideoFrames to compare presentation times");
+
+    for (size_t i = 0; i < frames.size(); ++i) {
+        const VideoFrameInfo &frame = frames[i];
+
+        QVERIFY2(frame.startTime, qPrintable(u"Frame #%1 has no start time"_s.arg(i)));
+
+        bool endsAfterStart = frame.endTime && *frame.endTime > *frame.startTime;
+        QVERIFY2(!frame.endTime || endsAfterStart,
+            qPrintable(u"Frame #%1 end time (%2) is neither unset nor after its start time (%3)"_s
+                .arg(i)
+                .arg(frameTimeToString(frame.endTime))
+                .arg(frameTimeToString(frame.startTime))));
+
+        if (frame.streamFrameRate > 0) {
+            QVERIFY2(endsAfterStart,
+                qPrintable(u"Frame #%1 end time (%2) is not after its start time (%3), "
+                    u"although its frame rate (%4) is reported"_s
+                    .arg(i)
+                    .arg(frameTimeToString(frame.endTime))
+                    .arg(frameTimeToString(frame.startTime))
+                    .arg(frame.streamFrameRate)));
+        }
+
+        if (i == 0)
+            continue;
+
+        std::chrono::microseconds prevStart = *frames[i - 1].startTime;
+        QVERIFY2(*frame.startTime > prevStart,
+            qPrintable(u"Frame #%1 start time (%2) is not after frame #%3 start time (%4)"_s
+                .arg(i)
+                .arg(frameTimeToString(frame.startTime))
+                .arg(i - 1)
+                .arg(frameTimeToString(prevStart))));
+    }
+}
+
+void tst_QCameraBackend::firstFrame_hasZeroStartTime_whenCameraIsStartedOrRestarted_withEachCameraDevice_data()
+{
+    if (noCamera)
+        QSKIP("No camera available");
+
+    addRowPerCameraDevice();
+}
+
+void tst_QCameraBackend::firstFrame_hasZeroStartTime_whenCameraIsStartedOrRestarted_withEachCameraDevice()
+{
+    QFETCH(const QCameraDevice, device);
+
+    constexpr int restartCount = 2;
+
+    CameraStreamSetup setup(device);
+
+    for (int i = 0; i <= restartCount; ++i) {
+        if (i > 0) {
+            setup.camera.setActive(false);
+            // Frames the backend already produced may still be queued towards the sink.
+            // Deliver them before restarting, so they are not mistaken for the first
+            // frame of the new stream.
+            QCoreApplication::processEvents();
+        }
+
+        setup.camera.setActive(true);
+        QVERIFY(setup.camera.isActive());
+
+        std::optional<VideoFrameInfo> frame = setup.grabber.tryWaitForFirstFrameInfo();
+        QVERIFY2(frame, qPrintable(u"Camera delivered no frames after start #%1"_s.arg(i)));
+        QVERIFY(frame->startTime);
+        QCOMPARE(*frame->startTime, 0us);
+    }
+}
+
+void tst_QCameraBackend::storingFrames_doesNotStallStream_data()
+{
+    if (noCamera)
+        QSKIP("No camera available");
+
+    addRowPerCameraDevice();
+}
+
+// For some platforms, the hardware frames we receive are tied to internal frame pools.
+// If our QVideoFrames point into these pools, holding on to them can stall the stream.
+void tst_QCameraBackend::storingFrames_doesNotStallStream()
+{
+    QFETCH(const QCameraDevice, device);
+
+    // We assume this is larger than the internal frame pool of any backend
+    constexpr size_t capturedFrameCount = 30;
+
+    CameraStreamSetup setup(device);
+    setup.camera.setActive(true);
+    QVERIFY(setup.camera.isActive());
+    QVERIFY2(setup.grabber.tryWaitForFirstFrameInfo(), "Camera delivered no frames");
+
+    std::vector<QVideoFrame> frames = setup.grabber.waitAndTakeVideoFrames(capturedFrameCount);
+
+    QCOMPARE_GE(frames.size(), capturedFrameCount);
+    for (const QVideoFrame &frame : frames)
+        QVERIFY(frame.isValid());
 }
 
 void tst_QCameraBackend::stream_endsWithNullFrame_whenStopped_withEachCameraDevice_data()

@@ -78,6 +78,7 @@ static VideoFrameInfo makeVideoFrameInfo(const QVideoFrame &frame)
         frame.pixelFormat(),
         toFrameTime(frame.startTime()),
         toFrameTime(frame.endTime()),
+        frame.streamFrameRate(),
     };
 }
 
