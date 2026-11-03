@@ -35,6 +35,8 @@ class QAndroidAudioSinkStream final : public std::enable_shared_from_this<QAndro
     using NativePeriodFrames = QtMultimediaPrivate::NativePeriodFrames;
 
 public:
+    using SinkType = QAndroidAudioSink;
+
     explicit QAndroidAudioSinkStream(QAudioDevice, const QAudioFormat &,
                                      std::optional<qsizetype> ringbufferSize,
                                      QAndroidAudioSink *parent, float volume,
