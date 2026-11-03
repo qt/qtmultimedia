@@ -44,8 +44,8 @@ GStreamer is not bundled with Qt, but it is typically deployed with the Linux di
   24.04, Debian 11 and 12, as well as Fedora 39 and 40.
 \li Switching camera devices or cameras during recording is not supported
 \li Seeking, playback rates, loop, switching sinks have known bugs.
-\li Audio features requires PulseAudio. See \l{Qt Multimedia on Linux}{Linux platform notes}
-  for details.
+\li Audio features require PulseAudio or PipeWire. See \l{Qt Multimedia on Linux}{Linux platform notes}
+and \l{Selecting audio source and sink elements} for details.
 \li Some embedded boards needs individual configurations to solve pipeline
 negotiation/linking issues and improve performance. We recommend developers to
 experiment with the environment variables listed under \l{Customization points}
@@ -183,6 +183,54 @@ with GLMemory-backed video frames:
 \code
     QT_GSTREAMER_OVERRIDE_VIDEO_CONVERSION_ELEMENT=glupload ! glcolorconvert
 \endcode
+
+\section3 Selecting audio source and sink elements
+
+The GStreamer backend uses the audio source and sink elements that match the
+audio backend Qt Multimedia uses at runtime:
+
+\table
+\header
+    \li Audio backend
+    \li Source and sink elements
+\row
+    \li PulseAudio
+    \li pulsesrc, pulsesink
+\row
+    \li PipeWire
+    \li pulsesrc, pulsesink, through PipeWire's PulseAudio server
+        (pipewire-pulse)
+\row
+    \li ALSA
+    \li alsasrc, alsasink
+\row
+    \li None of the above
+    \li autoaudiosrc, autoaudiosink
+\endtable
+
+If the selected elements are not installed, or, with PipeWire, no PulseAudio
+server is reachable, Qt Multimedia uses fakesink for audio output. Audio inputs
+are not available.
+
+To force other elements, set the following environment variable to \c pipewire,
+\c pulseaudio or \c alsa. For example, to use pipewiresrc and pipewiresink:
+
+\code
+    QT_GSTREAMER_AUDIO_ELEMENTS=pipewire
+\endcode
+
+Forcing other elements has these limitations:
+
+\list
+\li Setting \l QAudioOutput::device with pipewiresink during playback can hang
+  the pipeline, see
+  \l{https://gitlab.freedesktop.org/pipewire/pipewire/-/issues/5171}{PipeWire issue 5171}.
+\li With \c pulseaudio and the PipeWire audio backend, if no PulseAudio server
+  is reachable, the PulseAudio client library may autospawn a standalone
+  PulseAudio server, which competes with PipeWire for the audio devices. Playback
+  and recording can then hang. To avoid this, make sure the systemd service
+  \c pipewire-pulse.socket is active.
+\endlist
 
 
 \section2 Raw pipeline access

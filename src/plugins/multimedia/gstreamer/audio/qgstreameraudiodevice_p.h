@@ -41,6 +41,20 @@ bool isCustomAudioDevice(const QAudioDevice &device);
 QAudioDevice qMakeCustomGStreamerAudioInput(const QByteArray &gstreamerPipeline);
 QAudioDevice qMakeCustomGStreamerAudioOutput(const QByteArray &gstreamerPipeline);
 
+class QGstElement;
+
+// The GStreamer audio elements for the audio backend that QPlatformAudioDevices selected at
+// runtime, or requested with QT_GSTREAMER_AUDIO_ELEMENTS.
+struct QGstAudioElements
+{
+    const char *source;
+    const char *sink;
+};
+
+const QGstAudioElements &qGstAudioElements();
+
+void qGstSetAudioDevice(QGstElement &element, const QAudioDevice &device);
+
 QT_END_NAMESPACE
 
 #endif

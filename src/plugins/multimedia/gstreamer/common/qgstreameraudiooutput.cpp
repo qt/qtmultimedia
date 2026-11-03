@@ -8,8 +8,8 @@
 #include <QtMultimedia/qaudiodevice.h>
 #include <QtMultimedia/qaudiooutput.h>
 
-#include <common/qgstpipeline_p.h>
 #include <audio/qgstreameraudiodevice_p.h>
+#include <common/qgstpipeline_p.h>
 
 #if QT_CONFIG(pulseaudio)
 #  include <pulse/version.h>
@@ -21,29 +21,14 @@ namespace {
 
 Q_STATIC_LOGGING_CATEGORY(qLcMediaAudioOutput, "qt.multimedia.audiooutput")
 
-constexpr QLatin1String defaultSinkName = [] {
-    using namespace Qt::Literals;
-
-    if constexpr (QT_CONFIG(pulseaudio))
-        return "pulsesink"_L1;
-    else if constexpr (QT_CONFIG(alsa))
-        return "alsasink"_L1;
-    else
-        return "autoaudiosink"_L1;
-}();
-
 [[maybe_unused]] bool sinkHasDeviceProperty(const QGstElement &element)
 {
     using namespace Qt::Literals;
     QLatin1String elementType = element.typeName();
 
-    if constexpr (QT_CONFIG(pulseaudio))
-        return elementType == "GstPulseSink"_L1;
-    if constexpr (0 && QT_CONFIG(alsa)) // alsasrc has a "device" property, but it cannot be changed
-                                        // during playback
-        return elementType == "GstAlsaSink"_L1;
-
-    return false;
+    // GstAlsaSink has a "device" property and GstPipeWireSink has "target-object", but they cannot
+    // be changed during playback
+    return elementType == "GstPulseSink"_L1;
 }
 
 void pulseVersionSanityCheck()
@@ -95,9 +80,13 @@ QGstreamerAudioOutput::QGstreamerAudioOutput(QAudioOutput *parent)
           QGstElement::createFromFactory("volume", "volume"),
       },
       m_audioSink{
-          QGstElement::createFromFactory(defaultSinkName.constData(), "audiosink"),
+          QGstElement::createFromFactory(qGstAudioElements().sink, "audiosink"),
       }
 {
+    using namespace Qt::Literals;
+    if (m_audioSink.typeName() == "GstFakeSink"_L1)
+        m_audioSink.set("sync", true); // Play in real time, as there is no audio clock
+
     m_audioOutputBin.add(m_audioQueue, m_audioConvert, m_audioResample, m_audioVolume, m_audioSink);
     qLinkGstElements(m_audioQueue, m_audioConvert, m_audioResample, m_audioVolume, m_audioSink);
 
@@ -124,22 +113,18 @@ QGstElement QGstreamerAudioOutput::createGstElement()
         qCWarning(qLcMediaAudioOutput) << "Cannot create audio sink element:" << customDevice->id;
     }
 
-    const QByteArray &id = m_audioDevice.id();
-    if constexpr (QT_CONFIG(pulseaudio) || QT_CONFIG(alsa)) {
-        QGstElement newSink =
-                QGstElement::createFromFactory(defaultSinkName.constData(), "audiosink");
-        if (newSink) {
-            newSink.set("device", id.constData());
-            if (!m_sinkIsAsync)
-                newSink.set("async", false);
-            return newSink;
-        }
-
-        qWarning() << "Cannot create" << defaultSinkName;
+    QGstElement newSink = QGstElement::createFromFactory(qGstAudioElements().sink, "audiosink");
+    if (newSink) {
+        using namespace Qt::Literals;
+        qGstSetAudioDevice(newSink, m_audioDevice);
+        if (newSink.typeName() == "GstFakeSink"_L1)
+            newSink.set("sync", true); // Play in real time, as there is no audio clock
+        if (!m_sinkIsAsync)
+            newSink.set("async", false);
+        return newSink;
     }
-    qCWarning(qLcMediaAudioOutput) << "Invalid audio device:" << m_audioDevice.id();
-    qCWarning(qLcMediaAudioOutput)
-            << "Failed to create a gst element for the audio device, using a default audio sink";
+
+    qWarning() << "Cannot create" << qGstAudioElements().sink << "element. Using autoaudiosink";
     return QGstElement::createFromFactory("autoaudiosink", "audiosink");
 }
 
@@ -179,7 +164,7 @@ void QGstreamerAudioOutput::setAudioDevice(const QAudioDevice &device)
     constexpr bool forceNewSinkCreation = true;
     if constexpr (!forceNewSinkCreation) {
         if (sinkHasDeviceProperty(m_audioSink) && !isCustomAudioDevice(m_audioDevice)) {
-            m_audioSink.set("device", m_audioDevice.id().constData());
+            qGstSetAudioDevice(m_audioSink, m_audioDevice);
             return;
         }
     }
