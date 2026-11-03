@@ -1,20 +1,11 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR GPL-3.0-only
 
-#include <QtCore/qlocale.h>
-#include <QtCore/qobject.h>
-#if QT_CONFIG(process)
-#include <QtCore/qprocess.h>
-#endif
-#include <QtCore/qscopeguard.h>
-#include <QtCore/qurl.h>
-
-#ifdef Q_OS_DARWIN
-#include <QtCore/private/qcore_mac_p.h>
-#endif
-
-#include <QtGui/qimagereader.h>
-
+#include <QtMultimediaTestLib/private/framegrabber_p.h>
+#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
+#include <QtTest/qsignalspy.h>
+#include <QtTest/qtest.h>
 #include <QtMultimedia/qaudiooutput.h>
 #include <QtMultimedia/qcamera.h>
 #include <QtMultimedia/qcameradevice.h>
@@ -24,22 +15,28 @@
 #include <QtMultimedia/qmediaplayer.h>
 #include <QtMultimedia/qmediarecorder.h>
 #include <QtMultimedia/qvideosink.h>
-
+#include <QtMultimedia/private/qcameradevice_p.h>
 #include <QtMultimedia/private/qplatformcamera_p.h>
 #include <QtMultimedia/private/qplatformimagecapture_p.h>
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
-
-#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
-#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
-
-#include <QtTest/qtest.h>
-#include <QtTest/qsignalspy.h>
+#include <QtGui/qimagereader.h>
+#include <QtCore/qlocale.h>
+#include <QtCore/qobject.h>
+#include <QtCore/qscopeguard.h>
+#include <QtCore/qurl.h>
+#if QT_CONFIG(process)
+#  include <QtCore/qprocess.h>
+#endif
+#ifdef Q_OS_DARWIN
+#  include <QtCore/private/qcore_mac_p.h>
+#endif
 
 #include <algorithm>
 #include <chrono>
 #include <memory>
 
 using namespace std::chrono_literals;
+using namespace Qt::StringLiterals;
 
 /*
  This is the backend conformance test.
@@ -66,6 +63,59 @@ static constexpr std::chrono::milliseconds VCamDetectTimeout = 5s;
 
 using namespace QtMultimediaTest;
 
+struct CameraStreamSetup
+{
+    explicit CameraStreamSetup(const QCameraDevice &device)
+        : cameraStorage(std::make_unique<QCamera>(device)),
+          camera(*cameraStorage)
+    {
+        QObject::connect(
+            &camera,
+            &QCamera::activeChanged,
+            &grabber,
+            &FrameGrabber::onCaptureActiveChanged);
+        QObject::connect(&camera, &QCamera::errorOccurred, &grabber, &FrameGrabber::stop);
+        QObject::connect(
+            &camera,
+            &QCamera::errorOccurred,
+            &camera,
+            [this](QCamera::Error, const QString &errorString) {
+                errors.append(errorString);
+            });
+
+        session.setCamera(&camera);
+        session.setVideoSink(&grabber);
+    }
+
+    FrameGrabber grabber;
+    QMediaCaptureSession session;
+    std::unique_ptr<QCamera> cameraStorage;
+    QCamera &camera;
+    QStringList errors;
+};
+
+// Waits for the stream to end with a null-frame, and verifies that it follows the
+// last valid frame.
+static void verifyStreamEndsWithNullFrame(const FrameGrabber &grabber)
+{
+    // The backend may emit the null-frame from the thread it delivers frames on, in
+    // which case it is still in flight after the camera has been stopped.
+    bool streamTerminated = QTest::qWaitFor(
+        [&] {
+            const std::vector<VideoFrameInfo> &frames = grabber.getFrameInfos();
+            return !frames.empty() && !frames.back().isValid;
+        },
+        surfaceCaptureTestTimeout());
+    QVERIFY2(streamTerminated, "Stream did not end with a null-frame");
+
+    const std::vector<VideoFrameInfo> &frames = grabber.getFrameInfos();
+    QCOMPARE_GE(frames.size(), 2u);
+    const VideoFrameInfo &nullFrame = frames.back();
+    const VideoFrameInfo &lastValidFrame = frames[frames.size() - 2];
+    QVERIFY(lastValidFrame.isValid);
+    QCOMPARE_GT(nullFrame.startTime, lastValidFrame.startTime);
+}
+
 class tst_QCameraBackend : public QIntegrationTestBase
 {
     Q_OBJECT
@@ -83,7 +133,6 @@ private slots:
     void testVirtualCameraRemoval();
     void testVirtualCameraFrameChanging();
 
-    void testCameraActive();
     void testCameraStartParallel();
     void testMappedFrameSurvivesCameraStop();
     void testCameraFormat();
@@ -109,6 +158,20 @@ private slots:
     void videoFormats_isNotEmpty_withEachCameraDevice();
     void videoFormats_containsNoDuplicates_withEachCameraDevice_data();
     void videoFormats_containsNoDuplicates_withEachCameraDevice();
+
+    void setActive_startsCameraAndDeliversFrames_withEachCameraDevice_data();
+    void setActive_startsCameraAndDeliversFrames_withEachCameraDevice();
+    void setActive_restartsStream_whenStartedAgainAfterStop_withEachCameraDevice_data();
+    void setActive_restartsStream_whenStartedAgainAfterStop_withEachCameraDevice();
+    void setActive_fails_whenCameraDeviceDoesNotExist_data();
+    void setActive_fails_whenCameraDeviceDoesNotExist();
+
+    void stream_endsWithNullFrame_whenStopped_withEachCameraDevice_data();
+    void stream_endsWithNullFrame_whenStopped_withEachCameraDevice();
+    void stream_endsWithNullFrame_whenCameraIsDestroyed_withEachCameraDevice_data();
+    void stream_endsWithNullFrame_whenCameraIsDestroyed_withEachCameraDevice();
+
+    void setCameraDevice_switchesStream_withoutDeactivatingOrErrors();
 
 private:
     static void addRowPerCameraDevice();
@@ -475,37 +538,6 @@ void tst_QCameraBackend::testVirtualCameraFrameChanging()
     QCOMPARE((rgbColors.indexOf(colors[2]) + 1) % 3, rgbColors.indexOf(colors[0]));
 }
 
-
-void tst_QCameraBackend::testCameraActive()
-{
-    QMediaCaptureSession session;
-    QCamera camera;
-    camera.setCameraDevice(QCameraDevice());
-    QImageCapture imageCapture;
-    session.setCamera(&camera);
-    session.setImageCapture(&imageCapture);
-
-    QSignalSpy errorSignal(&camera, &QCamera::errorOccurred);
-    QSignalSpy activeChangedSignal(&camera, &QCamera::activeChanged);
-
-    QCOMPARE(camera.isActive(), false);
-
-    if (noCamera)
-        QSKIP("No camera available");
-    camera.setCameraDevice(QMediaDevices::defaultVideoInput());
-    QCOMPARE(camera.error(), QCamera::NoError);
-
-    camera.start();
-    QTRY_COMPARE(camera.isActive(), true);
-    QTRY_COMPARE(activeChangedSignal.size(), 1);
-    QCOMPARE(activeChangedSignal.last().first().value<bool>(), true);
-
-    camera.stop();
-    QCOMPARE(camera.isActive(), false);
-    QCOMPARE(activeChangedSignal.last().first().value<bool>(), false);
-
-    QCOMPARE(camera.errorString(), QString());
-}
 
 void tst_QCameraBackend::testCameraStartParallel()
 {
@@ -1380,6 +1412,202 @@ void tst_QCameraBackend::videoFormats_containsNoDuplicates_withEachCameraDevice(
 
     QVERIFY2(duplicates.isEmpty(),
         qPrintable(u"Duplicate video formats:\n"_s + duplicates.join(u'\n')));
+}
+
+void tst_QCameraBackend::setActive_startsCameraAndDeliversFrames_withEachCameraDevice_data()
+{
+    if (noCamera)
+        QSKIP("No camera available");
+
+    addRowPerCameraDevice();
+}
+
+void tst_QCameraBackend::setActive_startsCameraAndDeliversFrames_withEachCameraDevice()
+{
+    QFETCH(const QCameraDevice, device);
+
+    CameraStreamSetup setup(device);
+    QCOMPARE(setup.camera.cameraDevice(), device);
+
+    setup.camera.setActive(true);
+    QVERIFY(setup.camera.isActive());
+
+    std::optional<VideoFrameInfo> frame = setup.grabber.tryWaitForFirstFrameInfo();
+    QVERIFY2(frame, "Camera delivered no frames");
+    QVERIFY(!frame->size.isEmpty());
+    QVERIFY2(setup.errors.isEmpty(), qPrintable(setup.errors.join(u'\n')));
+}
+
+void tst_QCameraBackend::setActive_restartsStream_whenStartedAgainAfterStop_withEachCameraDevice_data()
+{
+    if (noCamera)
+        QSKIP("No camera available");
+
+    addRowPerCameraDevice();
+}
+
+void tst_QCameraBackend::setActive_restartsStream_whenStartedAgainAfterStop_withEachCameraDevice()
+{
+    QFETCH(const QCameraDevice, device);
+
+    constexpr int restartCount = 3;
+
+    CameraStreamSetup setup(device);
+    QVERIFY(!setup.camera.isActive());
+    QSignalSpy activeChanged(&setup.camera, &QCamera::activeChanged);
+
+    for (int i = 0; i <= restartCount; ++i) {
+        if (i > 0) {
+            setup.camera.setActive(false);
+            QVERIFY(!setup.camera.isActive());
+        }
+
+        setup.camera.setActive(true);
+        QVERIFY(setup.camera.isActive());
+        QVERIFY2(setup.grabber.tryWaitForFirstFrameInfo(),
+            qPrintable(u"Camera delivered no frames after start #%1"_s.arg(i)));
+    }
+
+    QCOMPARE(activeChanged.size(), restartCount * 2 + 1);
+    for (qsizetype i = 0; i < activeChanged.size(); ++i)
+        QCOMPARE(activeChanged[i].first().toBool(), i % 2 == 0);
+    QVERIFY2(setup.errors.isEmpty(), qPrintable(setup.errors.join(u'\n')));
+}
+
+void tst_QCameraBackend::setActive_fails_whenCameraDeviceDoesNotExist_data()
+{
+    QTest::addColumn<bool>("setViaConstructor");
+
+    QTest::addRow("constructor") << true;
+    QTest::addRow("setCameraDevice") << false;
+}
+
+void tst_QCameraBackend::setActive_fails_whenCameraDeviceDoesNotExist()
+{
+    QFETCH(const bool, setViaConstructor);
+
+    auto formatPrivate = std::make_unique<QCameraFormatPrivate>();
+    formatPrivate->pixelFormat = QVideoFrameFormat::PixelFormat::Format_NV12;
+    formatPrivate->resolution = QSize(640, 480);
+    formatPrivate->minFrameRate = 30;
+    formatPrivate->maxFrameRate = 30;
+
+    auto devicePrivate = std::make_unique<QCameraDevicePrivate>();
+    devicePrivate->id = "qt-test-nonexistent-camera";
+    devicePrivate->description = u"Nonexistent camera"_s;
+    devicePrivate->videoFormats = { QCameraFormatPrivate::create(std::move(formatPrivate)) };
+    QCameraDevice device = QCameraDevicePrivate::create(std::move(devicePrivate));
+    QVERIFY(!device.isNull());
+    QVERIFY(!QMediaDevices::videoInputs().contains(device));
+
+    std::unique_ptr<QCamera> camera = setViaConstructor
+        ? std::make_unique<QCamera>(device)
+        : std::make_unique<QCamera>();
+    QSignalSpy errorSignal(camera.get(), &QCamera::errorOccurred);
+    if (!setViaConstructor)
+        camera->setCameraDevice(device);
+
+    QtMultimediaTest::FrameGrabber grabber;
+    QMediaCaptureSession session;
+    session.setCamera(camera.get());
+    session.setVideoSink(&grabber);
+
+    camera->setActive(true);
+
+    QVERIFY(!camera->isActive());
+    QCOMPARE(camera->error(), QCamera::Error::CameraError);
+    QVERIFY(!camera->errorString().isEmpty());
+    QVERIFY(!errorSignal.isEmpty());
+    QVERIFY(grabber.getFrameInfos().empty());
+}
+
+void tst_QCameraBackend::stream_endsWithNullFrame_whenStopped_withEachCameraDevice_data()
+{
+    if (noCamera)
+        QSKIP("No camera available");
+
+    addRowPerCameraDevice();
+}
+
+void tst_QCameraBackend::stream_endsWithNullFrame_whenStopped_withEachCameraDevice()
+{
+    QFETCH(const QCameraDevice, device);
+
+    CameraStreamSetup setup(device);
+    setup.camera.setActive(true);
+    QVERIFY(setup.camera.isActive());
+    QVERIFY2(setup.grabber.tryWaitForFirstFrameInfo(), "Camera delivered no frames");
+
+    setup.camera.setActive(false);
+    QVERIFY(!setup.camera.isActive());
+
+    verifyStreamEndsWithNullFrame(setup.grabber);
+    if (QTest::currentTestFailed())
+        return;
+
+    QVERIFY2(setup.errors.isEmpty(), qPrintable(setup.errors.join(u'\n')));
+}
+
+void tst_QCameraBackend::stream_endsWithNullFrame_whenCameraIsDestroyed_withEachCameraDevice_data()
+{
+    if (noCamera)
+        QSKIP("No camera available");
+
+    addRowPerCameraDevice();
+}
+
+void tst_QCameraBackend::stream_endsWithNullFrame_whenCameraIsDestroyed_withEachCameraDevice()
+{
+    QFETCH(const QCameraDevice, device);
+
+    CameraStreamSetup setup(device);
+    setup.camera.setActive(true);
+    QVERIFY(setup.camera.isActive());
+    QVERIFY2(setup.grabber.tryWaitForFirstFrameInfo(), "Camera delivered no frames");
+    QVERIFY2(setup.errors.isEmpty(), qPrintable(setup.errors.join(u'\n')));
+
+    // Destroying the QCamera must terminate the stream with a null-frame. The grabber
+    // (video sink) outlives the camera, so it still receives the terminating null-frame.
+    setup.cameraStorage.reset();
+
+    verifyStreamEndsWithNullFrame(setup.grabber);
+}
+
+void tst_QCameraBackend::setCameraDevice_switchesStream_withoutDeactivatingOrErrors()
+{
+    const QList<QCameraDevice> devices = QMediaDevices::videoInputs();
+    if (devices.size() < 2)
+        QSKIP("At least two cameras are required to switch between them");
+
+    constexpr size_t frameCount = 5;
+
+    CameraStreamSetup setup(devices.first());
+    setup.camera.setActive(true);
+    QVERIFY(setup.camera.isActive());
+    QVERIFY2(setup.grabber.tryWaitForFirstFrameInfo(), "Camera delivered no frames");
+
+    QSignalSpy activeChanged(&setup.camera, &QCamera::activeChanged);
+
+    QList<QCameraDevice> switchOrder = devices.mid(1);
+    switchOrder.append(devices.first());
+    for (const QCameraDevice &device : std::as_const(switchOrder)) {
+        setup.camera.setCameraDevice(device);
+        QCOMPARE(setup.camera.cameraDevice(), device);
+        QVERIFY(setup.camera.isActive());
+
+        size_t framesBefore = setup.grabber.getFrameInfos().size();
+        bool receivedFrames = QTest::qWaitFor(
+            [&] {
+                return setup.grabber.getFrameInfos().size() >= framesBefore + frameCount;
+            },
+            surfaceCaptureTestTimeout());
+        QVERIFY2(receivedFrames,
+            qPrintable(u"No frames after switching to %1"_s.arg(device.description())));
+        QVERIFY2(setup.errors.isEmpty(), qPrintable(setup.errors.join(u'\n')));
+    }
+
+    QVERIFY(setup.camera.isActive());
+    QCOMPARE(activeChanged.size(), 0);
 }
 
 QTEST_MAIN(tst_QCameraBackend)
