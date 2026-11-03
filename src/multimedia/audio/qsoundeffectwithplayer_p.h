@@ -115,6 +115,7 @@ private:
     QAudioDevice m_resolvedAudioDevice;
     std::shared_ptr<QRtAudioEngine> m_player;
     QMetaObject::Connection m_voiceFinishedConnection;
+    QMetaObject::Connection m_playerStateConnection;
     std::set<std::shared_ptr<QSoundEffectVoice>, QRtAudioEngineVoiceCompare> m_voices;
 
     void setLoopsRemaining(int);

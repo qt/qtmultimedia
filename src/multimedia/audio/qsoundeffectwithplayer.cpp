@@ -74,7 +74,7 @@ QSoundEffectPrivateWithPlayer::getEngineFor(const QAudioDevice &device, const QA
     auto found = s_playerRegistry.find(key);
     if (found != s_playerRegistry.end()) {
         auto player = found->second.lock();
-        if (player)
+        if (player && player->audioState() != QtAudio::StoppedState)
             return player;
     }
 
@@ -90,7 +90,7 @@ QSoundEffectPrivateWithPlayer::getEngineFor(const QAudioDevice &device, const QA
             new QRtAudioEngine{ QRtAudioEngine::MoveToApplicationThread::Yes, device, format,
                                 endpointRole },
             &QObjectPrivate::deleteInOwnThread);
-    s_playerRegistry.emplace(key, player);
+    s_playerRegistry.insert_or_assign(key, player);
 
     return player;
 }
@@ -247,6 +247,7 @@ QSoundEffectPrivateWithPlayer::QSoundEffectPrivateWithPlayer(QSoundEffect *q,
 
 QSoundEffectPrivateWithPlayer::~QSoundEffectPrivateWithPlayer()
 {
+    QObject::disconnect(m_playerStateConnection);
     stop();
     if (m_sampleLoadFuture)
         m_sampleLoadFuture->cancelChain();
@@ -326,6 +327,7 @@ void QSoundEffectPrivateWithPlayer::setSource(QUrl url, QSampleCache &sampleCach
 
     if (m_player) {
         QObject::disconnect(m_voiceFinishedConnection);
+        QObject::disconnect(m_playerStateConnection);
         m_playerReleaseTimer.callOnTimeout(this, [player = std::move(m_player)] {
             // we keep the player referenced for a little longer, so that later calls to
             // getEngineFor will be able to reuse the existing instance
@@ -468,10 +470,19 @@ void QSoundEffectPrivateWithPlayer::play()
         return;
     }
 
+    // Error after a failed engine setup: retry, the device may be available again
+    if (status() == QSoundEffect::Error && updatePlayer(m_sample))
+        setStatus(QSoundEffect::Ready);
+
     if (status() != QSoundEffect::Ready)
         return;
 
     Q_ASSERT(m_player);
+
+    if (m_player->audioState() == QtAudio::StoppedState && !updatePlayer(m_sample)) {
+        setStatus(QSoundEffect::Error);
+        return;
+    }
 
     // each `play` will start a new voice
     auto voice = std::make_shared<QSoundEffectVoice>(QRtAudioEngine::allocateVoiceId(), m_sample,
@@ -530,6 +541,7 @@ bool QSoundEffectPrivateWithPlayer::updatePlayer(const SharedSamplePtr &sample)
     Q_ASSERT(sample);
     Q_ASSERT(m_voices.empty());
     QObject::disconnect(m_voiceFinishedConnection);
+    QObject::disconnect(m_playerStateConnection);
 
     m_player = {};
     if (m_resolvedAudioDevice.isNull())
@@ -555,7 +567,7 @@ bool QSoundEffectPrivateWithPlayer::updatePlayer(const SharedSamplePtr &sample)
         return std::make_shared<QRtAudioEngine>(m_resolvedAudioDevice, alternativeFormat);
     }();
 
-    if (!m_player)
+    if (!m_player || m_player->audioState() == QtAudio::StoppedState)
         return false;
 
     m_voiceFinishedConnection = QObject::connect(m_player.get(), &QRtAudioEngine::voiceFinished,
@@ -570,6 +582,18 @@ bool QSoundEffectPrivateWithPlayer::updatePlayer(const SharedSamplePtr &sample)
             if (m_voices.empty())
                 Q_EMIT q_ptr->playingChanged();
         }
+    });
+
+    m_playerStateConnection = QObject::connect(m_player.get(), &QRtAudioEngine::stateChanged, this,
+                                               [this](QtAudio::State state) {
+        if (state != QtAudio::StoppedState || m_voices.empty())
+            return;
+
+        // When the player state fails something must have gone wrong, e.g. the audio device was
+        // removed. We clear all voices and reset the loops remaining to 0.
+        m_voices.clear();
+        setLoopsRemaining(0);
+        Q_EMIT q_ptr->playingChanged();
     });
     return true;
 }

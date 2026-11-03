@@ -13,6 +13,10 @@
 #include <QtMultimedia/private/qsamplecache_p.h>
 #include <QtMultimedia/private/qsoundeffectsynchronous_p.h>
 #include <QtMultimedia/private/qsoundeffectwithplayer_p.h>
+#ifdef Q_OS_MACOS
+#  include <QtMultimediaTestLib/private/qcoreaudioaggregatedevice_p.h>
+#  include <QtCore/quuid.h>
+#endif
 
 using namespace Qt::Literals;
 using namespace std::chrono_literals;
@@ -29,6 +33,7 @@ public slots:
 
 private slots:
     void initTestCase();
+    void cleanupTestCase();
     void testSource();
     void testLooping();
     void testVolume();
@@ -66,6 +71,17 @@ private slots:
     void getPlaybackEngine();
     void getPlaybackEngine_nullDevice();
     void getPlaybackEngine_invalidFormat();
+#ifdef Q_OS_MACOS
+    void removal_whilePlaying_data();
+    void removal_whilePlaying();
+    void removal_whileIdle_data();
+    void removal_whileIdle();
+    void play_afterRemoval_data();
+    void play_afterRemoval();
+    void play_afterReAdd_data();
+    void play_afterReAdd();
+    void play_afterFailedPlay_recovers();
+#endif
 
 private:
     QSoundEffect* sound;
@@ -100,11 +116,27 @@ void tst_QSoundEffect::init()
 
 void tst_QSoundEffect::cleanup()
 {
+    // Destroying a playing effect emits signals; the lambdas connected by the test must not run
+    // after the test function returned, so disconnect them first
+    if (sound)
+        QObject::disconnect(sound, nullptr, this, nullptr);
+    delete sound;
     sound = nullptr;
+}
+
+void tst_QSoundEffect::cleanupTestCase()
+{
+#ifdef Q_OS_MACOS
+    QCoreAudioAggregateDevice::removeStaleDevices();
+#endif
 }
 
 void tst_QSoundEffect::initTestCase()
 {
+#ifdef Q_OS_MACOS
+    QCoreAudioAggregateDevice::removeStaleDevices();
+#endif
+
     // Only perform tests if audio device exists
     QStringList mimeTypes = sound->supportedMimeTypes();
     if (mimeTypes.empty())
@@ -811,6 +843,283 @@ void tst_QSoundEffect::getPlaybackEngine_invalidFormat()
             QMediaDevices::defaultAudioOutput(), QAudioFormat());
     QCOMPARE(engine, nullptr);
 }
+
+#ifdef Q_OS_MACOS
+static QSoundEffectPrivateWithPlayer *playerPrivate(QSoundEffect &sfx)
+{
+    return dynamic_cast<QSoundEffectPrivateWithPlayer *>(QSoundEffectPrivate::get(&sfx));
+}
+
+// Explicit rows bind the effect to a private aggregate. Default rows use a public aggregate
+// and make it the system default, so the effect follows the default device
+static QCoreAudioAggregateDevice::Visibility visibilityFor(bool explicitDevice)
+{
+    return explicitDevice ? QCoreAudioAggregateDevice::Visibility::Private
+                          : QCoreAudioAggregateDevice::Visibility::Public;
+}
+
+void tst_QSoundEffect::removal_whilePlaying_data()
+{
+    QTest::addColumn<bool>("explicitDevice");
+    QTest::newRow("explicit") << true;
+    QTest::newRow("default") << false;
+}
+
+void tst_QSoundEffect::removal_whilePlaying()
+{
+    QFETCH(bool, explicitDevice);
+
+    auto aggregate = QCoreAudioAggregateDevice::create(QCoreAudioAggregateDevice::Direction::Output,
+                                                       visibilityFor(explicitDevice));
+    if (!aggregate)
+        QSKIP("Could not create a CoreAudio aggregate device");
+    const auto device = aggregate->waitForQtDevice(5s);
+    if (!device)
+        QSKIP("The CoreAudio aggregate device was not listed by QMediaDevices");
+    if (!explicitDevice && !aggregate->makeSystemDefault())
+        QSKIP("CoreAudio refused to make the aggregate device the default output");
+
+    QSoundEffect sfx;
+    if (explicitDevice)
+        sfx.setAudioDevice(*device);
+    sfx.setSource(url2);
+    QTRY_COMPARE(sfx.status(), QSoundEffect::Ready);
+    sfx.setLoopCount(QSoundEffect::Infinite);
+    sfx.setVolume(0.f);
+
+    auto *priv = playerPrivate(sfx);
+    if (!priv)
+        QSKIP("The callback-based QSoundEffect backend is not in use");
+
+    QSignalSpy playingSpy(&sfx, &QSoundEffect::playingChanged);
+    sfx.play();
+    QTRY_VERIFY(sfx.isPlaying());
+    const std::shared_ptr<QRtAudioEngine> engine = priv->player();
+
+    QVERIFY(aggregate->destroyAndWaitForDisconnectNotification(5s));
+
+    if (explicitDevice) {
+        QTRY_VERIFY_WITH_TIMEOUT(!sfx.isPlaying(), 5s);
+        QTRY_COMPARE_WITH_TIMEOUT(engine->audioState(), QtAudio::StoppedState, 5s);
+        QCOMPARE(sfx.status(), QSoundEffect::Ready);
+        QCOMPARE(playingSpy.size(), 2); // true, then false
+    } else {
+        // The default device changed, so QSoundEffect moves to the new default engine and
+        // the playing voice moves with it
+        QTRY_VERIFY_WITH_TIMEOUT(priv->player() != engine, 5s);
+        QCOMPARE(sfx.status(), QSoundEffect::Ready);
+        QTRY_VERIFY_WITH_TIMEOUT(sfx.isPlaying(), 5s);
+    }
+}
+
+void tst_QSoundEffect::removal_whileIdle_data()
+{
+    removal_whilePlaying_data();
+}
+
+void tst_QSoundEffect::removal_whileIdle()
+{
+    QFETCH(bool, explicitDevice);
+
+    auto aggregate = QCoreAudioAggregateDevice::create(QCoreAudioAggregateDevice::Direction::Output,
+                                                       visibilityFor(explicitDevice));
+    if (!aggregate)
+        QSKIP("Could not create a CoreAudio aggregate device");
+    const auto device = aggregate->waitForQtDevice(5s);
+    if (!device)
+        QSKIP("The CoreAudio aggregate device was not listed by QMediaDevices");
+    if (!explicitDevice && !aggregate->makeSystemDefault())
+        QSKIP("CoreAudio refused to make the aggregate device the default output");
+
+    QSoundEffect sfx;
+    if (explicitDevice)
+        sfx.setAudioDevice(*device);
+    sfx.setSource(url2);
+    QTRY_COMPARE(sfx.status(), QSoundEffect::Ready);
+
+    auto *priv = playerPrivate(sfx);
+    if (!priv)
+        QSKIP("The callback-based QSoundEffect backend is not in use");
+    const std::shared_ptr<QRtAudioEngine> engine = priv->player();
+
+    QSignalSpy playingSpy(&sfx, &QSoundEffect::playingChanged);
+    QSignalSpy statusSpy(&sfx, &QSoundEffect::statusChanged);
+
+    QVERIFY(aggregate->destroyAndWaitForDisconnectNotification(5s));
+
+    if (!explicitDevice)
+        QTRY_VERIFY_WITH_TIMEOUT(priv->player() != engine, 5s);
+
+    // No playback was requested, so the effect must not report any change
+    QTest::qWait(200ms);
+    QCOMPARE(playingSpy.size(), 0);
+    QCOMPARE(statusSpy.size(), 0);
+    QCOMPARE(sfx.status(), QSoundEffect::Ready);
+    QVERIFY(!sfx.isPlaying());
+}
+
+void tst_QSoundEffect::play_afterRemoval_data()
+{
+    removal_whilePlaying_data();
+}
+
+void tst_QSoundEffect::play_afterRemoval()
+{
+    QFETCH(bool, explicitDevice);
+
+    auto aggregate = QCoreAudioAggregateDevice::create(QCoreAudioAggregateDevice::Direction::Output,
+                                                       visibilityFor(explicitDevice));
+    if (!aggregate)
+        QSKIP("Could not create a CoreAudio aggregate device");
+    const auto device = aggregate->waitForQtDevice(5s);
+    if (!device)
+        QSKIP("The CoreAudio aggregate device was not listed by QMediaDevices");
+    if (!explicitDevice && !aggregate->makeSystemDefault())
+        QSKIP("CoreAudio refused to make the aggregate device the default output");
+
+    QSoundEffect sfx;
+    if (explicitDevice)
+        sfx.setAudioDevice(*device);
+    sfx.setSource(url2);
+    QTRY_COMPARE(sfx.status(), QSoundEffect::Ready);
+    sfx.setLoopCount(QSoundEffect::Infinite);
+    sfx.setVolume(0.f);
+
+    auto *priv = playerPrivate(sfx);
+    if (!priv)
+        QSKIP("The callback-based QSoundEffect backend is not in use");
+
+    sfx.play();
+    QTRY_VERIFY(sfx.isPlaying());
+    const std::shared_ptr<QRtAudioEngine> engine = priv->player();
+
+    QVERIFY(aggregate->destroyAndWaitForDisconnectNotification(5s));
+    if (explicitDevice)
+        QTRY_VERIFY_WITH_TIMEOUT(!sfx.isPlaying(), 5s);
+    else
+        QTRY_VERIFY_WITH_TIMEOUT(priv->player() != engine, 5s);
+
+    sfx.play();
+
+    if (explicitDevice) {
+        // The device is gone, so the effect must not claim to play on a dead engine
+        QTRY_VERIFY_WITH_TIMEOUT(sfx.status() == QSoundEffect::Error || !sfx.isPlaying(), 5s);
+    } else {
+        QTRY_VERIFY_WITH_TIMEOUT(sfx.isPlaying(), 5s);
+        QTRY_COMPARE_WITH_TIMEOUT(priv->player()->audioState(), QtAudio::ActiveState, 5s);
+    }
+}
+
+void tst_QSoundEffect::play_afterReAdd_data()
+{
+    removal_whilePlaying_data();
+}
+
+void tst_QSoundEffect::play_afterReAdd()
+{
+    QFETCH(bool, explicitDevice);
+
+    // The same identity gives the same device name and UID, so the re-added aggregate is the
+    // same QAudioDevice as the one that was removed
+    const QString identity = QUuid::createUuid().toString(QUuid::Id128);
+
+    auto first = QCoreAudioAggregateDevice::create(QCoreAudioAggregateDevice::Direction::Output,
+                                                   identity, visibilityFor(explicitDevice));
+    if (!first)
+        QSKIP("Could not create a CoreAudio aggregate device");
+    const auto firstDevice = first->waitForQtDevice(5s);
+    if (!firstDevice)
+        QSKIP("The CoreAudio aggregate device was not listed by QMediaDevices");
+    if (!explicitDevice && !first->makeSystemDefault())
+        QSKIP("CoreAudio refused to make the aggregate device the default output");
+
+    QSoundEffect sfx;
+    if (explicitDevice)
+        sfx.setAudioDevice(*firstDevice);
+    sfx.setSource(url2);
+    QTRY_COMPARE(sfx.status(), QSoundEffect::Ready);
+    sfx.setLoopCount(QSoundEffect::Infinite);
+    sfx.setVolume(0.f);
+
+    auto *priv = playerPrivate(sfx);
+    if (!priv)
+        QSKIP("The callback-based QSoundEffect backend is not in use");
+
+    sfx.play();
+    QTRY_VERIFY(sfx.isPlaying());
+    const std::shared_ptr<QRtAudioEngine> engine = priv->player();
+
+    QVERIFY(first->destroyAndWaitForDisconnectNotification(5s));
+    QTRY_VERIFY_WITH_TIMEOUT(!QMediaDevices::audioOutputs().contains(*firstDevice), 5s);
+    if (explicitDevice)
+        QTRY_VERIFY_WITH_TIMEOUT(!sfx.isPlaying(), 5s);
+
+    auto second = QCoreAudioAggregateDevice::create(QCoreAudioAggregateDevice::Direction::Output,
+                                                    identity, visibilityFor(explicitDevice));
+    QVERIFY(second);
+    const auto secondDevice = second->waitForQtDevice(5s);
+    QVERIFY(secondDevice);
+    QCOMPARE(*secondDevice, *firstDevice);
+    if (!explicitDevice)
+        QVERIFY(second->makeSystemDefault());
+
+    sfx.play();
+
+    QTRY_VERIFY_WITH_TIMEOUT(sfx.isPlaying(), 5s);
+    QTRY_COMPARE_WITH_TIMEOUT(priv->player()->audioState(), QtAudio::ActiveState, 5s);
+    QVERIFY(priv->player() != engine);
+}
+
+void tst_QSoundEffect::play_afterFailedPlay_recovers()
+{
+    const QString identity = QUuid::createUuid().toString(QUuid::Id128);
+
+    auto first = QCoreAudioAggregateDevice::create(QCoreAudioAggregateDevice::Direction::Output,
+                                                   identity);
+    if (!first)
+        QSKIP("Could not create a CoreAudio aggregate device");
+    const auto firstDevice = first->waitForQtDevice(5s);
+    if (!firstDevice)
+        QSKIP("The CoreAudio aggregate device was not listed by QMediaDevices");
+
+    QSoundEffect sfx;
+    sfx.setAudioDevice(*firstDevice);
+    sfx.setSource(url2);
+    QTRY_COMPARE(sfx.status(), QSoundEffect::Ready);
+    sfx.setLoopCount(QSoundEffect::Infinite);
+    sfx.setVolume(0.f);
+
+    auto *priv = playerPrivate(sfx);
+    if (!priv)
+        QSKIP("The callback-based QSoundEffect backend is not in use");
+
+    sfx.play();
+    QTRY_VERIFY(sfx.isPlaying());
+
+    // The device is removed, then a play() fails and leaves the effect in Error
+    QVERIFY(first->destroyAndWaitForDisconnectNotification(5s));
+    QTRY_VERIFY_WITH_TIMEOUT(!QMediaDevices::audioOutputs().contains(*firstDevice), 5s);
+    QTRY_VERIFY_WITH_TIMEOUT(!sfx.isPlaying(), 5s);
+
+    sfx.play();
+    QCOMPARE(sfx.status(), QSoundEffect::Error);
+
+    // The device is back: the next play() must recover without setSource() or setAudioDevice()
+    auto second = QCoreAudioAggregateDevice::create(QCoreAudioAggregateDevice::Direction::Output,
+                                                    identity);
+    QVERIFY(second);
+    const auto secondDevice = second->waitForQtDevice(5s);
+    QVERIFY(secondDevice);
+    QCOMPARE(*secondDevice, *firstDevice);
+
+    sfx.play();
+
+    QCOMPARE(sfx.status(), QSoundEffect::Ready);
+    QTRY_VERIFY_WITH_TIMEOUT(sfx.isPlaying(), 5s);
+    QTRY_COMPARE_WITH_TIMEOUT(priv->player()->audioState(), QtAudio::ActiveState, 5s);
+}
+
+#endif // Q_OS_MACOS
 
 QTEST_MAIN(tst_QSoundEffect)
 
