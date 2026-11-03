@@ -902,11 +902,11 @@ QVideoFrameTexturesUPtr createTexturesFromHandles(QVideoFrameTexturesHandlesUPtr
 static std::unique_ptr<QVideoFrameTexturesFromMemory>
 tryRecycleMemory(QVideoFrameTexturesUPtr oldTextures)
 {
-    auto *raw = dynamic_cast<QVideoFrameTexturesFromMemory *>(oldTextures.get());
-    if (!raw)
+    auto *raw = oldTextures.release();
+    auto *rawFromMemory = dynamic_cast<QVideoFrameTexturesFromMemory *>(raw);
+    if (!rawFromMemory)
         return nullptr;
-    std::ignore = oldTextures.release();
-    return std::unique_ptr<QVideoFrameTexturesFromMemory>(raw);
+    return std::unique_ptr<QVideoFrameTexturesFromMemory>(rawFromMemory);
 }
 
 static QVideoFrameTexturesUPtr createTexturesFromMemory(QVideoFrame frame, QRhi &rhi,
