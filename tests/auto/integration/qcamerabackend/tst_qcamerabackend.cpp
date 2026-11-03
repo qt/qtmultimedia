@@ -138,7 +138,6 @@ private slots:
 
     void testCameraStartParallel();
     void testMappedFrameSurvivesCameraStop();
-    void testCameraFormat();
     void testCameraCapture();
     void testCaptureToBuffer();
     void testCaptureResolutionChangeWhileActive();
@@ -161,6 +160,10 @@ private slots:
     void videoFormats_isNotEmpty_withEachCameraDevice();
     void videoFormats_containsNoDuplicates_withEachCameraDevice_data();
     void videoFormats_containsNoDuplicates_withEachCameraDevice();
+    void setCameraFormat_updatesPropertyAndEmitsSignal_whenNotActive_withEachCameraDevice_data();
+    void setCameraFormat_updatesPropertyAndEmitsSignal_whenNotActive_withEachCameraDevice();
+    void setCameraDevice_keepsCameraFormat_whenDeviceIsUnchanged_withEachCameraDevice_data();
+    void setCameraDevice_keepsCameraFormat_whenDeviceIsUnchanged_withEachCameraDevice();
 
     void setActive_startsCameraAndDeliversFrames_withEachCameraDevice_data();
     void setActive_startsCameraAndDeliversFrames_withEachCameraDevice();
@@ -168,13 +171,21 @@ private slots:
     void setActive_restartsStream_whenStartedAgainAfterStop_withEachCameraDevice();
     void setActive_fails_whenCameraDeviceDoesNotExist_data();
     void setActive_fails_whenCameraDeviceDoesNotExist();
+    void cameraFormat_isNotNull_whenActive_data();
+    void cameraFormat_isNotNull_whenActive();
 
+    void capturedFrames_matchCameraFormat_withEachCameraFormat_data();
+    void capturedFrames_matchCameraFormat_withEachCameraFormat();
     void stream_endsWithNullFrame_whenStopped_withEachCameraDevice_data();
     void stream_endsWithNullFrame_whenStopped_withEachCameraDevice();
     void stream_endsWithNullFrame_whenCameraIsDestroyed_withEachCameraDevice_data();
     void stream_endsWithNullFrame_whenCameraIsDestroyed_withEachCameraDevice();
 
     void setCameraDevice_switchesStream_withoutDeactivatingOrErrors();
+    void setCameraDevice_keepsFrameFormat_whenSwitchingToDeviceWithSameFormat_data();
+    void setCameraDevice_keepsFrameFormat_whenSwitchingToDeviceWithSameFormat();
+    void setCameraFormat_switchesStreamFormat_whileActive_data();
+    void setCameraFormat_switchesStreamFormat_whileActive();
 
 private:
     static void addRowPerCameraDevice();
@@ -198,59 +209,6 @@ private:
 #ifdef QT_MM_HAVE_FAKE_XDG_PORTAL
     QFakeXdgPortalFixture m_fakePortal;
 #endif
-};
-
-class TestVideoFormat : public QVideoSink
-{
-    Q_OBJECT
-public:
-    explicit TestVideoFormat(const QCameraFormat &format)
-        : formatMismatch(0),
-          cameraFormat(format)
-    {
-        connect(this, &QVideoSink::videoFrameChanged, this, &TestVideoFormat::checkVideoFrameFormat);
-    }
-
-    void setCameraFormatToTest(const QCameraFormat &format)
-    {
-        formatMismatch = -1;
-        cameraFormat = format;
-    }
-
-    int formatMismatch = -1;
-
-private:
-    QCameraFormat cameraFormat;
-
-public Q_SLOTS:
-    void checkVideoFrameFormat(const QVideoFrame &frame)
-    {
-        QVideoFrameFormat surfaceFormat = frame.surfaceFormat();
-        if (surfaceFormat.pixelFormat() == cameraFormat.pixelFormat()
-            && surfaceFormat.frameSize() == cameraFormat.resolution()) {
-            formatMismatch = 0;
-#ifdef Q_OS_ANDROID
-        } else if ((surfaceFormat.pixelFormat() == QVideoFrameFormat::Format_YUV420P
-                   || surfaceFormat.pixelFormat() == QVideoFrameFormat::Format_NV12
-                   || surfaceFormat.pixelFormat() == QVideoFrameFormat::Format_NV21)
-            && cameraFormat.pixelFormat() == QVideoFrameFormat::Format_YUV420P
-            && surfaceFormat.frameSize() == cameraFormat.resolution()) {
-            formatMismatch = 0;
-#endif
-#ifdef Q_OS_HARMONY
-        } else if (surfaceFormat.pixelFormat() == QVideoFrameFormat::Format_RGBA8888
-            && (cameraFormat.pixelFormat() == QVideoFrameFormat::Format_NV12
-                || cameraFormat.pixelFormat() == QVideoFrameFormat::Format_NV21)
-            && surfaceFormat.frameSize() == cameraFormat.resolution()) {
-            // OHOS samples NV12 native buffers via GL_TEXTURE_EXTERNAL_OES which
-            // delivers RGBA8888 frames to QVideoSink regardless of the native
-            // camera format.
-            formatMismatch = 0;
-#endif
-        } else {
-            formatMismatch = 1;
-        }
-    }
 };
 
 void tst_QCameraBackend::initTestCase()
@@ -624,77 +582,6 @@ void tst_QCameraBackend::testMappedFrameSurvivesCameraStop()
     const QByteArray after(reinterpret_cast<const char *>(frame.bits(0)), frame.mappedBytes(0));
     frame.unmap();
     QCOMPARE(after, before);
-}
-
-void tst_QCameraBackend::testCameraFormat()
-{
-    QCamera camera;
-    QCameraDevice device = camera.cameraDevice();
-    auto videoFormats = device.videoFormats();
-    if (videoFormats.isEmpty())
-        QSKIP("No Camera available, skipping test.");
-    QCameraFormat cameraFormat = videoFormats.first();
-    QSignalSpy spy(&camera, &QCamera::cameraFormatChanged);
-    QVERIFY(spy.size() == 0);
-
-    QMediaCaptureSession session;
-    session.setCamera(&camera);
-    QVERIFY(videoFormats.size());
-    camera.setCameraFormat(cameraFormat);
-    QCOMPARE(camera.cameraFormat(), cameraFormat);
-    QVERIFY(spy.size() == 1);
-
-    TestVideoFormat videoFormatTester(cameraFormat);
-    session.setVideoOutput(&videoFormatTester);
-    camera.start();
-    QTRY_VERIFY(videoFormatTester.formatMismatch == 0);
-
-    spy.clear();
-    camera.stop();
-    // Change camera format
-    // OHOS samples NV12 native buffers via GL_TEXTURE_EXTERNAL_OES which
-    // always delivers RGBA8888 frames to the QVideoSink. A camera-format
-    // change that swaps native pixel format but keeps the same resolution is
-    // therefore invisible to TestVideoFormat, so the "mismatch == 1" check
-    // does not hold. Skip the multi-format sub-block on OHOS.
-    if (videoFormats.size() > 1 && !isOhosPlatform()) {
-        QCameraFormat secondFormat = videoFormats.at(1);
-        camera.setCameraFormat(secondFormat);
-        QCOMPARE(camera.cameraFormat(), secondFormat);
-        QCOMPARE(spy.size(), 1);
-        QCOMPARE(camera.cameraFormat(), secondFormat);
-        videoFormatTester.setCameraFormatToTest(secondFormat);
-        camera.start();
-        QTRY_VERIFY(videoFormatTester.formatMismatch == 0);
-
-        // check that frame format is not same as previous camera format
-        videoFormatTester.setCameraFormatToTest(cameraFormat);
-        QTRY_VERIFY(videoFormatTester.formatMismatch == 1);
-    }
-
-    // Set null format
-    spy.clear();
-    camera.stop();
-    camera.setCameraFormat({});
-    QCOMPARE(spy.size(), 1);
-    videoFormatTester.setCameraFormatToTest({});
-    camera.start();
-    if (isOhosPlatform()) {
-        // OH_CameraInput_Open does not always recover frames after a stop()
-        // + setCameraFormat({}) + start() cycle on the device side. The camera
-        // restarts but the preview surface stays silent until the session is
-        // recreated.
-        return;
-    }
-    // In case of a null format, the backend should have picked
-    // a decent format to render frames
-    QTRY_VERIFY(videoFormatTester.formatMismatch == 1);
-    camera.stop();
-
-    spy.clear();
-    // Shouldn't change anything as it's the same device
-    camera.setCameraDevice(device);
-    QCOMPARE(spy.size(), 0);
 }
 
 void tst_QCameraBackend::testCameraCapture()
@@ -1439,6 +1326,70 @@ void tst_QCameraBackend::videoFormats_containsNoDuplicates_withEachCameraDevice(
         qPrintable(u"Duplicate video formats:\n"_s + duplicates.join(u'\n')));
 }
 
+void tst_QCameraBackend::setCameraFormat_updatesPropertyAndEmitsSignal_whenNotActive_withEachCameraDevice_data()
+{
+    if (noCamera)
+        QSKIP("No camera available");
+
+    addRowPerCameraDevice();
+}
+
+void tst_QCameraBackend::setCameraFormat_updatesPropertyAndEmitsSignal_whenNotActive_withEachCameraDevice()
+{
+    QFETCH(const QCameraDevice, device);
+
+    CameraStreamSetup setup(device);
+    QList<QCameraFormat> videoFormats = device.videoFormats();
+    QVERIFY(!videoFormats.isEmpty());
+
+    QSignalSpy formatChanges(&setup.camera, &QCamera::cameraFormatChanged);
+
+    QVERIFY(setup.camera.cameraFormat().isNull());
+
+    for (const QCameraFormat &format : std::as_const(videoFormats)) {
+        setup.camera.setCameraFormat(format);
+        QCOMPARE(setup.camera.cameraFormat(), format);
+    }
+    QCOMPARE(formatChanges.size(), videoFormats.size());
+
+    formatChanges.clear();
+    setup.camera.setCameraFormat({});
+    QVERIFY(setup.camera.cameraFormat().isNull());
+    QCOMPARE(formatChanges.size(), 1);
+
+    QVERIFY(!setup.camera.isActive());
+    QVERIFY(setup.grabber.getFrameInfos().empty());
+    QVERIFY2(setup.errors.isEmpty(), qPrintable(setup.errors.join(u'\n')));
+}
+
+void tst_QCameraBackend::setCameraDevice_keepsCameraFormat_whenDeviceIsUnchanged_withEachCameraDevice_data()
+{
+    if (noCamera)
+        QSKIP("No camera available");
+
+    addRowPerCameraDevice();
+}
+
+void tst_QCameraBackend::setCameraDevice_keepsCameraFormat_whenDeviceIsUnchanged_withEachCameraDevice()
+{
+    QFETCH(const QCameraDevice, device);
+
+    QVERIFY(!device.videoFormats().isEmpty());
+
+    CameraStreamSetup setup(device);
+    QCameraFormat format = device.videoFormats().constFirst();
+    setup.camera.setCameraFormat(format);
+
+    QSignalSpy formatChanges(&setup.camera, &QCamera::cameraFormatChanged);
+    QSignalSpy deviceChanges(&setup.camera, &QCamera::cameraDeviceChanged);
+
+    setup.camera.setCameraDevice(device);
+
+    QCOMPARE(deviceChanges.size(), 0);
+    QCOMPARE(formatChanges.size(), 0);
+    QCOMPARE(setup.camera.cameraFormat(), format);
+}
+
 void tst_QCameraBackend::setActive_startsCameraAndDeliversFrames_withEachCameraDevice_data()
 {
     if (noCamera)
@@ -1546,6 +1497,88 @@ void tst_QCameraBackend::setActive_fails_whenCameraDeviceDoesNotExist()
     QVERIFY(grabber.getFrameInfos().empty());
 }
 
+void tst_QCameraBackend::cameraFormat_isNotNull_whenActive_data()
+{
+    if (noCamera)
+        QSKIP("No camera available");
+
+    addRowPerCameraDevice();
+}
+
+void tst_QCameraBackend::cameraFormat_isNotNull_whenActive()
+{
+    QFETCH(const QCameraDevice, device);
+
+    CameraStreamSetup setup(device);
+    QVERIFY(setup.camera.cameraFormat().isNull());
+
+    setup.camera.setActive(true);
+    QVERIFY(setup.camera.isActive());
+
+    QCameraFormat format = setup.camera.cameraFormat();
+    QVERIFY(!format.isNull());
+    QVERIFY(device.videoFormats().contains(format));
+
+    std::optional<VideoFrameInfo> frame = setup.grabber.tryWaitForFirstFrameInfo();
+    QVERIFY2(frame, "Camera delivered no frames");
+    QCOMPARE(frame->size, format.resolution());
+    QCOMPARE(frame->pixelFormat, format.pixelFormat());
+}
+
+void tst_QCameraBackend::capturedFrames_matchCameraFormat_withEachCameraFormat_data()
+{
+    QTest::addColumn<QCameraDevice>("device");
+    QTest::addColumn<QCameraFormat>("format");
+
+    if (noCamera)
+        QSKIP("No camera available");
+
+    const QList<QCameraDevice> devices = QMediaDevices::videoInputs();
+    for (qsizetype i = 0; i < devices.size(); ++i) {
+        const QList<QCameraFormat> formats = devices[i].videoFormats();
+        for (qsizetype j = 0; j < formats.size(); ++j) {
+            const QCameraFormat &format = formats[j];
+            QTest::addRow(
+                "%lld: %s, format %lld: %dx%d, %s, %g-%g fps",
+                qlonglong(i),
+                qPrintable(devices[i].description()),
+                qlonglong(j),
+                format.resolution().width(),
+                format.resolution().height(),
+                qPrintable(QVideoFrameFormat::pixelFormatToString(format.pixelFormat())),
+                format.minFrameRate(),
+                format.maxFrameRate())
+                << devices[i] << format;
+        }
+    }
+}
+
+void tst_QCameraBackend::capturedFrames_matchCameraFormat_withEachCameraFormat()
+{
+    QFETCH(const QCameraDevice, device);
+    QFETCH(const QCameraFormat, format);
+
+    constexpr size_t frameCount = 5;
+
+    CameraStreamSetup setup(device);
+    setup.camera.setCameraFormat(format);
+    QCOMPARE(setup.camera.cameraFormat(), format);
+
+    setup.camera.setActive(true);
+    QVERIFY(setup.camera.isActive());
+    QVERIFY2(setup.grabber.tryWaitForFirstFrameInfo(), "Camera delivered no frames");
+
+    std::vector<VideoFrameInfo> frames = setup.grabber.waitAndTakeFrameInfos(frameCount);
+    QCOMPARE_GE(frames.size(), frameCount);
+
+    for (const VideoFrameInfo &frame : frames) {
+        QVERIFY(frame.isValid);
+        QCOMPARE(frame.size, format.resolution());
+        QCOMPARE(frame.pixelFormat, format.pixelFormat());
+    }
+    QVERIFY2(setup.errors.isEmpty(), qPrintable(setup.errors.join(u'\n')));
+}
+
 void tst_QCameraBackend::stream_endsWithNullFrame_whenStopped_withEachCameraDevice_data()
 {
     if (noCamera)
@@ -1633,6 +1666,177 @@ void tst_QCameraBackend::setCameraDevice_switchesStream_withoutDeactivatingOrErr
 
     QVERIFY(setup.camera.isActive());
     QCOMPARE(activeChanged.size(), 0);
+}
+
+void tst_QCameraBackend::setCameraDevice_keepsFrameFormat_whenSwitchingToDeviceWithSameFormat_data()
+{
+    QTest::addColumn<QCameraDevice>("fromDevice");
+    QTest::addColumn<QCameraFormat>("fromFormat");
+    QTest::addColumn<QCameraDevice>("toDevice");
+    QTest::addColumn<QCameraFormat>("toFormat");
+
+    if (noCamera)
+        QSKIP("No camera available");
+
+    // The frame rate does not affect the format of the frames, so formats are matched
+    // by resolution and pixel format only.
+    const auto haveSameFrameFormat = [](const QCameraFormat &a, const QCameraFormat &b) {
+        return a.resolution() == b.resolution() && a.pixelFormat() == b.pixelFormat();
+    };
+
+    const QList<QCameraDevice> devices = QMediaDevices::videoInputs();
+    qsizetype rowCount = 0;
+    for (qsizetype i = 0; i < devices.size(); ++i) {
+        for (qsizetype j = 0; j < devices.size(); ++j) {
+            if (i == j)
+                continue;
+
+            const QList<QCameraFormat> fromFormats = devices[i].videoFormats();
+            const QList<QCameraFormat> toFormats = devices[j].videoFormats();
+            for (const QCameraFormat &fromFormat : fromFormats) {
+                auto toFormat = std::find_if(
+                    toFormats.cbegin(),
+                    toFormats.cend(),
+                    [&](const QCameraFormat &format) {
+                        return haveSameFrameFormat(fromFormat, format);
+                    });
+                if (toFormat == toFormats.cend())
+                    continue;
+
+                QTest::addRow(
+                    "%lld: %s to %lld: %s, %dx%d, %s",
+                    qlonglong(i),
+                    qPrintable(devices[i].description()),
+                    qlonglong(j),
+                    qPrintable(devices[j].description()),
+                    fromFormat.resolution().width(),
+                    fromFormat.resolution().height(),
+                    qPrintable(QVideoFrameFormat::pixelFormatToString(fromFormat.pixelFormat())))
+                    << devices[i] << fromFormat << devices[j] << *toFormat;
+                ++rowCount;
+                break; // One shared frame format per pair of devices is enough
+            }
+        }
+    }
+
+    if (rowCount == 0)
+        QSKIP("No two camera devices support the same resolution and pixel format");
+}
+
+void tst_QCameraBackend::setCameraDevice_keepsFrameFormat_whenSwitchingToDeviceWithSameFormat()
+{
+    QFETCH(const QCameraDevice, fromDevice);
+    QFETCH(const QCameraFormat, fromFormat);
+    QFETCH(const QCameraDevice, toDevice);
+    QFETCH(const QCameraFormat, toFormat);
+
+    constexpr size_t frameCount = 5;
+
+    CameraStreamSetup setup(fromDevice);
+    setup.camera.setCameraFormat(fromFormat);
+    setup.camera.setActive(true);
+    QVERIFY(setup.camera.isActive());
+    QVERIFY2(setup.grabber.tryWaitForFirstFrameInfo(), "Camera delivered no frames");
+
+    // Changing the camera device resets the camera format, so it is set again right away.
+    setup.camera.setCameraDevice(toDevice);
+    setup.camera.setCameraFormat(toFormat);
+    QCOMPARE(setup.camera.cameraDevice(), toDevice);
+    QCOMPARE(setup.camera.cameraFormat(), toFormat);
+    QVERIFY(setup.camera.isActive());
+
+    size_t framesBefore = setup.grabber.getFrameInfos().size();
+    bool receivedFrames = QTest::qWaitFor(
+        [&] {
+            return setup.grabber.getFrameInfos().size() >= framesBefore + frameCount;
+        },
+        surfaceCaptureTestTimeout());
+    QVERIFY2(receivedFrames, "No frames after switching camera device");
+
+    // Both camera devices deliver frames with the same resolution and pixel format, so
+    // the format of the stream must not change at any point, not even while switching.
+    const std::vector<VideoFrameInfo> &frames = setup.grabber.getFrameInfos();
+    const VideoFrameInfo &firstFrame = frames.front();
+    for (size_t i = 0; i < frames.size(); ++i) {
+        const VideoFrameInfo &frame = frames[i];
+        QVERIFY2(
+            frame.isValid && frame.size == firstFrame.size
+                && frame.pixelFormat == firstFrame.pixelFormat,
+            qPrintable(u"Frame #%1 is %2 %3x%4, %5, but the first frame is %6x%7, %8"_s
+                .arg(i)
+                .arg(frame.isValid ? u"valid"_s : u"null"_s)
+                .arg(frame.size.width())
+                .arg(frame.size.height())
+                .arg(QVideoFrameFormat::pixelFormatToString(frame.pixelFormat))
+                .arg(firstFrame.size.width())
+                .arg(firstFrame.size.height())
+                .arg(QVideoFrameFormat::pixelFormatToString(firstFrame.pixelFormat))));
+    }
+    QVERIFY2(setup.errors.isEmpty(), qPrintable(setup.errors.join(u'\n')));
+}
+
+void tst_QCameraBackend::setCameraFormat_switchesStreamFormat_whileActive_data()
+{
+    if (noCamera)
+        QSKIP("No camera available");
+
+    addRowPerCameraDevice();
+}
+
+void tst_QCameraBackend::setCameraFormat_switchesStreamFormat_whileActive()
+{
+    QFETCH(const QCameraDevice, device);
+
+    CameraStreamSetup setup(device);
+    setup.camera.setActive(true);
+    QVERIFY(setup.camera.isActive());
+    QVERIFY2(setup.grabber.tryWaitForFirstFrameInfo(), "Camera delivered no frames");
+
+    const QList<QCameraFormat> videoFormats = device.videoFormats();
+    QVERIFY(!videoFormats.isEmpty());
+    for (const QCameraFormat &format : videoFormats) {
+        QString formatDescription = u"%1x%2, %3, %4-%5 fps"_s
+            .arg(format.resolution().width())
+            .arg(format.resolution().height())
+            .arg(QVideoFrameFormat::pixelFormatToString(format.pixelFormat()))
+            .arg(format.minFrameRate())
+            .arg(format.maxFrameRate());
+
+        size_t framesBefore = setup.grabber.getFrameInfos().size();
+        setup.camera.setCameraFormat(format);
+        QCOMPARE(setup.camera.cameraFormat(), format);
+        QVERIFY(setup.camera.isActive());
+
+        // Frames already in flight may still have the previous format, so wait
+        // until the stream eventually delivers frames in the new one.
+        bool receivedNewFormat = QTest::qWaitFor(
+            [&] {
+                const std::vector<VideoFrameInfo> &frames = setup.grabber.getFrameInfos();
+                for (size_t i = framesBefore; i < frames.size(); ++i) {
+                    if (frames[i].isValid && frames[i].size == format.resolution()
+                        && frames[i].pixelFormat == format.pixelFormat()) {
+                        return true;
+                    }
+                }
+                return false;
+            },
+            surfaceCaptureTestTimeout());
+
+        if (!receivedNewFormat) {
+            const std::vector<VideoFrameInfo> &frames = setup.grabber.getFrameInfos();
+            QString lastFrame = frames.size() > framesBefore
+                ? u"%1x%2, %3"_s
+                    .arg(frames.back().size.width())
+                    .arg(frames.back().size.height())
+                    .arg(QVideoFrameFormat::pixelFormatToString(frames.back().pixelFormat))
+                : u"none"_s;
+            QFAIL(qPrintable(u"No frames in format %1 after switching to it. Last frame: %2"_s
+                .arg(formatDescription, lastFrame)));
+        }
+        QVERIFY2(setup.errors.isEmpty(), qPrintable(setup.errors.join(u'\n')));
+    }
+
+    QVERIFY(setup.camera.isActive());
 }
 
 #ifdef QT_MM_HAVE_FAKE_XDG_PORTAL

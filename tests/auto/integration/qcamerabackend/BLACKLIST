@@ -1,11 +1,5 @@
 ci
 
-[testCameraFormat]
-macos darwin-mediabackend
-ios darwin-mediabackend
-ios ffmpeg-mediabackend
-android
-
 [testCameraCaptureMetadata]
 macos darwin-mediabackend
 ios darwin-mediabackend
@@ -60,8 +54,21 @@ ios darwin-mediabackend
 # QCamera::setActive(true) does not activate synchronously
 [setActive_startsCameraAndDeliversFrames_withEachCameraDevice]
 android ffmpeg-mediabackend
+[capturedFrames_matchCameraFormat_withEachCameraFormat]
+android ffmpeg-mediabackend
 [setActive_restartsStream_whenStartedAgainAfterStop_withEachCameraDevice]
 android ffmpeg-mediabackend
+
+# Darwin backend: The selected camera format is not applied, frames are delivered as UYVY
+[capturedFrames_matchCameraFormat_withEachCameraFormat]
+macos darwin-mediabackend
+
+# QCamera::cameraFormat() only reports the user-set format, never the one the backend picked
+[cameraFormat_isNotNull_whenActive]
+macos ffmpeg-mediabackend
+ios ffmpeg-mediabackend
+android ffmpeg-mediabackend
+macos darwin-mediabackend
 
 # Darwin reports the camera as active for a camera device that does not exist
 [setActive_fails_whenCameraDeviceDoesNotExist]
@@ -70,4 +77,16 @@ ios darwin-mediabackend
 
 # QCamera::setActive(true) does not activate synchronously
 [setCameraDevice_switchesStream_withoutDeactivatingOrErrors]
+android ffmpeg-mediabackend
+
+# Darwin backend: The selected camera format is not applied, frames are delivered as UYVY
+# Android: QCamera::setActive(true) does not activate synchronously
+[setCameraFormat_switchesStreamFormat_whileActive]
+android ffmpeg-mediabackend
+macos darwin-mediabackend
+
+# BUG: FFmpeg: While switching camera device, frames are delivered with a
+# different resolution than the selected camera format
+[setCameraDevice_keepsFrameFormat_whenSwitchingToDeviceWithSameFormat]
+macos ffmpeg-mediabackend
 android ffmpeg-mediabackend
