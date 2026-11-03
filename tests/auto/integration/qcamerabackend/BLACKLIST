@@ -35,3 +35,7 @@ android android-mediabackend
 
 [testNativeMetadata]
 android android-mediabackend
+
+# Formats differing only in color range compare equal, so they are listed twice
+[videoFormats_containsNoDuplicates_withEachCameraDevice]
+ios ffmpeg-mediabackend
