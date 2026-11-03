@@ -55,27 +55,24 @@ QAudioFormat makeHostFormatForSink(const QAudioDevice &device, const QAudioForma
 
 } // namespace
 
-QWASAPIAudioSinkStream::QWASAPIAudioSinkStream(QAudioDevice device, const QAudioFormat &format, std::optional<qsizetype> ringbufferSize,
-                                               QWindowsAudioSink *parent, float volume, std::optional<NativePeriodFrames> nativePeriodFrames, AudioEndpointRole role):
-    QPlatformAudioSinkStream{
-        std::move(device),
-        format,
-        ringbufferSize,
-        nativePeriodFrames,
-        volume,
-    },
-    m_role{
+QWASAPIAudioSinkStream::QWASAPIAudioSinkStream(QAudioDevice device, const QAudioFormat &format,
+                                               std::optional<qsizetype> ringbufferSize,
+                                               QWindowsAudioSink *parent, float volume,
+                                               std::optional<NativePeriodFrames> nativePeriodFrames,
+                                               AudioEndpointRole role)
+    : QPlatformAudioSinkStream{
+          std::move(device), format, ringbufferSize, nativePeriodFrames, volume,
+      },
+      m_role{
           role,
-    },
-    m_wasapiHandle {
-        CreateEvent(0, false, false, nullptr),
-    },
-    m_parent{
-        parent
-    },
-    m_hostFormat {
-        makeHostFormatForSink(m_audioDevice, format),
-    }
+      },
+      m_audioClientEventHandle{
+          CreateEvent(0, false, false, nullptr),
+      },
+      m_parent{ parent },
+      m_hostFormat{
+          makeHostFormatForSink(m_audioDevice, format),
+      }
 {
 }
 
@@ -187,8 +184,8 @@ bool QWASAPIAudioSinkStream::openAudioClient(ComPtr<IMMDevice> device, AudioEndp
 {
     using namespace QWindowsAudioUtils;
 
-    std::optional<AudioClientCreationResult> clientData =
-            createAudioClient(device, m_hostFormat, m_nativePeriodFrames, m_wasapiHandle, role);
+    std::optional<AudioClientCreationResult> clientData = createAudioClient(
+            device, m_hostFormat, m_nativePeriodFrames, m_audioClientEventHandle, role);
 
     if (!clientData)
         return false;
@@ -266,9 +263,10 @@ void QWASAPIAudioSinkStream::runProcessRingbufferLoop()
 
     for (;;) {
         constexpr std::chrono::milliseconds timeout = 2s;
-        DWORD retval = WaitForSingleObject(m_wasapiHandle.get(), timeout.count());
+        const bool wasSuspended = m_suspended;
+        DWORD retval = WaitForSingleObject(m_audioClientEventHandle.get(), timeout.count());
         if (retval != WAIT_OBJECT_0) {
-            if (m_suspended)
+            if (wasSuspended || m_suspended)
                 continue;
 
             handleAudioClientError();
@@ -311,9 +309,10 @@ void QWASAPIAudioSinkStream::runProcessCallbackLoop()
 
     for (;;) {
         constexpr std::chrono::milliseconds timeout = 2s;
-        DWORD retval = WaitForSingleObject(m_wasapiHandle.get(), timeout.count());
+        const bool wasSuspended = m_suspended;
+        DWORD retval = WaitForSingleObject(m_audioClientEventHandle.get(), timeout.count());
         if (retval != WAIT_OBJECT_0) {
-            if (m_suspended)
+            if (wasSuspended || m_suspended)
                 continue;
 
             handleAudioClientError();
@@ -406,7 +405,7 @@ bool QWASAPIAudioSinkStream::processCallback() noexcept Q_DECL_NONBLOCKING_FUNCT
 void QWASAPIAudioSinkStream::joinWorkerThread()
 {
     requestStop();
-    ::SetEvent(m_wasapiHandle.get()); // force wakeup
+    ::SetEvent(m_audioClientEventHandle.get()); // force wakeup
     m_workerThread->wait();
     m_workerThread = {};
 }
@@ -418,8 +417,9 @@ void QWASAPIAudioSinkStream::handleAudioClientError()
     audioClientStop(m_audioClient);
     audioClientReset(m_audioClient);
 
-    invokeOnAppThread([this] {
-        handleIOError(m_parent);
+    invokeOnAppThread([self = shared_from_this()] {
+        if (self->m_parent && self->m_parent->m_stream == self)
+            self->handleIOError(self->m_parent);
     });
 }
 

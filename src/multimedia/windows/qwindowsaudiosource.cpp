@@ -65,27 +65,20 @@ QAudioFormat makeHostFormatForSource(const QAudioDevice &device, const QAudioFor
 }
 } // namespace
 
-QWASAPIAudioSourceStream::QWASAPIAudioSourceStream(QAudioDevice device, const QAudioFormat &format,
-                                                   std::optional<qsizetype> ringbufferSize,
-                                                   QWindowsAudioSource *parent,
-                                                   float volume,
-                                                   std::optional<NativePeriodFrames> nativePeriodFrames):
-    QPlatformAudioSourceStream{
-        std::move(device),
-        format,
-        ringbufferSize,
-        nativePeriodFrames,
-        volume,
-    },
-    m_wasapiHandle {
-        CreateEvent(0, false, false, nullptr),
-    },
-    m_parent{
-        parent
-    },
-    m_hostFormat {
-        makeHostFormatForSource(m_audioDevice, format),
-    }
+QWASAPIAudioSourceStream::QWASAPIAudioSourceStream(
+        QAudioDevice device, const QAudioFormat &format, std::optional<qsizetype> ringbufferSize,
+        QWindowsAudioSource *parent, float volume,
+        std::optional<NativePeriodFrames> nativePeriodFrames)
+    : QPlatformAudioSourceStream{
+          std::move(device), format, ringbufferSize, nativePeriodFrames, volume,
+      },
+      m_audioClientEventHandle{
+          CreateEvent(0, false, false, nullptr),
+      },
+      m_parent{ parent },
+      m_hostFormat{
+          makeHostFormatForSource(m_audioDevice, format),
+      }
 {
 }
 
@@ -183,7 +176,7 @@ bool QWASAPIAudioSourceStream::openAudioClient(ComPtr<IMMDevice> device)
     using namespace QWindowsAudioUtils;
 
     std::optional<AudioClientCreationResult> clientData =
-            createAudioClient(device, m_hostFormat, m_nativePeriodFrames, m_wasapiHandle);
+            createAudioClient(device, m_hostFormat, m_nativePeriodFrames, m_audioClientEventHandle);
 
     if (!clientData)
         return false;
@@ -238,9 +231,10 @@ void QWASAPIAudioSourceStream::runProcessLoop()
     using namespace QWindowsAudioUtils;
     for (;;) {
         constexpr std::chrono::milliseconds timeout = 2s;
-        DWORD retval = WaitForSingleObject(m_wasapiHandle.get(), timeout.count());
+        const bool wasSuspended = m_suspended;
+        DWORD retval = WaitForSingleObject(m_audioClientEventHandle.get(), timeout.count());
         if (retval != WAIT_OBJECT_0) {
-            if (m_suspended)
+            if (wasSuspended || m_suspended)
                 continue;
 
             handleAudioClientError();
@@ -327,15 +321,16 @@ void QWASAPIAudioSourceStream::handleAudioClientError()
     audioClientReset(m_audioClient);
     requestStop();
 
-    invokeOnAppThread([this] {
-        handleIOError(m_parent);
+    invokeOnAppThread([self = shared_from_this()] {
+        if (self->m_parent && self->m_parent->m_stream == self)
+            self->handleIOError(self->m_parent);
     });
 }
 
 void QWASAPIAudioSourceStream::joinWorkerThread()
 {
     requestStop();
-    ::SetEvent(m_wasapiHandle.get()); // force wakeup
+    ::SetEvent(m_audioClientEventHandle.get()); // force wakeup
     m_workerThread->wait();
     m_workerThread = {};
 }

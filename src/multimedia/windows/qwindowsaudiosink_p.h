@@ -103,7 +103,7 @@ private:
 
     const AudioEndpointRole m_role;
 
-    const QUniqueWin32NullHandle m_wasapiHandle;
+    const QUniqueWin32NullHandle m_audioClientEventHandle;
     std::unique_ptr<QThread> m_workerThread;
 
     AudioCallback m_audioCallback;
