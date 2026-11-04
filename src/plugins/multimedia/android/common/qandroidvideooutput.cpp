@@ -16,6 +16,7 @@
 #include <private/qvideoframe_p.h>
 #include <qvideosink.h>
 #include <qvideoframeformat.h>
+#include <qpointer.h>
 #include <qthread.h>
 #include <qfile.h>
 
@@ -39,11 +40,27 @@ private:
     std::unique_ptr<QRhiTexture> m_tex;
 };
 
+#if QT_CONFIG(opengl)
+static QOpenGLContextGroup *shareGroup(QRhi &rhi)
+{
+    if (rhi.backend() != QRhi::OpenGLES2)
+        return nullptr;
+    auto *context = static_cast<const QRhiGles2NativeHandles *>(rhi.nativeHandles())->context;
+    return context ? context->shareGroup() : nullptr;
+}
+
+class AndroidTextureThread;
+
 class AndroidTextureVideoBuffer final : public QHwVideoBuffer
 {
 public:
-    AndroidTextureVideoBuffer(std::unique_ptr<QRhiTexture> tex, const QSize &size)
-        : m_size(size), m_tex(std::move(tex))
+    AndroidTextureVideoBuffer(std::weak_ptr<AndroidTextureThread> thread,
+                              std::unique_ptr<QRhiTexture> tex, QOpenGLContextGroup *shareGroup,
+                              const QSize &size)
+        : m_thread(std::move(thread)),
+          m_shareGroup(shareGroup),
+          m_size(size),
+          m_tex(std::move(tex))
     {}
 
     MapData map(QVideoFrame::MapMode mode) override;
@@ -56,10 +73,18 @@ public:
 
     QVideoFrameTexturesUPtr mapTextures(QRhi &rhi) override
     {
+        // The texture can only be used in contexts sharing with the one it has been created in.
+        // Otherwise, returning nullptr makes the caller fall back to map().
+        if (!m_shareGroup || m_shareGroup != shareGroup(rhi))
+            return nullptr;
         return std::make_unique<QAndroidVideoFrameTextures>(&rhi, m_size, m_tex->nativeTexture().object);
     }
 
+    QSize size() const { return m_size; }
+
 private:
+    std::weak_ptr<AndroidTextureThread> m_thread;
+    QPointer<QOpenGLContextGroup> m_shareGroup;
     QSize m_size;
     std::unique_ptr<QRhiTexture> m_tex;
     QImage m_image;
@@ -69,37 +94,24 @@ private:
 class ImageFromVideoFrameHelper final : public QHwVideoBuffer
 {
 public:
-    ImageFromVideoFrameHelper(AndroidTextureVideoBuffer &atvb) : m_atvb(atvb)
+    ImageFromVideoFrameHelper(AndroidTextureVideoBuffer &atvb, QRhi *rhi)
+        : m_atvb(atvb), m_rhi(rhi)
     {}
     QVideoFrameTexturesUPtr mapTextures(QRhi &rhi) override
     {
         return m_atvb.mapTextures(rhi);
     }
 
+    QRhi *associatedCurrentThreadRhi() const override { return m_rhi; }
+
     MapData map(QVideoFrame::MapMode) override { return {}; }
     void unmap() override {}
 
 private:
     AndroidTextureVideoBuffer &m_atvb;
+    QRhi *m_rhi;
 };
-
-QAbstractVideoBuffer::MapData AndroidTextureVideoBuffer::map(QVideoFrame::MapMode mode)
-{
-    QAbstractVideoBuffer::MapData mapData;
-
-    if (m_mapMode == QVideoFrame::NotMapped && mode == QVideoFrame::ReadOnly) {
-        m_mapMode = QVideoFrame::ReadOnly;
-        m_image = qImageFromVideoFrame(QVideoFramePrivate::createFrame(
-                std::make_unique<ImageFromVideoFrameHelper>(*this),
-                QVideoFrameFormat(m_size, QVideoFrameFormat::Format_RGBA8888)));
-        mapData.planeCount = 1;
-        mapData.bytesPerLine[0] = m_image.bytesPerLine();
-        mapData.dataSize[0] = static_cast<int>(m_image.sizeInBytes());
-        mapData.data[0] = m_image.bits();
-    }
-
-    return mapData;
-}
+#endif
 
 static const float g_quad[] = {
     -1.f, -1.f, 0.f, 0.f,
@@ -296,7 +308,9 @@ public Q_SLOTS:
             m_surfaceTexture->updateTexImage();
             auto matrix = extTransformMatrix(m_surfaceTexture.get());
             auto tex = m_textureCopy->copyExternalGlTexture(m_size, matrix);
-            auto *buffer = new AndroidTextureVideoBuffer(std::move(tex), m_size);
+            auto *buffer = new AndroidTextureVideoBuffer(m_videoOutput->getSurfaceThread(),
+                                                         std::move(tex), shareGroup(*m_rhi),
+                                                         m_size);
             QVideoFrame frame(buffer, QVideoFrameFormat(m_size, QVideoFrameFormat::Format_RGBA8888));
             Q_EMIT newFrame(frame);
 #endif
@@ -304,6 +318,19 @@ public Q_SLOTS:
     }
 
     void clearFrame() { Q_EMIT newFrame({}); }
+
+#if QT_CONFIG(opengl)
+    QImage imageFromVideoBuffer(AndroidTextureVideoBuffer &buffer)
+    {
+        Q_ASSERT(isCurrentThread());
+        if (!m_rhi)
+            return {};
+
+        return qImageFromVideoFrame(QVideoFramePrivate::createFrame(
+                std::make_unique<ImageFromVideoFrameHelper>(buffer, m_rhi.get()),
+                QVideoFrameFormat(buffer.size(), QVideoFrameFormat::Format_RGBA8888)));
+    }
+#endif
 
     void setFrameSize(QSize size) { m_size = size; }
 
@@ -362,6 +389,40 @@ private:
     std::unique_ptr<TextureCopy> m_textureCopy;
     QSize m_size;
 };
+
+#if QT_CONFIG(opengl)
+QAbstractVideoBuffer::MapData AndroidTextureVideoBuffer::map(QVideoFrame::MapMode mode)
+{
+    QAbstractVideoBuffer::MapData mapData;
+
+    if (m_mapMode != QVideoFrame::NotMapped || mode != QVideoFrame::ReadOnly)
+        return mapData;
+
+    // Read back in the texture thread: a thread-local rhi of the calling thread does not share
+    // a context with the texture.
+    const std::shared_ptr<AndroidTextureThread> thread = m_thread.lock();
+    if (!thread)
+        return mapData;
+
+    if (thread->isCurrentThread()) {
+        m_image = thread->imageFromVideoBuffer(*this);
+    } else {
+        QMetaObject::invokeMethod(
+                thread.get(), [&] { m_image = thread->imageFromVideoBuffer(*this); },
+                Qt::BlockingQueuedConnection);
+    }
+
+    if (m_image.isNull())
+        return mapData;
+
+    m_mapMode = QVideoFrame::ReadOnly;
+    mapData.planeCount = 1;
+    mapData.bytesPerLine[0] = m_image.bytesPerLine();
+    mapData.dataSize[0] = static_cast<int>(m_image.sizeInBytes());
+    mapData.data[0] = m_image.bits();
+    return mapData;
+}
+#endif
 
 namespace {
 
