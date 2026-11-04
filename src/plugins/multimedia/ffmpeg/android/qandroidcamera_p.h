@@ -26,6 +26,7 @@
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 
 #include <atomic>
+#include <memory>
 #include <optional>
 
 QT_BEGIN_NAMESPACE
@@ -37,6 +38,10 @@ class QVideoFrame;
 class QAndroidVideoFrameFactory;
 
 namespace QFFmpeg {
+
+class QAndroidImageReader;
+class QAndroidImageRegistry;
+struct QAndroidPreviewTarget;
 
 using QtJniCamera2 = QtJniTypes::QtJniCamera2;
 
@@ -111,6 +116,10 @@ private:
     void restartCamera();
     void queueCameraRestart();
 
+    bool acceptsFrames() const;
+    void deliverFrame(QVideoFrame videoFrame, bool takePhoto);
+    void releaseImageReader();
+
     State m_state = State::Closed;
     QCameraDevice m_cameraDevice;
     QtJniCamera2 m_jniCamera;
@@ -119,6 +128,9 @@ private:
     std::unique_ptr<QFFmpeg::HWAccel> m_hwAccel;
 
     std::shared_ptr<QAndroidVideoFrameFactory> m_frameFactory;
+    std::shared_ptr<QAndroidImageReader> m_imageReader;
+    std::shared_ptr<QAndroidImageRegistry> m_imageRegistry;
+    std::shared_ptr<QAndroidPreviewTarget> m_previewTarget;
     QList<QCamera::FlashMode> m_supportedFlashModes;
     // List of supported focus-modes as reported by the Android camera device. Queried once when
     // camera-device is initialized. Useful for avoiding multiple JNI calls.

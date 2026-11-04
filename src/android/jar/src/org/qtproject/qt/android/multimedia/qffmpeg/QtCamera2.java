@@ -54,9 +54,8 @@ class QtCamera2 {
     // Thread and handler to that allows us to receive callbacks and frames on a background thread.
     HandlerThread mBackgroundThread;
     Handler mBackgroundHandler;
-    // This object allows us to receive frames with associated callbacks. This ImageReader
-    // is used to emit preview/video frames to the C++ thread.
-    ImageReader mPreviewImageReader = null;
+    // Output of preview/video frames, the native side owns the image reader behind it.
+    Surface mPreviewSurface = null;
     // Used to emit still photo images to the C++ thread.
     ImageReader mStillPhotoImageReader = null;
     CameraManager mCameraManager;
@@ -245,61 +244,14 @@ class QtCamera2 {
         }
     };
 
-    native void onPreviewFrameAvailable(long qAndroidCameraPtr, Image frame);
-
-    // Callback for when we receive a preview/video frame in the associated mPreviewImageReader.
-    // Events for this object are invokved on the background processing thread.
-    ImageReader.OnImageAvailableListener mOnPreviewImageAvailableListener = new ImageReader.OnImageAvailableListener() {
-        @Override
-        public void onImageAvailable(ImageReader reader) {
-            try {
-                Image img = reader.acquireLatestImage();
-                if (img != null)
-                    QtCamera2.this.onPreviewFrameAvailable(getQAndroidCameraPtr(), img);
-
-            } catch (IllegalStateException e) {
-                // It seems that ffmpeg is processing images for too long (and does not close it)
-                // Give it a little more time. Restarting the camera session if it doesn't help
-                Log.e(LOG_TAG, "Image processing taking too long. Let's wait 0,5s more " + e);
-                try {
-                    Thread.sleep(500);
-                    QtCamera2.this.onPreviewFrameAvailable(
-                        getQAndroidCameraPtr(),
-                        reader.acquireLatestImage());
-
-                } catch (IllegalStateException | InterruptedException e2) {
-                    Log.e(LOG_TAG, "Will not wait anymore. Restart camera session. " + e2);
-                    // Remember current used camera ID, because stopAndClose will clear the value
-                    String cameraId = mCameraId;
-                    stopAndClose();
-                    // Re-register surfaces
-                    addPreviewImageReader(mPreviewImageReader.getWidth(),
-                                          mPreviewImageReader.getHeight());
-                    if (mStillPhotoImageReader != null) {
-                        addStillImageReader(mStillPhotoImageReader.getWidth(),
-                                            mStillPhotoImageReader.getHeight());
-                    }
-                    open(cameraId, null);
-                }
-            }
-        }
-    };
-
     @UsedFromNativeCode
-    void prepareCamera(int width, int height, int minFps, int maxFps, int stillWidth, int stillHeight) {
-        addPreviewImageReader(width, height);
+    void prepareCamera(int minFps, int maxFps, Surface previewSurface, int stillWidth, int stillHeight) {
+        if (mPreviewSurface != null)
+            removeSurface(mPreviewSurface);
+        mPreviewSurface = previewSurface;
+        addSurface(mPreviewSurface);
         setFrameRate(minFps, maxFps);
         addStillImageReader(stillWidth, stillHeight);
-    }
-
-    private void addPreviewImageReader(int width, int height) {
-        if (mPreviewImageReader != null)
-            removeSurface(mPreviewImageReader.getSurface());
-
-        mPreviewImageReader =
-                ImageReader.newInstance(width, height, ImageFormat.YUV_420_888, MaxNumberFrames);
-        mPreviewImageReader.setOnImageAvailableListener(mOnPreviewImageAvailableListener, mBackgroundHandler);
-        addSurface(mPreviewImageReader.getSurface());
     }
 
     void addStillImageReader(int width, int height) {
@@ -601,8 +553,8 @@ class QtCamera2 {
         CaptureRequest.Builder requestBuilder = mCameraDevice.createCaptureRequest(
             CameraDevice.TEMPLATE_STILL_CAPTURE);
         // Any in-between frames gathered while waiting for still photo, can be sent into
-        // the preview ImageReader.
-        requestBuilder.addTarget(mPreviewImageReader.getSurface());
+        // the preview surface.
+        requestBuilder.addTarget(mPreviewSurface);
 
         applyStillPhotoSettingsToCaptureRequestBuilder(
             requestBuilder,
@@ -888,7 +840,7 @@ class QtCamera2 {
     void setRepeatingRequestToPreview() throws CameraAccessException {
         synchronized (mSyncedMembers) {
             mPreviewRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
-            mPreviewRequestBuilder.addTarget(mPreviewImageReader.getSurface());
+            mPreviewRequestBuilder.addTarget(mPreviewSurface);
 
             applyPreviewSettingsToCaptureRequestBuilder(
                 mPreviewRequestBuilder,

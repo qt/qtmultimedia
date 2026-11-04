@@ -5,21 +5,26 @@
 
 #include <jni.h>
 
+#include <android/hardware_buffer.h>
+
 #include <atomic>
 #include <future>
 #include <limits>
 #include <memory>
+#include <mutex>
 #include <optional>
 
 #include <QtCore/qdebug.h>
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qmetaobject.h>
+#include <QtCore/qmutex.h>
 #include <QtCore/qpermissions.h>
 #include <QtCore/private/qandroidextras_p.h>
 
 #include <QtGui/qguiapplication.h>
 #include <QtGui/qscreen.h>
 
+#include <QtFFmpegMediaPluginImpl/private/qandroidimageregistry_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qandroidvideoframefactory_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegmediacapturesession_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegvideobuffer_p.h>
@@ -38,6 +43,9 @@ Q_DECLARE_JNI_CLASS(QtCameraActivation,
                     "org/qtproject/qt/android/multimedia/qffmpeg/QtCameraActivation")
 
 using namespace Qt::Literals::StringLiterals;
+
+// Typed so that callMethod() passes an android.view.Surface, matching prepareCamera().
+Q_DECLARE_JNI_CLASS(Surface, "android/view/Surface")
 
 namespace {
 
@@ -192,6 +200,15 @@ int sensorOrientation(QString cameraId)
 
 namespace QFFmpeg {
 
+// The preview sink can run after QAndroidImageReader::setSink({}) has returned, so it cannot
+// capture the camera directly. It locks the mutex and checks the camera pointer instead; the
+// camera clears the pointer under the same mutex before it is destroyed.
+struct QAndroidPreviewTarget
+{
+    QMutex mutex;
+    QAndroidCamera *camera = nullptr;
+};
+
 // QAndroidCamera
 
 QAndroidCamera::QAndroidCamera(QCamera *camera)
@@ -199,7 +216,9 @@ QAndroidCamera::QAndroidCamera(QCamera *camera)
     , m_jniCamera(
         static_cast<jlong>(reinterpret_cast<uintptr_t>(this)),
         QNativeInterface::QAndroidApplication::context())
+    , m_previewTarget(std::make_shared<QAndroidPreviewTarget>())
 {
+    m_previewTarget->camera = this;
 
     m_hwAccel = QFFmpeg::HWAccel::create(AVHWDeviceType::AV_HWDEVICE_TYPE_MEDIACODEC);
     if (camera) {
@@ -220,6 +239,11 @@ QAndroidCamera::~QAndroidCamera()
     // Flush queued events / frames and clear the reference back to this
     // this instance. Blocking call.
     m_jniCamera.callMethod<void>("destroy");
+    {
+        std::lock_guard lock(m_previewTarget->mutex);
+        m_previewTarget->camera = nullptr;
+    }
+    releaseImageReader();
     setState(State::Closed);
 }
 
@@ -250,12 +274,17 @@ QVideoFrameFormat QAndroidCamera::frameFormat() const
     return {};
 }
 
+bool QAndroidCamera::acceptsFrames() const
+{
+    return m_state != State::Closed;
+}
+
 // Called by the Java-side processing background thread.
 void QAndroidCamera::frameAvailable(QJniObject image, bool takePhoto)
 {
     // Frames may arrive while activating, before activeChanged(true). The capture session
     // is connected ahead of time by onSourceActivating(), so they are not lost.
-    if (m_state == State::Closed || m_frameFactory == nullptr) {
+    if (!acceptsFrames() || m_frameFactory == nullptr) {
         image.callMethod<void>("close");
         return;
     }
@@ -264,6 +293,11 @@ void QAndroidCamera::frameAvailable(QJniObject image, bool takePhoto)
     if (!videoFrame.isValid())
         return;
 
+    deliverFrame(std::move(videoFrame), takePhoto);
+}
+
+void QAndroidCamera::deliverFrame(QVideoFrame videoFrame, bool takePhoto)
+{
     videoFrame.setMirrored(m_cameraDevice.position() == QCameraDevice::Position::FrontFace);
 
     if (!takePhoto)
@@ -325,6 +359,7 @@ void QAndroidCamera::setActive(bool active)
     if (!active || !checkCameraPermission()) {
         m_jniCamera.callMethod<void>("stopAndClose");
         m_jniCamera.callMethod<void>("clearSurfaces");
+        releaseImageReader();
         setState(State::Closed);
         return;
     }
@@ -337,6 +372,7 @@ void QAndroidCamera::setActive(bool active)
     q23::expected<void, QString> result = tryActivate();
     if (!result) {
         m_jniCamera.callMethod<void>("stopAndClose");
+        releaseImageReader();
         setState(State::Closed);
         if (m_session)
             m_session->onSourceActivationFailure(*this);
@@ -373,14 +409,48 @@ q23::expected<void, QString> QAndroidCamera::tryActivate()
     // Create frameFactory when ImageReader is created;
     m_frameFactory = QAndroidVideoFrameFactory::create();
 
+    releaseImageReader();
+    m_imageReader = QAndroidImageReader::create(m_videoResolution,
+                                                AHARDWAREBUFFER_USAGE_CPU_READ_OFTEN
+                                                        | AHARDWAREBUFFER_USAGE_GPU_SAMPLED_IMAGE);
+    m_imageRegistry = m_imageReader ? QAndroidImageRegistry::create() : nullptr;
+    if (!m_imageRegistry) {
+        releaseImageReader();
+        return q23::unexpected{ u"Failed to create preview image reader"_s };
+    }
+
+    // The sink captures the registry, which holds the reader, which holds the sink. The cycle is
+    // broken by releaseImageReader().
+    m_imageReader->setSink([target = m_previewTarget, registry = m_imageRegistry](
+                                   AImagePtr image, std::shared_ptr<QAndroidImageReader> reader) {
+        // Wrapping the image first makes its slot close it on every path below.
+        QAndroidImageSlot slot(std::move(reader), std::move(image));
+
+        std::lock_guard lock(target->mutex);
+        QAndroidCamera *camera = target->camera;
+        if (!camera || !camera->acceptsFrames()) {
+            qCWarning(qLCAndroidCamera) << "Received preview frame when not active... ignoring";
+            return;
+        }
+
+        QVideoFrame videoFrame = createVideoFrame(*registry, std::move(slot), QVideoFrameFormat{});
+        if (!videoFrame.isValid())
+            return;
+
+        videoFrame.setRotation(camera->rotation());
+        camera->deliverFrame(std::move(videoFrame), false);
+    });
+
     // Most supported format combination for ImageReaders in a session is YUV_420_888 for
     // preview/video, and JPEG for stills
     // TODO: Set session combinations based on device capabilities:
     // https://developer.android.com/reference/android/hardware/camera2/CameraDevice#regular-capture
-    m_jniCamera.callMethod<void>("prepareCamera", static_cast<jint>(m_videoResolution.width()),
-                                 static_cast<jint>(m_videoResolution.height()),
-                                 static_cast<jint>(m_cameraFormat.minFrameRate()),
+    const QJniObject previewSurface = m_imageReader->surface();
+    // A plain QJniObject argument would be deduced as java.lang.Object, which does not match the
+    // android.view.Surface parameter of prepareCamera().
+    m_jniCamera.callMethod<void>("prepareCamera", static_cast<jint>(m_cameraFormat.minFrameRate()),
                                  static_cast<jint>(m_cameraFormat.maxFrameRate()),
+                                 previewSurface.object<QtJniTypes::Surface>(),
                                  static_cast<jint>(m_stillReaderSize.width()),
                                  static_cast<jint>(m_stillReaderSize.height()));
 
@@ -398,6 +468,17 @@ q23::expected<void, QString> QAndroidCamera::tryActivate()
 
     // Assumes the Java side always reports a result.
     return result.get();
+}
+
+// Call after stopAndClose(). Frames still in use keep the reader alive through their leases.
+void QAndroidCamera::releaseImageReader()
+{
+    if (m_imageReader)
+        m_imageReader->setSink({});
+    if (m_imageRegistry)
+        m_imageRegistry->stop();
+    m_imageRegistry.reset();
+    m_imageReader.reset();
 }
 
 // TODO: setState is currently being used by the C++ thread owning
@@ -867,14 +948,6 @@ namespace {
 
 } // Anonymous namespace
 
-static void onPreviewFrameAvailable(JNIEnv *, jobject, jlong qAndroidCameraPtr,
-                                    QtJniTypes::Image image)
-{
-    QFFmpeg::QAndroidCamera &camera = jLongToQAndroidCamera(qAndroidCameraPtr);
-    camera.frameAvailable(QJniObject(image));
-}
-Q_DECLARE_JNI_NATIVE_METHOD(onPreviewFrameAvailable)
-
 static void onStillPhotoAvailable(JNIEnv *, jobject, jlong qAndroidCameraPtr,
                                   QtJniTypes::Image image)
 {
@@ -980,7 +1053,6 @@ bool QFFmpeg::QAndroidCamera::registerNativeMethods()
             Q_JNI_NATIVE_METHOD(onCaptureSessionConfigureFailed),
             Q_JNI_NATIVE_METHOD(onStillReaderSwapFailed),
             Q_JNI_NATIVE_METHOD(onCaptureSessionFailed),
-            Q_JNI_NATIVE_METHOD(onPreviewFrameAvailable),
             Q_JNI_NATIVE_METHOD(onStillPhotoAvailable),
             Q_JNI_NATIVE_METHOD(onSessionClosed),
             Q_JNI_NATIVE_METHOD(onStillPhotoCaptureFailed),
