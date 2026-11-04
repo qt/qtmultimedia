@@ -9,10 +9,9 @@ Change-Id: I0daf6fc825e2cabb8123fb7fa4c36bc423e96169
  1 file changed, 10 insertions(+)
 
 diff --git a/src/3rdparty/dr_libs/dr_wav.h b/src/3rdparty/dr_libs/dr_wav.h
-index bfe842682..de37f857a 100644
 --- a/src/3rdparty/dr_libs/dr_wav.h
 +++ b/src/3rdparty/dr_libs/dr_wav.h
-@@ -148,12 +148,14 @@ extern "C" {
+@@ -148,12 +148,14 @@
  #define DRWAV_VERSION_MAJOR     0
  #define DRWAV_VERSION_MINOR     14
  #define DRWAV_VERSION_REVISION  6
@@ -27,7 +26,7 @@ index bfe842682..de37f857a 100644
  typedef unsigned char           drwav_uint8;
  typedef   signed short          drwav_int16;
  typedef unsigned short          drwav_uint16;
-@@ -1339,12 +1341,14 @@ DRWAV_API float drwav_bytes_to_f32(const drwav_uint8* data);
+@@ -1339,12 +1341,14 @@
  /* Compares a GUID for the purpose of checking the type of a Wave64 chunk. */
  DRWAV_API drwav_bool32 drwav_guid_equal(const drwav_uint8 a[16], const drwav_uint8 b[16]);
  
@@ -42,38 +41,38 @@ index bfe842682..de37f857a 100644
  #endif  /* dr_wav_h */
  
  
-@@ -1486,12 +1490,15 @@ DRWAV_API drwav_bool32 drwav_fourcc_equal(const drwav_uint8* a, const char* b);
+@@ -1485,12 +1489,15 @@
+         #define DRWAV_HAS_BYTESWAP64_INTRINSIC
      #endif
      #if ((__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8))
          #define DRWAV_HAS_BYTESWAP16_INTRINSIC
      #endif
  #endif
- 
++
 +QT_BEGIN_NAMESPACE
 +namespace QtPrivate {
-+
+ 
  DRWAV_API void drwav_version(drwav_uint32* pMajor, drwav_uint32* pMinor, drwav_uint32* pRevision)
  {
      if (pMajor) {
          *pMajor = DRWAV_VERSION_MAJOR;
      }
- 
-@@ -8683,12 +8690,15 @@ DRWAV_API drwav_bool32 drwav_fourcc_equal(const drwav_uint8* a, const char* b)
+@@ -8647,12 +8654,15 @@
+ }
  
  #ifdef __MRC__
  /* Undo the pragma at the beginning of this file. */
  #pragma options opt reset
  #endif
- 
++
 +} // namespace QtPrivate
 +QT_END_NAMESPACE
-+
+ 
  #endif  /* dr_wav_c */
  #endif  /* DR_WAV_IMPLEMENTATION */
  
  /*
- REVISION HISTORY
- ================
+ This software is available as a choice of the following licenses. Choose
 -- 
 2.54.0 (Apple Git-157)
 
