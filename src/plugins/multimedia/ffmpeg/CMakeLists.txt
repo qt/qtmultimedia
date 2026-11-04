@@ -249,6 +249,7 @@ if (ANDROID)
             android/qandroidvideoframebuffer_p.h android/qandroidvideoframebuffer.cpp
             android/qandroidvideoframefactory_p.h android/qandroidvideoframefactory.cpp
             android/qandroidimagecapture_p.h android/qandroidimagecapture.cpp
+            android/qandroidimageregistry_p.h android/qandroidimageregistry.cpp
             android/qandroidscreencapture_p.h android/qandroidscreencapture.cpp
             android/qandroidcacertificates_p.h android/qandroidcacertificates.cpp
             ../android/wrappers/jni/androidsurfacetexture_p.h
