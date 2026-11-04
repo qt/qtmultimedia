@@ -9,12 +9,13 @@
     ],
 
     "Homepage": "https://github.com/mackron/dr_libs",
-    "Version": "0.14.6-snapshot-019e75ba",
-    "DownloadLocation": "https://github.com/mackron/dr_libs/commit/019e75ba8e9ac47222dfb87671029812069f68dc",
+    "Version": "0.14.6",
+    "DownloadLocation": "https://github.com/mackron/dr_libs/releases/tag/wav-$<VERSION>",
 
     "License": "The Unlicense or MIT No Attribution",
     "LicenseId": "Unlicense OR MIT-0",
     "LicenseFile": "LICENSE",
     "Copyright": "Copyright 2023 David Reid",
-    "PURL": "pkg:github/mackron/dr_libs@019e75ba8e9ac47222dfb87671029812069f68dc"
+    "PURL": "pkg:github/mackron/dr_libs@wav-$<VERSION>",
+    "CPE": "cpe:2.3:a:mackron:dr_libs:$<VERSION>:*:*:*:*:*:*:*"
 }
