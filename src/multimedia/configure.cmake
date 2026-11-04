@@ -232,7 +232,7 @@ qt_feature("linux_v4l" PRIVATE
 )
 qt_feature("linux_dmabuf" PRIVATE
     LABEL "Linux DMA buffer support"
-    CONDITION TEST_egl_has_image AND QT_FEATURE_egl AND TEST_linux_dmabuf
+    CONDITION TEST_egl_has_image AND QT_FEATURE_egl AND TEST_linux_dmabuf AND NOT ANDROID
 )
 qt_feature("gpu_vivante" PRIVATE
     LABEL "Vivante GPU direct-texture zero-copy video import (glTexDirectVIV)"
