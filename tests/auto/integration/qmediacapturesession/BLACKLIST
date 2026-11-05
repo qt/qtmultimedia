@@ -1,2 +1,15 @@
 # QTBUG-129956
 ci !windows !linux !macos !android !ios
+
+# Android: The first two frames get the
+# same timestamp, which the encoder rejects, so durationChanged is never emitted
+[record_video_without_preview]
+android ffmpeg-mediabackend
+[can_add_and_remove_Camera]
+android ffmpeg-mediabackend
+[can_disconnect_Camera_when_recording]
+android ffmpeg-mediabackend
+[can_record_Camera_with_null_CameraDevice]
+android ffmpeg-mediabackend
+[can_add_ImageCapture_and_capture_during_recording]
+android ffmpeg-mediabackend

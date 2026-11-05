@@ -21,6 +21,7 @@ if (QT_FEATURE_ffmpeg)
         src/org/qtproject/qt/android/multimedia/qffmpeg/CameraStillPhotoPrecaptureCallback.java
         src/org/qtproject/qt/android/multimedia/qffmpeg/QtExifDataHandler.java
         src/org/qtproject/qt/android/multimedia/qffmpeg/QtCamera2.java
+        src/org/qtproject/qt/android/multimedia/qffmpeg/QtCameraActivation.java
         src/org/qtproject/qt/android/multimedia/qffmpeg/QtCameraAvailabilityListener.java
         src/org/qtproject/qt/android/multimedia/qffmpeg/QtScreenGrabber.java
         src/org/qtproject/qt/android/multimedia/qffmpeg/QtScreenCaptureService.java

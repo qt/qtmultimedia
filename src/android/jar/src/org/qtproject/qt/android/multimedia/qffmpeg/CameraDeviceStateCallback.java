@@ -3,6 +3,7 @@
 package org.qtproject.qt.android.multimedia.qffmpeg;
 
 import android.hardware.camera2.CameraDevice;
+import android.util.Log;
 
 // All events in this class are invoked by the background thread.
 // TODO: The events in this class access QtCamera2 members directly
@@ -27,14 +28,18 @@ class CameraDeviceStateCallback extends CameraDevice.StateCallback {
         cameraDevice.close();
         if (mMainCameraObject.mCameraDevice == cameraDevice)
             mMainCameraObject.mCameraDevice = null;
-        mMainCameraObject.onCameraDisconnect(mMainCameraObject.getQAndroidCameraPtr());
+        if (!mMainCameraObject.reportActivationFailure("Camera was disconnected"))
+            mMainCameraObject.onCameraDisconnect(mMainCameraObject.getQAndroidCameraPtr());
     }
     @Override
     public void onError(CameraDevice cameraDevice, int error) {
         cameraDevice.close();
         if (mMainCameraObject.mCameraDevice == cameraDevice)
             mMainCameraObject.mCameraDevice = null;
-        mMainCameraObject.onCameraError(mMainCameraObject.getQAndroidCameraPtr(), error);
+        if (mMainCameraObject.reportActivationFailure("Failed to open camera"))
+            Log.w(QtCamera2.LOG_TAG, "Camera error while opening, Camera2 error code: " + error);
+        else
+            mMainCameraObject.onCameraError(mMainCameraObject.getQAndroidCameraPtr(), error);
     }
     @Override
     public void onClosed(CameraDevice cameraDevice) {

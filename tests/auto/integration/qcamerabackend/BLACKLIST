@@ -21,8 +21,11 @@ android android-mediabackend
 [testExposureMode]
 android android-mediabackend
 
+# Android: Recording now starts at the first camera frame. The first two frames get the
+# same timestamp, which the encoder rejects
 [testNativeMetadata]
 android android-mediabackend
+android ffmpeg-mediabackend
 
 # Formats differing only in color range compare equal, so they are listed twice
 [videoFormats_containsNoDuplicates_withEachCameraDevice]
@@ -42,7 +45,6 @@ macos darwin-mediabackend
 android ffmpeg-mediabackend
 
 # Stopping the camera does not end the stream with a null-frame
-# Android: QCamera::setActive(true) does not activate synchronously
 [stream_endsWithNullFrame_whenStopped_withEachCameraDevice]
 macos ffmpeg-mediabackend
 ios ffmpeg-mediabackend
@@ -58,12 +60,8 @@ android ffmpeg-mediabackend
 macos darwin-mediabackend
 ios darwin-mediabackend
 
-# QCamera::setActive(true) does not activate synchronously
-[setActive_startsCameraAndDeliversFrames_withEachCameraDevice]
-android ffmpeg-mediabackend
+# Android: Frames are delivered as NV21 or in another resolution than the selected format
 [capturedFrames_matchCameraFormat_withEachCameraFormat]
-android ffmpeg-mediabackend
-[setActive_restartsStream_whenStartedAgainAfterStop_withEachCameraDevice]
 android ffmpeg-mediabackend
 
 # Darwin backend: The selected camera format is not applied, frames are delivered as UYVY
@@ -86,12 +84,12 @@ android ffmpeg-mediabackend
 macos darwin-mediabackend
 ios darwin-mediabackend
 
-# QCamera::setActive(true) does not activate synchronously
+# Android: Switching camera device deactivates and reactivates the camera
 [setCameraDevice_switchesStream_withoutDeactivatingOrErrors]
 android ffmpeg-mediabackend
 
 # Darwin backend: The selected camera format is not applied, frames are delivered as UYVY
-# Android: QCamera::setActive(true) does not activate synchronously
+# Android: Frames are delivered as NV21 instead of the selected format
 [setCameraFormat_switchesStreamFormat_whileActive]
 android ffmpeg-mediabackend
 macos darwin-mediabackend
@@ -118,10 +116,14 @@ ios darwin-mediabackend
 [recorder_recordingHasExpectedDuration_withEachCameraDevice]
 macos darwin-mediabackend
 ios darwin-mediabackend
+# Android: The recording has only one or two frames
 [recorder_encodesAllCameraFrames_withEachCameraDevice]
+android ffmpeg-mediabackend
 macos darwin-mediabackend
 ios darwin-mediabackend
+# Android: The recording has no readable frames
 [recorder_autoStops_whenCameraIsDeactivated_withEachCameraDevice]
+android ffmpeg-mediabackend
 macos darwin-mediabackend
 ios darwin-mediabackend
 

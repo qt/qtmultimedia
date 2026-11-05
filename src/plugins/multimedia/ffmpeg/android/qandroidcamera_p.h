@@ -18,6 +18,7 @@
 #include <QtMultimedia/private/qplatformcamera_p.h>
 
 #include <QtCore/qjniobject.h>
+#include <QtCore/private/qexpected_p.h>
 #include <QtCore/qobject.h>
 
 #include <QtMultimedia/qimagecapture.h>
@@ -31,6 +32,7 @@ QT_BEGIN_NAMESPACE
 
 Q_DECLARE_JNI_CLASS(QtJniCamera2, "org/qtproject/qt/android/multimedia/qffmpeg/QtCamera2");
 
+class QFFmpegMediaCaptureSession;
 class QVideoFrame;
 class QAndroidVideoFrameFactory;
 
@@ -42,7 +44,7 @@ class QAndroidCamera : public QPlatformCamera
 {
     Q_OBJECT
 public:
-    enum State { Closed, WaitingOpen, WaitingStart, Started };
+    enum State { Closed, Activating, Started };
     explicit QAndroidCamera(QCamera *camera);
     ~QAndroidCamera() override;
 
@@ -52,6 +54,7 @@ public:
     bool isFocusModeSupported(QCamera::FocusMode focusMode) const override;
     bool isTorchModeSupported(QCamera::TorchMode mode) const override;
     void setActive(bool active) override;
+    void setCaptureSession(QPlatformMediaCaptureSession *session) override;
     void setCamera(const QCameraDevice &camera) override;
     bool setCameraFormat(const QCameraFormat &format) override;
     void setFlashMode(QCamera::FlashMode mode) override;
@@ -72,8 +75,6 @@ public:
     void setTorchMode(QCamera::TorchMode mode) override;
     void zoomTo(float factor, float rate) override;
 
-    std::optional<int> ffmpegHWPixelFormat() const override;
-
     QVideoFrameFormat frameFormat() const override;
 
     static bool registerNativeMethods();
@@ -90,7 +91,6 @@ public Q_SLOTS:
     void onCaptureSessionConfigureFailed();
     void onStillReaderSwapFailed();
     void onCaptureSessionFailed(int reason, long frameNumber);
-    void onSessionActive();
     void onSessionClosed();
     void onStillPhotoCaptureFailed();
 
@@ -99,8 +99,8 @@ Q_SIGNALS:
     void onImageCaptureFailed(QImageCapture::Error error, const QString &errMsg);
 
 private:
-    bool isActivating() const { return m_state != State::Closed; }
-
+    // Blocks until the camera has started or failed. The error message is public.
+    [[nodiscard]] q23::expected<void, QString> tryActivate();
     void setState(State newState);
     QtVideo::Rotation rotation() const;
     void updateCameraCharacteristics();
@@ -114,11 +114,11 @@ private:
     State m_state = State::Closed;
     QCameraDevice m_cameraDevice;
     QtJniCamera2 m_jniCamera;
+    QFFmpegMediaCaptureSession *m_session = nullptr;
 
     std::unique_ptr<QFFmpeg::HWAccel> m_hwAccel;
 
     std::shared_ptr<QAndroidVideoFrameFactory> m_frameFactory;
-    QVideoFrameFormat::PixelFormat m_androidFramePixelFormat;
     QList<QCamera::FlashMode> m_supportedFlashModes;
     // List of supported focus-modes as reported by the Android camera device. Queried once when
     // camera-device is initialized. Useful for avoiding multiple JNI calls.
@@ -126,7 +126,6 @@ private:
     bool m_TorchModeSupported = false;
     bool m_wasActive = false;
 
-    bool m_waitingForFirstFrame = false;
     QSize m_videoResolution;
     QSize m_requestedStillResolution;
     QSize m_stillReaderSize;

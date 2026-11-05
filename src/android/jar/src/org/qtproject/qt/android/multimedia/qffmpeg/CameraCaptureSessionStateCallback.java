@@ -35,10 +35,11 @@ class CameraCaptureSessionStateCallback extends CameraCaptureSession.StateCallba
 
     @Override
     public void onActive(CameraCaptureSession cameraCaptureSession) {
-       super.onActive(cameraCaptureSession);
-       if (isSuperseded())
-           return;
-       mMainCameraObject.onSessionActive(mMainCameraObject.getQAndroidCameraPtr());
+        super.onActive(cameraCaptureSession);
+        if (isSuperseded())
+            return;
+        // Also called again later, e.g. after a still photo. Only the first call has an effect.
+        mMainCameraObject.reportActivationSuccess();
     }
 
     @Override
@@ -46,6 +47,7 @@ class CameraCaptureSessionStateCallback extends CameraCaptureSession.StateCallba
         super.onClosed(cameraCaptureSession);
         if (isSuperseded())
             return;
-        mMainCameraObject.onSessionClosed(mMainCameraObject.getQAndroidCameraPtr());
+        if (!mMainCameraObject.reportActivationFailure("Camera was closed while starting"))
+            mMainCameraObject.onSessionClosed(mMainCameraObject.getQAndroidCameraPtr());
     }
 }

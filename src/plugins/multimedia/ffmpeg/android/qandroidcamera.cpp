@@ -5,7 +5,10 @@
 
 #include <jni.h>
 
+#include <atomic>
+#include <future>
 #include <limits>
+#include <memory>
 #include <optional>
 
 #include <QtCore/qdebug.h>
@@ -18,6 +21,7 @@
 #include <QtGui/qscreen.h>
 
 #include <QtFFmpegMediaPluginImpl/private/qandroidvideoframefactory_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegmediacapturesession_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegvideobuffer_p.h>
 
 #include <QtMultimedia/private/qcameradevice_p.h>
@@ -30,7 +34,47 @@ extern "C" {
 QT_BEGIN_NAMESPACE
 Q_STATIC_LOGGING_CATEGORY(qLCAndroidCamera, "qt.multimedia.ffmpeg.androidCamera");
 
+Q_DECLARE_JNI_CLASS(QtCameraActivation,
+                    "org/qtproject/qt/android/multimedia/qffmpeg/QtCameraActivation")
+
+using namespace Qt::Literals::StringLiterals;
+
 namespace {
+
+class QAndroidCameraActivation
+{
+public:
+    using Result = q23::expected<void, QString>;
+
+    [[nodiscard]] std::future<Result> getFuture()
+    {
+        return m_promise.get_future();
+    }
+
+    void setResult(Result result)
+    {
+        [[maybe_unused]] bool wasSet = m_resultSet.exchange(true);
+        Q_ASSERT_X(!wasSet, "QAndroidCameraActivation::setResult",
+                   "The result of a camera activation must only be set once");
+        m_promise.set_value(std::move(result));
+    }
+
+private:
+    std::promise<Result> m_promise;
+    std::atomic<bool> m_resultSet = false;
+};
+
+// The Java object owns a heap-allocated reference, released by onActivationFinished().
+[[nodiscard]] QtJniTypes::QtCameraActivation
+createJavaActivation(const std::shared_ptr<QAndroidCameraActivation> &activation)
+{
+    auto *activationRef = new std::shared_ptr<QAndroidCameraActivation>(activation);
+    QtJniTypes::QtCameraActivation javaActivation(
+        static_cast<jlong>(reinterpret_cast<uintptr_t>(activationRef)));
+    if (!javaActivation.isValid())
+        delete activationRef;
+    return javaActivation;
+}
 
 // TODO: Unify format selection with cross-platform layer
 QCameraFormat getDefaultCameraFormat(const QCameraDevice & cameraDevice)
@@ -197,32 +241,21 @@ void QAndroidCamera::setCamera(const QCameraDevice &camera)
         setActive(true);
 }
 
-std::optional<int> QAndroidCamera::ffmpegHWPixelFormat() const
-{
-    // TODO: m_androidFramePixelFormat is continuously being written to by
-    // the Java-side capture-processing background thread when receiving frame, while this
-    // function is commonly called by the media recording engine on other threads.
-    // A potential solution might include a mutex-lock and/or determining
-    // the pixelFormat ahead of time by checking what format we request
-    // when starting the Android camera capture session.
-    return QFFmpegVideoBuffer::toAVPixelFormat(m_androidFramePixelFormat);
-}
-
 QVideoFrameFormat QAndroidCamera::frameFormat() const
 {
-    QVideoFrameFormat result = QPlatformCamera::frameFormat();
-    // Apply rotation for surface only
-    result.setRotation(rotation());
-    return result;
+    // Camera2 delivers YUV_420_888, a flexible format whose memory layout (YUV420P, NV12 or NV21)
+    // is chosen by the camera HAL. The layout can't be queried ahead of time, so we can't know
+    // the frame format until we receive the actual frame. We leave the format invalid, so that
+    // the recorder won't set anything up until it receives the first frame.
+    return {};
 }
 
 // Called by the Java-side processing background thread.
 void QAndroidCamera::frameAvailable(QJniObject image, bool takePhoto)
 {
-    if ((!(m_state == State::WaitingStart || m_state == State::Started) && !m_waitingForFirstFrame)
-            || m_frameFactory == nullptr) {
-        qCWarning(qLCAndroidCamera) << "Received frame when not active... ignoring";
-        qCWarning(qLCAndroidCamera) << "state:" << m_state;
+    // Frames may arrive while activating, before activeChanged(true). The capture session
+    // is connected ahead of time by onSourceActivating(), so they are not lost.
+    if (m_state == State::Closed || m_frameFactory == nullptr) {
         image.callMethod<void>("close");
         return;
     }
@@ -230,19 +263,6 @@ void QAndroidCamera::frameAvailable(QJniObject image, bool takePhoto)
     QVideoFrame videoFrame = m_frameFactory->createVideoFrame(image, rotation());
     if (!videoFrame.isValid())
         return;
-
-    // TODO: m_androidFramePixelFormat is written by the Java-side processing
-    // background thread, but read by the QCamera thread during QAndroid::ffmpegHWPixelFormat().
-    // This causes a race condition (not severe). We should eventually implement some
-    // synchronization strategy.
-    m_androidFramePixelFormat = videoFrame.pixelFormat(); // NOTE: Should this be updated on stills?
-    if (m_waitingForFirstFrame) {
-        m_waitingForFirstFrame = false;
-        setState(State::Started);
-        // Apply a still resolution changed during startup
-        QMetaObject::invokeMethod(this, &QAndroidCamera::applyStillResolution,
-                                  Qt::QueuedConnection);
-    }
 
     videoFrame.setMirrored(m_cameraDevice.position() == QCameraDevice::Position::FrontFace);
 
@@ -309,6 +329,32 @@ void QAndroidCamera::setActive(bool active)
         return;
     }
 
+    // Connect the capture session ahead of time, so frames delivered while activating
+    // are not dropped.
+    if (m_session)
+        m_session->onSourceActivating(*this);
+
+    q23::expected<void, QString> result = tryActivate();
+    if (!result) {
+        m_jniCamera.callMethod<void>("stopAndClose");
+        setState(State::Closed);
+        if (m_session)
+            m_session->onSourceActivationFailure(*this);
+        updateError(QCamera::CameraError, result.error());
+        return;
+    }
+
+    setState(State::Started);
+}
+
+void QAndroidCamera::setCaptureSession(QPlatformMediaCaptureSession *session)
+{
+    m_session = session ? qobject_cast<QFFmpegMediaCaptureSession *>(session) : nullptr;
+    Q_ASSERT(!session || m_session);
+}
+
+q23::expected<void, QString> QAndroidCamera::tryActivate()
+{
     QString cameraId = QString::fromUtf8(m_cameraDevice.id());
     int width = m_cameraFormat.resolution().width();
     int height = m_cameraFormat.resolution().height();
@@ -322,7 +368,7 @@ void QAndroidCamera::setActive(bool active)
     m_videoResolution = { FFALIGN(width, 16), FFALIGN(height, 16) };
     m_stillReaderSize = stillResolution();
 
-    setState(State::WaitingOpen);
+    setState(State::Activating);
 
     // Create frameFactory when ImageReader is created;
     m_frameFactory = QAndroidVideoFrameFactory::create();
@@ -338,13 +384,20 @@ void QAndroidCamera::setActive(bool active)
                                  static_cast<jint>(m_stillReaderSize.width()),
                                  static_cast<jint>(m_stillReaderSize.height()));
 
-    bool canOpen = m_jniCamera.callMethod<jboolean>("open", cameraId);
+    auto activation = std::make_shared<QAndroidCameraActivation>();
+    std::future<QAndroidCameraActivation::Result> result = activation->getFuture();
 
-    if (!canOpen) {
-        setState(State::Closed);
-        updateError(QCamera::CameraError,
-                    QString(u"Failed to start camera: ").append(m_cameraDevice.description()));
+    QtJniTypes::QtCameraActivation javaActivation = createJavaActivation(activation);
+    if (!javaActivation.isValid()) {
+        qCWarning(qLCAndroidCamera) << "Failed to create QtCameraActivation";
+        return q23::unexpected{ u"Failed to start camera"_s };
     }
+
+    // Callbacks from the Java-side background thread must never wait for this thread.
+    m_jniCamera.callMethod<void>("open", cameraId, javaActivation);
+
+    // Assumes the Java side always reports a result.
+    return result.get();
 }
 
 // TODO: setState is currently being used by the C++ thread owning
@@ -357,27 +410,7 @@ void QAndroidCamera::setState(QAndroidCamera::State newState)
         return;
 
     bool wasActive = isActive();
-
-    if (newState == State::Started)
-        m_state = State::Started;
-
-    if (m_state == State::Started && newState == State::Closed)
-        m_state = State::Closed;
-
-    if ((m_state == State::WaitingOpen || m_state == State::WaitingStart)
-        && newState == State::Closed) {
-
-        m_state = State::Closed;
-
-        updateError(QCamera::CameraError,
-                    QString(u"Failed to start Camera %1").arg(m_cameraDevice.description()));
-    }
-
-    if (m_state == State::Closed && newState == State::WaitingOpen)
-        m_state = State::WaitingOpen;
-
-    if (m_state == State::WaitingOpen && newState == State::WaitingStart)
-        m_state = State::WaitingStart;
+    m_state = newState;
 
     if (wasActive != isActive())
         Q_EMIT activeChanged(isActive());
@@ -709,7 +742,9 @@ void QAndroidCamera::onApplicationStateChanged()
 void QAndroidCamera::onCaptureSessionConfigured()
 {
     bool canStart = m_jniCamera.callMethod<jboolean>("start");
-    setState(canStart ? State::WaitingStart : State::Closed);
+    // While activating, Java reports the failure to the pending activation instead.
+    if (!canStart && isActive())
+        setState(State::Closed);
 }
 
 // Called by Java-side processing background thread.
@@ -728,8 +763,8 @@ void QAndroidCamera::onStillReaderSwapFailed()
 // Called by Java-side processing background thread.
 void QAndroidCamera::onCameraOpened()
 {
-    bool canStart = m_jniCamera.callMethod<jboolean>("createSession");
-    setState(canStart ? State::WaitingStart : State::Closed);
+    // Failures are reported to the pending activation by Java.
+    m_jniCamera.callMethod<jboolean>("createSession");
 }
 
 // Called by Java-side processing background thread.
@@ -748,15 +783,8 @@ void QAndroidCamera::onCameraError(int reason)
 }
 
 // Called by Java-side processing background thread.
-void QAndroidCamera::onSessionActive()
-{
-    m_waitingForFirstFrame = true;
-}
-
-// Called by Java-side processing background thread.
 void QAndroidCamera::onSessionClosed()
 {
-    m_waitingForFirstFrame = false;
     setState(State::Closed);
 }
 
@@ -897,13 +925,6 @@ static void onStillReaderSwapFailed(JNIEnv *, jobject, jlong qAndroidCameraPtr)
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onStillReaderSwapFailed)
 
-static void onSessionActive(JNIEnv *, jobject, jlong qAndroidCameraPtr)
-{
-    QFFmpeg::QAndroidCamera &camera = jLongToQAndroidCamera(qAndroidCameraPtr);
-    camera.onSessionActive();
-}
-Q_DECLARE_JNI_NATIVE_METHOD(onSessionActive)
-
 static void onSessionClosed(JNIEnv *, jobject, jlong qAndroidCameraPtr)
 {
     QFFmpeg::QAndroidCamera &camera = jLongToQAndroidCamera(qAndroidCameraPtr);
@@ -926,9 +947,31 @@ static void onStillPhotoCaptureFailed(JNIEnv *, jobject, jlong qAndroidCameraPtr
 }
 Q_DECLARE_JNI_NATIVE_METHOD(onStillPhotoCaptureFailed)
 
+// Called once per activation, from any thread.
+static void onActivationFinished(JNIEnv *, jobject, jlong activationPtr, jboolean success,
+                                 QString errorMessage)
+{
+    Q_ASSERT(activationPtr != 0);
+    std::unique_ptr<std::shared_ptr<QAndroidCameraActivation>> activationRef(
+        reinterpret_cast<std::shared_ptr<QAndroidCameraActivation> *>(
+            static_cast<uintptr_t>(activationPtr)));
+
+    if (success)
+        (*activationRef)->setResult({});
+    else
+        (*activationRef)->setResult(q23::unexpected{ std::move(errorMessage) });
+}
+Q_DECLARE_JNI_NATIVE_METHOD(onActivationFinished)
+
 bool QFFmpeg::QAndroidCamera::registerNativeMethods()
 {
     static const bool registered = []() {
+        bool activationRegistered = QtJniTypes::QtCameraActivation::registerNativeMethods({
+            Q_JNI_NATIVE_METHOD(onActivationFinished),
+        });
+        if (!activationRegistered)
+            return false;
+
         return QtJniCamera2::registerNativeMethods({
             Q_JNI_NATIVE_METHOD(onCameraOpened),
             Q_JNI_NATIVE_METHOD(onCameraDisconnect),
@@ -939,7 +982,6 @@ bool QFFmpeg::QAndroidCamera::registerNativeMethods()
             Q_JNI_NATIVE_METHOD(onCaptureSessionFailed),
             Q_JNI_NATIVE_METHOD(onPreviewFrameAvailable),
             Q_JNI_NATIVE_METHOD(onStillPhotoAvailable),
-            Q_JNI_NATIVE_METHOD(onSessionActive),
             Q_JNI_NATIVE_METHOD(onSessionClosed),
             Q_JNI_NATIVE_METHOD(onStillPhotoCaptureFailed),
         });
