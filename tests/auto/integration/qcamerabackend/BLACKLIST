@@ -28,12 +28,10 @@ android android-mediabackend
 [videoFormats_containsNoDuplicates_withEachCameraDevice]
 ios ffmpeg-mediabackend
 
-# FFmpeg: Frames are stamped with the previous frame's timestamp, so the first two
+# Android: Frames are stamped with the previous frame's timestamp, so the first two
 # frames share a start time
 # Darwin backend: Frames have no presentation time
 [capturedFrames_havePresentationTimesInIncreasingOrder]
-macos ffmpeg-mediabackend
-ios ffmpeg-mediabackend
 android ffmpeg-mediabackend
 macos darwin-mediabackend
 
