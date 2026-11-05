@@ -36,9 +36,8 @@ QT_USE_NAMESPACE
     std::function<void(const QVideoFrame &)> frameHandler;
     QFFmpeg::QAVFSampleBufferDelegateTransformProvider transformationProvider;
     std::unique_ptr<QFFmpeg::HWAccel> m_accel;
-    std::chrono::microseconds startTime;
     std::optional<std::chrono::microseconds> baseTime;
-    qreal frameRate;
+    std::optional<qreal> frameRate;
 }
 
 - (instancetype)initWithFrameHandler:(std::function<void(const QVideoFrame &)>)handler
@@ -105,10 +104,9 @@ QT_USE_NAMESPACE
 
     std::chrono::microseconds frameTime =
         QAVFHelpers::CMTimeToMicroseconds(CMSampleBufferGetPresentationTimeStamp(sampleBuffer));
-    if (!baseTime) {
+    if (!baseTime)
         baseTime = frameTime;
-        startTime = frameTime;
-    }
+    const std::chrono::microseconds presentationTime = frameTime - *baseTime;
 
     QVideoFrameFormat format = QAVFHelpers::videoFormatForImageBuffer(pixelBuffer.get());
     if (!format.isValid()) {
@@ -125,12 +123,13 @@ QT_USE_NAMESPACE
         format.setMirrored(surfaceTransform.mirroredHorizontallyAfterRotation);
     }
 
-    format.setStreamFrameRate(frameRate);
+    if (frameRate)
+        format.setStreamFrameRate(*frameRate);
 
     QVideoFrame frame;
     q23::expected<QVideoFrame, QString> frameResult = QFFmpeg::qVideoFrameFromCvPixelBuffer(
         *m_accel,
-        startTime - *baseTime,
+        presentationTime,
         pixelBuffer,
         format);
     if (!frameResult)
@@ -149,9 +148,14 @@ QT_USE_NAMESPACE
         frame.setMirrored(presentationTransform.mirroredHorizontallyAfterRotation);
     }
 
-    frame.setStartTime((startTime - *baseTime).count());
-    frame.setEndTime((frameTime - *baseTime).count());
-    startTime = frameTime;
+    frame.setStartTime(presentationTime.count());
+    if (frameRate) {
+        using namespace std::chrono;
+        const auto frameDuration = round<microseconds>(duration<double>(1.0 / *frameRate));
+        frame.setEndTime((presentationTime + frameDuration).count());
+    } else {
+        frame.setEndTime(-1);
+    }
 
     frameHandler(frame);
 }
@@ -165,7 +169,10 @@ QT_USE_NAMESPACE
 
 - (void)setVideoFormatFrameRate:(qreal)rate
 {
-    frameRate = rate;
+    if (rate > 0)
+        frameRate = rate;
+    else
+        frameRate.reset();
 }
 
 @end
