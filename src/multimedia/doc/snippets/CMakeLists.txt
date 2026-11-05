@@ -3,26 +3,28 @@
 
 cmake_minimum_required(VERSION 3.16)
 
-qt_add_library(multimedia_snippets OBJECT
-    multimedia-snippets/camerasnippets.cpp
-    multimedia-snippets/screencapturesnippets.cpp
-    multimedia-snippets/windowcapturesnippets.cpp
-)
+if(TARGET Qt::Widgets)
+    qt_add_library(multimedia_snippets OBJECT
+        multimedia-snippets/camerasnippets.cpp
+        multimedia-snippets/screencapturesnippets.cpp
+        multimedia-snippets/windowcapturesnippets.cpp
+    )
 
-target_link_libraries(multimedia_snippets PRIVATE
-    Qt::Core
-    Qt::Gui
-    Qt::Multimedia
-    Qt::MultimediaWidgets
-)
+    target_link_libraries(multimedia_snippets PRIVATE
+        Qt::Core
+        Qt::Gui
+        Qt::Multimedia
+        Qt::MultimediaWidgets
+    )
 
-set_target_properties(multimedia_snippets PROPERTIES COMPILE_OPTIONS "-w")
+    set_target_properties(multimedia_snippets PROPERTIES COMPILE_OPTIONS "-w")
 
-if ("${CMAKE_CXX_COMPILE_FEATURES}" MATCHES "cxx_std_23")
-    set_property(TARGET multimedia_snippets PROPERTY CXX_STANDARD 23)
+    if ("${CMAKE_CXX_COMPILE_FEATURES}" MATCHES "cxx_std_23")
+        set_property(TARGET multimedia_snippets PROPERTY CXX_STANDARD 23)
+    endif()
+
+    set_target_properties(multimedia_snippets PROPERTIES UNITY_BUILD OFF)
 endif()
-
-set_target_properties(multimedia_snippets PROPERTIES UNITY_BUILD OFF)
 
 if(QT_FEATURE_multimedia_quick)
     qt_policy(SET QTP0001 NEW)
