@@ -904,8 +904,10 @@ tryRecycleMemory(QVideoFrameTexturesUPtr oldTextures)
 {
     auto *raw = oldTextures.release();
     auto *rawFromMemory = dynamic_cast<QVideoFrameTexturesFromMemory *>(raw);
-    if (!rawFromMemory)
+    if (!rawFromMemory) {
+        delete raw;
         return nullptr;
+    }
     return std::unique_ptr<QVideoFrameTexturesFromMemory>(rawFromMemory);
 }
 
