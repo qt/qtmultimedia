@@ -492,8 +492,10 @@ void QAVFCamera::clearCaptureSessionConfiguration()
     return {};
 }
 
-void QAVFCamera::onActiveChanged(bool active)
+q23::expected<void, QString> QAVFCamera::onActiveChanged(bool active)
 {
+    using namespace Qt::Literals::StringLiterals;
+
     if (active) {
         // We should never try to go active if we don't already have
         // permissions, as refreshAvCaptureSessionInputDevice() will
@@ -504,8 +506,9 @@ void QAVFCamera::onActiveChanged(bool active)
 
         AVCaptureDevice *avCaptureDevice = QAVFCameraBase::tryGetAvCaptureDevice(m_cameraDevice);
         if (avCaptureDevice == nullptr) {
-            qWarning() << "QAVFCamera::onActiveChanged: Device not available";
-            return;
+            qCWarning(qLcCamera) << "No AVCaptureDevice found for camera device"
+                                 << m_cameraDevice.id();
+            return q23::unexpected{ u"Camera device is not available"_s };
         }
 
         // The AVCaptureDevice must be locked when we call AVCaptureSession.startRunning,
@@ -514,27 +517,28 @@ void QAVFCamera::onActiveChanged(bool active)
         // so it's beneficial to keep the device locked during the entire config stage.
         AVFConfigurationLock avCaptureDeviceLock { avCaptureDevice };
         if (!avCaptureDeviceLock) {
-            qWarning() << "QAVFCamera::onActiveChanged: Failed to lock AVCaptureDevice";
-            return;
+            qCWarning(qLcCamera) << "Failed to lock AVCaptureDevice for configuration";
+            return q23::unexpected{ u"Failed to start camera"_s };
         }
 
         q23::expected<void, QString> configureResult = tryConfigureCaptureSession(
             avCaptureDevice,
             cameraFormat());
-        if (configureResult) {
-            [m_avCaptureSession startRunning];
-        } else {
-            qWarning()
-                << "QAVFCamera::onActiveChanged: Error when trying to activate camera:"
-                << configureResult.error();
+        if (!configureResult) {
+            qCWarning(qLcCamera) << "Failed to configure AVCaptureSession:"
+                                 << configureResult.error();
             clearCaptureSessionConfiguration();
+            return q23::unexpected{ u"Failed to start camera"_s };
         }
 
+        [m_avCaptureSession startRunning];
     } else {
         [m_avCaptureSession stopRunning];
 
         clearCaptureSessionConfiguration();
     }
+
+    return {};
 }
 
 void QAVFCamera::setCaptureSession(QPlatformMediaCaptureSession *session)

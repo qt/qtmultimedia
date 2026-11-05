@@ -33,7 +33,7 @@ public:
     void setCaptureSession(QPlatformMediaCaptureSession *) override;
 
 protected:
-    void onActiveChanged(bool active) override;
+    q23::expected<void, QString> onActiveChanged(bool active) override;
     void onCameraDeviceChanged(const QCameraDevice &, const QCameraFormat &) override;
     bool tryApplyCameraFormat(const QCameraFormat&) override;
 
