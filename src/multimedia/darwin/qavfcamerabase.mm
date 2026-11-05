@@ -127,10 +127,15 @@ void QAVFCameraBase::setActive(bool active)
     if (!checkCameraPermission())
         return;
 
+    q23::expected<void, QString> result = onActiveChanged(active);
+    if (!result) {
+        // Assert that implementation does not return error when we are deactivating.
+        Q_ASSERT(active);
+        updateError(QCamera::Error::CameraError, result.error());
+        return;
+    }
+
     m_active = active;
-
-    onActiveChanged(active);
-
     Q_EMIT activeChanged(m_active);
 }
 

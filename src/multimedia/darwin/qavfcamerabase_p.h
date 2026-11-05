@@ -16,6 +16,7 @@
 //
 
 #include <QtMultimedia/private/qplatformcamera_p.h>
+#include <QtCore/private/qexpected_p.h>
 
 #include <QtCore/qobject.h>
 
@@ -82,10 +83,13 @@ public:
     [[nodiscard]] static AVCaptureDevice* tryGetAvCaptureDevice(const QCameraDevice &device);
 
 protected:
-    // Called by setActive() when the active status is successfully changed.
+    // Called by setActive() when the active status is about to change.
     // If called with parameter active = true, camera permissions are
     // guaranteed to have been granted already.
-    virtual void onActiveChanged(bool active) = 0;
+    //
+    // The returned error message is public: it is propagated up to
+    // QCamera::errorString() and may end up in the UI.
+    [[nodiscard]] virtual q23::expected<void, QString> onActiveChanged(bool active) = 0;
     // Called by setCamera() when the camera is successfully changed.
     virtual void onCameraDeviceChanged(
         const QCameraDevice &,

@@ -21,10 +21,11 @@ AVFCamera::AVFCamera(QCamera *camera)
 
 AVFCamera::~AVFCamera() = default;
 
-void AVFCamera::onActiveChanged(bool active)
+q23::expected<void, QString> AVFCamera::onActiveChanged(bool active)
 {
     if (m_session)
         m_session->setActive(active);
+    return {};
 }
 
 void AVFCamera::onCameraDeviceChanged(

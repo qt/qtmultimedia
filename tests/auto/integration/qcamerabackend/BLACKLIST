@@ -72,8 +72,6 @@ macos darwin-mediabackend
 
 # Darwin reports the camera as active for a camera device that does not exist
 [setActive_fails_whenCameraDeviceDoesNotExist]
-macos ffmpeg-mediabackend
-ios ffmpeg-mediabackend
 macos darwin-mediabackend
 ios darwin-mediabackend
 
