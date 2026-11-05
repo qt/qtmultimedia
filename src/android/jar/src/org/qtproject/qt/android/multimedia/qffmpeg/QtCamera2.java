@@ -85,6 +85,8 @@ class QtCamera2 {
         // A still photo requested while reconfiguring runs once the session is configured.
         boolean mStillCaptureDeferred = false;
 
+        QtCameraActivation mPendingActivation = null;
+
         // Preview is running, settings are applied to it directly
         boolean isStarted() {
             return mState == State.Started || mState == State.Capturing;
@@ -119,6 +121,29 @@ class QtCamera2 {
         return mQAndroidCameraPtr;
     }
 
+    private QtCameraActivation takePendingActivation() {
+        synchronized (mSyncedMembers) {
+            QtCameraActivation activation = mSyncedMembers.mPendingActivation;
+            mSyncedMembers.mPendingActivation = null;
+            return activation;
+        }
+    }
+
+    void reportActivationSuccess() {
+        QtCameraActivation activation = takePendingActivation();
+        if (activation != null)
+            activation.reportSuccess();
+    }
+
+    // The error message is public, it ends up in QCamera::errorString().
+    boolean reportActivationFailure(String errorMessage) {
+        QtCameraActivation activation = takePendingActivation();
+        if (activation == null)
+            return false;
+        activation.reportFailure(errorMessage);
+        return true;
+    }
+
     // Returns a deep copy of the CameraSettings instance. Thread-safe.
     private CameraSettings atomicCameraSettingsCopy() {
         synchronized (mSyncedMembers) {
@@ -138,8 +163,6 @@ class QtCamera2 {
     native void onCaptureSessionConfigureFailed(long qAndroidCameraPtr);
     native void onStillReaderSwapFailed(long qAndroidCameraPtr);
 
-
-    native void onSessionActive(long qAndroidCameraPtr);
     native void onSessionClosed(long qAndroidCameraPtr);
     native void onCaptureSessionFailed(long qAndroidCameraPtr, int reason, long frameNumber);
 
@@ -194,17 +217,22 @@ class QtCamera2 {
         }
     }
 
+    // activation is null for internal restarts, where nobody waits for the result.
+    @UsedFromNativeCode
     @SuppressLint("MissingPermission")
-    boolean open(String cameraId) {
+    void open(String cameraId, QtCameraActivation activation) {
+        synchronized (mSyncedMembers) {
+            assert(mSyncedMembers.mPendingActivation == null);
+            mSyncedMembers.mPendingActivation = activation;
+        }
+
         try {
             mCameraId = cameraId;
             mCameraManager.openCamera(cameraId,mStateCallback,mBackgroundHandler);
-            return true;
         } catch (Exception e){
             Log.w(LOG_TAG, "Failed to open camera:" + e);
+            reportActivationFailure("Failed to open camera");
         }
-
-        return false;
     }
 
     native void onStillPhotoAvailable(long qAndroidCameraPtr, Image frame);
@@ -251,7 +279,7 @@ class QtCamera2 {
                         addStillImageReader(mStillPhotoImageReader.getWidth(),
                                             mStillPhotoImageReader.getHeight());
                     }
-                    open(cameraId);
+                    open(cameraId, null);
                 }
             }
         }
@@ -326,7 +354,7 @@ class QtCamera2 {
         }
         if (isStillReaderSwap)
             onStillReaderSwapFailed(getQAndroidCameraPtr());
-        else
+        else if (!reportActivationFailure("Failed to configure camera"))
             onCaptureSessionConfigureFailed(getQAndroidCameraPtr());
         onSessionReconfigured(false);
     }
@@ -392,16 +420,18 @@ class QtCamera2 {
         } catch (Exception exception) {
             Log.w(LOG_TAG, "Failed to create a capture session:" + exception);
         }
+        reportActivationFailure("Failed to start camera");
         return false;
     }
 
+    // A pending activation completes in CameraCaptureSessionStateCallback.onActive().
     @UsedFromNativeCode
     boolean start() {
-        if (mCameraDevice == null)
+        if (mCameraDevice == null || mCaptureSession == null) {
+            Log.w(LOG_TAG, "Cannot start preview without a camera device and capture session");
+            reportActivationFailure("Failed to start camera");
             return false;
-
-        if (mCaptureSession == null)
-            return false;
+        }
 
         try {
             synchronized (mSyncedMembers) {
@@ -413,6 +443,7 @@ class QtCamera2 {
         } catch (CameraAccessException exception) {
             Log.w(LOG_TAG, "Failed to start preview:" + exception);
         }
+        reportActivationFailure("Failed to start camera");
         return false;
     }
 
@@ -450,6 +481,8 @@ class QtCamera2 {
 
         if (abortedStillPhoto)
             onStillPhotoCaptureFailed(getQAndroidCameraPtr());
+
+        reportActivationFailure("Camera was stopped while starting");
 
         // Wait for onClosed() so background thread can be stopped
         if (closedLatch != null) {
