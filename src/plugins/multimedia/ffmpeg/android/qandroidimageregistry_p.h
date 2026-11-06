@@ -27,6 +27,7 @@
 #include <media/NdkImageReader.h>
 
 #include <atomic>
+#include <chrono>
 #include <cstdint>
 #include <functional>
 #include <memory>
@@ -136,11 +137,16 @@ public:
 
     void recycleSlot([[maybe_unused]] QAndroidImageSlot slot) const {}
 
+    // Sets the start time of the frame to the end of the previous one, and its end time to the
+    // given timestamp.
+    void setFrameTimes(QVideoFrame &frame, std::chrono::microseconds timestamp);
+
 private:
     QAndroidImageRegistry();
+
+    std::optional<std::chrono::microseconds> m_lastTimestamp;
 };
 
-// Wraps the slot's image in a frame, or copies it when the registry refuses another slot.
 QVideoFrame createVideoFrame(QAndroidImageRegistry &registry, QAndroidImageSlot slot,
                              QVideoFrameFormat format);
 

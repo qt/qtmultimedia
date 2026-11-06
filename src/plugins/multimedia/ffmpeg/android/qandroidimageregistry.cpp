@@ -3,8 +3,11 @@
 
 #include "qandroidimageregistry_p.h"
 
+#include <QtMultimedia/private/qeglimagefunctions_p.h>
 #include <QtMultimedia/private/qmaterializingvideobuffer_p.h>
+#include <QtMultimedia/private/qmultimedia_gl_support_p.h>
 #include <QtMultimedia/private/qvideoframe_p.h>
+#include <QtMultimedia/private/qvideotexturehelper_p.h>
 
 #include <QtCore/private/qexpected_p.h>
 
@@ -13,13 +16,20 @@
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/qmetaobject.h>
 #include <QtCore/qmutex.h>
+#include <QtGui/qopenglcontext.h>
+#include <QtGui/qopenglfunctions.h>
+#include <QtGui/rhi/qrhi.h>
 
 #include <android/native_window.h>
 #include <android/native_window_jni.h>
 #include <media/NdkImage.h>
 #include <media/NdkImageReader.h>
 
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+
 #include <atomic>
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -258,14 +268,21 @@ QAndroidImageRegistry::QAndroidImageRegistry()
 {
 }
 
-using ImageVideoBuffer =
-        QtMultimediaPrivate::MaterializingVideoBuffer<QAndroidImageSource, QAndroidImageRegistry>;
+void QAndroidImageRegistry::setFrameTimes(QVideoFrame &frame, std::chrono::microseconds timestamp)
+{
+    // image callback thread
+    const std::chrono::microseconds start = m_lastTimestamp.value_or(timestamp);
+
+    frame.setStartTime(start.count());
+    frame.setEndTime(timestamp.count());
+    m_lastTimestamp = timestamp;
+}
 
 namespace {
 
 // Derives the pixel format from the chroma planes alone. The rest of the image is read when the
 // frame is mapped.
-q23::expected<QVideoFrameFormat::PixelFormat, QString> getPixelFormat(AImage *image)
+q23::expected<QVideoFrameFormat::PixelFormat, QString> imagePixelFormat(AImage *image)
 {
     int32_t planeCount = 0;
     if (AImage_getNumberOfPlanes(image, &planeCount) != AMEDIA_OK || planeCount != 3)
@@ -296,7 +313,7 @@ q23::expected<QVideoFrameFormat::PixelFormat, QString> getPixelFormat(AImage *im
     return q23::unexpected{ u"Unsupported YUV_420_888 layout"_s };
 }
 
-q23::expected<QSize, QString> getSize(AImage *image)
+q23::expected<QSize, QString> imageSize(AImage *image)
 {
     int32_t width = 0;
     int32_t height = 0;
@@ -304,11 +321,131 @@ q23::expected<QSize, QString> getSize(AImage *image)
         || AImage_getHeight(image, &height) != AMEDIA_OK) {
         return q23::unexpected{ u"Cannot read image size"_s };
     }
-
     return QSize(width, height);
 }
 
+// Returns the timestamp of the image, or nullopt when it cannot be read.
+std::optional<std::chrono::microseconds> imageTimestamp(AImage *image)
+{
+    int64_t timestampNs = 0;
+    if (AImage_getTimestamp(image, &timestampNs) != AMEDIA_OK) {
+        qCWarning(qLcAndroidImageRegistry) << "Cannot read image timestamp";
+        return std::nullopt;
+    }
+    using namespace std::chrono;
+    return duration_cast<microseconds>(nanoseconds{ timestampNs });
+}
+
+using EglGetNativeClientBufferProc = EGLClientBuffer (*)(const AHardwareBuffer *);
+
+EglGetNativeClientBufferProc nativeClientBufferFunction()
+{
+    static const auto function = reinterpret_cast<EglGetNativeClientBufferProc>(
+            eglGetProcAddress("eglGetNativeClientBufferANDROID"));
+    return function;
+}
+
+// Owns the EGL image and the external OES texture that samples it.
+class ImageTextureHandles final : public QVideoFrameTexturesHandles
+{
+public:
+    ImageTextureHandles(QtMultimediaPrivate::EGLImageHandle eglImage,
+                        QtMultimediaPrivate::GlTextureHandle texture)
+        : m_eglImage(std::move(eglImage)), m_texture(std::move(texture))
+    {
+    }
+
+    quint64 textureHandle(QRhi &, int plane) override { return plane == 0 ? m_texture.get() : 0; }
+
+    std::optional<QVideoFrameFormat::PixelFormat> texturePixelFormat() const override
+    {
+        return QVideoFrameFormat::Format_SamplerExternalOES;
+    }
+
+private:
+    QtMultimediaPrivate::EGLImageHandle m_eglImage;
+    QtMultimediaPrivate::GlTextureHandle m_texture;
+};
+
+// Imports the hardware buffer of the image as an external OES texture.
+QVideoFrameTexturesHandlesUPtr importExternalTexture(QRhi &rhi, AImage *image)
+{
+    using namespace QtMultimediaPrivate;
+    if (rhi.backend() != QRhi::OpenGLES2)
+        return {};
+
+    const EglGetNativeClientBufferProc getNativeClientBuffer = nativeClientBufferFunction();
+    const EGLDisplay display = resolveEglDisplay(rhi);
+    const auto &eglImageFunctions = QEglImageFunctions::instance();
+    if (!getNativeClientBuffer || display == EGL_NO_DISPLAY || !eglImageFunctions.isValid())
+        return {};
+
+    AHardwareBuffer *hardwareBuffer = nullptr;
+    if (AImage_getHardwareBuffer(image, &hardwareBuffer) != AMEDIA_OK || !hardwareBuffer) {
+        qCWarning(qLcAndroidImageRegistry) << "AImage_getHardwareBuffer failed";
+        return {};
+    }
+
+    rhi.makeThreadLocalNativeContextCurrent();
+    QOpenGLContext *glContext = QOpenGLContext::currentContext();
+    if (!glContext)
+        return {};
+
+    EGLImageHandle eglImage =
+            eglImageFunctions.eglCreateImage(display, EGL_NO_CONTEXT, EGL_NATIVE_BUFFER_ANDROID,
+                                             getNativeClientBuffer(hardwareBuffer));
+    if (!eglImage) {
+        qCWarning(qLcAndroidImageRegistry) << "eglCreateImage failed for camera image";
+        return {};
+    }
+
+    QOpenGLFunctions functions(glContext);
+    GLuint rawTexture = 0;
+    functions.glGenTextures(1, &rawTexture);
+    GlTextureHandle texture(rawTexture, GlTextureDeleter(glContext));
+
+    functions.glBindTexture(GL_TEXTURE_EXTERNAL_OES, rawTexture);
+    eglImageFunctions.glEGLImageTargetTexture2DOES(GL_TEXTURE_EXTERNAL_OES, eglImage.get());
+    functions.glBindTexture(GL_TEXTURE_EXTERNAL_OES, 0);
+
+    const auto error = GLError(functions.glGetError());
+    if (error != GLError::NoError) {
+        qCWarning(qLcAndroidImageRegistry) << "glEGLImageTargetTexture2DOES failed" << error;
+        return {};
+    }
+
+    return std::make_unique<ImageTextureHandles>(std::move(eglImage), std::move(texture));
+}
+
+class ImageTextureBuffer : public QHwVideoBuffer
+{
+public:
+    ImageTextureBuffer(AImage *image, QVideoFrameFormat format)
+        : m_image(image), m_frameFormat(std::move(format))
+    {
+    }
+
+    QVideoFrameTexturesUPtr mapTextures(QRhi &rhi) override
+    {
+        QVideoFrameTexturesHandlesUPtr handles = importExternalTexture(rhi, m_image);
+        if (!handles)
+            return {};
+
+        return QVideoTextureHelper::createTexturesFromHandles(
+                std::move(handles), rhi, m_frameFormat.pixelFormat(), m_frameFormat.frameSize());
+    }
+
+
+private:
+    AImage *m_image = nullptr; // Borrowed, the capture slot of this buffer owns the image
+    QVideoFrameFormat m_frameFormat;
+};
+
 } // namespace
+
+using ImageVideoBuffer =
+        QtMultimediaPrivate::MaterializingVideoBuffer<QAndroidImageSource, QAndroidImageRegistry,
+                                                      ImageTextureBuffer>;
 
 QVideoFrame createVideoFrame(QAndroidImageRegistry &registry, QAndroidImageSlot slot,
                              QVideoFrameFormat format)
@@ -317,29 +454,35 @@ QVideoFrame createVideoFrame(QAndroidImageRegistry &registry, QAndroidImageSlot 
     if (!image)
         return {};
 
-    const auto pixelFormat = getPixelFormat(image);
+    const auto pixelFormat = imagePixelFormat(image);
     if (!pixelFormat) {
         qCWarning(qLcAndroidImageRegistry) << pixelFormat.error();
         return {};
     }
 
-    const auto size = getSize(image);
+    const auto size = imageSize(image);
     if (!size) {
         qCWarning(qLcAndroidImageRegistry) << size.error();
         return {};
     }
+
+    const std::optional<std::chrono::microseconds> timestamp = imageTimestamp(image);
+
+    QVideoFrameFormat frameFormat(*size, *pixelFormat);
+    frameFormat.setRotation(format.rotation());
 
     QAndroidImageSource source{
         image,
         *pixelFormat,
     };
 
-    QVideoFrameFormat frameFormat(*size, *pixelFormat);
-    frameFormat.setRotation(format.rotation());
-
-    std::unique_ptr<QAbstractVideoBuffer> videoBuffer = ImageVideoBuffer::wrapOrMaterialize(
-            registry, std::move(slot), std::move(source), frameFormat);
-    return QVideoFramePrivate::createFrame(std::move(videoBuffer), std::move(frameFormat));
+    auto videoBuffer = ImageVideoBuffer::wrapOrMaterialize(
+            registry, std::move(slot), std::move(source), frameFormat, image, frameFormat);
+    QVideoFrame videoFrame =
+            QVideoFramePrivate::createFrame(std::move(videoBuffer), std::move(frameFormat));
+    if (videoFrame.isValid() && timestamp)
+        registry.setFrameTimes(videoFrame, *timestamp);
+    return videoFrame;
 }
 
 } // namespace QFFmpeg
