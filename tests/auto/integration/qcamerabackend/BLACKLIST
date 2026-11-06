@@ -60,10 +60,6 @@ android ffmpeg-mediabackend
 macos darwin-mediabackend
 ios darwin-mediabackend
 
-# Android: Frames can be delivered in another resolution than the selected format
-[capturedFrames_matchCameraFormat_withEachCameraFormat]
-android ffmpeg-mediabackend
-
 # Darwin backend: The selected camera format is not applied, frames are delivered as UYVY
 [capturedFrames_matchCameraFormat_withEachCameraFormat]
 macos darwin-mediabackend
@@ -89,9 +85,7 @@ ios darwin-mediabackend
 android ffmpeg-mediabackend
 
 # Darwin backend: The selected camera format is not applied, frames are delivered as UYVY
-# Android: Frames can be delivered in another resolution than the selected format
 [setCameraFormat_switchesStreamFormat_whileActive]
-android ffmpeg-mediabackend
 macos darwin-mediabackend
 
 # BUG: FFmpeg: While switching camera device, frames are delivered with a

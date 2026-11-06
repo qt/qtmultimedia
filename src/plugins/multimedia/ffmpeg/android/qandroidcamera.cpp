@@ -365,7 +365,7 @@ q23::expected<void, QString> QAndroidCamera::tryActivate()
         height = m_cameraFormat.resolution().height();
     }
 
-    m_videoResolution = { FFALIGN(width, 16), FFALIGN(height, 16) };
+    m_videoResolution = { width, height };
     m_stillReaderSize = stillResolution();
 
     setState(State::Activating);
