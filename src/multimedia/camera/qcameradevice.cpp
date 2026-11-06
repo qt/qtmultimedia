@@ -83,8 +83,10 @@ QCameraFormat::~QCameraFormat() = default;
 
     Holds the pixel format.
 
-    Most commonly this is either QVideoFrameFormat::Format_Jpeg or QVideoFrameFormat::Format_YUVY
+    Most commonly this is either QVideoFrameFormat::Format_Jpeg or QVideoFrameFormat::Format_YUYV
     but other formats could also be supported by the camera.
+
+    \include qcameradevice.cpp android-yuv-note
 
     \sa QVideoFrameFormat::PixelFormat
 */
@@ -94,8 +96,16 @@ QCameraFormat::~QCameraFormat() = default;
 
     Returns the pixel format.
 
-    Most commonly this is either QVideoFrameFormat::Format_Jpeg or QVideoFrameFormat::Format_YUVY
+    Most commonly this is either QVideoFrameFormat::Format_Jpeg or QVideoFrameFormat::Format_YUYV
     but other formats could also be supported by the camera.
+
+    //! [android-yuv-note]
+    \note On Android with the FFmpeg media backend, camera formats are reported as
+    QVideoFrameFormat::Format_YUV420P, but the delivered video frames can be either
+    fully planar YUV420P or semi-planar NV12 or NV21. The memory layout is chosen by
+    the camera implementation of the device, and Android provides no way to query
+    it in advance. Check the pixel format of the received video frames instead.
+    //! [android-yuv-note]
 
     \sa QVideoFrameFormat::PixelFormat
 */

@@ -439,10 +439,7 @@ void QCamera::setCameraDevice(const QCameraDevice &cameraDevice)
 
     Gets or sets the currently active camera format.
 
-    \note When using the FFMPEG backend on an Android target device if you request
-    \b YUV420P format, you will receive either a fully planar 4:2:0 YUV420P or a
-    semi-planar NV12/NV21. This depends on the codec implemented by the device
-    OEM.
+    \include qcameradevice.cpp android-yuv-note
 
     \note On macOS, camera-devices are shared across multiple
     applications on the operating system. This means that another
@@ -462,10 +459,7 @@ void QCamera::setCameraDevice(const QCameraDevice &cameraDevice)
 
     Returns the camera format currently used by the camera.
 
-    \note When using the FFMPEG backend on an Android target device if you request
-    \b YUV420P format, you will receive either a fully planar 4:2:0 YUV420P or a
-    semi-planar NV12/NV21. This depends on the codec implemented by the device
-    OEM.
+    \include qcameradevice.cpp android-yuv-note
 
     \note On macOS, camera-devices are shared across multiple
     applications on the operating system. This means that another
@@ -489,10 +483,7 @@ QCameraFormat QCamera::cameraFormat() const
     Tells the camera to use the format described by \a format. This can be used to define
     a specific resolution and frame rate to be used for recording and image capture.
 
-    \note When using the FFMPEG backend on an Android target device if you request
-    \b YUV420P format, you will receive either a fully planar 4:2:0 YUV420P or a
-    semi-planar NV12/NV21. This depends on the codec implemented by the device
-    OEM.
+    \include qcameradevice.cpp android-yuv-note
 */
 void QCamera::setCameraFormat(const QCameraFormat &format)
 {
