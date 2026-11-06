@@ -25,6 +25,8 @@ qt_add_executable(qml-camera-advanced WIN32 MACOSX_BUNDLE
     videoframeinfo.cpp
     imagefileinspector.h
     imagefileinspector.cpp
+    recordingdirectory.h
+    recordingdirectory.cpp
 )
 
 set_target_properties(qml-camera-advanced PROPERTIES

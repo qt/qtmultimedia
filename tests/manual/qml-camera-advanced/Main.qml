@@ -69,7 +69,7 @@ ApplicationWindow {
         recorder: MediaRecorder {
             id: mainRecorder
             outputLocation:
-                StandardPaths.writableLocation(StandardPaths.MoviesLocation)
+                RecordingDirectory.ensureMoviesLocation()
                 + "/qml-camera-playground_"
                 + window.videoCaptureTracker
             onRecorderStateChanged: (state) => {
