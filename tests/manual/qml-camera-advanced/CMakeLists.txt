@@ -44,6 +44,8 @@ qt_add_qml_module(qml-camera-advanced
         SettingsPanelButton.qml
         ImageCaptureSettings.qml
         RecorderSettings.qml
+        RecordingStatusIndicator.qml
+        RecordedVideoPlayer.qml
         VideoOutputSettings.qml
         CameraDeviceSelector.qml
         CameraHelper.qml
