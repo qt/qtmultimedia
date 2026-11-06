@@ -90,39 +90,6 @@ ApplicationWindow {
         videoOutput: settingsButton.previewActive ? settingsButton.previewOutput : cameraOutput
     }
 
-    MediaPlayer {
-        id: mediaPlayer
-        videoOutput: capturedVideoOutput
-        source: window.lastRecordedVideoPath === null ? "" : window.lastRecordedVideoPath
-
-        property var allMediaStatuses: [
-            MediaPlayer.NoMedia,
-            MediaPlayer.LoadingMedia,
-            MediaPlayer.LoadedMedia,
-            MediaPlayer.BufferingMedia,
-            MediaPlayer.StalledMedia,
-            MediaPlayer.BufferedMedia,
-            MediaPlayer.EndOfMedia,
-            MediaPlayer.InvalidMedia, ]
-        function mediaStatusToString(input) {
-            switch (input) {
-            case MediaPlayer.NoMedia: return "NoMedia";
-            case MediaPlayer.LoadingMedia: return "LoadingMedia";
-            case MediaPlayer.LoadedMedia: return "LoadedMedia";
-            case MediaPlayer.BufferingMedia: return "BufferingMedia";
-            case MediaPlayer.StalledMedia: return "StalledMedia";
-            case MediaPlayer.BufferedMedia: return "BufferedMedia";
-            case MediaPlayer.EndOfMedia: return "EndOfMedia";
-            case MediaPlayer.InvalidMedia: return "InvalidMedia";
-            default: return "Unrecognized media status";
-            }
-        }
-
-        onMediaStatusChanged: () => {
-            console.log("Media status changed: " + mediaStatusToString(mediaStatus))
-        }
-    }
-
     CameraFeed {
         id: cameraOutput
         anchors.fill: parent
@@ -204,6 +171,9 @@ ApplicationWindow {
                         recorder: mainRecorder
                         videoOutput: cameraOutput
                         lastFrameInfo: window.lastFrameInfo
+                        lastRecordingLocation: window.lastRecordedVideoPath === null
+                            ? ""
+                            : window.lastRecordedVideoPath
                         clearPropertiesOnDeviceChange:
                             settingsPanelState.clearPropertiesOnDeviceChange
                         onClearPropertiesOnDeviceChangeChanged: () => {
@@ -234,21 +204,33 @@ ApplicationWindow {
         }
     }
 
+    // Plays the last recording. The player is only created while shown, so playback
+    // starts each time it is opened.
     Pane {
         id: capturedVideoOutputPane
         visible: false
         anchors.fill: parent
-        padding: 0
-        VideoOutput {
-            anchors.fill: parent
-            id: capturedVideoOutput
-        }
 
-        MouseArea {
+        ColumnLayout {
             anchors.fill: parent
-            onClicked: {
-                capturedVideoOutputPane.visible = false
-                mediaPlayer.stop()
+
+            Loader {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                active: capturedVideoOutputPane.visible
+                sourceComponent: RecordedVideoPlayer {
+                    source: window.lastRecordedVideoPath === null
+                        ? ""
+                        : window.lastRecordedVideoPath
+                }
+            }
+
+            Button {
+                Layout.alignment: Qt.AlignRight
+                text: "Close"
+                onClicked: () => {
+                    capturedVideoOutputPane.visible = false
+                }
             }
         }
     }

@@ -41,6 +41,10 @@ Pane {
                 }
             }
 
+            RecordingStatusIndicator {
+                recorder: top.recorder
+            }
+
             RowLayout {
                 Button {
                     visible: top.recorder.recorderState === MediaRecorder.StoppedState
@@ -72,7 +76,6 @@ Pane {
                     text: "View video"
                     onClicked: () => {
                         capturedVideoOutputPane.visible = true
-                        mediaPlayer.play()
                     }
                 }
             }

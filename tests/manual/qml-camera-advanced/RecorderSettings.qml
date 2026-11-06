@@ -16,6 +16,9 @@ ColumnLayout {
 
     required property MediaRecorder recorder
 
+    // Empty until the first recording has finished.
+    property url lastRecordingLocation
+
     readonly property bool settingsEditable: recorder.recorderState === MediaRecorder.StoppedState
 
     function buildFormatModel(unspecifiedValue, supportedValues, nameFn) {
@@ -25,9 +28,60 @@ ColumnLayout {
             }))
     }
 
-    Label {
-        text: "State: " + Qt.enumValueToString(MediaRecorder.RecorderState,
-                                                root.recorder.recorderState)
+    RecordingStatusIndicator {
+        Layout.fillWidth: true
+        recorder: root.recorder
+    }
+
+    RowLayout {
+        // Record also resumes a paused recording, like MediaRecorder.record() does.
+        Button {
+            Layout.fillWidth: true
+            enabled: root.recorder.recorderState !== MediaRecorder.RecordingState
+            text: root.recorder.recorderState === MediaRecorder.PausedState
+                ? "Resume"
+                : "Record"
+            onClicked: () => {
+                root.recorder.record()
+            }
+        }
+        Button {
+            Layout.fillWidth: true
+            enabled: root.recorder.recorderState === MediaRecorder.RecordingState
+            text: "Pause"
+            onClicked: () => {
+                root.recorder.pause()
+            }
+        }
+        Button {
+            Layout.fillWidth: true
+            enabled: root.recorder.recorderState !== MediaRecorder.StoppedState
+            text: "Stop"
+            onClicked: () => {
+                root.recorder.stop()
+            }
+        }
+    }
+
+    // The main window's player is hidden behind the settings panel on mobile, so the panel
+    // has its own.
+    Button {
+        id: viewVideoButton
+        Layout.fillWidth: true
+        checkable: true
+        enabled: root.lastRecordingLocation.toString() !== ""
+            && root.recorder.recorderState === MediaRecorder.StoppedState
+        text: checked ? "Hide video" : "View video"
+    }
+
+    Loader {
+        Layout.fillWidth: true
+        Layout.preferredHeight: 300
+        active: viewVideoButton.checked && viewVideoButton.enabled
+        visible: active
+        sourceComponent: RecordedVideoPlayer {
+            source: root.lastRecordingLocation
+        }
     }
 
     Label {

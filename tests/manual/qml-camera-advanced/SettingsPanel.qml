@@ -16,6 +16,7 @@ ColumnLayout {
     required property MediaRecorder recorder
     required property VideoOutput videoOutput
     property var lastFrameInfo
+    property url lastRecordingLocation
 
     // Stored by the owner, as the panel is only instantiated while visible.
     property bool clearPropertiesOnDeviceChange: false
@@ -71,6 +72,7 @@ ColumnLayout {
 
         RecorderSettings {
             recorder: top.recorder
+            lastRecordingLocation: top.lastRecordingLocation
         }
 
         VideoOutputSettings {
