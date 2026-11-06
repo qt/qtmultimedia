@@ -166,8 +166,18 @@ QCameraFormat::QCameraFormat(QCameraFormatPrivate *p)
 {
 }
 
+[[nodiscard]] static bool fuzzyCompareFrameRates(float a, float b)
+{
+    if (qFuzzyIsNull(a) || qFuzzyIsNull(b))
+        return qFuzzyIsNull(a) && qFuzzyIsNull(b);
+    return qFuzzyCompare(a, b);
+}
+
 /*!
     Returns \c true if the \a other format is equal to this camera format, otherwise \c false.
+
+    Frame rates are compared with a small relative tolerance, since camera devices can
+    report the same frame rate with slightly different floating-point values.
 */
 bool QCameraFormat::operator==(const QCameraFormat &other) const
 {
@@ -175,10 +185,10 @@ bool QCameraFormat::operator==(const QCameraFormat &other) const
         return true;
     if (!d || !other.d)
         return false;
-    return d->pixelFormat == other.d->pixelFormat &&
-           d->minFrameRate == other.d->minFrameRate &&
-           d->maxFrameRate == other.d->maxFrameRate &&
-           d->resolution == other.d->resolution;
+    return d->pixelFormat == other.d->pixelFormat
+        && fuzzyCompareFrameRates(d->minFrameRate, other.d->minFrameRate)
+        && fuzzyCompareFrameRates(d->maxFrameRate, other.d->maxFrameRate)
+        && d->resolution == other.d->resolution;
 }
 
 /*!
