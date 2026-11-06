@@ -16,6 +16,7 @@
 //
 
 #include <QtTest/QTest>
+#include <QtTest/qsignalspy.h>
 #include <QtMultimedia/qmediaplayer.h>
 #include <QtMultimedia/qmediametadata.h>
 #include <QtMultimedia/qaudiooutput.h>
