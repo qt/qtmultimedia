@@ -46,6 +46,11 @@ QCameraFormat createCameraFormat(int width, int height, int fpsMin, int fpsMax)
     format->minFrameRate = fpsMin;
     format->maxFrameRate = fpsMax;
 
+    // Limitation: In Camera2 API, formats are enumerated for YUV_420_888. This is a flexible
+    // format whose memory layout is chosen by the camera HAL and is only known once the frame
+    // is actually delivered. Depending on the device, frames arrive as YUV420P, NV12 or NV21,
+    // and Camera2 has no API to query the layout ahead of time. We advertise YUV420P, but
+    // frames may use one of the other layouts.
     format->pixelFormat = QVideoFrameFormat::PixelFormat::Format_YUV420P;
 
     return format->create();

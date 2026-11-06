@@ -28,6 +28,7 @@
 #include <QtCore/qlocale.h>
 #include <QtCore/qmetaobject.h>
 #include <QtCore/qobject.h>
+#include <QtCore/qoperatingsystemversion.h>
 #include <QtCore/qscopeguard.h>
 #include <QtCore/qtemporarydir.h>
 #include <QtCore/qurl.h>
@@ -71,6 +72,24 @@ static constexpr std::chrono::milliseconds VCamProcessTimeout = 15s;
 static constexpr std::chrono::milliseconds VCamDetectTimeout = 5s;
 
 using namespace QtMultimediaTest;
+
+// Android advertises YUV420P, but the memory layout of the delivered frames is chosen by the
+// camera HAL, so frames may arrive as NV12 or NV21 instead.
+[[nodiscard]] static bool isDeliveredPixelFormatAllowed(
+    QVideoFrameFormat::PixelFormat delivered,
+    QVideoFrameFormat::PixelFormat advertised)
+{
+    if (delivered == advertised)
+        return true;
+
+    if (QOperatingSystemVersion::currentType() == QOperatingSystemVersion::Android
+        && advertised == QVideoFrameFormat::Format_YUV420P) {
+        return delivered == QVideoFrameFormat::Format_NV12
+            || delivered == QVideoFrameFormat::Format_NV21;
+    }
+
+    return false;
+}
 
 struct CameraStreamSetup
 {
@@ -1561,7 +1580,10 @@ void tst_QCameraBackend::cameraFormat_isNotNull_whenActive()
     std::optional<VideoFrameInfo> frame = setup.grabber.tryWaitForFirstFrameInfo();
     QVERIFY2(frame, "Camera delivered no frames");
     QCOMPARE(frame->size, format.resolution());
-    QCOMPARE(frame->pixelFormat, format.pixelFormat());
+    QVERIFY2(isDeliveredPixelFormatAllowed(frame->pixelFormat, format.pixelFormat()),
+        qPrintable(u"Frame is %1, but the camera format is %2"_s.arg(
+            QVideoFrameFormat::pixelFormatToString(frame->pixelFormat),
+            QVideoFrameFormat::pixelFormatToString(format.pixelFormat()))));
 }
 
 void tst_QCameraBackend::capturedFrames_matchCameraFormat_withEachCameraFormat_data()
@@ -1613,7 +1635,10 @@ void tst_QCameraBackend::capturedFrames_matchCameraFormat_withEachCameraFormat()
     for (const VideoFrameInfo &frame : frames) {
         QVERIFY(frame.isValid);
         QCOMPARE(frame.size, format.resolution());
-        QCOMPARE(frame.pixelFormat, format.pixelFormat());
+        QVERIFY2(isDeliveredPixelFormatAllowed(frame.pixelFormat, format.pixelFormat()),
+            qPrintable(u"Frame is %1, but the camera format is %2"_s.arg(
+                QVideoFrameFormat::pixelFormatToString(frame.pixelFormat),
+                QVideoFrameFormat::pixelFormatToString(format.pixelFormat()))));
     }
     QVERIFY2(setup.errors.isEmpty(), qPrintable(setup.errors.join(u'\n')));
 }
@@ -1997,7 +2022,9 @@ void tst_QCameraBackend::setCameraFormat_switchesStreamFormat_whileActive()
                 const std::vector<VideoFrameInfo> &frames = setup.grabber.getFrameInfos();
                 for (size_t i = framesBefore; i < frames.size(); ++i) {
                     if (frames[i].isValid && frames[i].size == format.resolution()
-                        && frames[i].pixelFormat == format.pixelFormat()) {
+                        && isDeliveredPixelFormatAllowed(
+                            frames[i].pixelFormat,
+                            format.pixelFormat())) {
                         return true;
                     }
                 }

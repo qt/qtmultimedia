@@ -60,7 +60,7 @@ android ffmpeg-mediabackend
 macos darwin-mediabackend
 ios darwin-mediabackend
 
-# Android: Frames are delivered as NV21 or in another resolution than the selected format
+# Android: Frames can be delivered in another resolution than the selected format
 [capturedFrames_matchCameraFormat_withEachCameraFormat]
 android ffmpeg-mediabackend
 
@@ -89,7 +89,7 @@ ios darwin-mediabackend
 android ffmpeg-mediabackend
 
 # Darwin backend: The selected camera format is not applied, frames are delivered as UYVY
-# Android: Frames are delivered as NV21 instead of the selected format
+# Android: Frames can be delivered in another resolution than the selected format
 [setCameraFormat_switchesStreamFormat_whileActive]
 android ffmpeg-mediabackend
 macos darwin-mediabackend
