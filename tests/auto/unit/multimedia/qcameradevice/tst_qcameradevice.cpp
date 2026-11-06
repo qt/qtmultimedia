@@ -25,6 +25,8 @@ private slots:
     void equality_operators();
     void basicComparison_data();
     void basicComparison();
+    void cameraFormatComparison_data();
+    void cameraFormatComparison();
     void qDebug_operator();
 };
 
@@ -179,6 +181,74 @@ void tst_QCameraDevice::basicComparison()
     const QCameraDevice b = privB->create();
 
     QCOMPARE(a == b, expected);
+}
+
+static QCameraFormat makeCameraFormat(
+    QVideoFrameFormat::PixelFormat pixelFormat,
+    QSize resolution,
+    float minFrameRate,
+    float maxFrameRate)
+{
+    return (new QCameraFormatPrivate{
+                QSharedData(),
+                pixelFormat,
+                resolution,
+                minFrameRate,
+                maxFrameRate,
+            })
+        ->create();
+}
+
+void tst_QCameraDevice::cameraFormatComparison_data()
+{
+    QTest::addColumn<QCameraFormat>("a");
+    QTest::addColumn<QCameraFormat>("b");
+    QTest::addColumn<bool>("expected");
+
+    constexpr QSize resolution{ 1920, 1080 };
+    constexpr QVideoFrameFormat::PixelFormat pixelFormat = QVideoFrameFormat::Format_NV12;
+    const QCameraFormat format = makeCameraFormat(pixelFormat, resolution, 30.f, 30.f);
+
+    QTest::newRow("Equal formats")
+        << format << makeCameraFormat(pixelFormat, resolution, 30.f, 30.f) << true;
+
+    QTest::newRow("Frame rates differ by rounding error")
+        << format << makeCameraFormat(pixelFormat, resolution, 30.00003f, 30.00003f) << true;
+
+    QTest::newRow("Zero frame rates")
+        << makeCameraFormat(pixelFormat, resolution, 0.f, 0.f)
+        << makeCameraFormat(pixelFormat, resolution, 0.f, 0.f) << true;
+
+    QTest::newRow("Zero and non-zero frame rate")
+        << makeCameraFormat(pixelFormat, resolution, 0.f, 30.f) << format << false;
+
+    QTest::newRow("Different min frame rate")
+        << format << makeCameraFormat(pixelFormat, resolution, 15.f, 30.f) << false;
+
+    QTest::newRow("Different max frame rate")
+        << format << makeCameraFormat(pixelFormat, resolution, 30.f, 29.97f) << false;
+
+    QTest::newRow("Different resolution")
+        << format << makeCameraFormat(pixelFormat, { 1280, 720 }, 30.f, 30.f) << false;
+
+    QTest::newRow("Different pixel format")
+        << format << makeCameraFormat(QVideoFrameFormat::Format_YUYV, resolution, 30.f, 30.f)
+        << false;
+
+    QTest::newRow("Null and non-null format") << QCameraFormat() << format << false;
+
+    QTest::newRow("Both are null-formats") << QCameraFormat() << QCameraFormat() << true;
+}
+
+void tst_QCameraDevice::cameraFormatComparison()
+{
+    QFETCH(const QCameraFormat, a);
+    QFETCH(const QCameraFormat, b);
+    QFETCH(const bool, expected);
+
+    QCOMPARE(a == b, expected);
+    QCOMPARE(b == a, expected);
+    QCOMPARE(a != b, !expected);
 }
 
 void tst_QCameraDevice::qDebug_operator()
