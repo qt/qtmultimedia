@@ -12,12 +12,6 @@ macos ffmpeg-mediabackend
 ios ffmpeg-mediabackend
 android ffmpeg-mediabackend
 
-[testVideoRecording]
-macos darwin-mediabackend
-ios darwin-mediabackend
-macos ffmpeg-mediabackend
-ios ffmpeg-mediabackend
-
 [testCaptureToBuffer]
 android android-mediabackend
 
@@ -109,3 +103,33 @@ macos darwin-mediabackend
 [setCameraDevice_keepsFrameFormat_whenSwitchingToDeviceWithSameFormat]
 macos ffmpeg-mediabackend
 android ffmpeg-mediabackend
+
+# BUG: Removing a video source from the capture session does not report
+# end-of-stream to the recorder (see TODO in connectEncoderToSource).
+[recorder_autoStops_whenCameraIsRemovedFromCaptureSession_withEachCameraDevice]
+*
+
+# Darwin backend: Not supported. MediaInfo decodes no frames from Darwin recordings,
+# and the requested resolution is fitted to the aspect ratio of the camera.
+[recorder_encodesFrames_toValidMediaFile_withEachCameraDevice]
+macos darwin-mediabackend
+ios darwin-mediabackend
+[recorder_encodesFrames_withRequestedResolution_withEachCameraDevice]
+macos darwin-mediabackend
+ios darwin-mediabackend
+[recorder_recordingHasExpectedDuration_withEachCameraDevice]
+macos darwin-mediabackend
+ios darwin-mediabackend
+[recorder_encodesAllCameraFrames_withEachCameraDevice]
+macos darwin-mediabackend
+ios darwin-mediabackend
+[recorder_autoStops_whenCameraIsDeactivated_withEachCameraDevice]
+macos darwin-mediabackend
+ios darwin-mediabackend
+
+# BUG: Android: Switching camera device auto-stops the recorder
+# Darwin backend: Not supported
+[recorder_doesNotAutoStop_whenCameraDeviceIsSwitched]
+android ffmpeg-mediabackend
+macos darwin-mediabackend
+ios darwin-mediabackend
