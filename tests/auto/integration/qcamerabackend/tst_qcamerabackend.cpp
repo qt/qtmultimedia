@@ -44,6 +44,7 @@
 #include <chrono>
 #include <memory>
 #include <optional>
+#include <vector>
 
 using namespace std::chrono_literals;
 using namespace Qt::StringLiterals;
@@ -224,6 +225,7 @@ private slots:
 
     void testCameraStartParallel();
     void testMappedFrameSurvivesCameraStop();
+    void testHeldFramesSurviveCameraRestarts();
     void testCameraCapture();
     void testCaptureToBuffer();
     void testCaptureResolutionChangeWhileActive();
@@ -702,6 +704,25 @@ void tst_QCameraBackend::testCameraStartParallel()
     QCOMPARE(errorSpy2.size(), 0);
 }
 
+namespace {
+
+// Maps the frame read-only and returns a deep copy of every plane.
+std::optional<std::vector<QByteArray>> readPlanes(QVideoFrame &frame)
+{
+    if (!frame.map(QVideoFrame::ReadOnly))
+        return std::nullopt;
+
+    std::vector<QByteArray> planes;
+    for (int plane = 0; plane < frame.planeCount(); ++plane) {
+        planes.push_back(QByteArray(reinterpret_cast<const char *>(frame.bits(plane)),
+                                    frame.mappedBytes(plane)));
+    }
+    frame.unmap();
+    return planes;
+}
+
+} // namespace
+
 void tst_QCameraBackend::testMappedFrameSurvivesCameraStop()
 {
     if (noCamera)
@@ -709,16 +730,24 @@ void tst_QCameraBackend::testMappedFrameSurvivesCameraStop()
 
     QMediaCaptureSession session;
     QCamera camera;
-    QVideoSink sink;
+    QtMultimediaTest::FrameGrabber grabber;
+    grabber.setRetainFirstVideoFrame(true);
+    QObject::connect(
+        &camera,
+        &QCamera::activeChanged,
+        &grabber,
+        &QtMultimediaTest::FrameGrabber::onCaptureActiveChanged);
     session.setCamera(&camera);
-    session.setVideoOutput(&sink);
+    session.setVideoSink(&grabber);
 
-    QSignalSpy frameSpy(&sink, &QVideoSink::videoFrameChanged);
-    QVERIFY(frameSpy.isValid());
     camera.start();
-    QTRY_VERIFY_WITH_TIMEOUT(!frameSpy.isEmpty(), 10s);
+    std::optional<QVideoFrame> firstFrame = grabber.consumeFirstVideoFrame();
+    QVERIFY(firstFrame.has_value());
 
-    QVideoFrame frame = frameSpy.first().first().value<QVideoFrame>();
+    QVideoFrame frame = *firstFrame;
+    const auto planesBefore = readPlanes(frame);
+    QVERIFY(planesBefore.has_value());
+
     QVERIFY(frame.map(QVideoFrame::ReadOnly));
     const QByteArray before(reinterpret_cast<const char *>(frame.bits(0)), frame.mappedBytes(0));
 
@@ -728,6 +757,53 @@ void tst_QCameraBackend::testMappedFrameSurvivesCameraStop()
     const QByteArray after(reinterpret_cast<const char *>(frame.bits(0)), frame.mappedBytes(0));
     frame.unmap();
     QCOMPARE(after, before);
+
+    // A fresh mapping after the stop must still read every plane as before the stop.
+    const auto planesAfter = readPlanes(frame);
+    QVERIFY(planesAfter.has_value());
+    QCOMPARE(planesAfter->size(), planesBefore->size());
+    for (size_t plane = 0; plane < planesBefore->size(); ++plane)
+        QCOMPARE((*planesAfter)[plane], (*planesBefore)[plane]);
+}
+
+void tst_QCameraBackend::testHeldFramesSurviveCameraRestarts()
+{
+    if (noCamera)
+        QSKIP("No camera available");
+
+    QMediaCaptureSession session;
+    QCamera camera;
+    QtMultimediaTest::FrameGrabber grabber;
+    grabber.setRetainFirstVideoFrame(true);
+    QObject::connect(
+        &camera,
+        &QCamera::activeChanged,
+        &grabber,
+        &QtMultimediaTest::FrameGrabber::onCaptureActiveChanged);
+    session.setCamera(&camera);
+    session.setVideoSink(&grabber);
+
+    // The capture pool is smaller than this count, so frames beyond it take the eager-copy path.
+    constexpr size_t restartCount = 20;
+    std::vector<QVideoFrame> held;
+    for (size_t cycle = 0; cycle < restartCount; ++cycle) {
+        camera.start();
+        QVERIFY(camera.isActive());
+
+        std::optional<QVideoFrame> firstFrame = grabber.consumeFirstVideoFrame();
+        QVERIFY(firstFrame.has_value());
+        held.push_back(*firstFrame);
+
+        camera.stop();
+        QVERIFY(!camera.isActive());
+    }
+
+    QCOMPARE(held.size(), restartCount);
+    for (QVideoFrame &frame : held) {
+        QVERIFY(frame.map(QVideoFrame::ReadOnly));
+        QCOMPARE_GT(frame.planeCount(), 0);
+        frame.unmap();
+    }
 }
 
 void tst_QCameraBackend::testCameraCapture()
