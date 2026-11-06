@@ -15,6 +15,5 @@ qt_internal_multimedia_add_test(tst_qcamerabackend
     LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate
-        Qt::Widgets
         Qt::MultimediaTestLibPrivate
 )
