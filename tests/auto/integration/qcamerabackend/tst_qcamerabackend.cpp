@@ -3,6 +3,7 @@
 
 #include <QtMultimediaTestLib/private/framegrabber_p.h>
 #include <QtMultimediaTestLib/private/mediabackendutils_p.h>
+#include <QtMultimediaTestLib/private/mediainfo_p.h>
 #include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
 #include <QtTest/qsignalspy.h>
 #include <QtTest/qtest.h>
@@ -20,9 +21,12 @@
 #include <QtMultimedia/private/qplatformimagecapture_p.h>
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
 #include <QtGui/qimagereader.h>
+#include <QtCore/qelapsedtimer.h>
 #include <QtCore/qlocale.h>
+#include <QtCore/qmetaobject.h>
 #include <QtCore/qobject.h>
 #include <QtCore/qscopeguard.h>
+#include <QtCore/qtemporarydir.h>
 #include <QtCore/qurl.h>
 #if QT_CONFIG(process)
 #  include <QtCore/qprocess.h>
@@ -119,6 +123,64 @@ static void verifyStreamEndsWithNullFrame(const FrameGrabber &grabber)
             .arg(frameTimeToString(lastValidFrame.startTime))));
 }
 
+// Extends CameraStreamSetup with a QMediaRecorder that records to a temporary directory.
+struct CameraRecorderSetup : CameraStreamSetup
+{
+    explicit CameraRecorderSetup(const QCameraDevice &device)
+        : CameraStreamSetup(device)
+    {
+        QObject::connect(
+            &recorder,
+            &QMediaRecorder::errorOccurred,
+            &recorder,
+            [this](QMediaRecorder::Error, const QString &errorString) {
+                recorderErrors.append(errorString);
+            });
+
+        recorder.setOutputLocation(QUrl::fromLocalFile(tempDir.filePath(u"recording"_s)));
+        session.setRecorder(&recorder);
+    }
+
+    // The recorder finalizes the file asynchronously, so it must be stopped before
+    // the temporary directory is removed.
+    ~CameraRecorderSetup()
+    {
+        std::ignore = stopRecording();
+    }
+
+    // Starts the camera and the recorder, and waits until frames are being recorded.
+    void startRecording()
+    {
+        camera.setActive(true);
+        QVERIFY(camera.isActive());
+        QVERIFY2(grabber.tryWaitForFirstFrameInfo(), "Camera delivered no frames");
+
+        recorder.record();
+        QTRY_VERIFY_WITH_TIMEOUT(recorder.duration() > 0, surfaceCaptureTestTimeout());
+        QCOMPARE(recorder.recorderState(), QMediaRecorder::RecorderState::RecordingState);
+    }
+
+    // Stops the recorder, and waits until the media file is finalized.
+    [[nodiscard]] bool stopRecording()
+    {
+        recorder.stop();
+        return waitForRecorderStopped();
+    }
+
+    [[nodiscard]] bool waitForRecorderStopped()
+    {
+        return QTest::qWaitFor(
+            [this] {
+                return recorder.recorderState() == QMediaRecorder::RecorderState::StoppedState;
+            },
+            surfaceCaptureTestTimeout());
+    }
+
+    QTemporaryDir tempDir;
+    QMediaRecorder recorder;
+    QStringList recorderErrors;
+};
+
 class tst_QCameraBackend : public QIntegrationTestBase
 {
     Q_OBJECT
@@ -148,9 +210,6 @@ private slots:
     void testCameraCaptureMetadata();
     void testExposureCompensation();
     void testExposureMode();
-
-    void testVideoRecording_data();
-    void testVideoRecording();
 
     void testNativeMetadata();
 
@@ -193,8 +252,24 @@ private slots:
     void setCameraFormat_switchesStreamFormat_whileActive_data();
     void setCameraFormat_switchesStreamFormat_whileActive();
 
+    void recorder_encodesFrames_toValidMediaFile_withEachCameraDevice_data();
+    void recorder_encodesFrames_toValidMediaFile_withEachCameraDevice();
+    void recorder_encodesFrames_withRequestedResolution_withEachCameraDevice_data();
+    void recorder_encodesFrames_withRequestedResolution_withEachCameraDevice();
+    void recorder_recordingHasExpectedDuration_withEachCameraDevice_data();
+    void recorder_recordingHasExpectedDuration_withEachCameraDevice();
+    void recorder_encodesAllCameraFrames_withEachCameraDevice_data();
+    void recorder_encodesAllCameraFrames_withEachCameraDevice();
+    void recorder_autoStops_whenCameraIsDeactivated_withEachCameraDevice_data();
+    void recorder_autoStops_whenCameraIsDeactivated_withEachCameraDevice();
+    void recorder_autoStops_whenCameraIsRemovedFromCaptureSession_withEachCameraDevice_data();
+    void recorder_autoStops_whenCameraIsRemovedFromCaptureSession_withEachCameraDevice();
+    void recorder_doesNotAutoStop_whenCameraDeviceIsSwitched();
+
 private:
     static void addRowPerCameraDevice();
+    // Waits for the recorder to stop on its own, and verifies the recording
+    static void verifyRecorderAutoStopped(CameraRecorderSetup &setup);
     // Returns up to \a count distinct photo resolutions supported by the default camera
     static QList<QSize> photoResolutionsToTest(int count);
     // Saved images can be rotated according to device orientation
@@ -1049,94 +1124,6 @@ void tst_QCameraBackend::testExposureMode()
     camera.setExposureMode(QCamera::ExposureAuto);
 }
 
-void tst_QCameraBackend::testVideoRecording_data()
-{
-    QTest::addColumn<QCameraDevice>("device");
-
-    const auto devices = QMediaDevices::videoInputs();
-    int i = 0;
-
-    for (const auto &device : devices)
-        QTest::addRow("%d - %s", i++, device.description().toUtf8().constData()) << device;
-
-    if (devices.isEmpty())
-        QTest::newRow("Null device") << QCameraDevice();
-}
-
-void tst_QCameraBackend::testVideoRecording()
-{
-    QSKIP_OHOS("OH_AVPlayer does not extract MP4 stream metadata (resolution) yet, so player.metaData() is empty");
-    if (noCamera)
-        QSKIP("No camera available");
-    QFETCH(QCameraDevice, device);
-
-    QMediaCaptureSession session;
-    std::unique_ptr<QCamera> camera(new QCamera(device));
-    session.setCamera(camera.get());
-
-    QMediaRecorder recorder;
-    session.setRecorder(&recorder);
-
-    QSignalSpy errorSignal(camera.get(), &QCamera::errorOccurred);
-    QSignalSpy recorderErrorSignal(&recorder, &QMediaRecorder::errorOccurred);
-    QSignalSpy recorderStateChanged(&recorder, &QMediaRecorder::recorderStateChanged);
-    QSignalSpy durationChanged(&recorder, &QMediaRecorder::durationChanged);
-
-    recorder.setVideoResolution(320, 240);
-
-    // Insert metadata
-    QMediaMetaData metaData;
-    metaData.insert(QMediaMetaData::Author, QStringLiteral("Author"));
-    metaData.insert(QMediaMetaData::Date, QDateTime::currentDateTime());
-    recorder.setMetaData(metaData);
-
-    camera->start();
-    if (noCamera || device.isNull()) {
-        QVERIFY(!camera->isActive());
-        return;
-    }
-    QTRY_VERIFY(camera->isActive());
-
-    QTRY_VERIFY(camera->isActive());
-
-    recorder.record();
-    if (!recorderErrorSignal.empty() || recorderErrorSignal.wait(550)) {
-        QEXPECT_FAIL_GSTREAMER("", "QTBUG-124148: GStreamer might return ResourceError", Continue);
-
-        QCOMPARE(recorderErrorSignal.last().first().toInt(), QMediaRecorder::FormatError);
-        return;
-    }
-
-    QTRY_VERIFY(durationChanged.size());
-
-    QCOMPARE(recorder.metaData(), metaData);
-
-    recorderStateChanged.clear();
-    recorder.stop();
-    QTRY_VERIFY(recorderStateChanged.size() > 0);
-    QVERIFY(recorder.recorderState() == QMediaRecorder::StoppedState);
-
-    QVERIFY(errorSignal.isEmpty());
-    QVERIFY(recorderErrorSignal.isEmpty());
-
-    QString fileName = recorder.actualLocation().toLocalFile();
-    QVERIFY(!fileName.isEmpty());
-    QVERIFY(QFileInfo(fileName).size() > 0);
-
-    QMediaPlayer player;
-    // Should this be recorder.actualLocation() instead?
-    player.setSource(QUrl::fromLocalFile(fileName));
-
-    QTRY_COMPARE_WITH_TIMEOUT(player.mediaStatus(), QMediaPlayer::LoadedMedia, 8s);
-    QCOMPARE_EQ(player.metaData().value(QMediaMetaData::Resolution).toSize(), QSize(320, 240));
-    QCOMPARE_GT(player.duration(), 350);
-    QCOMPARE_LT(player.duration(), 650);
-
-    // TODO: integrate with a virtual camera and check mediaplayer output
-
-    QFile(fileName).remove();
-}
-
 void tst_QCameraBackend::testNativeMetadata()
 {
     QSKIP_OHOS("OH_AVRecorder/OH_AVPlayer do not yet round-trip MP4 user metadata (Title, Language, Description)");
@@ -1940,6 +1927,266 @@ void tst_QCameraBackend::setCameraFormat_switchesStreamFormat_whileActive()
     }
 
     QVERIFY(setup.camera.isActive());
+}
+
+void tst_QCameraBackend::verifyRecorderAutoStopped(CameraRecorderSetup &setup)
+{
+    if (!setup.waitForRecorderStopped()) {
+        // Stop explicitly, so the recording is finalized before the test ends.
+        QVERIFY(setup.stopRecording());
+        QFAIL("The recorder did not auto-stop");
+    }
+
+    QVERIFY2(setup.errors.isEmpty(), qPrintable(setup.errors.join(u'\n')));
+    QVERIFY2(setup.recorderErrors.isEmpty(), qPrintable(setup.recorderErrors.join(u'\n')));
+
+    const std::optional<MediaInfo> info = MediaInfo::create(setup.recorder.actualLocation());
+    QVERIFY(info);
+    QVERIFY(info->m_hasVideo);
+    QCOMPARE_GT(info->m_frameCount, 0);
+}
+
+void tst_QCameraBackend::recorder_encodesFrames_toValidMediaFile_withEachCameraDevice_data()
+{
+    if (noCamera)
+        QSKIP("No camera available");
+
+    addRowPerCameraDevice();
+}
+
+void tst_QCameraBackend::recorder_encodesFrames_toValidMediaFile_withEachCameraDevice()
+{
+    QFETCH(const QCameraDevice, device);
+
+    constexpr size_t frameCount = 30;
+
+    CameraRecorderSetup setup(device);
+    setup.startRecording();
+    if (QTest::currentTestFailed())
+        return;
+
+    // Wait on the grabber to make sure the recorder also gets some frames
+    std::vector<VideoFrameInfo> frames = setup.grabber.waitAndTakeFrameInfos(frameCount);
+    QCOMPARE_GE(frames.size(), frameCount);
+
+    QVERIFY(setup.stopRecording());
+    QVERIFY2(setup.errors.isEmpty(), qPrintable(setup.errors.join(u'\n')));
+    QVERIFY2(setup.recorderErrors.isEmpty(), qPrintable(setup.recorderErrors.join(u'\n')));
+
+    const QUrl location = setup.recorder.actualLocation();
+    QVERIFY(QFileInfo::exists(location.toLocalFile()));
+
+    const std::optional<MediaInfo> info = MediaInfo::create(location);
+    QVERIFY(info);
+    QVERIFY(info->m_hasVideo);
+    QCOMPARE_GT(info->m_frameCount, 0);
+
+    // Without a requested resolution, the recording keeps the size of the camera frames
+    QCOMPARE(info->m_size, frames.back().size);
+}
+
+void tst_QCameraBackend::recorder_encodesFrames_withRequestedResolution_withEachCameraDevice_data()
+{
+    if (noCamera)
+        QSKIP("No camera available");
+
+    addRowPerCameraDevice();
+}
+
+void tst_QCameraBackend::recorder_encodesFrames_withRequestedResolution_withEachCameraDevice()
+{
+    QSKIP_OHOS("OH_AVPlayer does not extract MP4 stream metadata (resolution) yet");
+
+    QFETCH(const QCameraDevice, device);
+
+    constexpr QSize resolution{ 320, 240 };
+
+    CameraRecorderSetup setup(device);
+    setup.recorder.setVideoResolution(resolution);
+    setup.startRecording();
+    if (QTest::currentTestFailed())
+        return;
+
+    std::ignore = setup.grabber.waitAndTakeFrameInfos(10);
+
+    QVERIFY(setup.stopRecording());
+    QVERIFY2(setup.errors.isEmpty(), qPrintable(setup.errors.join(u'\n')));
+    QVERIFY2(setup.recorderErrors.isEmpty(), qPrintable(setup.recorderErrors.join(u'\n')));
+
+    const std::optional<MediaInfo> info = MediaInfo::create(setup.recorder.actualLocation());
+    QVERIFY(info);
+    QCOMPARE(info->m_size, resolution);
+}
+
+void tst_QCameraBackend::recorder_recordingHasExpectedDuration_withEachCameraDevice_data()
+{
+    if (noCamera)
+        QSKIP("No camera available");
+
+    addRowPerCameraDevice();
+}
+
+void tst_QCameraBackend::recorder_recordingHasExpectedDuration_withEachCameraDevice()
+{
+    QFETCH(const QCameraDevice, device);
+
+    constexpr auto recordingDuration = 2s;
+
+    CameraRecorderSetup setup(device);
+    setup.startRecording();
+    if (QTest::currentTestFailed())
+        return;
+
+    QElapsedTimer recordingTimer;
+    recordingTimer.start();
+
+    QTest::qWait(recordingDuration);
+
+    const std::chrono::milliseconds expectedDuration{ recordingTimer.elapsed() };
+
+    QVERIFY(setup.stopRecording());
+    QVERIFY2(setup.errors.isEmpty(), qPrintable(setup.errors.join(u'\n')));
+    QVERIFY2(setup.recorderErrors.isEmpty(), qPrintable(setup.recorderErrors.join(u'\n')));
+
+    const std::optional<MediaInfo> info = MediaInfo::create(setup.recorder.actualLocation());
+    QVERIFY(info);
+
+    // Allow some slack for the time it takes to start and stop the stream
+    constexpr std::chrono::milliseconds tolerance = 250ms;
+    QVERIFY2(
+        std::chrono::abs(info->m_duration - expectedDuration) <= tolerance,
+        qPrintable(u"Recording lasted %1ms, but the camera was recorded for %2ms"_s
+            .arg(info->m_duration.count())
+            .arg(expectedDuration.count())));
+}
+
+void tst_QCameraBackend::recorder_encodesAllCameraFrames_withEachCameraDevice_data()
+{
+    if (noCamera)
+        QSKIP("No camera available");
+
+    addRowPerCameraDevice();
+}
+
+void tst_QCameraBackend::recorder_encodesAllCameraFrames_withEachCameraDevice()
+{
+    QFETCH(const QCameraDevice, device);
+
+    CameraRecorderSetup setup(device);
+    setup.startRecording();
+    if (QTest::currentTestFailed())
+        return;
+
+    size_t framesAtStart = setup.grabber.getFrameInfos().size();
+    QTest::qWait(2s);
+    size_t framesAtStop = setup.grabber.getFrameInfos().size();
+
+    QVERIFY(setup.stopRecording());
+    QVERIFY2(setup.errors.isEmpty(), qPrintable(setup.errors.join(u'\n')));
+    QVERIFY2(setup.recorderErrors.isEmpty(), qPrintable(setup.recorderErrors.join(u'\n')));
+
+    const std::optional<MediaInfo> info = MediaInfo::create(setup.recorder.actualLocation());
+    QVERIFY(info);
+
+    // The recording starts slightly before and ends slightly after the frames we
+    // counted, so allow for a few frames at the ends. The recording can contain more
+    // frames than the camera delivered, since the encoder repeats frames to keep a
+    // constant frame rate when the camera delivers fewer frames than its format reports.
+    const int deliveredFrames = int(framesAtStop - framesAtStart);
+    const int tolerance = qMax(3, deliveredFrames / 10);
+    QVERIFY2(
+        info->m_frameCount >= deliveredFrames - tolerance,
+        qPrintable(u"Recording has %1 frames, but the camera delivered %2 frames while recording"_s
+            .arg(info->m_frameCount)
+            .arg(deliveredFrames)));
+}
+
+void tst_QCameraBackend::recorder_autoStops_whenCameraIsDeactivated_withEachCameraDevice_data()
+{
+    if (noCamera)
+        QSKIP("No camera available");
+
+    addRowPerCameraDevice();
+}
+
+void tst_QCameraBackend::recorder_autoStops_whenCameraIsDeactivated_withEachCameraDevice()
+{
+    QFETCH(const QCameraDevice, device);
+
+    CameraRecorderSetup setup(device);
+    setup.recorder.setAutoStop(true);
+    setup.startRecording();
+    if (QTest::currentTestFailed())
+        return;
+
+    setup.camera.setActive(false);
+
+    verifyRecorderAutoStopped(setup);
+}
+
+void tst_QCameraBackend::recorder_autoStops_whenCameraIsRemovedFromCaptureSession_withEachCameraDevice_data()
+{
+    if (noCamera)
+        QSKIP("No camera available");
+
+    addRowPerCameraDevice();
+}
+
+void tst_QCameraBackend::recorder_autoStops_whenCameraIsRemovedFromCaptureSession_withEachCameraDevice()
+{
+    QFETCH(const QCameraDevice, device);
+
+    CameraRecorderSetup setup(device);
+    setup.recorder.setAutoStop(true);
+    setup.startRecording();
+    if (QTest::currentTestFailed())
+        return;
+
+    setup.session.setCamera(nullptr);
+
+    verifyRecorderAutoStopped(setup);
+}
+
+// Switching the camera device ends the stream of the old device. This must not
+// be treated as the end of the input, so the recorder must not auto-stop.
+void tst_QCameraBackend::recorder_doesNotAutoStop_whenCameraDeviceIsSwitched()
+{
+    const QList<QCameraDevice> devices = QMediaDevices::videoInputs();
+    if (devices.size() < 2)
+        QSKIP("At least two cameras are required to switch between them");
+
+    constexpr size_t frameCount = 10;
+
+    CameraRecorderSetup setup(devices.first());
+    setup.recorder.setAutoStop(true);
+    setup.startRecording();
+    if (QTest::currentTestFailed())
+        return;
+
+    QSignalSpy recorderStateChanges(&setup.recorder, &QMediaRecorder::recorderStateChanged);
+
+    setup.camera.setCameraDevice(devices.at(1));
+    QVERIFY(setup.camera.isActive());
+
+    // Give the recorder time to process frames from the new device
+    QCOMPARE_GE(setup.grabber.waitAndTakeFrameInfos(frameCount).size(), frameCount);
+
+    const QMetaEnum stateEnum = QMetaEnum::fromType<QMediaRecorder::RecorderState>();
+    QStringList stateChanges;
+    for (const QList<QVariant> &stateChange : std::as_const(recorderStateChanges))
+        stateChanges.append(QString::fromLatin1(stateEnum.valueToKey(stateChange.at(0).toInt())));
+    QVERIFY2(
+        recorderStateChanges.isEmpty(),
+        qPrintable(u"Recorder state changed to %1 after switching camera device. Errors: %2"_s
+            .arg(stateChanges.join(u", "_s), setup.recorderErrors.join(u'\n'))));
+    QCOMPARE(setup.recorder.recorderState(), QMediaRecorder::RecorderState::RecordingState);
+
+    // Deactivating the camera ends the input, which must trigger auto-stop.
+    // This ensures that auto-stop works at all in this setup.
+    setup.camera.setActive(false);
+    verifyRecorderAutoStopped(setup);
+
+    QVERIFY2(setup.errors.isEmpty(), qPrintable(setup.errors.join(u'\n')));
 }
 
 QTEST_MAIN(tst_QCameraBackend)
