@@ -93,29 +93,27 @@ private:
         const QString &context)
     {
         QVERIFY2(
-            nullFrame.startTime >= 0,
-            qPrintable(u"%1: null-frame has no valid start time (%2)"_s
-                .arg(context)
-                .arg(nullFrame.startTime)));
+            nullFrame.startTime,
+            qPrintable(u"%1: null-frame has no valid start time"_s.arg(context)));
 
         QVERIFY2(
             nullFrame.startTime > lastValidFrame.startTime,
             qPrintable(u"%1: null-frame start time (%2) is not after the start time "
                        "of the last valid frame (%3)"_s
                 .arg(context)
-                .arg(nullFrame.startTime)
-                .arg(lastValidFrame.startTime)));
+                .arg(frameTimeToString(nullFrame.startTime))
+                .arg(frameTimeToString(lastValidFrame.startTime))));
 
         // The null-frame may end the last valid frame exactly at its end time, but
         // not before it.
-        if (lastValidFrame.endTime >= 0) {
+        if (lastValidFrame.endTime) {
             QVERIFY2(
                 nullFrame.startTime >= lastValidFrame.endTime,
                 qPrintable(u"%1: null-frame start time (%2) is before the end time "
                            "of the last valid frame (%3)"_s
                     .arg(context)
-                    .arg(nullFrame.startTime)
-                    .arg(lastValidFrame.endTime)));
+                    .arg(frameTimeToString(nullFrame.startTime))
+                    .arg(frameTimeToString(lastValidFrame.endTime))));
         }
     }
 
@@ -172,7 +170,7 @@ private:
                     .arg(frame.isValid ? u"valid"_s : u"null"_s)
                     .arg(frame.size.width())
                     .arg(frame.size.height())
-                    .arg(frame.startTime);
+                    .arg(frameTimeToString(frame.startTime));
             }
 
             QFAIL(qPrintable(u"%1: received %2 frame(s) after the terminating "
@@ -1051,7 +1049,8 @@ private slots:
 
             const std::optional<VideoFrameInfo> frame = fixture.tryWaitForFirstFrameInfo();
             QVERIFY(frame);
-            QCOMPARE(frame->startTime, 0);
+            QVERIFY(frame->startTime);
+            QCOMPARE(*frame->startTime, 0us);
         }
     }
 
@@ -1072,30 +1071,38 @@ private slots:
             "Did not receive enough QVideoFrames to compare presentation times");
 
         for (size_t i = 1; i < frames.size(); ++i) {
-            const qint64 prevStart = frames[i - 1].startTime;
-            const qint64 currStart = frames[i].startTime;
+            const std::optional<std::chrono::microseconds> prevStart = frames[i - 1].startTime;
+            const std::optional<std::chrono::microseconds> currStart = frames[i].startTime;
 
             // Presentation (start) times must strictly increase along the stream.
             QVERIFY2(
                 currStart > prevStart,
                 qPrintable(u"Frame #%1 start time (%2) is not after frame #%3 "
                            "start time (%4)"_s
-                    .arg(i).arg(currStart).arg(i - 1).arg(prevStart)));
+                    .arg(i)
+                    .arg(frameTimeToString(currStart))
+                    .arg(i - 1)
+                    .arg(frameTimeToString(prevStart))));
 
             // Where the backend also reports an end time, the frame must not end
             // before it starts, and the next frame must not start before the
             // previous one ended (frames must not overlap in time).
-            const qint64 prevEnd = frames[i - 1].endTime;
-            if (prevEnd >= 0) {
+            const std::optional<std::chrono::microseconds> prevEnd = frames[i - 1].endTime;
+            if (prevEnd) {
                 QVERIFY2(
                     prevEnd >= prevStart,
                     qPrintable(u"Frame #%1 end time (%2) precedes its start time (%3)"_s
-                        .arg(i - 1).arg(prevEnd).arg(prevStart)));
+                        .arg(i - 1)
+                        .arg(frameTimeToString(prevEnd))
+                        .arg(frameTimeToString(prevStart))));
                 QVERIFY2(
                     currStart >= prevEnd,
                     qPrintable(u"Frame #%1 start time (%2) precedes frame #%3 "
                                "end time (%4)"_s
-                        .arg(i).arg(currStart).arg(i - 1).arg(prevEnd)));
+                        .arg(i)
+                        .arg(frameTimeToString(currStart))
+                        .arg(i - 1)
+                        .arg(frameTimeToString(prevEnd))));
             }
         }
     }
@@ -1131,7 +1138,10 @@ private slots:
 
         qint64 totalSpacingUs = 0;
         for (size_t i = 1; i < frames.size(); ++i) {
-            const qint64 spacingUs = frames[i].startTime - frames[i - 1].startTime;
+            QVERIFY2(
+                frames[i].startTime && frames[i - 1].startTime,
+                qPrintable(u"Frame #%1 or #%2 has no start time"_s.arg(i - 1).arg(i)));
+            const qint64 spacingUs = (*frames[i].startTime - *frames[i - 1].startTime).count();
             totalSpacingUs += spacingUs;
 
             QVERIFY2(

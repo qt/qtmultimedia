@@ -19,6 +19,8 @@ QT_BEGIN_NAMESPACE
 
 namespace QtMultimediaTest {
 
+using namespace Qt::StringLiterals;
+
 std::chrono::milliseconds surfaceCaptureTestTimeout()
 {
     // A blacklisted test is expected to fail, so don't make it wait for the full
@@ -43,12 +45,27 @@ std::chrono::milliseconds surfaceCaptureTestTimeout()
     return std::chrono::milliseconds(qRound64(1000.0 / *frameRate * margin));
 }
 
-static qint64 startTimeOf(const QVideoFrame &frame)
+QString frameTimeToString(std::optional<std::chrono::microseconds> time)
 {
-    return frame.startTime();
+    if (!time)
+        return u"unset"_s;
+    return u"%1us"_s.arg(time->count());
 }
 
-static qint64 startTimeOf(const VideoFrameInfo &info)
+// QVideoFrame reports an unset time as -1
+[[nodiscard]] static std::optional<std::chrono::microseconds> toFrameTime(qint64 time)
+{
+    if (time < 0)
+        return std::nullopt;
+    return std::chrono::microseconds(time);
+}
+
+[[nodiscard]] static std::optional<std::chrono::microseconds> startTimeOf(const QVideoFrame &frame)
+{
+    return toFrameTime(frame.startTime());
+}
+
+[[nodiscard]] static std::optional<std::chrono::microseconds> startTimeOf(const VideoFrameInfo &info)
 {
     return info.startTime;
 }
@@ -59,8 +76,8 @@ static VideoFrameInfo makeVideoFrameInfo(const QVideoFrame &frame)
         frame.isValid(),
         frame.size(),
         frame.pixelFormat(),
-        frame.startTime(),
-        frame.endTime(),
+        toFrameTime(frame.startTime()),
+        toFrameTime(frame.endTime()),
     };
 }
 
@@ -95,7 +112,7 @@ const std::vector<VideoFrameInfo> &FrameGrabber::getFrameInfos() const
 std::vector<VideoFrameInfo> FrameGrabber::waitAndTakeFrameInfos(
     size_t minCount,
     std::optional<qreal> expectedFrameRate,
-    qint64 noOlderThanTime)
+    std::optional<std::chrono::microseconds> noOlderThanTime)
 {
     return waitAndTake(m_frameInfos, minCount, expectedFrameRate, noOlderThanTime);
 }
@@ -103,7 +120,7 @@ std::vector<VideoFrameInfo> FrameGrabber::waitAndTakeFrameInfos(
 std::vector<QVideoFrame> FrameGrabber::waitAndTakeVideoFrames(
     size_t minCount,
     std::optional<qreal> expectedFrameRate,
-    qint64 noOlderThanTime)
+    std::optional<std::chrono::microseconds> noOlderThanTime)
 {
     // Holding on to QVideoFrames can stall backends that use a fixed-size
     // frame pool, so only retain them while the caller is waiting for them.
@@ -121,7 +138,7 @@ std::vector<Frame> FrameGrabber::waitAndTake(
     std::vector<Frame> &frames,
     size_t minCount,
     std::optional<qreal> expectedFrameRate,
-    qint64 noOlderThanTime)
+    std::optional<std::chrono::microseconds> noOlderThanTime)
 {
     m_frameInfos.clear();
     m_videoFrames.clear();
@@ -133,7 +150,7 @@ std::vector<Frame> FrameGrabber::waitAndTake(
         // ensure that all signals &QVideoSink::videoFrameChanged have been processed
         QCoreApplication::processEvents(QEventLoop::AllEvents);
 
-        if (noOlderThanTime > 0) {
+        if (noOlderThanTime) {
             // Reject frames older than noOlderThanTime
             q20::erase_if(frames, [noOlderThanTime](const Frame &frame) {
                 return startTimeOf(frame) <= noOlderThanTime;

@@ -15,6 +15,7 @@
 // We mean it.
 //
 
+#include <QtCore/qstring.h>
 #include <QtCore/qtconfigmacros.h>
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qvideosink.h>
@@ -36,9 +37,11 @@ struct VideoFrameInfo
     bool isValid = false;
     QSize size;
     QVideoFrameFormat::PixelFormat pixelFormat = QVideoFrameFormat::Format_Invalid;
-    qint64 startTime = -1;
-    qint64 endTime = -1;
+    std::optional<std::chrono::microseconds> startTime;
+    std::optional<std::chrono::microseconds> endTime;
 };
+
+[[nodiscard]] QString frameTimeToString(std::optional<std::chrono::microseconds> time);
 
 /*!
     The FrameGrabber stores frames that arrive from a surface capture,
@@ -65,7 +68,7 @@ public:
     [[nodiscard]] std::vector<VideoFrameInfo> waitAndTakeFrameInfos(
         size_t minCount,
         std::optional<qreal> expectedFrameRate = std::nullopt,
-        qint64 noOlderThanTime = 0);
+        std::optional<std::chrono::microseconds> noOlderThanTime = std::nullopt);
 
     /*!
         Same as waitAndTakeFrameInfos(), but returns the video frames themselves.
@@ -74,7 +77,7 @@ public:
     [[nodiscard]] std::vector<QVideoFrame> waitAndTakeVideoFrames(
         size_t minCount,
         std::optional<qreal> expectedFrameRate = std::nullopt,
-        qint64 noOlderThanTime = 0);
+        std::optional<std::chrono::microseconds> noOlderThanTime = std::nullopt);
 
     /*!
         Waits for the first frame of the current stream, and returns a copy of its
@@ -131,7 +134,7 @@ private:
         std::vector<Frame> &frames,
         size_t minCount,
         std::optional<qreal> expectedFrameRate,
-        qint64 noOlderThanTime);
+        std::optional<std::chrono::microseconds> noOlderThanTime);
 
     std::vector<VideoFrameInfo> m_frameInfos;
 
