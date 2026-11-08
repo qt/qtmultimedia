@@ -113,7 +113,10 @@ static void verifyStreamEndsWithNullFrame(const FrameGrabber &grabber)
     const VideoFrameInfo &nullFrame = frames.back();
     const VideoFrameInfo &lastValidFrame = frames[frames.size() - 2];
     QVERIFY(lastValidFrame.isValid);
-    QCOMPARE_GT(nullFrame.startTime, lastValidFrame.startTime);
+    QVERIFY2(nullFrame.startTime > lastValidFrame.startTime,
+        qPrintable(u"Null-frame start time (%1) is not after the last valid frame's (%2)"_s
+            .arg(frameTimeToString(nullFrame.startTime))
+            .arg(frameTimeToString(lastValidFrame.startTime))));
 }
 
 class tst_QCameraBackend : public QIntegrationTestBase
