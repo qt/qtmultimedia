@@ -280,10 +280,10 @@ class QtAudioDeviceManager
         put(AudioDeviceInfo.TYPE_USB_DEVICE, 1);
         // NOTE: Should TYPE_USB_ACCESSORY also have priority level 1?
         put(AudioDeviceInfo.TYPE_BLUETOOTH_A2DP, 2);
-        put(AudioDeviceInfo.TYPE_BLUETOOTH_SCO, 2);
-        put(AudioDeviceInfo.TYPE_BUILTIN_SPEAKER, 3);
+        put(AudioDeviceInfo.TYPE_BLUETOOTH_SCO, 3);
+        put(AudioDeviceInfo.TYPE_BUILTIN_SPEAKER, 4);
     }};
-    private static final int DEFAULT_PRIORITY = 4;
+    private static final int DEFAULT_PRIORITY = 5;
 
     private static void sortAudioDevices(AudioDeviceInfo[] devices) {
         Comparator<AudioDeviceInfo> deviceTypeComparator = new Comparator<AudioDeviceInfo>() {
