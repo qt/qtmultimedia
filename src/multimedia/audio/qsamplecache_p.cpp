@@ -116,6 +116,11 @@ QSampleCache::SampleLoadResult QSampleCache::loadSample(QSpan<const char> data)
     audioFormat.setChannelConfig(
             QAudioFormat::defaultChannelConfigForChannelCount(wavParser.channels));
 
+    if (wavParser.totalPCMFrameCount > 1 * 1'024 * 1'024 * 1'024) {
+        // either the file is corrupt, or the user is trying to load a 4GB+ sample into memory.
+        return std::nullopt;
+    }
+
     QByteArray sampleData;
     sampleData.resizeForOverwrite(sizeof(float) * wavParser.channels
                                   * wavParser.totalPCMFrameCount);
