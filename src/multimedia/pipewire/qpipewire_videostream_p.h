@@ -17,6 +17,7 @@
 
 #include <QtMultimedia/private/qdmabufallocator_p.h>
 #include <QtMultimedia/private/qpipewire_cameracontextmanager_p.h>
+#include <QtMultimedia/private/qpipewire_cameranode_p.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtMultimedia/qvideoframe.h>
 #include <QtMultimedia/qvideoframeformat.h>
@@ -27,7 +28,9 @@
 
 #include <bitset>
 #include <chrono>
+#include <memory>
 #include <optional>
+#include <vector>
 
 #include <spa/buffer/buffer.h>
 #include <spa/param/video/format.h>
@@ -50,6 +53,14 @@ using BufferDataTypes = std::bitset<SPA_DATA_DmaBuf + 1>;
 
 #if QT_PIPEWIRE_HAS_DMABUF_CAMERA
 class DmaBufBufferRegistry;
+class NodeDmaBufRegistry;
+
+// A DMA-BUF the camera node allocated, with a duplicate of its fd that outlives the buffer.
+struct NodeDmaBuf
+{
+    pw_buffer *pwBuffer = nullptr;
+    std::shared_ptr<QtMultimediaPrivate::QDmaBuf> dmaBuf;
+};
 #endif
 
 class Q_MULTIMEDIA_EXPORT QPipeWireVideoStream : public QObject
@@ -59,7 +70,7 @@ class Q_MULTIMEDIA_EXPORT QPipeWireVideoStream : public QObject
 public:
     QPipeWireVideoStream(QCameraContextManager &context, QByteArray targetObject,
                          QVideoFrameFormat::PixelFormat requestedPixelFormat, QSize requestedSize,
-                         qreal requestedFrameRate, bool allowStreamDmaBufs);
+                         qreal requestedFrameRate, DmaBufStrategy dmaBufStrategy);
     ~QPipeWireVideoStream() override;
 
     Q_DISABLE_COPY_MOVE(QPipeWireVideoStream)
@@ -85,6 +96,9 @@ private:
     void onAddBuffer(pw_buffer *buffer);
     void allocateDmaBufBuffers(QSize size, QVideoFrameFormat::PixelFormat pixelFormat);
     bool emitDmaBufFrame(pw_buffer *buffer, const QVideoFrameFormat &frameFormat);
+    void addNodeDmaBuf(pw_buffer *buffer);
+    void removeNodeDmaBuf(pw_buffer *buffer);
+    bool emitNodeDmaBufFrame(pw_buffer *buffer, const QVideoFrameFormat &frameFormat);
 #endif
 
     static const pw_stream_events &streamEvents();
@@ -94,7 +108,7 @@ private:
     const QVideoFrameFormat::PixelFormat m_requestedPixelFormat;
     const QSize m_requestedSize;
     const qreal m_requestedFrameRate;
-    const bool m_allowStreamDmaBufs;
+    const DmaBufStrategy m_dmaBufStrategy;
 
     PwStreamHandle m_stream;
     spa_hook m_streamListener{};
@@ -114,6 +128,10 @@ private:
     // Set when the stream allocates its DMA-BUF buffers itself, so they outlive the stream.
     std::optional<QtMultimediaPrivate::QDmaBufAllocator> m_dmaBufAllocator;
     std::shared_ptr<DmaBufBufferRegistry> m_bufferRegistry;
+
+    // DMA-BUFs that the camera node allocated, bound by PipeWire while the stream is connected.
+    std::vector<NodeDmaBuf> m_nodeDmaBufs;
+    std::shared_ptr<NodeDmaBufRegistry> m_nodeRegistry;
 #endif
 };
 

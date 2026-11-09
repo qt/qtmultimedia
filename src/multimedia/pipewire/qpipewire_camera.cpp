@@ -140,7 +140,7 @@ bool QPipeWireCamera::startStream()
     m_stream = std::make_unique<QPipeWireVideoStream>(
             context, *target, m_cameraFormat.pixelFormat(), m_cameraFormat.resolution(),
             m_cameraFormat.maxFrameRate(),
-            QCameraContextManager::deviceMonitor().importsStreamDmaBufs(m_cameraDevice.id()));
+            QCameraContextManager::deviceMonitor().dmaBufStrategy(m_cameraDevice.id()));
 
     connect(m_stream.get(), &QPipeWireVideoStream::newVideoFrame, this,
             [this](const QVideoFrame &frame) {

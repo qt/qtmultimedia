@@ -31,9 +31,18 @@ Q_MULTIMEDIA_EXPORT QByteArray cameraDeviceId(const PwPropertyDict &nodeProperti
 Q_MULTIMEDIA_EXPORT QString cameraDescription(const PwPropertyDict &nodeProperties,
                                               const PwPropertyDict &deviceProperties);
 
-// Whether the node imports DMA-BUFs allocated by the client. Only the v4l2 node does; the libcamera
-// nodes accept them but never fill them.
-Q_MULTIMEDIA_EXPORT bool importsStreamDmaBufs(const PwPropertyDict &deviceProperties);
+enum class DmaBufStrategy : uint8_t {
+    // The node takes server-allocated buffers, which are mapped and copied.
+    None,
+    // The stream allocates the DMA-BUFs and the node imports them (v4l2). A libcamera node accepts
+    // imported buffers but never fills them, so it cannot use this.
+    ClientAllocated,
+    // The node allocates plain V4L2 or dma-heap buffers and advertises no modifier, so they are
+    // linear (libcamera).
+    NodeAllocated,
+};
+
+Q_MULTIMEDIA_EXPORT DmaBufStrategy dmaBufStrategy(const PwPropertyDict &deviceProperties);
 
 // Where the camera faces, for the device.api values that report it.
 Q_MULTIMEDIA_EXPORT QCameraDevice::Position cameraPosition(const PwPropertyDict &nodeProperties);

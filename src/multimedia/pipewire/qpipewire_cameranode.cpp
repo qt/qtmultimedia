@@ -49,9 +49,14 @@ bool isCameraNode(const PwPropertyDict &nodeProperties)
     return deviceApi == "v4l2"sv || deviceApi == "libcamera"sv;
 }
 
-bool importsStreamDmaBufs(const PwPropertyDict &deviceProperties)
+DmaBufStrategy dmaBufStrategy(const PwPropertyDict &deviceProperties)
 {
-    return getDeviceApi(deviceProperties) == "v4l2"sv;
+    const std::optional<std::string_view> deviceApi = getDeviceApi(deviceProperties);
+    if (deviceApi == "v4l2"sv)
+        return DmaBufStrategy::ClientAllocated;
+    if (deviceApi == "libcamera"sv)
+        return DmaBufStrategy::NodeAllocated;
+    return DmaBufStrategy::None;
 }
 
 QByteArray cameraDeviceId(const PwPropertyDict &nodeProperties)

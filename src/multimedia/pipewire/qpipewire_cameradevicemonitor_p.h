@@ -15,6 +15,7 @@
 // We mean it.
 //
 
+#include <QtMultimedia/private/qpipewire_cameranode_p.h>
 #include <QtMultimedia/private/qpipewire_propertydict_p.h>
 #include <QtMultimedia/private/qpipewire_spa_video_format_support_p.h>
 #include <QtMultimedia/private/qpipewire_registry_support_p.h>
@@ -50,7 +51,7 @@ public:
     QList<QCameraDevice> cameraDevices();
     std::optional<ObjectId> findCameraNode(QByteArrayView deviceId) const;
 
-    bool importsStreamDmaBufs(QByteArrayView deviceId) const;
+    QtPipeWire::DmaBufStrategy dmaBufStrategy(QByteArrayView deviceId) const;
 
     // FIXME: improve type safety!
     std::optional<QByteArray> findTargetObject(QByteArrayView deviceId) const;
