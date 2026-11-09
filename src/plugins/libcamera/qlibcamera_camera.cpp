@@ -87,8 +87,8 @@ void QLibCameraCamera::setActive(bool active)
         return;
     }
 
-    if (m_cameraFormat.isNull())
-        m_cameraFormat = findBestCameraFormat(m_cameraDevice);
+    if (m_resolvedFormat.isNull())
+        m_resolvedFormat = resolveCameraFormat();
 
     if (active) {
         if (StartCapturingResult result = startCapturing(); !result) {
@@ -116,6 +116,7 @@ void QLibCameraCamera::setCamera(const QCameraDevice &camera)
 
     m_cameraDevice = camera;
     m_cameraFormat = {};
+    m_resolvedFormat = {};
     m_camera.reset();
 
     if (!camera.isNull() && m_instance)
@@ -126,9 +127,22 @@ void QLibCameraCamera::setCamera(const QCameraDevice &camera)
     else
         supportedFeaturesChanged({});
 
-    if (wasActive) {
-        m_active = false; // startCapturing() below re-flips this
-        setActive(true);
+    if (!wasActive)
+        return;
+
+    m_resolvedFormat = resolveCameraFormat();
+    if (!m_camera) {
+        m_active = false;
+        updateError(QCamera::CameraError, u"Camera device is not available"_s);
+        Q_EMIT activeChanged(false);
+        return;
+    }
+
+    if (StartCapturingResult result = startCapturing(); !result) {
+        m_active = false;
+        auto [error, string] = result.error();
+        updateError(error, string);
+        Q_EMIT activeChanged(false);
     }
 }
 
@@ -137,11 +151,13 @@ bool QLibCameraCamera::setCameraFormat(const QCameraFormat &format)
     if (!format.isNull() && !m_cameraDevice.videoFormats().contains(format))
         return false;
 
-    QCameraFormat newFormat = format.isNull() ? findBestCameraFormat(m_cameraDevice) : format;
-    if (newFormat == m_cameraFormat)
+    m_cameraFormat = format;
+
+    QCameraFormat resolvedFormat = resolveCameraFormat();
+    if (resolvedFormat == m_resolvedFormat)
         return true;
 
-    m_cameraFormat = newFormat;
+    m_resolvedFormat = resolvedFormat;
 
     if (m_active) {
         stopCapturing();
@@ -150,12 +166,17 @@ bool QLibCameraCamera::setCameraFormat(const QCameraFormat &format)
     return true;
 }
 
+QCameraFormat QLibCameraCamera::resolveCameraFormat() const
+{
+    return m_cameraFormat.isNull() ? findBestCameraFormat(m_cameraDevice) : m_cameraFormat;
+}
+
 QLibCameraCamera::StartCapturingResult QLibCameraCamera::startCapturing()
 {
     using namespace QLibCameraFormatSupport;
     namespace ranges = QtMultimediaPrivate::ranges;
 
-    if (!m_camera || m_cameraFormat.isNull())
+    if (!m_camera || m_resolvedFormat.isNull())
         return {};
 
     auto abortGuard = qScopeGuard([this] {
@@ -182,16 +203,16 @@ QLibCameraCamera::StartCapturingResult QLibCameraCamera::startCapturing()
         return makeCameraError(u"Camera does not support video capture"_s);
 
     StreamConfiguration &streamConfig = m_config->at(0);
-    // Prefer the currently-requested QCameraFormat's pixel format if libcamera can still produce
+    // Prefer the resolved QCameraFormat's pixel format if libcamera can still produce
     // it for this size; otherwise fall through to whatever generateConfiguration() proposed.
     const std::vector<PixelFormat> pixelFormats = streamConfig.formats().pixelformats();
     const auto pixelFormatIt = ranges::find_if(pixelFormats, [&](const PixelFormat &pf) {
-        return pixelFormatFromLibcamera(pf) == m_cameraFormat.pixelFormat();
+        return pixelFormatFromLibcamera(pf) == m_resolvedFormat.pixelFormat();
     });
     if (pixelFormatIt != pixelFormats.end())
         streamConfig.pixelFormat = *pixelFormatIt;
 
-    streamConfig.size = toSize(m_cameraFormat.resolution());
+    streamConfig.size = toSize(m_resolvedFormat.resolution());
     streamConfig.bufferCount = 4;
 
     switch (m_config->validate()) {
@@ -243,7 +264,7 @@ QLibCameraCamera::StartCapturingResult QLibCameraCamera::startCapturing()
     }
 
     m_stream = std::make_unique<QLibCameraCameraStream>(m_camera, stream, m_stride, frameFormat(),
-                                                        m_cameraFormat.maxFrameRate());
+                                                        m_resolvedFormat.maxFrameRate());
 
     connect(m_stream.get(), &QLibCameraCameraStream::newVideoFrame, this,
             &QLibCameraCamera::newVideoFrame);
@@ -276,9 +297,9 @@ QLibCameraCamera::StartCapturingResult QLibCameraCamera::startCapturing()
 
     using namespace std::chrono;
     ControlList startControls(m_camera->controls());
-    if (m_cameraFormat.maxFrameRate() > 0) {
-        const auto frameDuration =
-                duration_cast<microseconds>(duration<double>(1.0 / m_cameraFormat.maxFrameRate()));
+    if (m_resolvedFormat.maxFrameRate() > 0) {
+        const auto frameDuration = duration_cast<microseconds>(
+                duration<double>(1.0 / m_resolvedFormat.maxFrameRate()));
         startControls.set(libcamera::controls::FrameDurationLimits,
                           { frameDuration.count(), frameDuration.count() });
     }
@@ -456,7 +477,11 @@ void QLibCameraCamera::zoomTo(float newZoomFactor, float /*rate*/)
 
 QVideoFrameFormat QLibCameraCamera::frameFormat() const
 {
-    QVideoFrameFormat result = QPlatformCamera::frameFormat();
+    QVideoFrameFormat result(m_resolvedFormat.resolution(),
+                             m_framePixelFormat == QVideoFrameFormat::Format_Invalid
+                                     ? m_resolvedFormat.pixelFormat()
+                                     : m_framePixelFormat);
+    result.setStreamFrameRate(m_resolvedFormat.maxFrameRate());
     result.setColorSpace(m_colorSpace);
     result.setColorRange(m_colorRange);
     return result;

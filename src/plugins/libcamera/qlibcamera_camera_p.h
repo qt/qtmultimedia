@@ -69,6 +69,8 @@ private:
 
     using StartCapturingResult = q23::expected<void, std::tuple<QCamera::Error, QString>>;
 
+    QCameraFormat resolveCameraFormat() const;
+
     StartCapturingResult startCapturing();
     void startCapturingReportingErrors();
     void stopCapturing();
@@ -92,6 +94,7 @@ private:
     std::unique_ptr<QLibCameraCameraStream> m_stream;
 
     QCameraDevice m_cameraDevice;
+    QCameraFormat m_resolvedFormat;
     bool m_active = false;
     StreamState m_streamState = StreamState::Idle;
 
