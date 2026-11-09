@@ -3,6 +3,8 @@
 
 #include "qaaudiostream_p.h"
 
+#include <QtMultimedia/private/qandroidaudiojnitypes_p.h>
+
 #include <chrono>
 #include <dlfcn.h>
 
@@ -129,16 +131,24 @@ Stream::Stream(StreamBuilder &builder)
         return;
     }
 
-    qCDebug(qLcAAudioStream) << "Stream opened:" << m_stream << "for device"
-                             << AAudioStream_getDeviceId(m_stream);
+    const int32_t streamDeviceId = AAudioStream_getDeviceId(m_stream);
+    qCDebug(qLcAAudioStream) << "Stream opened:" << m_stream << "for device" << streamDeviceId;
 
     // Verify parameters
-    if (builder.deviceId != AAUDIO_UNSPECIFIED
-        && AAudioStream_getDeviceId(m_stream) != builder.deviceId) {
-        qCWarning(qLcAAudioStream) << "Stream device not correct";
-        if (isOpen())
-            close();
-        return;
+    if (builder.deviceId != AAUDIO_UNSPECIFIED && streamDeviceId != builder.deviceId) {
+        // Stream rerouted
+        if (builder.deviceIsBluetooth
+            && static_cast<bool>(QtJniTypes::QtAudioDeviceManager::callStaticMethod<jboolean>(
+                    "isBluetoothDeviceId", streamDeviceId))) {
+            // Rerouting allowed within bluetooth devices
+            qCDebug(qLcAAudioStream) << "Stream rerouted from" << builder.deviceId;
+        } else {
+            qCWarning(qLcAAudioStream) << "Mismatching device ID, requested" << builder.deviceId
+                                       << ", got" << streamDeviceId;
+            if (isOpen())
+                close();
+            return;
+        }
     }
 
     Q_ASSERT(AAudioStream_getSampleRate(m_stream) == builder.format.sampleRate()

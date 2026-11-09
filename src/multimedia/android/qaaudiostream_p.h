@@ -80,6 +80,7 @@ struct StreamBuilder
     void *userData{ nullptr };
     StreamParameterSet params;
     int32_t deviceId{ AAUDIO_UNSPECIFIED };
+    bool deviceIsBluetooth{ false };
     int32_t bufferCapacity{ AAUDIO_UNSPECIFIED };
 
     void setupBuilder();
