@@ -113,7 +113,8 @@ private:
 
     q23::expected<void, QString> setV4L2CameraFormat();
     void initV4L2MemoryTransfer();
-    void startCapturing();
+    bool startCapturing();
+    void resetCaptureState();
     void stopCapturing();
 
 private:
