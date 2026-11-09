@@ -30,6 +30,7 @@ QAndroidAudioSourceStream::QAndroidAudioSourceStream(QAudioDevice device,
                                    << ", description:" << m_audioDevice.description();
 
     builder.deviceId = m_audioDevice.id().toInt();
+    builder.deviceIsBluetooth = QAndroidAudioUtil::isBluetoothDevice(m_audioDevice);
 
     // Set buffer parameters
     builder.bufferCapacity = m_nativePeriodFrames

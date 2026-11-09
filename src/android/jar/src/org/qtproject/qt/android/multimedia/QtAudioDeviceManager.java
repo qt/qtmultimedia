@@ -181,6 +181,19 @@ class QtAudioDeviceManager
     }
 
     @UsedFromNativeCode
+    static boolean isBluetoothDeviceId(int id)
+    {
+        if (m_audioManager == null)
+            return false;
+
+        for (AudioDeviceInfo deviceInfo : m_audioManager.getDevices(AudioManager.GET_DEVICES_ALL)) {
+            if (deviceInfo.getId() == id)
+                return isBluetoothDevice(deviceInfo);
+        }
+        return false;
+    }
+
+    @UsedFromNativeCode
     static boolean prepareAudioInput(int id)
     {
         final AudioDeviceInfo[] audioDevices =
