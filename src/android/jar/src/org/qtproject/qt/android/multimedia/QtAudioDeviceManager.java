@@ -171,13 +171,7 @@ class QtAudioDeviceManager
     @UsedFromNativeCode
     static boolean isBluetoothDevice(AudioDeviceInfo deviceInfo)
     {
-        switch (deviceInfo.getType()) {
-        case AudioDeviceInfo.TYPE_BLUETOOTH_A2DP:
-        case AudioDeviceInfo.TYPE_BLUETOOTH_SCO:
-            return true;
-        default:
-            return false;
-        }
+        return isBluetoothDeviceType(deviceInfo.getType());
     }
 
     @UsedFromNativeCode
@@ -200,10 +194,10 @@ class QtAudioDeviceManager
                                         m_audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS);
         for (AudioDeviceInfo deviceInfo : audioDevices) {
             if (deviceInfo.getId() == id) {
+               if (isBluetoothDevice(deviceInfo))
+                   return prepareAudioDevice(deviceInfo, AudioManager.MODE_NORMAL);
                switch (deviceInfo.getType())
                {
-                   case AudioDeviceInfo.TYPE_BLUETOOTH_A2DP:
-                   case AudioDeviceInfo.TYPE_BLUETOOTH_SCO:
                    case AudioDeviceInfo.TYPE_WIRED_HEADSET:
                    case AudioDeviceInfo.TYPE_USB_HEADSET:
                    case AudioDeviceInfo.TYPE_BUILTIN_MIC:
@@ -214,6 +208,11 @@ class QtAudioDeviceManager
            }
         }
         return false;
+    }
+
+    private static boolean isBluetoothDeviceType(int type)
+    {
+        return Arrays.stream(bluetoothTypes).anyMatch(t -> t == type);
     }
 
     private static void setInputMuted(boolean mute)
@@ -234,9 +233,6 @@ class QtAudioDeviceManager
         {
             case AudioDeviceInfo.TYPE_AUX_LINE:
                 return "AUX Line";
-            case AudioDeviceInfo.TYPE_BLUETOOTH_A2DP:
-            case AudioDeviceInfo.TYPE_BLUETOOTH_SCO:
-                return "Bluetooth";
             case AudioDeviceInfo.TYPE_BUILTIN_EARPIECE:
                 return "Built in earpiece";
             case AudioDeviceInfo.TYPE_BUILTIN_MIC:
@@ -271,6 +267,9 @@ class QtAudioDeviceManager
                 return "Wired headset";
         }
 
+        if (isBluetoothDeviceType(type))
+            return "Bluetooth";
+
         // API 24
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             if (type == AudioDeviceInfo.TYPE_BUS)
@@ -291,22 +290,29 @@ class QtAudioDeviceManager
         put(AudioDeviceInfo.TYPE_WIRED_HEADSET, 1);
         put(AudioDeviceInfo.TYPE_WIRED_HEADPHONES, 1);
         put(AudioDeviceInfo.TYPE_USB_DEVICE, 1);
-        // NOTE: Should TYPE_USB_ACCESSORY also have priority level 1?
-        put(AudioDeviceInfo.TYPE_BLUETOOTH_A2DP, 2);
+        // Keep SCO below the other Bluetooth types
         put(AudioDeviceInfo.TYPE_BLUETOOTH_SCO, 3);
         put(AudioDeviceInfo.TYPE_BUILTIN_SPEAKER, 4);
     }};
+    private static final int BLUETOOTH_PRIORITY = 2;
     private static final int DEFAULT_PRIORITY = 5;
+
+    private static int getDevicePriority(int type) {
+        Integer priority = priorityMap.get(type);
+        if (priority != null)
+            return priority;
+
+        if (isBluetoothDeviceType(type))
+            return BLUETOOTH_PRIORITY;
+
+        return DEFAULT_PRIORITY;
+    }
 
     private static void sortAudioDevices(AudioDeviceInfo[] devices) {
         Comparator<AudioDeviceInfo> deviceTypeComparator = new Comparator<AudioDeviceInfo>() {
             @Override
             public int compare(AudioDeviceInfo device1, AudioDeviceInfo device2) {
-                return getPriority(device1) - getPriority(device2);
-            }
-
-            private int getPriority(AudioDeviceInfo device) {
-                return priorityMap.getOrDefault(device.getType(), DEFAULT_PRIORITY);
+                return getDevicePriority(device1.getType()) - getDevicePriority(device2.getType());
             }
         };
 
@@ -356,10 +362,22 @@ class QtAudioDeviceManager
         return filteredDevices.toArray(new AudioDeviceInfo[filteredDevices.size()]);
     }
 
-    final private static int [] bluetoothTypes = {
-            AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
-            AudioDeviceInfo.TYPE_BLUETOOTH_SCO
-    };
+    final private static int [] bluetoothTypes = createBluetoothTypes();
+
+    private static int[] createBluetoothTypes()
+    {
+        ArrayList<Integer> types = new ArrayList<>(Arrays.asList(
+                AudioDeviceInfo.TYPE_BLUETOOTH_A2DP,
+                AudioDeviceInfo.TYPE_BLUETOOTH_SCO));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            types.add(AudioDeviceInfo.TYPE_BLE_HEADSET);
+            types.add(AudioDeviceInfo.TYPE_BLE_SPEAKER);
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
+            types.add(AudioDeviceInfo.TYPE_BLE_BROADCAST);
+        return types.stream().mapToInt(Integer::intValue).toArray();
+    }
+
     final private static int [] wiredTypes = {
             AudioDeviceInfo.TYPE_WIRED_HEADSET,
             AudioDeviceInfo.TYPE_WIRED_HEADPHONES
@@ -399,11 +417,10 @@ class QtAudioDeviceManager
                                         m_audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS);
         for (AudioDeviceInfo deviceInfo : audioDevices) {
            if (deviceInfo.getId() == id) {
+               if (isBluetoothDevice(deviceInfo))
+                   return prepareAudioDevice(deviceInfo, getModeForBluetooth(audioDevices));
                switch (deviceInfo.getType())
                {
-                   case AudioDeviceInfo.TYPE_BLUETOOTH_A2DP:
-                   case AudioDeviceInfo.TYPE_BLUETOOTH_SCO:
-                       return prepareAudioDevice(deviceInfo, getModeForBluetooth(audioDevices));
                    case AudioDeviceInfo.TYPE_BUILTIN_SPEAKER:
                        return prepareAudioDevice(deviceInfo, getModeForSpeaker(audioDevices));
                    case AudioDeviceInfo.TYPE_WIRED_HEADSET:
