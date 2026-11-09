@@ -5,6 +5,7 @@
 
 #include <QtMultimedia/private/qcameradevice_p.h>
 #include <QtMultimedia/private/qmultimedia_ranges_p.h>
+#include <QtMultimedia/private/qvideoframe_p.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -236,6 +237,17 @@ void QPlatformCamera::updateError(QCamera::Error error, const QString &errorStri
     QMetaObject::invokeMethod(this, [this, error, errorString]() {
         m_error.setAndNotify(error, errorString, *this);
     });
+}
+
+void QPlatformCamera::emitEndOfStreamFrame(std::chrono::microseconds lastStart,
+                                           std::optional<std::chrono::microseconds> lastEnd)
+{
+    QVideoFrame endFrame = QVideoFramePrivate::createFrame(std::unique_ptr<QAbstractVideoBuffer>{},
+                                                           QVideoFrameFormat{});
+    const std::chrono::microseconds endTime = lastEnd.value_or(lastStart);
+    endFrame.setStartTime(
+            (endTime > lastStart ? endTime : lastStart + std::chrono::microseconds{ 1 }).count());
+    Q_EMIT newVideoFrame(endFrame);
 }
 
 QT_END_NAMESPACE

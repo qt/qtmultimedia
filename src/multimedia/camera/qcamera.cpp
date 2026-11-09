@@ -165,6 +165,10 @@ QCamera::QCamera(QCameraDevice::Position position, QObject *parent)
 QCamera::~QCamera()
 {
     Q_D(QCamera);
+    if (d->control && d->control->isActive()) {
+        QObject::disconnect(d->control, nullptr, this, nullptr);
+        d->control->setActive(false);
+    }
     if (d->captureSession)
         d->captureSession->setCamera(nullptr);
 }

@@ -19,6 +19,9 @@
 #include <QtMultimedia/private/qplatformvideosource_p.h>
 #include <QtMultimedia/qcamera.h>
 
+#include <chrono>
+#include <optional>
+
 // NOLINTBEGIN (bugprone-reserved-identifier)
 typedef struct _GstElement GstElement;
 // NOLINTEND (bugprone-reserved-identifier)
@@ -185,6 +188,9 @@ Q_SIGNALS:
 
 protected:
     explicit QPlatformCamera(QObject *parent);
+
+    void emitEndOfStreamFrame(std::chrono::microseconds lastStart,
+                              std::optional<std::chrono::microseconds> lastEnd = std::nullopt);
 
     virtual int cameraPixelFormatScore(QVideoFrameFormat::PixelFormat /*format*/,
                                        QVideoFrameFormat::ColorRange /*colorRange*/) const
