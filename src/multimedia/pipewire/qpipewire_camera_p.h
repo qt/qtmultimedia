@@ -44,7 +44,7 @@ public:
     QVideoFrameFormat frameFormat() const override;
 
 private:
-    void startStream();
+    bool startStream();
     void stopStream();
 
     // Returns true if the resolved format changed.

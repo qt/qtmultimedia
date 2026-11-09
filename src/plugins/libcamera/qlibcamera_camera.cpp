@@ -82,15 +82,25 @@ void QLibCameraCamera::setActive(bool active)
         return;
     if (m_cameraDevice.isNull() && active)
         return;
+    if (active && !m_camera) {
+        updateError(QCamera::CameraError, u"Camera device is not available"_s);
+        return;
+    }
 
     if (m_cameraFormat.isNull())
         m_cameraFormat = findBestCameraFormat(m_cameraDevice);
 
-    m_active = active;
-    if (m_active)
-        startCapturingReportingErrors();
-    else
+    if (active) {
+        if (StartCapturingResult result = startCapturing(); !result) {
+            auto [error, string] = result.error();
+            updateError(error, string);
+            return;
+        }
+        m_active = true;
+    } else {
+        m_active = false;
         stopCapturing();
+    }
 
     Q_EMIT newVideoFrame({});
     Q_EMIT activeChanged(active);

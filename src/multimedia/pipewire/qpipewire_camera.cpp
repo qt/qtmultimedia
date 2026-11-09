@@ -41,11 +41,12 @@ void QPipeWireCamera::setActive(bool active)
     if (m_cameraFormat.isNull())
         resolveCameraFormat({});
 
-    m_active = active;
-
-    if (m_active)
-        startStream();
-    else {
+    if (active) {
+        if (!startStream())
+            return;
+        m_active = true;
+    } else {
+        m_active = false;
         stopStream();
         // Tells any attached sink to drop what it is showing
         emit newVideoFrame({});
@@ -111,7 +112,7 @@ QVideoFrameFormat QPipeWireCamera::frameFormat() const
     return QPlatformCamera::frameFormat();
 }
 
-void QPipeWireCamera::startStream()
+bool QPipeWireCamera::startStream()
 {
     Q_ASSERT(!m_stream);
 
@@ -130,7 +131,7 @@ void QPipeWireCamera::startStream()
                         u"No PipeWire camera with the id \"%1\" is present."_s.arg(
                                 QString::fromUtf8(id)));
         }
-        return;
+        return false;
     }
 
     m_stream = std::make_unique<QPipeWireVideoStream>(
@@ -147,11 +148,12 @@ void QPipeWireCamera::startStream()
     if (!m_stream->start()) {
         m_stream.reset();
         updateError(QCamera::CameraError, u"Could not start the PipeWire camera stream."_s);
-        return;
+        return false;
     }
 
     qCDebug(lcPipewireCamera) << "streaming from" << *target << "as" << m_cameraFormat.pixelFormat()
                               << m_cameraFormat.resolution();
+    return true;
 }
 
 void QPipeWireCamera::stopStream()
