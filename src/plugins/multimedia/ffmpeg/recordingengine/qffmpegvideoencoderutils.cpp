@@ -370,7 +370,7 @@ std::optional<AVPixelFormat> findTargetSWFormat(AVPixelFormat sourceSWFormat, co
     if (constraints && constraints->valid_sw_formats) {
 
         const auto validSWFormatsForHWAccel =
-                makeSpan(constraints->valid_sw_formats) | ranges::to<QMinimalFlatSet>();
+                makeSpan(constraints->valid_sw_formats) | ranges::to<QMinimalFlatSet<AVPixelFormat>>();
 
         auto bestPixelFormat = [&]() -> std::optional<AVPixelFormat> {
             if (codecDeclaresSwFormats(codec, resolution, &accel)) {
@@ -420,7 +420,7 @@ std::vector<ScoredPixelFormat> findAndScoreTargetSWFormats(AVPixelFormat sourceS
         const AVHWFramesConstraints *constraints = accel ? accel->constraints() : nullptr;
         if (constraints && constraints->valid_sw_formats) {
             const auto validSWFormatsForHWAccel =
-                    makeSpan(constraints->valid_sw_formats) | ranges::to<QMinimalFlatSet>();
+                    makeSpan(constraints->valid_sw_formats) | ranges::to<QMinimalFlatSet<AVPixelFormat>>();
 
             if (codecDeclaresSwFormats(codec, resolution, accel)) {
                 // If the codec declares sw formats, we can find the best one among the intersection
