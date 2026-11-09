@@ -90,11 +90,14 @@ void QV4L2Camera::setActive(bool active)
     if (m_cameraFormat.isNull())
         resolveCameraFormat({});
 
-    m_active = active;
-    if (m_active)
-        startCapturing();
-    else
+    if (active) {
+        if (!startCapturing())
+            return;
+        m_active = true;
+    } else {
+        m_active = false;
         stopCapturing();
+    }
 
     Q_EMIT newVideoFrame({});
 
@@ -666,20 +669,34 @@ void QV4L2Camera::stopCapturing()
     m_cameraBusy = false;
 }
 
-void QV4L2Camera::startCapturing()
+void QV4L2Camera::resetCaptureState()
 {
-    if (!m_v4l2FileDescriptor)
-        return;
+    m_notifier = nullptr;
+    m_memoryTransfer = nullptr;
+    m_cameraBusy = false;
+    m_v4l2Info.formatInitialized = false;
+    m_firstFrameTime = { -1, -1 };
+}
+
+bool QV4L2Camera::startCapturing()
+{
+    if (!m_v4l2FileDescriptor) {
+        updateError(QCamera::CameraError, QLatin1String("Camera device is not available"));
+        return false;
+    }
 
     setV4L2CameraFormat();
     initV4L2MemoryTransfer();
 
-    if (m_cameraBusy || !m_memoryTransfer)
-        return;
+    if (m_cameraBusy || !m_memoryTransfer) {
+        resetCaptureState();
+        return false;
+    }
 
     if (!m_v4l2FileDescriptor->startStream()) {
         qWarning() << "Couldn't start v4l2 camera stream";
-        return;
+        resetCaptureState();
+        return false;
     }
 
     m_notifier =
@@ -687,6 +704,7 @@ void QV4L2Camera::startCapturing()
     connect(m_notifier.get(), &QSocketNotifier::activated, this, &QV4L2Camera::readFrame);
 
     m_firstFrameTime = { -1, -1 };
+    return true;
 }
 
 QVideoFrameFormat QV4L2Camera::frameFormat() const
