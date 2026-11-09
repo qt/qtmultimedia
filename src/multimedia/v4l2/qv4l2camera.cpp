@@ -60,9 +60,9 @@ void QV4L2Camera::setActive(bool active)
     } else {
         m_active = false;
         stopCapturing();
+        emitEndOfStreamFrame(m_lastFrameStart.value_or(std::chrono::microseconds{}),
+                             m_lastFrameEnd);
     }
-
-    Q_EMIT newVideoFrame({});
 
     Q_EMIT activeChanged(active);
 }
@@ -348,8 +348,10 @@ void QV4L2Camera::readFrame()
     if (!m_firstFrameTime)
         m_firstFrameTime = timestamp;
     const auto frameTime = timestamp - *m_firstFrameTime;
+    m_lastFrameStart = frameTime;
+    m_lastFrameEnd = frameTime + m_frameDuration;
     frame.setStartTime(frameTime.count());
-    frame.setEndTime((frameTime + m_frameDuration).count());
+    frame.setEndTime(m_lastFrameEnd->count());
 
     Q_EMIT newVideoFrame(frame);
 }
@@ -662,6 +664,8 @@ void QV4L2Camera::resetCaptureState()
     m_cameraBusy = false;
     m_v4l2Info.formatInitialized = false;
     m_firstFrameTime.reset();
+    m_lastFrameStart.reset();
+    m_lastFrameEnd.reset();
 }
 
 bool QV4L2Camera::startCapturing()
@@ -697,6 +701,8 @@ bool QV4L2Camera::startCapturing()
     });
 
     m_firstFrameTime.reset();
+    m_lastFrameStart.reset();
+    m_lastFrameEnd.reset();
     return true;
 }
 

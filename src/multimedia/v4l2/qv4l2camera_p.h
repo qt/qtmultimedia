@@ -128,6 +128,8 @@ private:
     V4L2CameraInfo m_v4l2Info;
 
     std::optional<std::chrono::microseconds> m_firstFrameTime;
+    std::optional<std::chrono::microseconds> m_lastFrameStart;
+    std::optional<std::chrono::microseconds> m_lastFrameEnd;
     v4l2_pix_format m_pixFormat{};
     std::chrono::microseconds m_frameDuration{};
     bool m_cameraBusy = false;
