@@ -296,6 +296,8 @@ bool QPipeWireVideoStream::start()
 {
     Q_ASSERT(!m_stream);
 
+    m_firstFrameTime.reset();
+
     if (!m_context.isConnected())
         return false;
 
@@ -539,11 +541,22 @@ void QPipeWireVideoStream::onProcess()
             QVideoFrame frame = QVideoFramePrivate::createFrame(
                     std::make_unique<QMemoryVideoBuffer>(std::move(*data), stride), frameFormat);
 
-            if (const auto *header = static_cast<const spa_meta_header *>(spa_buffer_find_meta_data(
-                        buffer, SPA_META_Header, sizeof(spa_meta_header)))) {
-                // pts is in nanoseconds since an arbitrary epoch.
-                frame.setStartTime(qint64(header->pts) / 1000);
-            }
+            using namespace std::chrono;
+
+            const microseconds pts = [&] {
+                const auto *header = static_cast<const spa_meta_header *>(spa_buffer_find_meta_data(
+                        buffer, SPA_META_Header, sizeof(spa_meta_header)));
+                if (header && header->pts > 0) {
+                    // pts is in nanoseconds since an arbitrary epoch.
+                    return round<microseconds>(nanoseconds{ header->pts });
+                } else {
+                    return round<microseconds>(steady_clock::now().time_since_epoch());
+                }
+            }();
+
+            if (!m_firstFrameTime)
+                m_firstFrameTime = pts;
+            frame.setStartTime(qint64((pts - *m_firstFrameTime).count()));
 
             emit newVideoFrame(frame);
         }

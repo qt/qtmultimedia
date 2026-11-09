@@ -25,6 +25,7 @@
 #include <QtCore/qsize.h>
 
 #include <bitset>
+#include <chrono>
 #include <optional>
 
 #include <spa/buffer/buffer.h>
@@ -95,6 +96,9 @@ private:
     // its layout is known: a compressed byte stream, or raw with a linear modifier.
     bool m_dmaBufReadable = false;
     BufferDataTypes m_bufferDataTypes;
+
+    // The first frame's timestamp in microseconds; frame start times are relative to it.
+    std::optional<std::chrono::microseconds> m_firstFrameTime;
 };
 
 } // namespace QtPipeWire
