@@ -19,7 +19,9 @@
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtMultimedia/qcameradevice.h>
 
+#include <chrono>
 #include <memory>
+#include <optional>
 
 QT_BEGIN_NAMESPACE
 
@@ -53,6 +55,8 @@ private:
     bool m_active = false;
     QCameraDevice m_cameraDevice;
     std::unique_ptr<QPipeWireVideoStream> m_stream;
+    // Written on the PipeWire thread; read only after stopStream() has synchronized with it.
+    std::optional<std::chrono::microseconds> m_lastFrameStart;
 };
 
 } // namespace QtPipeWire

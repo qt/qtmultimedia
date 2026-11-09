@@ -19,7 +19,9 @@
 #include <QtMultimedia/private/qplatformcamera_p.h>
 #include <QtCore/private/qexpected_p.h>
 
+#include <chrono>
 #include <memory>
+#include <optional>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -97,6 +99,8 @@ private:
     QCameraFormat m_resolvedFormat;
     bool m_active = false;
     StreamState m_streamState = StreamState::Idle;
+    std::optional<std::chrono::microseconds> m_lastFrameStart;
+    std::optional<std::chrono::microseconds> m_lastFrameEnd;
 
     std::unique_ptr<libcamera::CameraConfiguration> m_config;
     std::unique_ptr<libcamera::FrameBufferAllocator> m_allocator;

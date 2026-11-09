@@ -91,6 +91,8 @@ void QLibCameraCamera::setActive(bool active)
         m_resolvedFormat = resolveCameraFormat();
 
     if (active) {
+        m_lastFrameStart.reset();
+        m_lastFrameEnd.reset();
         if (StartCapturingResult result = startCapturing(); !result) {
             auto [error, string] = result.error();
             updateError(error, string);
@@ -100,9 +102,10 @@ void QLibCameraCamera::setActive(bool active)
     } else {
         m_active = false;
         stopCapturing();
+        emitEndOfStreamFrame(m_lastFrameStart.value_or(std::chrono::microseconds{}),
+                             m_lastFrameEnd);
     }
 
-    Q_EMIT newVideoFrame({});
     Q_EMIT activeChanged(active);
 }
 
@@ -133,6 +136,8 @@ void QLibCameraCamera::setCamera(const QCameraDevice &camera)
     m_resolvedFormat = resolveCameraFormat();
     if (!m_camera) {
         m_active = false;
+        emitEndOfStreamFrame(m_lastFrameStart.value_or(std::chrono::microseconds{}),
+                             m_lastFrameEnd);
         updateError(QCamera::CameraError, u"Camera device is not available"_s);
         Q_EMIT activeChanged(false);
         return;
@@ -140,6 +145,8 @@ void QLibCameraCamera::setCamera(const QCameraDevice &camera)
 
     if (StartCapturingResult result = startCapturing(); !result) {
         m_active = false;
+        emitEndOfStreamFrame(m_lastFrameStart.value_or(std::chrono::microseconds{}),
+                             m_lastFrameEnd);
         auto [error, string] = result.error();
         updateError(error, string);
         Q_EMIT activeChanged(false);
@@ -267,7 +274,11 @@ QLibCameraCamera::StartCapturingResult QLibCameraCamera::startCapturing()
                                                         m_resolvedFormat.maxFrameRate());
 
     connect(m_stream.get(), &QLibCameraCameraStream::newVideoFrame, this,
-            &QLibCameraCamera::newVideoFrame);
+            [this](const QVideoFrame &frame) {
+        m_lastFrameStart = std::chrono::microseconds{ frame.startTime() };
+        m_lastFrameEnd = std::chrono::microseconds{ frame.endTime() };
+        Q_EMIT newVideoFrame(frame);
+    });
 
     m_camera->requestCompleted.connect(this, [stream = m_stream.get()](Request *request) {
         // libcamera thread

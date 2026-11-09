@@ -22,7 +22,10 @@ QPipeWireCamera::QPipeWireCamera(QCamera *camera) : QPlatformCamera(camera)
 
 QPipeWireCamera::~QPipeWireCamera()
 {
+    const bool wasActive = m_active;
     stopStream();
+    if (wasActive)
+        emitEndOfStreamFrame(m_lastFrameStart.value_or(std::chrono::microseconds{}));
 }
 
 bool QPipeWireCamera::isActive() const
@@ -42,14 +45,14 @@ void QPipeWireCamera::setActive(bool active)
         resolveCameraFormat({});
 
     if (active) {
+        m_lastFrameStart.reset();
         if (!startStream())
             return;
         m_active = true;
     } else {
         m_active = false;
         stopStream();
-        // Tells any attached sink to drop what it is showing
-        emit newVideoFrame({});
+        emitEndOfStreamFrame(m_lastFrameStart.value_or(std::chrono::microseconds{}));
     }
 
     emit activeChanged(m_active);
@@ -139,7 +142,10 @@ bool QPipeWireCamera::startStream()
             m_cameraFormat.maxFrameRate());
 
     connect(m_stream.get(), &QPipeWireVideoStream::newVideoFrame, this,
-            &QPipeWireCamera::newVideoFrame, Qt::DirectConnection);
+            [this](const QVideoFrame &frame) {
+        m_lastFrameStart = std::chrono::microseconds{ frame.startTime() };
+        Q_EMIT newVideoFrame(frame);
+    }, Qt::DirectConnection);
     connect(m_stream.get(), &QPipeWireVideoStream::errorOccurred, this,
             [this](const QString &errorString) {
         updateError(QCamera::CameraError, errorString);
