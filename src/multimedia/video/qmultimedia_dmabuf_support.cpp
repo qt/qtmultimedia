@@ -49,7 +49,12 @@ std::optional<QByteArray> copyDmaBufData(int fd, off_t offset, size_t size, size
         return QByteArray{};
 
     // The mapping must start on a page boundary, so map from the page holding offset.
-    const size_t pageSize = size_t(sysconf(_SC_PAGESIZE));
+    const int sysconfPageSize = sysconf(_SC_PAGESIZE);
+    if (Q_UNLIKELY(sysconfPageSize < 0)) {
+        qCWarning(qLcDmaBufSupport) << "cannot determine system page size:" << qt_error_string(errno);
+        return std::nullopt;
+    }
+    const size_t pageSize = size_t(sysconfPageSize);
     const off_t mapOffset = alignDown(offset, pageSize);
     const size_t pageOffset = size_t(offset - mapOffset);
 
