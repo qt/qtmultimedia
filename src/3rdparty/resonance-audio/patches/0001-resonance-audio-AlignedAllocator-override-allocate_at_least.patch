@@ -1,0 +1,39 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Tim Blechmann <tim.blechmann@qt.io>
+Date: Tue, 10 Nov 2026 12:00:00 +0100
+Subject: [PATCH] AlignedAllocator: override allocate_at_least
+
+std::allocator provides an allocate_at_least() member since C++23
+(libc++ exposes it unconditionally). std::allocator_traits prefers that
+member over calling allocate(), so AlignedAllocator inherited it and
+containers obtained memory from plain operator new. deallocate() then
+passed that pointer to AllignedFree(), which reads a saved malloc pointer
+8 bytes before the block. This is a heap-buffer-overflow read that ASan
+reports, e.g. from AudioBuffer destruction in CreateShHrirsFromWav().
+
+Override allocate_at_least() to route through the aligned allocate().
+
+---
+ resonance_audio/base/aligned_allocator.h | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/resonance_audio/base/aligned_allocator.h b/resonance_audio/base/aligned_allocator.h
+index 63c1ee2f8..21c545ea7 100644
+--- a/resonance_audio/base/aligned_allocator.h
++++ b/resonance_audio/base/aligned_allocator.h
+@@ -95,9 +95,12 @@ class AlignedAllocator : public std::allocator<Type> {
+     return AllignedMalloc<Type, SizeType, Pointer>(size, Alignment);
+   }
+ 
++#if defined(__cpp_lib_allocate_at_least)
++  // Only exists where std::allocator provides allocate_at_least() (C++23).
+   std::allocation_result<Pointer, SizeType> allocate_at_least(SizeType size) {
+     return {allocate(size), size};
+   }
++#endif
+ 
+   void deallocate(Pointer mem_block_aligned, size_t size) {
+     AllignedFree<Pointer>(mem_block_aligned);
+-- 
+2.39.5
+
