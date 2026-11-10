@@ -248,6 +248,8 @@ private slots:
     void stream_endsWithNullFrame_whenStopped_withEachCameraDevice();
     void stream_endsWithNullFrame_whenCameraIsDestroyed_withEachCameraDevice_data();
     void stream_endsWithNullFrame_whenCameraIsDestroyed_withEachCameraDevice();
+    void activeChanged_emitsFalse_whenActiveCameraIsDestroyed_withEachCameraDevice_data();
+    void activeChanged_emitsFalse_whenActiveCameraIsDestroyed_withEachCameraDevice();
 
     void setCameraDevice_switchesStream_withoutDeactivatingOrErrors();
     void setCameraDevice_keepsFrameFormat_whenSwitchingToDeviceWithSameFormat_data();
@@ -1744,6 +1746,31 @@ void tst_QCameraBackend::stream_endsWithNullFrame_whenCameraIsDestroyed_withEach
     setup.cameraStorage.reset();
 
     verifyStreamEndsWithNullFrame(setup.grabber);
+}
+
+void tst_QCameraBackend::
+        activeChanged_emitsFalse_whenActiveCameraIsDestroyed_withEachCameraDevice_data()
+{
+    if (noCamera)
+        QSKIP("No camera available");
+
+    addRowPerCameraDevice();
+}
+
+void tst_QCameraBackend::activeChanged_emitsFalse_whenActiveCameraIsDestroyed_withEachCameraDevice()
+{
+    QFETCH(const QCameraDevice, device);
+
+    CameraStreamSetup setup(device);
+    setup.camera.setActive(true);
+    QVERIFY(setup.camera.isActive());
+    QVERIFY2(setup.grabber.tryWaitForFirstFrameInfo(), "Camera delivered no frames");
+
+    QSignalSpy activeChanged(&setup.camera, &QCamera::activeChanged);
+    setup.cameraStorage.reset();
+
+    QCOMPARE(activeChanged.size(), 1);
+    QCOMPARE(activeChanged.first().first().toBool(), false);
 }
 
 void tst_QCameraBackend::setCameraDevice_switchesStream_withoutDeactivatingOrErrors()
