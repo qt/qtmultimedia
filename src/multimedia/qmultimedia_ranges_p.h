@@ -617,6 +617,7 @@ class StrideView
     public:
         using reference = StrideReference;
 
+        constexpr iterator() = default;
         constexpr iterator(BaseIt it, BaseIt end, std::ptrdiff_t stride)
             : m_it(std::move(it)), m_end(std::move(end)), m_stride(stride)
         {
