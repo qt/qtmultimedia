@@ -95,6 +95,13 @@ class AlignedAllocator : public std::allocator<Type> {
     return AllignedMalloc<Type, SizeType, Pointer>(size, Alignment);
   }
 
+#if defined(__cpp_lib_allocate_at_least)
+  // Only exists where std::allocator provides allocate_at_least() (C++23).
+  std::allocation_result<Pointer, SizeType> allocate_at_least(SizeType size) {
+    return {allocate(size), size};
+  }
+#endif
+
   void deallocate(Pointer mem_block_aligned, size_t size) {
     AllignedFree<Pointer>(mem_block_aligned);
   }
