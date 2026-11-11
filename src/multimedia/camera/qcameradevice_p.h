@@ -18,6 +18,8 @@
 #include <QtMultimedia/qcameradevice.h>
 #include <QtCore/private/qglobal_p.h>
 
+#include <memory>
+
 QT_BEGIN_NAMESPACE
 
 class QCameraFormatPrivate : public QSharedData
@@ -48,6 +50,11 @@ public:
     }
 
     QCameraFormat create() { return QCameraFormat(this); }
+
+    static QCameraFormat create(std::unique_ptr<QCameraFormatPrivate> formatInfo)
+    {
+        return QCameraFormat(formatInfo.release());
+    }
 };
 
 class QCameraDevicePrivate : public QSharedData
@@ -76,6 +83,11 @@ public:
     }
 
     QCameraDevice create() { return QCameraDevice(this); }
+
+    static QCameraDevice create(std::unique_ptr<QCameraDevicePrivate> device)
+    {
+        return QCameraDevice(device.release());
+    }
 };
 
 QT_END_NAMESPACE
