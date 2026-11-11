@@ -61,7 +61,7 @@ QAndroidAudioSinkStream::QAndroidAudioSinkStream(QAudioDevice device, const QAud
         break;
     }
 
-    if (QAndroidAudioUtil::supportsLowLatency() && !QAndroidAudioUtil::isBluetoothDevice(m_audioDevice))
+    if (QAndroidAudioUtil::supportsLowLatency())
         builder.params.performanceMode = AAUDIO_PERFORMANCE_MODE_LOW_LATENCY;
 
     builder.userData = this;
