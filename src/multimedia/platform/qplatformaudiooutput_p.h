@@ -16,6 +16,7 @@
 
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qaudiooutput.h>
 
 QT_BEGIN_NAMESPACE
 
@@ -26,6 +27,13 @@ class Q_MULTIMEDIA_EXPORT QPlatformAudioOutput
 public:
     explicit QPlatformAudioOutput(QAudioOutput *qq) : q(qq) { }
     virtual ~QPlatformAudioOutput() = default;
+
+    static QPlatformAudioOutput *get(const QAudioOutput *output)
+    {
+        if (!output->d->q)
+            return nullptr; // The backend failed to create audio output
+        return output->d;
+    }
 
     virtual void setAudioDevice(const QAudioDevice &/*device*/) {}
     virtual void setMuted(bool /*muted*/) {}
