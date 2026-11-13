@@ -15,7 +15,6 @@
 // We mean it.
 //
 
-#include <QtMultimedia/private/qdmabufallocator_p.h>
 #include <QtMultimedia/private/qpipewire_cameracontextmanager_p.h>
 #include <QtMultimedia/private/qpipewire_cameranode_p.h>
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
@@ -43,6 +42,10 @@
 #  define QT_PIPEWIRE_HAS_DMABUF_CAMERA 1
 #else
 #  define QT_PIPEWIRE_HAS_DMABUF_CAMERA 0
+#endif
+
+#if QT_PIPEWIRE_HAS_DMABUF_CAMERA
+#  include <QtMultimedia/private/qdmabufallocator_p.h>
 #endif
 
 QT_BEGIN_NAMESPACE
