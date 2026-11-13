@@ -1,4 +1,5 @@
-ci
+ci !android
+ci android !ffmpeg-mediabackend
 
 [testCameraCaptureMetadata]
 macos darwin-mediabackend
@@ -10,7 +11,6 @@ macos darwin-mediabackend
 ios darwin-mediabackend
 macos ffmpeg-mediabackend
 ios ffmpeg-mediabackend
-android ffmpeg-mediabackend
 
 [testCaptureToBuffer]
 android android-mediabackend
@@ -30,6 +30,7 @@ android ffmpeg-mediabackend
 # Formats differing only in color range compare equal, so they are listed twice
 [videoFormats_containsNoDuplicates_withEachCameraDevice]
 ios ffmpeg-mediabackend
+android ffmpeg-mediabackend
 
 # Android: Frames are stamped with the previous frame's timestamp, so the first two
 # frames share a start time
@@ -71,6 +72,9 @@ ios ffmpeg-mediabackend
 android ffmpeg-mediabackend
 macos darwin-mediabackend
 
+[activeChanged_emitsFalse_whenActiveCameraIsDestroyed_withEachCameraDevice]
+android ffmpeg-mediabackend
+
 # Android: Holding on to frames stalls the stream
 [storingFrames_doesNotStallStream]
 android ffmpeg-mediabackend
@@ -110,6 +114,7 @@ ios darwin-mediabackend
 [recorder_recordingHasExpectedDuration_withEachCameraDevice]
 macos darwin-mediabackend
 ios darwin-mediabackend
+android ffmpeg-mediabackend
 # Android: The recording has only one or two frames
 [recorder_encodesAllCameraFrames_withEachCameraDevice]
 android ffmpeg-mediabackend
