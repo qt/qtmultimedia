@@ -7,6 +7,7 @@
 #include <QtMultimedia/qvideosink.h>
 #include <QtMultimedia/private/qaudiobufferoutput_p.h>
 #include <QtMultimedia/private/qmultimediautils_p.h>
+#include <QtMultimedia/private/qplatformaudiooutput_p.h>
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
 
 #include <QtCore/qdebug.h>
@@ -721,7 +722,7 @@ void QMediaPlayer::setAudioOutput(QAudioOutput *output)
     if (output) {
         output->setDisconnectFunction([this](){ setAudioOutput(nullptr); });
         if (d->control)
-            d->control->setAudioOutput(output->handle());
+            d->control->setAudioOutput(QPlatformAudioOutput::get(output));
     }
     Q_EMIT audioOutputChanged();
 }

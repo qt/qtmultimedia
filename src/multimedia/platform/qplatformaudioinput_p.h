@@ -16,6 +16,7 @@
 
 #include <QtMultimedia/private/qtmultimediaglobal_p.h>
 #include <QtMultimedia/qaudiodevice.h>
+#include <QtMultimedia/qaudioinput.h>
 
 #include <functional>
 
@@ -28,6 +29,13 @@ class Q_MULTIMEDIA_EXPORT QPlatformAudioInput
 public:
     explicit QPlatformAudioInput(QAudioInput *qq) : q(qq) { }
     virtual ~QPlatformAudioInput() = default;
+
+    static QPlatformAudioInput *get(const QAudioInput *input)
+    {
+        if (!input->d->q)
+            return nullptr; // The backend failed to create audio input
+        return input->d;
+    }
 
     virtual void setAudioDevice(const QAudioDevice & /*device*/) { }
     virtual void setMuted(bool /*muted*/) {}

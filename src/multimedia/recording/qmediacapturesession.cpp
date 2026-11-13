@@ -15,6 +15,8 @@
 #include <QtMultimedia/qvideoframeinput.h>
 #include <QtMultimedia/qvideosink.h>
 #include <QtMultimedia/qwindowcapture.h>
+#include <QtMultimedia/private/qplatformaudioinput_p.h>
+#include <QtMultimedia/private/qplatformaudiooutput_p.h>
 #include <QtMultimedia/private/qplatformmediaintegration_p.h>
 #include <QtMultimedia/private/qplatformmediacapture_p.h>
 
@@ -338,7 +340,7 @@ void QMediaCaptureSession::setAudioInput(QAudioInput *input)
     if (input) {
         input->setDisconnectFunction([this](){ setAudioInput(nullptr); });
         if (d->captureSession)
-            d->captureSession->setAudioInput(input->handle());
+            d->captureSession->setAudioInput(QPlatformAudioInput::get(input));
     }
     d->audioInput = input;
     Q_EMIT audioInputChanged();
@@ -679,7 +681,7 @@ void QMediaCaptureSession::setAudioOutput(QAudioOutput *output)
     if (output) {
         output->setDisconnectFunction([this](){ setAudioOutput(nullptr); });
         if (d->captureSession)
-            d->captureSession->setAudioOutput(output->handle());
+            d->captureSession->setAudioOutput(QPlatformAudioOutput::get(output));
     }
     d->audioOutput = output;
     Q_EMIT audioOutputChanged();

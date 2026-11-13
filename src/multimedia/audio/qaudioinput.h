@@ -42,9 +42,9 @@ Q_SIGNALS:
     void mutedChanged(bool muted);
 
 private:
-    QPlatformAudioInput *handle() const { return d; }
     void setDisconnectFunction(std::function<void()> disconnectFunction);
     friend class QMediaCaptureSession;
+    friend class QPlatformAudioInput;
     Q_DISABLE_COPY(QAudioInput)
     QPlatformAudioInput *d = nullptr;
 };
