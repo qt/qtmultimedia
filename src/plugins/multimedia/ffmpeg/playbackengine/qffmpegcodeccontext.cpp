@@ -15,9 +15,52 @@ Q_STATIC_LOGGING_CATEGORY(qLcPlaybackEngineCodec, "qt.multimedia.playbackengine.
 
 namespace QFFmpeg {
 
-CodecContext::Data::Data(AVCodecContextUPtr context, AVStream *avStream,
-                         AVFormatContext *avFormatContext,
-                         std::unique_ptr<QFFmpeg::HWAccel> hwAccel)
+PlaybackCodecContextDeleter::PlaybackCodecContextDeleter() : m_state{ std::make_unique<State>() } {}
+
+void PlaybackCodecContextDeleter::operator()(AVCodecContext *context) const
+{
+    if (!context)
+        return;
+
+    Q_ASSERT(m_state && m_state->context == context && context->opaque == m_state.get());
+    const Finalizer finalizer = m_state->finalizer;
+    m_state->finalizer = nullptr;
+    if (finalizer)
+        finalizer(context);
+
+    context->opaque = nullptr;
+    avcodec_free_context(&context);
+}
+
+void PlaybackCodecContextDeleter::attach(AVCodecContext *context) const
+{
+    if (!context)
+        return;
+
+    Q_ASSERT(context->opaque == nullptr);
+    m_state->context = context;
+    // AVCodecContext::opaque is reserved for this playback finalizer state.
+    context->opaque = m_state.get();
+}
+
+void PlaybackCodecContextDeleter::setFinalizer(AVCodecContext *context, Finalizer finalizer)
+{
+    Q_ASSERT(context && context->opaque);
+    auto *state = static_cast<State *>(context->opaque);
+    Q_ASSERT(state->context == context && !state->finalizer && finalizer);
+    state->finalizer = finalizer;
+}
+
+PlaybackCodecContextUPtr createPlaybackCodecContext(const AVCodec *codec)
+{
+    PlaybackCodecContextUPtr context{ avcodec_alloc_context3(codec),
+                                      PlaybackCodecContextDeleter{} };
+    context.get_deleter().attach(context.get());
+    return context;
+}
+
+CodecContext::Data::Data(PlaybackCodecContextUPtr context, AVStream *avStream,
+                         AVFormatContext *avFormatContext, std::unique_ptr<HWAccel> hwAccel)
     : context(std::move(context)),
       stream(avStream),
       formatContext(avFormatContext),
@@ -81,7 +124,7 @@ q23::expected<CodecContext, QString> CodecContext::create(AVStream *stream,
     qCDebug(qLcPlaybackEngineCodec)
             << "found decoder" << decoder->name() << "for id" << decoder->id();
 
-    AVCodecContextUPtr context(avcodec_alloc_context3(decoder->get()));
+    PlaybackCodecContextUPtr context = createPlaybackCodecContext(decoder->get());
     if (!context)
         return q23::unexpected{ u"Failed to allocate a FFmpeg codec context"_s };
 
