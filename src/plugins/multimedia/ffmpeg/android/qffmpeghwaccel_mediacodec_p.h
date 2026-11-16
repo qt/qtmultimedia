@@ -18,6 +18,8 @@
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 #include <memory>
 
+#include <QtGui/rhi/qrhi.h>
+
 #include <QtCore/qtconfigmacros.h>
 
 QT_BEGIN_NAMESPACE
