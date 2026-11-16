@@ -3,6 +3,7 @@
 
 #include <QtTest/qtest.h>
 #include <QtMultimedia/qaudioformat.h>
+#include <QtMultimedia/private/qpipewire_audiocontextmanager_p.h>
 #include <QtMultimedia/private/qpipewire_propertydict_p.h>
 #include <QtMultimedia/private/qpipewire_registry_support_p.h>
 #include <QtMultimedia/private/qpipewire_spa_pod_parser_support_p.h>
@@ -64,6 +65,10 @@ private slots:
     void registryType_data();
     void registryType();
     void registryType_unknown();
+
+    // qpipewire_audiocontextmanager_p.h
+    void jsonParseObjectName_data();
+    void jsonParseObjectName();
 
     // qpipewire_propertydict_p.h
     void toPropertyDict();
@@ -166,6 +171,47 @@ void tst_QPipeWireSupport::registryType_unknown()
     QTest::ignoreMessage(QtWarningMsg, "unknown type \"not.a.pipewire.type\"");
     std::optional<PipewireRegistryType> result = parsePipewireRegistryType("not.a.pipewire.type");
     QVERIFY(!result.has_value());
+}
+
+void tst_QPipeWireSupport::jsonParseObjectName_data()
+{
+    QTest::addColumn<QByteArray>("json");
+    QTest::addColumn<std::optional<QByteArray>>("expected");
+
+    using Name = std::optional<QByteArray>;
+
+    // the form that WirePlumber stores in the "default" metadata
+    QTest::newRow("name only") << QByteArray(R"({"name":"alsa_output.pci-0000_00_1f.3.analog-stereo"})")
+                               << Name{ "alsa_output.pci-0000_00_1f.3.analog-stereo" };
+    QTest::newRow("name with spaces")
+            << QByteArray(R"({ "name": "alsa_input.usb-camera.mono-fallback" })")
+            << Name{ "alsa_input.usb-camera.mono-fallback" };
+
+    // members around the name are skipped, whatever type their value has
+    QTest::newRow("member after name") << QByteArray(R"({"name":"sink","other":1})") << Name{ "sink" };
+    QTest::newRow("string member before name")
+            << QByteArray(R"({"other":"text","name":"sink"})") << Name{ "sink" };
+    QTest::newRow("number member before name")
+            << QByteArray(R"({"other":1,"name":"sink"})") << Name{ "sink" };
+    QTest::newRow("boolean member before name")
+            << QByteArray(R"({"other":true,"name":"sink"})") << Name{ "sink" };
+    QTest::newRow("object member before name")
+            << QByteArray(R"({"other":{"a":1,"b":[1,2]},"name":"sink"})") << Name{ "sink" };
+    QTest::newRow("array member before name")
+            << QByteArray(R"({"other":[1,"two",{"three":3}],"name":"sink"})") << Name{ "sink" };
+    QTest::newRow("several members before name")
+            << QByteArray(R"({"a":1,"b":"x","c":[],"name":"sink"})") << Name{ "sink" };
+
+    QTest::newRow("empty object") << QByteArray("{}") << Name{};
+    QTest::newRow("no name") << QByteArray(R"({"other":1,"another":"x"})") << Name{};
+}
+
+void tst_QPipeWireSupport::jsonParseObjectName()
+{
+    QFETCH(const QByteArray, json);
+    QFETCH(const std::optional<QByteArray>, expected);
+
+    QCOMPARE(QtPipeWire::jsonParseObjectName(json.constData()), expected);
 }
 
 void tst_QPipeWireSupport::toPropertyDict()
