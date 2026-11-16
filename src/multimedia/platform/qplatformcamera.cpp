@@ -242,12 +242,12 @@ void QPlatformCamera::updateError(QCamera::Error error, const QString &errorStri
 void QPlatformCamera::emitEndOfStreamFrame(std::chrono::microseconds lastStart,
                                            std::optional<std::chrono::microseconds> lastEnd)
 {
-    QVideoFrame endFrame = QVideoFramePrivate::createFrame(std::unique_ptr<QAbstractVideoBuffer>{},
-                                                           QVideoFrameFormat{});
-    const std::chrono::microseconds endTime = lastEnd.value_or(lastStart);
-    endFrame.setStartTime(
-            (endTime > lastStart ? endTime : lastStart + std::chrono::microseconds{ 1 }).count());
-    Q_EMIT newVideoFrame(endFrame);
+    using namespace std::chrono_literals;
+
+    std::chrono::microseconds endTime = lastEnd.value_or(lastStart);
+    if (endTime <= lastStart)
+        endTime = lastStart + 1us;
+    Q_EMIT newVideoFrame(QVideoFramePrivate::createEndOfStreamFrame(endTime));
 }
 
 QT_END_NAMESPACE

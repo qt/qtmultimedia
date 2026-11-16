@@ -185,6 +185,7 @@ private slots:
     void createFromBuffer();
     void createFromImage_data();
     void createNull();
+    void createEndOfStreamFrame_returnsInvalidFrame_withStartTime();
     void destructor_deletesVideoBuffer();
     void destructorOfPrivateData_unmapsAndDeletesVideoBuffer_whenNoMoreFramesCopies();
     void copy_data();
@@ -461,6 +462,17 @@ void tst_QVideoFrame::createNull()
         QCOMPARE(frame.isReadable(), false);
         QCOMPARE(frame.isWritable(), false);
     }
+}
+
+void tst_QVideoFrame::createEndOfStreamFrame_returnsInvalidFrame_withStartTime()
+{
+    using namespace std::chrono_literals;
+
+    QVideoFrame frame = QVideoFramePrivate::createEndOfStreamFrame(1000us);
+
+    QVERIFY(!frame.isValid());
+    QCOMPARE(frame.startTime(), qint64(1000));
+    QCOMPARE(frame.endTime(), qint64(-1));
 }
 
 void tst_QVideoFrame::destructor_deletesVideoBuffer()

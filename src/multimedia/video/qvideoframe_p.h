@@ -21,6 +21,8 @@
 
 #include <qmutex.h>
 
+#include <chrono>
+
 QT_BEGIN_NAMESPACE
 
 #ifdef __cpp_concepts
@@ -64,6 +66,16 @@ public:
         else if constexpr (std::is_same_v<QAbstractVideoBuffer, Buffer>)
             hwVideoBuffer = dynamic_cast<QHwVideoBuffer *>(videoBuffer.get());
         // else hwVideoBuffer == nullptr
+    }
+
+    [[nodiscard]] static QVideoFrame createEndOfStreamFrame(std::chrono::microseconds startTime)
+    {
+        Q_ASSERT(startTime.count() >= 0);
+
+        QVideoFrame result;
+        result.d.reset(new QVideoFramePrivate);
+        result.d->startTime = startTime.count();
+        return result;
     }
 
     static QVideoFramePrivate *handle(QVideoFrame &frame) { return frame.d.get(); }
