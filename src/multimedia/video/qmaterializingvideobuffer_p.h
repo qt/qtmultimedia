@@ -352,8 +352,7 @@ MaterializingVideoBuffer<Source, Registry, Base>::wrapOrMaterialize(Registry &re
                                                                     QVideoFrameFormat format,
                                                                     BaseArgs &&...baseArgs)
 {
-    if (auto ret = tryCreate(registry, std::move(slot), source, format,
-                             std::forward<BaseArgs>(baseArgs)...))
+    if (auto ret = tryCreate(registry, slot, source, format, std::forward<BaseArgs>(baseArgs)...))
         return ret;
 
     auto ret =
