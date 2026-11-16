@@ -23,9 +23,15 @@
 
 #include <pipewire/pipewire.h>
 
+#include <optional>
+
 QT_BEGIN_NAMESPACE
 
 namespace QtPipeWire {
+
+// returns the value of the "name" member of a JSON object, as found in the values of the
+// "default" metadata object, e.g. {"name": "alsa_output.pci-0000_00_1f.3.analog-stereo"}
+Q_MULTIMEDIA_EXPORT std::optional<QByteArray> jsonParseObjectName(const char *json);
 
 struct QPipewireAudioStream;
 

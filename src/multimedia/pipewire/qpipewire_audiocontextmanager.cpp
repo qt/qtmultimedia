@@ -265,8 +265,6 @@ void QAudioContextManager::stopListenDefaultMetadataObject()
     });
 }
 
-namespace {
-
 // parse json object with one "name" member
 std::optional<QByteArray> jsonParseObjectName(const char *json_str)
 {
@@ -285,7 +283,9 @@ std::optional<QByteArray> jsonParseObjectName(const char *json_str)
                 if (spa_json_get_string(&it, value, sizeof(value)) >= 0)
                     return QByteArray{ value };
             } else {
-                spa_json_next(&it, nullptr);
+                // skip the value of any other member
+                const char *ignoredValue = nullptr;
+                spa_json_next(&it, &ignoredValue);
             }
         }
     }
@@ -309,8 +309,6 @@ std::optional<QByteArray> jsonParseObjectName(const char *json_str)
     return name.toString().toUtf8();
 #endif
 }
-
-} // namespace
 
 int QAudioContextManager::handleDefaultMetadataObjectEvent(ObjectId subject,
                                                            const MetadataRecord &record)
