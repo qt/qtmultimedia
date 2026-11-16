@@ -82,6 +82,8 @@ QT_END_NAMESPACE
     // Presentation timestamp of the first frame of the stream. Used to report
     // frame times relative to the start of the stream.
     std::optional<std::chrono::microseconds> m_baseTime;
+    // Start time of the most recent frame, relative to m_baseTime.
+    std::chrono::microseconds m_lastPresentationTime;
     std::unique_ptr<QT_PREPEND_NAMESPACE(QFFmpeg::HWAccel)> m_hwAccel;
 }
 
@@ -203,6 +205,7 @@ struct FrameInfo
     if (!scStreamOutput.m_baseTime)
         scStreamOutput.m_baseTime = frameTime;
     const std::chrono::microseconds presentationTime = frameTime - *scStreamOutput.m_baseTime;
+    scStreamOutput.m_lastPresentationTime = presentationTime;
 
     QVideoFrameFormat format = QAVFHelpers::videoFormatForImageBuffer(pixelBuffer.get());
     if (!format.isValid())
@@ -237,18 +240,22 @@ struct FrameInfo
     return frame;
 }
 
-[[nodiscard]] static QVideoFrame createEndOfStreamFrame(std::chrono::microseconds baseTime)
+[[nodiscard]] static QVideoFrame createEndOfStreamFrame(
+    std::chrono::microseconds baseTime,
+    std::chrono::microseconds lastPresentationTime)
 {
-    QVideoFrame frame{ QVideoFrameFormat{} };
-    Q_ASSERT(!frame.isValid());
+    using namespace std::chrono_literals;
 
     // ScreenCaptureKit timestamps frames on the host clock, so we can use that clock
     // to express the end of the stream relative to the start of the stream.
+    // Frame timestamps can be ahead of the host clock, so the end of the stream must
+    // still be placed after the last frame.
     const std::chrono::microseconds hostTime =
         QAVFHelpers::CMTimeToMicroseconds(CMClockGetTime(CMClockGetHostTimeClock()));
-    frame.setStartTime((hostTime - baseTime).count());
-
-    return frame;
+    std::chrono::microseconds endTime = hostTime - baseTime;
+    if (endTime <= lastPresentationTime)
+        endTime = lastPresentationTime + 1us;
+    return QVideoFramePrivate::createEndOfStreamFrame(endTime);
 }
 
 // Main frame handler.
@@ -444,15 +451,18 @@ QMacScreenCaptureKit::~QMacScreenCaptureKit()
         // m_baseTime is owned by the background queue, so it is only read from there.
         // The queue is serial, so this runs after all frames that were already delivered.
         dispatch_async(m_dispatchQueue.data(), [this] {
-            std::optional<std::chrono::microseconds> baseTime =
-                m_streamOutput.data()->m_baseTime;
+            QMacScreenCaptureStreamOutput *streamOutput = m_streamOutput.data();
+            std::optional<std::chrono::microseconds> baseTime = streamOutput->m_baseTime;
 
             // A stream that never delivered a frame never started, in which case there is
             // no stream for consumers to see the end of.
             if (!baseTime)
                 return;
 
-            emit newVideoFrameGenerated(m_streamId, createEndOfStreamFrame(*baseTime));
+            QVideoFrame endFrame = createEndOfStreamFrame(
+                *baseTime,
+                streamOutput->m_lastPresentationTime);
+            emit newVideoFrameGenerated(m_streamId, endFrame);
         });
 
         // Flush the dispatch_queue. After this we assume it's safe to tear everything down.
