@@ -6,6 +6,7 @@
 #include <QtTest/qtest.h>
 
 #include <QtFFmpegMediaPluginImpl/private/qffmpeg_p.h>
+#include <QtFFmpegMediaPluginImpl/private/qffmpegcodeccontext_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_mediacodec_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_p.h>
 #include <QtFFmpegMediaPluginImpl/private/qffmpegvideobuffer_p.h>
@@ -18,6 +19,8 @@
 #include <QtGui/rhi/qrhi.h>
 
 #include <QtCore/qfileinfo.h>
+#include <QtCore/qjnienvironment.h>
+#include <QtCore/qjniobject.h>
 #include <QtCore/qregularexpression.h>
 #include <QtCore/qtemporaryfile.h>
 #include <QtCore/qurl.h>
@@ -25,6 +28,7 @@
 extern "C" {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
+#include <libavutil/hwcontext_mediacodec.h>
 }
 
 #include <chrono>
@@ -85,7 +89,7 @@ public:
             return std::nullopt;
         context.m_hwAccel = std::move(hwAccel);
 
-        context.m_codecContext.reset(avcodec_alloc_context3(codec->get()));
+        context.m_codecContext = createPlaybackCodecContext(codec->get());
         if (!context.m_codecContext)
             return std::nullopt;
 
@@ -145,11 +149,21 @@ public:
         }
     }
 
+    // The Surface the decoder renders into, as stored by setupDecoderSurface().
+    jobject surface() const
+    {
+        AVHWDeviceContext *deviceContext = m_hwAccel->hwDeviceContext();
+        if (!deviceContext || !deviceContext->hwctx)
+            return nullptr;
+        auto *mediaCodecContext = reinterpret_cast<AVMediaCodecDeviceContext *>(deviceContext->hwctx);
+        return static_cast<jobject>(mediaCodecContext->surface);
+    }
+
 private:
     MediaCodecDeviceContext() = default;
 
     AVDemuxerContextUPtr m_formatContext;
-    AVCodecContextUPtr m_codecContext;
+    PlaybackCodecContextUPtr m_codecContext;
     HWAccelUPtr m_hwAccel;
     std::optional<int> m_videoStreamIndex;
     // Kept alive for the object's lifetime when filePath was a resource path; the demuxer reads
@@ -170,6 +184,7 @@ private slots:
     void createTextureHandles_reusesTexture_onSecondRealFrame();
     void createTextureHandles_returnsNull_forFrameWithoutHwFramesCtx();
     void map_returnsFalse_forRealDecodedFrame();
+    void decoderTeardown_clearsSurfaceWeakRef();
 
 private:
     // The MediaCodec decode is asynchronous: av_mediacodec_release_buffer() only requests that
@@ -346,6 +361,58 @@ void tst_QMediaCodecTextureConverter::createTextureHandles_returnsNull_forFrameW
 
     QVideoFrameTexturesHandlesUPtr handles = converter->createTextureHandles(frame.get(), nullptr);
     QVERIFY(!handles);
+}
+
+namespace {
+
+// Forces GC and finalization so unreachable Java objects are cleared before a check.
+void forceGc()
+{
+    for (int i = 0; i < 3; ++i) {
+        QJniObject::callStaticMethod<void>("java/lang/System", "gc", "()V");
+        QJniObject::callStaticMethod<void>("java/lang/System", "runFinalization", "()V");
+        QTest::qWait(50);
+    }
+}
+
+} // namespace
+
+// QTBUG-152285: a leaked JNI global ref keeps the decoder's Surface reachable after teardown. This
+// needs no hidden API: a weak global ref must clear once the decoder is destroyed. A leaked strong
+// global ref keeps the Surface reachable, so the weak ref stays set.
+void tst_QMediaCodecTextureConverter::decoderTeardown_clearsSurfaceWeakRef()
+{
+    q23::expected<OffscreenGlRhi, QString> offscreenRhi = createOffscreenGlRhi();
+    if (!offscreenRhi)
+        QSKIP(qPrintable(u"Could not create an OpenGL ES2 QRhi backend on this system: "_s
+                         + offscreenRhi.error()));
+    auto &[fallbackSurface, rhi] = *offscreenRhi;
+
+    rhi->makeThreadLocalNativeContextCurrent();
+
+    QJniEnvironment env;
+    constexpr int iterations = 5;
+    for (int i = 0; i < iterations; ++i) {
+        jobject weakSurface = nullptr;
+        {
+            std::optional<MediaCodecDeviceContext> deviceContext =
+                    MediaCodecDeviceContext::create(QUrl(u"qrc:/testdata/one_red_frame.mp4"_s));
+            if (!deviceContext)
+                QSKIP("Could not open a MediaCodec hw decode session on this device");
+
+            jobject surface = deviceContext->surface();
+            QVERIFY2(surface, "Decoder has no Surface after open");
+            weakSurface = env->NewWeakGlobalRef(surface);
+            QVERIFY(weakSurface);
+            // Decoder is destroyed at the end of this scope.
+        }
+
+        forceGc();
+        const bool collected = env->IsSameObject(weakSurface, nullptr);
+        env->DeleteWeakGlobalRef(weakSurface);
+        QVERIFY2(collected,
+                 qPrintable(u"Surface still reachable after decoder teardown, cycle %1"_s.arg(i)));
+    }
 }
 
 QTEST_MAIN(tst_QMediaCodecTextureConverter)

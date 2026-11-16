@@ -28,13 +28,37 @@ class QPlaybackOptions;
 
 namespace QFFmpeg {
 
+struct PlaybackCodecContextDeleter
+{
+    using Finalizer = void (*)(AVCodecContext *);
+
+    PlaybackCodecContextDeleter();
+
+    void operator()(AVCodecContext *context) const;
+    void attach(AVCodecContext *context) const;
+    static void setFinalizer(AVCodecContext *context, Finalizer finalizer);
+
+private:
+    struct State
+    {
+        AVCodecContext *context = nullptr;
+        Finalizer finalizer = nullptr;
+    };
+
+    std::unique_ptr<State> m_state;
+};
+
+using PlaybackCodecContextUPtr = std::unique_ptr<AVCodecContext, PlaybackCodecContextDeleter>;
+
+PlaybackCodecContextUPtr createPlaybackCodecContext(const AVCodec *codec);
+
 class CodecContext
 {
     struct Data : QSharedData
     {
-        Data(AVCodecContextUPtr context, AVStream *avStream, AVFormatContext *formatContext,
-             std::unique_ptr<QFFmpeg::HWAccel> hwAccel);
-        AVCodecContextUPtr context;
+        Data(PlaybackCodecContextUPtr context, AVStream *avStream, AVFormatContext *formatContext,
+             std::unique_ptr<HWAccel> hwAccel);
+        PlaybackCodecContextUPtr context;
         AVStream *stream = nullptr;
         AVFormatContext *formatContext = nullptr;
         AVRational pixelAspectRatio = { 0, 1 };

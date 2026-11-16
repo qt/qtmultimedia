@@ -3,6 +3,8 @@
 
 #include <QtFFmpegMediaPluginImpl/private/qffmpeghwaccel_mediacodec_p.h>
 
+#include <QtFFmpegMediaPluginImpl/private/qffmpegcodeccontext_p.h>
+
 #include <QtGui/rhi/qrhi.h>
 
 // TODO: This class is reused from the native Android media backend and breaks ODR.
@@ -58,13 +60,28 @@ AndroidSurfaceTexture* getTextureSurface(AVFrame *frame)
 
     return reinterpret_cast<AndroidSurfaceTexture *>(deviceContext->user_opaque);
 }
+using UninitializedMediaCodecContextUPtr = std::unique_ptr<AVMediaCodecContext, AVFreeDeleter>;
+
 } // namespace
 
 void MediaCodecTextureConverter::setupDecoderSurface(AVCodecContext *avCodecContext)
 {
     std::unique_ptr<AndroidSurfaceTexture> androidSurfaceTexture(new AndroidSurfaceTexture(0));
-    AVMediaCodecContext *mediacodecContext = av_mediacodec_alloc_context();
-    av_mediacodec_default_init(avCodecContext, mediacodecContext, androidSurfaceTexture->surface());
+
+    UninitializedMediaCodecContextUPtr mediacodecContext{ av_mediacodec_alloc_context() };
+    if (!mediacodecContext)
+        return;
+
+    if (av_mediacodec_default_init(avCodecContext, mediacodecContext.get(),
+                                   androidSurfaceTexture->surface())
+        < 0) {
+        qWarning() << "Failed to initialize the MediaCodec surface.";
+        return;
+    }
+    mediacodecContext.release();
+    PlaybackCodecContextDeleter::setFinalizer(avCodecContext, +[](AVCodecContext *context) {
+        av_mediacodec_default_free(context);
+    });
 
     if (!avCodecContext->hw_device_ctx || !avCodecContext->hw_device_ctx->data)
         return;
