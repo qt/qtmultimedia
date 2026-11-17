@@ -15,8 +15,14 @@ TestCase {
             TestHelper.isMediaBackendPluginLoaded,
             "No media backend plugin was loaded; the fallback integration was used.")
 
-        if (TestHelper.isWMFPlatform)
+        if (TestHelper.isWmfMediaBackend)
             skip("Window capture is not supported on Windows Media Foundations")
+
+        if (TestHelper.isDarwinMediaBackend)
+            skip("Window capture QML tests are skipped on Darwin")
+
+        if (TestHelper.isGstreamerMediaBackend)
+            skip("Window capture QML tests are skipped on GStreamer")
     }
 
     Component {

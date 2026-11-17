@@ -11,16 +11,28 @@ class TestHelper : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(bool isMediaBackendPluginLoaded READ isMediaBackendPluginLoaded CONSTANT FINAL)
-    Q_PROPERTY(bool isWMFPlatform READ isWMFPlatform CONSTANT FINAL)
+    Q_PROPERTY(bool isWmfMediaBackend READ isWmfMediaBackend CONSTANT FINAL)
+    Q_PROPERTY(bool isDarwinMediaBackend READ isDarwinMediaBackend CONSTANT FINAL)
+    Q_PROPERTY(bool isGstreamerMediaBackend READ isGstreamerMediaBackend CONSTANT FINAL)
 public:
     [[nodiscard]] static bool isMediaBackendPluginLoaded()
     {
         return BackendUtilsImpl::isMediaBackendPluginLoaded();
     }
 
-    [[nodiscard]] static bool isWMFPlatform()
+    [[nodiscard]] static bool isWmfMediaBackend()
     {
         return BackendUtilsImpl::isWMFPlatform();
+    }
+
+    [[nodiscard]] static bool isDarwinMediaBackend()
+    {
+        return BackendUtilsImpl::isDarwinPlatform();
+    }
+
+    [[nodiscard]] static bool isGstreamerMediaBackend()
+    {
+        return BackendUtilsImpl::isGStreamerPlatform();
     }
 };
 
