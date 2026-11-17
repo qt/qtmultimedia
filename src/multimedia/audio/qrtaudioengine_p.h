@@ -255,7 +255,7 @@ private:
     void visitVoiceRt(VoiceId, RtVoiceVisitor, bool visitorIsTrivial);
 
     void audioCallback(QSpan<float>) noexcept Q_DECL_NONBLOCKING_FUNCTION;
-    void cleanupRetiredVoices() noexcept Q_DECL_NONBLOCKING_FUNCTION;
+    [[nodiscard]] bool cleanupRetiredVoices() noexcept Q_DECL_NONBLOCKING_FUNCTION;
 
     void runRtCommands() noexcept Q_DECL_NONBLOCKING_FUNCTION;
     void runRtCommand(PlayCommand) noexcept Q_DECL_NONBLOCKING_FUNCTION;
