@@ -70,7 +70,11 @@ function(qt_internal_multimedia_add_test name)
                               # processing); full coverage needs a physical GPU.
     )
     set(oneValueArgs)
-    set(multiValueArgs)
+    set(multiValueArgs
+        LABELS                # Extra CTest labels. Must be the last argument, since keywords
+                              # of qt_internal_add_test are not known here and would be
+                              # consumed as labels.
+    )
     cmake_parse_arguments(PARSE_ARGV 1 args "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
     qt_internal_add_test(${name} ${args_UNPARSED_ARGUMENTS})
@@ -84,6 +88,10 @@ function(qt_internal_multimedia_add_test name)
             MACOSX_BUNDLE TRUE
             MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist
         )
+    endif()
+
+    if(TEST ${name} AND args_LABELS)
+        set_property(TEST ${name} APPEND PROPERTY LABELS ${args_LABELS})
     endif()
 
     if(TEST ${name})
