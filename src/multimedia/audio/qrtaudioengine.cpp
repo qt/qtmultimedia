@@ -206,9 +206,11 @@ void QRtAudioEngine::audioCallback(QSpan<float> outputBuffer) noexcept Q_DECL_NO
 
     if (!finishedVoices.empty()) {
         withRTSanDisabled([&] {
-            for (const SharedVoice &voice : finishedVoices) {
+            for (SharedVoice &voice : finishedVoices) {
                 m_rtVoiceRegistry.erase(voice);
-                bool stopSent = sendRtToAppNotification(StopNotification{ voice });
+                bool stopSent = sendRtToAppNotification(StopNotification{
+                        std::move(voice),
+                });
                 if (stopSent)
                     sendNotification = true;
             }
@@ -217,12 +219,12 @@ void QRtAudioEngine::audioCallback(QSpan<float> outputBuffer) noexcept Q_DECL_NO
 
     // TODO: we should probably (soft)clip the output buffer
 
-    cleanupRetiredVoices();
-    if (sendNotification)
+    bool voicesRetired = cleanupRetiredVoices();
+    if (sendNotification || voicesRetired)
         m_notificationEvent.set();
 }
 
-void QRtAudioEngine::cleanupRetiredVoices() noexcept Q_DECL_NONBLOCKING_FUNCTION
+bool QRtAudioEngine::cleanupRetiredVoices() noexcept Q_DECL_NONBLOCKING_FUNCTION
 {
     bool notifyApp = false;
 
@@ -241,17 +243,28 @@ void QRtAudioEngine::cleanupRetiredVoices() noexcept Q_DECL_NONBLOCKING_FUNCTION
     };
 #endif
     withRTSanDisabled([&] {
-        erase_if(m_rtVoiceRegistry, [&](const SharedVoice &voice) {
-            bool voiceIsActive = voice->isActive();
-            if (!voiceIsActive)
-                notifyApp = sendRtToAppNotification(StopNotification{ voice });
+        pmr::vector<SharedVoice> finishedVoices{
+            m_rtMemoryPool.get(),
+        };
 
-            return !voiceIsActive;
+        erase_if(m_rtVoiceRegistry, [&](const SharedVoice &voice) {
+            if (voice->isActive())
+                return false;
+
+            finishedVoices.push_back(voice);
+            return true;
         });
+
+        for (SharedVoice &voice : finishedVoices) {
+            bool stopSent = sendRtToAppNotification(StopNotification{
+                    std::move(voice),
+            });
+            if (stopSent)
+                notifyApp = true;
+        }
     });
 
-    if (notifyApp)
-        m_notificationEvent.set();
+    return notifyApp;
 }
 
 void QRtAudioEngine::runRtCommands() noexcept Q_DECL_NONBLOCKING_FUNCTION
