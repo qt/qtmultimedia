@@ -403,7 +403,7 @@ void tst_QCaptureSlotRegistry::tryReserveSlot_refusesAtThreshold()
     QCOMPARE(int(producer->outstandingSlotCount()), expectedReservations);
 
     // One more must be refused, whatever the threshold was.
-    QVERIFY(!producer->tryReserveSlot(slotCount).has_value());
+    QVERIFY(!producer->tryReserveSlot(int(slotCount)).has_value());
 }
 
 void tst_QCaptureSlotRegistry::tryReserveSlot_keepsSlotOnRefusal()
@@ -414,11 +414,11 @@ void tst_QCaptureSlotRegistry::tryReserveSlot_keepsSlotOnRefusal()
     QVERIFY(lease);
 
     MoveOnlySlot slot{ 42 };
-    QCOMPARE(producer->tryReserveSlot(std::move(slot)).has_value(), false);
+    QCOMPARE(producer->tryReserveSlot(slot).has_value(), false);
     QCOMPARE(slot.value, 42);
 
     lease.reset();
-    std::optional retry = producer->tryReserveSlot(std::move(slot));
+    std::optional retry = producer->tryReserveSlot(slot);
     QVERIFY(retry);
 }
 

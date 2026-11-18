@@ -114,10 +114,9 @@ public:
         std::size_t m_index = 0;
     };
 
-    // Takes the slot only when a lease is returned. On refusal the argument is left intact, so the
+    // Moves the slot only when a lease is returned. On refusal the argument is left intact, so the
     // caller can still recycle it or copy the buffer it stands for.
-    template <typename SlotArg>
-    std::optional<Lease> tryReserveSlot(SlotArg &&slot)
+    std::optional<Lease> tryReserveSlot(Slot &slot)
     {
         std::lock_guard lock(m_mutex);
         if (m_stopped || m_outstandingCount + m_minFreeSlots >= m_slotCount) {
@@ -128,7 +127,7 @@ public:
         }
 
         ++m_outstandingCount;
-        const std::size_t index = allocateEntry(Slot(std::forward<SlotArg>(slot)));
+        const std::size_t index = allocateEntry(Slot(std::move(slot)));
         qCDebug(qLcCaptureSlotsTrace)
                 << "reserved entry" << index << "outstanding:" << m_outstandingCount;
         return Lease{
@@ -136,6 +135,8 @@ public:
             index,
         };
     }
+
+    std::optional<Lease> tryReserveSlot(Slot &&slot) { return tryReserveSlot(slot); }
 
     std::size_t outstandingSlotCount() const
     {

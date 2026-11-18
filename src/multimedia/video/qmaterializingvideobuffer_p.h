@@ -58,7 +58,7 @@ concept MaterializingRegistry =
             typename Registry::SlotType;
             typename Registry::Lease;
             requires CaptureSlot<typename Registry::SlotType>;
-            { registry.tryReserveSlot(std::move(slot)) }
+            { registry.tryReserveSlot(slot) }
                 -> std::same_as<std::optional<typename Registry::Lease>>;
         };
 
@@ -268,7 +268,7 @@ public:
     tryCreate(Registry &registry, SlotArg &&slot, Source source, QVideoFrameFormat format = {},
               BaseArgs &&...baseArgs)
     {
-        std::optional lease = registry.tryReserveSlot(std::forward<SlotArg>(slot));
+        std::optional lease = registry.tryReserveSlot(slot);
         if (!lease) {
             qCDebug(qLcCaptureSlotsTrace) << "pool under pressure, caller must copy eagerly";
             return nullptr;
