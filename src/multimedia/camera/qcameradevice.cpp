@@ -41,8 +41,8 @@ QT_BEGIN_NAMESPACE
     cameraFormat represents a certain video format supported by a camera device.
 
     The format is a combination of a
-    \l{pixel format}{QVideoFrameFormat::PixelFormat}, resolution and a range of frame
-    rates.
+    \l{QVideoFrameFormat::PixelFormat}{pixel format}, resolution, and a range
+    of frame frates.
 
     cameraFormat objects can be queried from \l cameraDevice to inspect the set of
     supported video formats.
