@@ -1,9 +1,4 @@
 type: Group
-enable_if:
-  condition: property
-  property: features
-  contains_value: WindowsNativeMediaBackendTests
-
 instructions:
   - type: EnvironmentVariable
     variableName: QT_MEDIA_BACKEND
