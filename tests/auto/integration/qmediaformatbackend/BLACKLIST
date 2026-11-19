@@ -2,15 +2,6 @@
 [isSupported_returnsTrue_whenFormatAndVideoCodecIsSupported]
 ci !android
 
-[isSupported_returnsTrue_whenFormatAndVideoCodecIsSupported:WMV,WMV]
-ci android
-
-[isSupported_returnsTrue_whenFormatAndVideoCodecIsSupported:Matroska,H264]
-ci android
-
-[isSupported_returnsTrue_whenFormatAndVideoCodecIsSupported:AAC,WMV]
-ci android
-
 # QTBUG-139714
 [resolveForEncoding_doesNotChangeFormat_whenFormatIsSupported]
 ci !android
