@@ -8,14 +8,12 @@ if(NOT QT_BUILD_STANDALONE_TESTS AND NOT QT_BUILDING_QT)
 endif()
 
 qt_internal_multimedia_add_test(tst_qquickvideooutput
-    NEEDS_MEDIA_BACKEND_PLUGINS
     SOURCES
         tst_qquickvideooutput.cpp
     LIBRARIES
         Qt::Gui
         Qt::MultimediaPrivate
         Qt::MultimediaQuickPrivate
-        Qt::MultimediaTestLibPrivate
         Qt::Qml
         Qt::Quick
 )

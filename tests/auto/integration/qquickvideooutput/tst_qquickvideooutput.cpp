@@ -4,8 +4,6 @@
 //TESTED_COMPONENT=plugins/declarative/multimedia
 
 #include <QtMultimediaQuick/private/qquickvideooutput_p.h>
-#include <QtMultimediaTestLib/private/mediabackendutils_p.h>
-#include <QtMultimediaTestLib/private/qintegrationtestbase_p.h>
 #include <QtTest/qsignalspy.h>
 #include <QtTest/qtest.h>
 #include <QtMultimedia/qmediaplayer.h>
@@ -32,9 +30,7 @@ void presentDummyFrame(QVideoSink *sink, const QSize &size)
     }
 }
 
-using namespace QtMultimediaTest;
-
-class tst_QQuickVideoOutput : public QIntegrationTestBase
+class tst_QQuickVideoOutput : public QObject
 {
     Q_OBJECT
 public:
@@ -76,9 +72,6 @@ tst_QQuickVideoOutput::tst_QQuickVideoOutput() = default;
 
 void tst_QQuickVideoOutput::initTestCase()
 {
-    if (!initIntegrationTestCase())
-        return;
-
     // We initialize the mapping vars here
     m_mappingComponent = new QQmlComponent(&m_engine);
     m_mappingComponent->loadUrl(QUrl("qrc:/main.qml"));
