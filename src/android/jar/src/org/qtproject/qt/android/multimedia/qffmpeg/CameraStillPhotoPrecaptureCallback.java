@@ -8,6 +8,8 @@ import android.hardware.camera2.CaptureFailure;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.TotalCaptureResult;
+import android.os.SystemClock;
+import android.util.Log;
 
 // This callback class is meant to be used a repeating request during still photo capture, when
 // waiting for the auto-focus and auto-exposure calibration to lock in. Once done,
@@ -28,6 +30,11 @@ class CameraStillPhotoPrecaptureCallback extends CameraCaptureSession.CaptureCal
     // resubmitted for capture. This boolean tracks whether we should be processing incoming
     // events.
     boolean mShouldProcessIncomingEvents = true;
+
+    // Auto-focus and auto-exposure is not guaranteed to ever settle,
+    // i.e when facing completely black scene. Use timeout if this happens.
+    private static final long PRECAPTURE_TIMEOUT_MS = 3000;
+    private final long mPrecaptureDeadline = SystemClock.elapsedRealtime() + PRECAPTURE_TIMEOUT_MS;
 
     enum PrecaptureOperation {
         FINALIZE_CAPTURE,
@@ -120,7 +127,14 @@ class CameraStillPhotoPrecaptureCallback extends CameraCaptureSession.CaptureCal
             return PrecaptureOperation.FINALIZE_CAPTURE;
         }
 
-        return PrecaptureOperation.WAIT;
+        if (SystemClock.elapsedRealtime() < mPrecaptureDeadline)
+            return PrecaptureOperation.WAIT;
+
+        Log.w(
+            QtCamera2.LOG_TAG,
+            "Auto-focus and auto-exposure did not settle within " + PRECAPTURE_TIMEOUT_MS +
+            " ms, capturing anyway. AF state: " + afState + ", AE state: " + aeState);
+        return PrecaptureOperation.FINALIZE_CAPTURE;
     }
 
     @Override
