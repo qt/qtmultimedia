@@ -31,7 +31,9 @@
 #include <emscripten/val.h>
 #include <emscripten/bind.h>
 
+#include <memory>
 #include <string_view>
+#include <vector>
 
 QT_BEGIN_NAMESPACE
 
@@ -95,6 +97,8 @@ public:
 
 private:
     void updateCameraDevices();
+    void enumerateDevices();
+    void watchPermission(const char *permissionName);
     void parseDevices(emscripten::val devices);
     void insertFallbackAudioOutput();
     QByteArray findDefaultDeviceId(emscripten::val devices, std::string_view deviceKind) const;
@@ -109,6 +113,8 @@ private:
     QList<QCameraDevice> m_cameraDevices;
 
     std::unique_ptr<qstdweb::EventCallback> m_deviceChangedCallback;
+    std::vector<std::unique_ptr<qstdweb::EventCallback>> m_permissionChangedCallbacks;
+    bool m_permissionWatchStarted = false;
 
     bool m_videoInputsAdded = false;
     bool m_audioInputsAdded = false;
