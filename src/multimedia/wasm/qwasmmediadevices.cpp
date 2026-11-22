@@ -469,59 +469,86 @@ void QWasmMediaDevices::getMediaDevices()
         return;
     }
 
+    enumerateDevices();
+
+    m_deviceChangedCallback = std::make_unique<qstdweb::EventCallback>(
+            m_jsMediaDevicesInterface, "devicechange",
+            [this](emscripten::val) { enumerateDevices(); });
+
+    // Browsers do not reliably fire devicechange when camera or microphone
+    // permission is granted (Chrome on Android never does), yet that is when
+    // enumerateDevices() starts reporting real device ids and labels.
+    if (!m_permissionWatchStarted) {
+        m_permissionWatchStarted = true;
+        watchPermission("camera");
+        watchPermission("microphone");
+    }
+}
+
+void QWasmMediaDevices::enumerateDevices()
+{
     if (qstdweb::haveAsyncify()) {
-
 #ifdef QT_HAVE_EMSCRIPTEN_ASYNCIFY
-        auto asyncEnumerate = [](void *arg){
-            QWasmMediaDevices *mediaDevices = static_cast<QWasmMediaDevices *>(arg);
-            mediaDevices->devicesList = mediaDevices->m_jsMediaDevicesInterface.call<emscripten::val>("enumerateDevices").await();
-            if (mediaDevices->devicesList.isNull() || mediaDevices->devicesList.isUndefined()) {
-                qWarning() << "devices list error";
-                return;
-            }
-            mediaDevices->parseDevices(mediaDevices->devicesList);
-        };
-
-        asyncEnumerate(this);
-
-        m_deviceChangedCallback = std::make_unique<qstdweb::EventCallback>(
-                m_jsMediaDevicesInterface, "devicechange",
-                [this, asyncEnumerate](emscripten::val) {
-                    asyncEnumerate(this);
-                });
+        devicesList = m_jsMediaDevicesInterface.call<emscripten::val>("enumerateDevices").await();
+        if (devicesList.isNull() || devicesList.isUndefined()) {
+            qWarning() << "devices list error";
+            return;
+        }
+        parseDevices(devicesList);
 #endif
-
-    } else {
-
-        qstdweb::PromiseCallbacks enumerateDevicesCallback{
-            .thenFunc =
-            [&](emscripten::val devices) {
-                parseDevices(devices);
-            },
-            .catchFunc =
-            [this](emscripten::val error) {
-                qWarning() << "mediadevices enumerateDevices fail"
-                           << QString::fromStdString(error["name"].as<std::string>())
-                           << QString::fromStdString(error["message"].as<std::string>());
-                m_initDone = false;
-            },
-            .finallyFunc = {}
-        };
-
-        qstdweb::Promise::make(m_jsMediaDevicesInterface,
-                               QStringLiteral("enumerateDevices"),
-                               std::move(enumerateDevicesCallback));
-
-        // setup devicechange monitor
-        m_deviceChangedCallback = std::make_unique<qstdweb::EventCallback>(
-                m_jsMediaDevicesInterface, "devicechange",
-                [this, enumerateDevicesCallback](emscripten::val) {
-                    qstdweb::Promise::make(m_jsMediaDevicesInterface,
-                                           QStringLiteral("enumerateDevices"),
-                                           std::move(enumerateDevicesCallback));
-                });
+        return;
     }
 
+    qstdweb::PromiseCallbacks enumerateDevicesCallback{
+        .thenFunc = [this](emscripten::val devices) { parseDevices(devices); },
+        .catchFunc =
+                [this](emscripten::val error) {
+                    qWarning() << "mediadevices enumerateDevices fail"
+                               << QString::fromStdString(error["name"].as<std::string>())
+                               << QString::fromStdString(error["message"].as<std::string>());
+                    m_initDone = false;
+                },
+        .finallyFunc = {}
+    };
+
+    qstdweb::Promise::make(m_jsMediaDevicesInterface, QStringLiteral("enumerateDevices"),
+                           std::move(enumerateDevicesCallback));
+}
+
+void QWasmMediaDevices::watchPermission(const char *permissionName)
+{
+    emscripten::val permissions = emscripten::val::global("navigator")["permissions"];
+    if (permissions.isUndefined() || permissions.isNull())
+        return;
+
+    emscripten::val permissionDescriptor = emscripten::val::object();
+    permissionDescriptor.set("name", emscripten::val(permissionName));
+    const QString permissionNameString = QString::fromLatin1(permissionName);
+
+    qstdweb::PromiseCallbacks queryCallback{
+        .thenFunc =
+                [this, permissionNameString](emscripten::val permissionStatus) {
+                    m_permissionChangedCallbacks.push_back(std::make_unique<qstdweb::EventCallback>(
+                            permissionStatus, "change",
+                            [this, permissionNameString](emscripten::val) {
+                                qCDebug(qWasmMediaDevices)
+                                        << permissionNameString
+                                        << "permission changed, re-enumerating devices";
+                                enumerateDevices();
+                            }));
+                },
+        // browsers that do not know this permission name reject with a TypeError
+        .catchFunc =
+                [permissionNameString](emscripten::val error) {
+                    qCDebug(qWasmMediaDevices)
+                            << "cannot watch" << permissionNameString << "permission:"
+                            << QString::fromStdString(error["message"].as<std::string>());
+                },
+        .finallyFunc = {}
+    };
+
+    qstdweb::Promise::make(permissions, QStringLiteral("query"), std::move(queryCallback),
+                           permissionDescriptor);
 }
 
 QT_END_NAMESPACE
