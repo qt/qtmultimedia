@@ -10,12 +10,12 @@ ApplicationWindow {
     width: 800
     height: 600
     visible: true
-    title: qsTr("QmlMinimalGstreamerVideoSource")
+    title: qsTr("QmlMinimalGStreamerVideoSource")
 
     CaptureSession {
         id: captureSession
         videoOutput: output
-        nativeVideoSource: GstreamerVideoSource {
+        nativeVideoSource: GStreamerVideoSource {
             id: videoSource
             gstBinDescription: "videotestsrc"
             active: true

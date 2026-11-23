@@ -21,7 +21,7 @@ qt_add_executable(qml-minimal-gstreamer-video-source WIN32 MACOSX_BUNDLE
 )
 
 qt_add_qml_module(qml-minimal-gstreamer-video-source
-    URI QmlMinimalGstreamerVideoSource
+    URI QmlMinimalGStreamerVideoSource
     NO_RESOURCE_TARGET_PATH
     QML_FILES
         qml-minimal-gstreamer-video-source.qml
