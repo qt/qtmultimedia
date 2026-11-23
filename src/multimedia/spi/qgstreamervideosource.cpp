@@ -80,7 +80,7 @@ QT_BEGIN_NAMESPACE
     Item {
         CaptureSession {
             nativeVideoSource: GStreamerVideoSource {
-                gstElementDescription: "videotestsrc name=testsrc"
+                gstBinDescription: "videotestsrc name=testsrc"
                 active: true
             }
             videoOutput: preview
