@@ -341,8 +341,12 @@ void QWasmVideoOutput::detectIosCameraRotation()
     if (!isPlatformiOs())
         return;
 
-    m_useCameraRotation = true;
     emscripten::val stream = m_video["srcObject"];
+    // URL playback has no MediaStream, only camera streams need rotating.
+    if (stream.isNull() || stream.isUndefined() || stream["getVideoTracks"].isUndefined())
+        return;
+
+    m_useCameraRotation = true;
     emscripten::val videoTracks = stream.call<emscripten::val>("getVideoTracks");
 
     if (!videoTracks.isUndefined() && videoTracks["length"].as<int>() > 0) {
