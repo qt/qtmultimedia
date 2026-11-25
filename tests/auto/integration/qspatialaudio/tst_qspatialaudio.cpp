@@ -44,6 +44,7 @@ private slots:
     void testQAmbientSound_basic();
     void testQAudioRoom_basic();
     void testQAudioListener_basic();
+    void testQAudioListener_positionUsesDistanceScale();
     void testSwitchAudioDevice();
     void test_nullEngine_behaviour();
 
@@ -397,6 +398,22 @@ void tst_QSpatialAudio::testQAudioListener_basic()
     QAudioListener listener(&eng);
     listener.setPosition({0,0,0});
     QCOMPARE(listener.position(), QVector3D(0,0,0));
+}
+
+void tst_QSpatialAudio::testQAudioListener_positionUsesDistanceScale()
+{
+    QAudioListener listener(engine.get());
+
+    QMessageSpy spy(qLcSpatialAudioEngine());
+    auto expectCm = spy.expect(QtDebugMsg, "Setting head position: QVector3D(1, 2, -3)");
+    listener.setPosition({ 100, 200, -300 });
+    QVERIFY(expectCm.wait());
+    QCOMPARE(listener.position(), QVector3D(100, 200, -300));
+
+    engine->setDistanceScale(QAudioEngine::DistanceScaleMeter);
+    auto expectM = spy.expect(QtDebugMsg, "Setting head position: QVector3D(4, 5, 6)");
+    listener.setPosition({ 4, 5, 6 });
+    QVERIFY(expectM.wait());
 }
 
 void tst_QSpatialAudio::testSwitchAudioDevice()

@@ -68,10 +68,12 @@ void QAudioEnginePrivate::setListenerPosition(std::optional<QVector3D> pos)
     if (pos == m_position)
         return;
 
+    // m_position stays in scene units for the room checks; Resonance works in meters.
     m_position = pos;
 
-    QVector3D posValue = pos.value_or(QVector3D{});
-    resonanceAudio->api->SetHeadPosition(posValue.x(), posValue.y(), posValue.z());
+    const QVector3D headPos = pos.value_or(QVector3D{}) * m_distanceScale;
+    qCDebug(qLcSpatialAudioEngine) << "Setting head position:" << headPos;
+    resonanceAudio->api->SetHeadPosition(headPos.x(), headPos.y(), headPos.z());
 
     updateRooms();
 }
