@@ -8,6 +8,7 @@
 #include <QtGui/rhi/qrhi.h>
 #include <QtCore/qloggingcategory.h>
 #include <QtCore/private/qcore_unix_p.h>
+#include <QtCore/private/qexpected_p.h>
 
 #if QT_CONFIG(opengl) && QT_CONFIG(egl)
 #  include <QtMultimedia/private/qdmabuftextureimporter_p.h>
